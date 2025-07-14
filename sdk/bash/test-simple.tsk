@@ -1,0 +1,6 @@
+# Simple test file
+$global_var: "test value"
+
+[test_section]
+key1: "value1"
+key2: $global_var
