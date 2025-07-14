@@ -1145,7 +1145,7 @@ TuskLang is licensed under the [Balanced Benefit License (BBL)](LICENSE). See [l
 
 ---
 
-*"We don't bow to any king" - Choose your syntax. Query your data. Execute your logic.*
+*Choose your syntax. Query your data. Execute your logic.*
 
 **Built by Bernie Gengel and his dog Buddy**
 
