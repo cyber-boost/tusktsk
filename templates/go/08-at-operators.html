@@ -1,0 +1,453 @@
+<h1>@ Operator System with TuskLang in Go</h1>
+
+<h2>Dynamic Configuration with @ Operators</h2>
+<p>The @ operator system provides runtime evaluation and dynamic behavior in TuskLang configurations for Go applications.</p>
+
+<h3>operators.tsk</h3>
+<pre>
+# Variable references
+app_name: "GoTuskApp"
+version: "2.0"
+full_title: "@var.app_name v@var.version"
+
+# Variable with fallback
+port: @var.PORT|8080
+debug: @var.DEBUG_MODE|false
+
+# Request handling (web context)
+current_user: @request.user.id
+http_method: @request.method
+query_param: @request.query.search
+post_data: @request.post.username
+user_agent: @request.headers.User-Agent
+
+# Session and cookies
+session_id: @session.id
+user_preference: @cookie.theme|"light"
+
+# Environment and server variables
+database_url: @env.DATABASE_URL|"postgres://localhost/app"
+server_name: @server.SERVER_NAME
+http_host: @http.host
+
+# Cache operations
+expensive_data: @cache("10m", @Query("Analytics").calculate())
+user_count: @cache("1h", @Query("Users").count())
+
+# Metrics and monitoring
+api_calls: @metrics("api_requests", 1)
+response_time: @metrics("response_ms", @var.elapsed_time)
+
+# Learning and optimization
+batch_size: @optimize("batch_size", 100)
+cache_ttl: @learn("optimal_cache_ttl", 300)
+
+# JSON responses
+api_response: @json({
+    status: "success",
+    data: @var.result,
+    timestamp: @time()
+})
+
+# Chained operations
+user_profile: @cache("5m", @Query("Users").where("id", @request.user_id).first())
+</pre>
+
+<h3>Go Implementation</h3>
+<pre>
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "net/http"
+    "os"
+    "strconv"
+    "strings"
+    "time"
+)
+
+type AtOperatorHandler struct {
+    request    *http.Request
+    cache      map[string]CacheItem
+    metrics    map[string]interface{}
+    variables  map[string]interface{}
+}
+
+type CacheItem struct {
+    Value   interface{}
+    Expires time.Time
+}
+
+func NewAtOperatorHandler(r *http.Request) *AtOperatorHandler {
+    return &AtOperatorHandler{
+        request:   r,
+        cache:     make(map[string]CacheItem),
+        metrics:   make(map[string]interface{}),
+        variables: make(map[string]interface{}),
+    }
+}
+
+func (h *AtOperatorHandler) ProcessOperator(operator string) interface{} {
+    parts := strings.SplitN(operator[1:], ".", 2) // Remove @ and split
+    command := parts[0]
+    
+    switch command {
+    case "var":
+        if len(parts) > 1 {
+            return h.handleVariable(parts[1])
+        }
+        return nil
+        
+    case "request":
+        if len(parts) > 1 {
+            return h.handleRequest(parts[1])
+        }
+        return nil
+        
+    case "env":
+        if len(parts) > 1 {
+            return h.handleEnvironment(parts[1])
+        }
+        return nil
+        
+    case "cache":
+        return h.handleCache(operator)
+        
+    case "metrics":
+        return h.handleMetrics(operator)
+        
+    case "json":
+        return h.handleJSON(operator)
+        
+    case "time":
+        return time.Now().Unix()
+        
+    default:
+        return operator // Return as-is if not recognized
+    }
+}
+
+func (h *AtOperatorHandler) handleVariable(varPath string) interface{} {
+    // Handle fallback syntax: var.NAME|default
+    if strings.Contains(varPath, "|") {
+        parts := strings.Split(varPath, "|")
+        varName := parts[0]
+        defaultValue := parts[1]
+        
+        if value, ok := h.variables[varName]; ok {
+            return value
+        }
+        
+        // Try environment variable
+        if envValue := os.Getenv(strings.ToUpper(varName)); envValue != "" {
+            return envValue
+        }
+        
+        return defaultValue
+    }
+    
+    if value, ok := h.variables[varPath]; ok {
+        return value
+    }
+    
+    return ""
+}
+
+func (h *AtOperatorHandler) handleRequest(requestPath string) interface{} {
+    if h.request == nil {
+        return ""
+    }
+    
+    parts := strings.Split(requestPath, ".")
+    
+    switch parts[0] {
+    case "method":
+        return h.request.Method
+        
+    case "query":
+        if len(parts) > 1 {
+            return h.request.URL.Query().Get(parts[1])
+        }
+        return h.request.URL.RawQuery
+        
+    case "headers":
+        if len(parts) > 1 {
+            return h.request.Header.Get(parts[1])
+        }
+        return nil
+        
+    case "post":
+        if len(parts) > 1 && h.request.Method == "POST" {
+            h.request.ParseForm()
+            return h.request.PostForm.Get(parts[1])
+        }
+        return nil
+        
+    case "user":
+        // This would typically come from session/JWT
+        if len(parts) > 1 && parts[1] == "id" {
+            // Placeholder - implement based on your auth system
+            return h.getUserID()
+        }
+        return nil
+    }
+    
+    return ""
+}
+
+func (h *AtOperatorHandler) handleEnvironment(envPath string) string {
+    // Handle fallback syntax: env.NAME|default
+    if strings.Contains(envPath, "|") {
+        parts := strings.Split(envPath, "|")
+        envName := parts[0]
+        defaultValue := parts[1]
+        
+        if value := os.Getenv(envName); value != "" {
+            return value
+        }
+        return defaultValue
+    }
+    
+    return os.Getenv(envPath)
+}
+
+func (h *AtOperatorHandler) handleCache(operator string) interface{} {
+    // Parse @cache("10m", value) syntax
+    if !strings.HasPrefix(operator, "@cache(") {
+        return operator
+    }
+    
+    content := operator[7 : len(operator)-1] // Remove @cache( and )
+    parts := h.parseArguments(content)
+    
+    if len(parts) < 2 {
+        return operator
+    }
+    
+    ttlStr := strings.Trim(parts[0], `"`)
+    valueExpr := parts[1]
+    
+    // Generate cache key
+    key := fmt.Sprintf("cache_%s", valueExpr)
+    
+    // Check if cached value exists and is not expired
+    if item, ok := h.cache[key]; ok && time.Now().Before(item.Expires) {
+        return item.Value
+    }
+    
+    // Compute value (in real implementation, this would evaluate the expression)
+    value := h.evaluateExpression(valueExpr)
+    
+    // Parse TTL and store in cache
+    duration := h.parseDuration(ttlStr)
+    h.cache[key] = CacheItem{
+        Value:   value,
+        Expires: time.Now().Add(duration),
+    }
+    
+    return value
+}
+
+func (h *AtOperatorHandler) handleMetrics(operator string) interface{} {
+    // Parse @metrics("name", value) syntax
+    if !strings.HasPrefix(operator, "@metrics(") {
+        return operator
+    }
+    
+    content := operator[9 : len(operator)-1] // Remove @metrics( and )
+    parts := h.parseArguments(content)
+    
+    if len(parts) < 2 {
+        return operator
+    }
+    
+    metricName := strings.Trim(parts[0], `"`)
+    valueExpr := parts[1]
+    
+    value := h.evaluateExpression(valueExpr)
+    
+    // Store/update metric
+    if existing, ok := h.metrics[metricName]; ok {
+        if existingNum, ok := existing.(float64); ok {
+            if newNum, ok := value.(float64); ok {
+                h.metrics[metricName] = existingNum + newNum
+            }
+        }
+    } else {
+        h.metrics[metricName] = value
+    }
+    
+    return value
+}
+
+func (h *AtOperatorHandler) handleJSON(operator string) interface{} {
+    // Parse @json({...}) syntax
+    if !strings.HasPrefix(operator, "@json(") {
+        return operator
+    }
+    
+    content := operator[6 : len(operator)-1] // Remove @json( and )
+    
+    // This is a simplified version - real implementation would parse the object
+    jsonData := map[string]interface{}{
+        "status":    "success",
+        "timestamp": time.Now().Unix(),
+    }
+    
+    jsonBytes, err := json.Marshal(jsonData)
+    if err != nil {
+        return operator
+    }
+    
+    return string(jsonBytes)
+}
+
+func (h *AtOperatorHandler) parseArguments(content string) []string {
+    var args []string
+    var current strings.Builder
+    var inQuotes bool
+    var parenDepth int
+    
+    for _, char := range content {
+        switch char {
+        case '"':
+            inQuotes = !inQuotes
+            current.WriteRune(char)
+            
+        case '(':
+            parenDepth++
+            current.WriteRune(char)
+            
+        case ')':
+            parenDepth--
+            current.WriteRune(char)
+            
+        case ',':
+            if !inQuotes && parenDepth == 0 {
+                args = append(args, strings.TrimSpace(current.String()))
+                current.Reset()
+            } else {
+                current.WriteRune(char)
+            }
+            
+        default:
+            current.WriteRune(char)
+        }
+    }
+    
+    if current.Len() > 0 {
+        args = append(args, strings.TrimSpace(current.String()))
+    }
+    
+    return args
+}
+
+func (h *AtOperatorHandler) parseDuration(ttl string) time.Duration {
+    if len(ttl) < 2 {
+        return 5 * time.Minute
+    }
+    
+    unit := ttl[len(ttl)-1:]
+    valueStr := ttl[:len(ttl)-1]
+    
+    value, err := strconv.Atoi(valueStr)
+    if err != nil {
+        return 5 * time.Minute
+    }
+    
+    switch unit {
+    case "s":
+        return time.Duration(value) * time.Second
+    case "m":
+        return time.Duration(value) * time.Minute
+    case "h":
+        return time.Duration(value) * time.Hour
+    case "d":
+        return time.Duration(value) * 24 * time.Hour
+    default:
+        return time.Duration(value) * time.Minute
+    }
+}
+
+func (h *AtOperatorHandler) evaluateExpression(expr string) interface{} {
+    // Simplified expression evaluation
+    expr = strings.TrimSpace(expr)
+    
+    // If it's a number
+    if num, err := strconv.ParseFloat(expr, 64); err == nil {
+        return num
+    }
+    
+    // If it's a string
+    if strings.HasPrefix(expr, `"`) && strings.HasSuffix(expr, `"`) {
+        return expr[1 : len(expr)-1]
+    }
+    
+    // If it's another @ operator
+    if strings.HasPrefix(expr, "@") {
+        return h.ProcessOperator(expr)
+    }
+    
+    return expr
+}
+
+func (h *AtOperatorHandler) getUserID() string {
+    // Placeholder - implement based on your authentication system
+    // This might involve parsing JWT tokens, session cookies, etc.
+    return "user123"
+}
+
+// Example HTTP handler using @ operators
+func TuskLangHandler(w http.ResponseWriter, r *http.Request) {
+    // Load TuskLang configuration
+    content := `
+app_name: "GoAPI"
+user_id: @request.user.id
+method: @request.method
+response: @json({
+    user: @var.user_id,
+    method: @var.method,
+    timestamp: @time()
+})
+`
+    
+    handler := NewAtOperatorHandler(r)
+    
+    // Process the configuration
+    lines := strings.Split(content, "\n")
+    config := make(map[string]interface{})
+    
+    for _, line := range lines {
+        line = strings.TrimSpace(line)
+        if line == "" || strings.HasPrefix(line, "#") {
+            continue
+        }
+        
+        if strings.Contains(line, ":") {
+            parts := strings.SplitN(line, ":", 2)
+            key := strings.TrimSpace(parts[0])
+            value := strings.TrimSpace(parts[1])
+            
+            // Process @ operators
+            if strings.HasPrefix(value, "@") {
+                value = fmt.Sprintf("%v", handler.ProcessOperator(value))
+            }
+            
+            config[key] = value
+        }
+    }
+    
+    // Return JSON response
+    w.Header().Set("Content-Type", "application/json")
+    json.NewEncoder(w).Encode(config)
+}
+
+func main() {
+    http.HandleFunc("/api", TuskLangHandler)
+    fmt.Println("Server starting on :8080")
+    http.ListenAndServe(":8080", nil)
+}
+</pre>
+
+<p>The @ operator system makes TuskLang configurations dynamic and context-aware, perfect for Go web applications and microservices.</p>

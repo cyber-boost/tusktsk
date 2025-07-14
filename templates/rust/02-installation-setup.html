@@ -1,0 +1,274 @@
+<h1>Installation and Setup for Rust</h1>
+
+<h2>Cargo.toml Dependencies</h2>
+<p>Setting up TuskLang support in your Rust project with the necessary dependencies.</p>
+
+<h3>Cargo.toml</h3>
+<pre>
+[package]
+name = "my-rust-app"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+tokio = { version = "1.0", features = ["full"] }
+clap = { version = "4.0", features = ["derive"] }
+anyhow = "1.0"
+env_logger = "0.10"
+log = "0.4"
+
+[dev-dependencies]
+tempfile = "3.0"
+</pre>
+
+<h3>Project Structure</h3>
+<pre>
+# project-structure.tsk
+project {
+    name: "my-rust-app"
+    type: "binary"
+    
+    structure {
+        src {
+            main.rs: "Application entry point"
+            config {
+                mod.rs: "Configuration module"
+                parser.rs: "TuskLang parser implementation"
+                types.rs: "Configuration type definitions"
+            }
+            web {
+                mod.rs: "Web module"
+                handlers.rs: "HTTP handlers"
+                middleware.rs: "Custom middleware"
+            }
+            database {
+                mod.rs: "Database module"
+                models.rs: "Data models"
+                connection.rs: "Connection management"
+            }
+        }
+        
+        config {
+            "app.tsk": "Main application configuration"
+            "database.tsk": "Database configuration"
+            "logging.tsk": "Logging configuration"
+        }
+        
+        tests {
+            "integration_tests.rs": "Integration tests"
+            "config_tests.rs": "Configuration parsing tests"
+        }
+    }
+}
+</pre>
+
+<h3>Main Application Setup</h3>
+<pre>
+// src/main.rs
+mod config;
+mod web;
+mod database;
+
+use anyhow::Result;
+use clap::Parser;
+use log::info;
+
+#[derive(Parser)]
+#[command(name = "my-rust-app")]
+#[command(about = "A Rust application using TuskLang")]
+struct Cli {
+    #[arg(short, long, default_value = "config/app.tsk")]
+    config: String,
+    
+    #[arg(short, long)]
+    verbose: bool,
+}
+
+#[tokio::main]
+async fn main() -> Result<()> {
+    let cli = Cli::parse();
+    
+    // Initialize logging
+    if cli.verbose {
+        env_logger::Builder::from_env(env_logger::Env::default().default_filter_or("debug")).init();
+    } else {
+        env_logger::init();
+    }
+    
+    // Load configuration
+    let config = config::load_from_file(&cli.config)?;
+    info!("Loaded configuration from: {}", cli.config);
+    
+    // Initialize database connection
+    let db = database::connect(&config.database).await?;
+    info!("Connected to database: {}", config.database.name);
+    
+    // Start web server
+    web::start_server(config.server, db).await?;
+    
+    Ok(())
+}
+</pre>
+
+<h3>Configuration Module</h3>
+<pre>
+// src/config/mod.rs
+pub mod parser;
+pub mod types;
+
+pub use types::*;
+pub use parser::TuskParser;
+
+use anyhow::Result;
+use std::path::Path;
+
+pub fn load_from_file<P: AsRef<Path>>(path: P) -> Result<AppConfig> {
+    TuskParser::parse_file(path.as_ref())
+}
+
+pub fn load_from_string(content: &str) -> Result<AppConfig> {
+    TuskParser::parse(content)
+}
+
+// Validation functions
+pub fn validate_config(config: &AppConfig) -> Result<()> {
+    if config.name.is_empty() {
+        anyhow::bail!("Application name cannot be empty");
+    }
+    
+    if config.server.port == 0 {
+        anyhow::bail!("Server port must be greater than 0");
+    }
+    
+    if config.database.max_connections == 0 {
+        anyhow::bail!("Database max_connections must be greater than 0");
+    }
+    
+    Ok(())
+}
+
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tempfile::NamedTempFile;
+    use std::io::Write;
+    
+    #[test]
+    fn test_config_loading() {
+        let config_content = r#"
+name: "Test App"
+version: "1.0.0"
+port: 3000
+
+server {
+    host: "0.0.0.0"
+    port: 3000
+}
+
+database {
+    driver: "postgres"
+    host: "localhost"
+    port: 5432
+    name: "testdb"
+    user: "testuser"
+    password: "testpass"
+    max_connections: 5
+}
+"#;
+        
+        let mut temp_file = NamedTempFile::new().unwrap();
+        write!(temp_file, "{}", config_content).unwrap();
+        
+        let config = load_from_file(temp_file.path()).unwrap();
+        assert_eq!(config.name, "Test App");
+        assert_eq!(config.server.port, 3000);
+        assert_eq!(config.database.max_connections, 5);
+        
+        validate_config(&config).unwrap();
+    }
+    
+    #[test]
+    fn test_config_validation() {
+        let mut config = AppConfig::default();
+        config.name = "".to_string(); // Invalid empty name
+        
+        assert!(validate_config(&config).is_err());
+    }
+}
+</pre>
+
+<h3>Environment Integration</h3>
+<pre>
+# environment.tsk
+environments {
+    development {
+        database {
+            host: env("DEV_DB_HOST", "localhost")
+            port: env("DEV_DB_PORT", 5432)
+            name: env("DEV_DB_NAME", "myapp_dev")
+            user: env("DEV_DB_USER", "postgres")
+            password: env("DEV_DB_PASSWORD", "")
+        }
+        
+        logging {
+            level: "debug"
+            format: "human"
+        }
+        
+        server {
+            hot_reload: true
+            debug_mode: true
+        }
+    }
+    
+    production {
+        database {
+            host: env("PROD_DB_HOST")
+            port: env("PROD_DB_PORT", 5432)
+            name: env("PROD_DB_NAME")
+            user: env("PROD_DB_USER")
+            password: env("PROD_DB_PASSWORD")
+            ssl_mode: "require"
+        }
+        
+        logging {
+            level: "info"
+            format: "json"
+        }
+        
+        server {
+            hot_reload: false
+            debug_mode: false
+        }
+    }
+}
+
+// Environment-specific configuration loading
+use std::env;
+
+impl TuskParser {
+    pub fn load_environment_config(base_config: &str, env_name: &str) -> Result<AppConfig> {
+        let content = format!("{}\n\n# Environment: {}", base_config, env_name);
+        
+        // Override with environment-specific settings
+        let env_config = match env_name {
+            "development" => include_str!("../config/dev.tsk"),
+            "production" => include_str!("../config/prod.tsk"),
+            _ => "",
+        };
+        
+        let full_content = format!("{}\n{}", content, env_config);
+        Self::parse(&full_content)
+    }
+}
+
+pub fn determine_environment() -> String {
+    env::var("RUST_ENV")
+        .or_else(|_| env::var("APP_ENV"))
+        .unwrap_or_else(|_| "development".to_string())
+}
+</pre>
+
+<p>TuskLang setup in Rust leverages Cargo's dependency management and Rust's type system for robust configuration handling.</p>

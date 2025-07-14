@@ -1,0 +1,30 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>C# Database</title>
+  <desc>C# database connection and Entity Framework representation</desc>
+  
+  <!-- Database server -->
+  <ellipse cx="32" cy="16" rx="20" ry="8" fill="#2A2A3E" stroke="#239120" stroke-width="2"/>
+  <ellipse cx="32" cy="16" rx="16" ry="6" fill="#239120" opacity="0.3"/>
+  
+  <!-- Database body -->
+  <rect x="12" y="16" width="40" height="32" rx="4" fill="#2A2A3E" stroke="#239120" stroke-width="2"/>
+  
+  <!-- Database layers -->
+  <ellipse cx="32" cy="24" rx="16" ry="4" fill="#239120" opacity="0.2"/>
+  <ellipse cx="32" cy="32" rx="16" ry="4" fill="#68217A" opacity="0.2"/>
+  <ellipse cx="32" cy="40" rx="16" ry="4" fill="#239120" opacity="0.2"/>
+  
+  <!-- Connection lines -->
+  <path d="M 32 48 L 32 56" stroke="#68217A" stroke-width="2" fill="none"/>
+  <path d="M 30 54 L 32 56 L 34 54" stroke="#68217A" stroke-width="2" fill="none"/>
+  
+  <!-- Application layer -->
+  <rect x="20" y="56" width="24" height="6" rx="2" fill="#2A2A3E" stroke="#68217A" stroke-width="1"/>
+  <text x="32" y="60" font-family="Courier New" font-size="6" text-anchor="middle" fill="#68217A">EF Core</text>
+  
+  <!-- Data indicators -->
+  <circle cx="16" cy="20" r="1" fill="#68217A"/>
+  <circle cx="48" cy="20" r="1" fill="#68217A"/>
+  <circle cx="16" cy="44" r="1" fill="#68217A"/>
+  <circle cx="48" cy="44" r="1" fill="#68217A"/>
+</svg> 

@@ -1,0 +1,492 @@
+#!/usr/bin/env php
+<?php
+/**
+ * 🗄️ TuskDB CLI - Database Management Tool
+ * =======================================
+ * "The elephant's memory management system"
+ * 
+ * Commands:
+ *   status              - Show database connection status
+ *   wisdom             - Display database wisdom/statistics
+ *   migrate <file>     - Run migration file
+ *   query <sql>        - Execute raw SQL query
+ *   test               - Test database connection
+ *   backup [file]      - Backup database
+ *   health             - Check database health
+ */
+
+if (php_sapi_name() !== 'cli') {
+    die("TuskDB CLI must be run from command line\n");
+}
+
+// Auto-detect installation paths
+$paths = [
+    __DIR__ . '/../fujsen/src',
+    __DIR__ . '/../../fujsen/src',
+    '/usr/local/lib/tusklang/fujsen/src',
+    '/opt/tusklang/fujsen/src'
+];
+
+$fujsenPath = null;
+foreach ($paths as $path) {
+    if (file_exists($path . '/autoload.php')) {
+        $fujsenPath = $path;
+        break;
+    }
+}
+
+if (!$fujsenPath) {
+    die("❌ FUJSEN installation not found\n");
+}
+
+require_once $fujsenPath . '/autoload.php';
+
+use TuskPHP\TuskDb;
+use TuskPHP\TuskQuery;
+
+class TuskDbCLI 
+{
+    private $command;
+    private $args;
+    
+    public function __construct($argv) 
+    {
+        $this->command = $argv[1] ?? 'help';
+        $this->args = array_slice($argv, 2);
+        
+        echo "🗄️ TuskDB Management Tool v2.0.0-Elder\n";
+        echo "   The Elephant's Memory Management System\n\n";
+    }
+    
+    public function run() 
+    {
+        switch ($this->command) {
+            case 'status':
+                $this->showStatus();
+                break;
+            case 'wisdom':
+                $this->showWisdom();
+                break;
+            case 'migrate':
+                $this->runMigration();
+                break;
+            case 'query':
+                $this->executeQuery();
+                break;
+            case 'test':
+                $this->testConnection();
+                break;
+            case 'backup':
+                $this->backupDatabase();
+                break;
+            case 'health':
+                $this->checkHealth();
+                break;
+            case 'console':
+                $this->startConsole();
+                break;
+            case 'help':
+            default:
+                $this->showHelp();
+                break;
+        }
+    }
+    
+    private function showStatus() 
+    {
+        echo "📊 Database Status:\n\n";
+        
+        try {
+            $config = TuskDb::getDbConfig();
+            
+            echo "Configuration:\n";
+            echo "  Type: " . ($config['type'] ?? 'unknown') . "\n";
+            echo "  Host: " . ($config['host'] ?? 'N/A') . "\n";
+            echo "  Port: " . ($config['port'] ?? 'N/A') . "\n";
+            echo "  Database: " . ($config['name'] ?? $config['path'] ?? 'N/A') . "\n";
+            echo "  User: " . ($config['user'] ?? 'N/A') . "\n";
+            echo "\n";
+            
+            $testResult = TuskDb::testConnection();
+            if ($testResult['success']) {
+                echo "✅ Connection: Successfully connected\n";
+            } else {
+                echo "❌ Connection: Failed\n";
+                echo "   Error: " . $testResult['error'] . "\n";
+            }
+            
+        } catch (Exception $e) {
+            echo "❌ Error checking status: " . $e->getMessage() . "\n";
+        }
+    }
+    
+    private function showWisdom() 
+    {
+        echo "🧠 Database Wisdom:\n\n";
+        
+        try {
+            $wisdom = TuskDb::wisdom();
+            
+            if ($wisdom['status'] === 'connected') {
+                echo "✅ Status: Connected and healthy\n";
+                echo "🗄️ Type: " . $wisdom['database_type'] . "\n";
+                
+                if (isset($wisdom['database_size'])) {
+                    echo "📦 Size: " . $wisdom['database_size'] . "\n";
+                }
+                
+                if (isset($wisdom['table_count'])) {
+                    echo "📋 Tables: " . $wisdom['table_count'] . "\n";
+                }
+                
+                if (isset($wisdom['postgresql_version'])) {
+                    echo "📌 Version: " . $wisdom['postgresql_version'] . "\n";
+                } elseif (isset($wisdom['sqlite_version'])) {
+                    echo "📌 Version: SQLite " . $wisdom['sqlite_version'] . "\n";
+                }
+                
+                if (isset($wisdom['database_file'])) {
+                    echo "📁 File: " . $wisdom['database_file'] . "\n";
+                }
+                
+            } else {
+                echo "❌ Status: " . $wisdom['status'] . "\n";
+                if (isset($wisdom['message'])) {
+                    echo "   Message: " . $wisdom['message'] . "\n";
+                }
+            }
+            
+        } catch (Exception $e) {
+            echo "❌ Error gathering wisdom: " . $e->getMessage() . "\n";
+        }
+    }
+    
+    private function runMigration() 
+    {
+        $file = $this->args[0] ?? null;
+        if (!$file) {
+            echo "❌ Please specify migration file\n";
+            echo "Usage: tuskdb migrate <migration.sql>\n";
+            return;
+        }
+        
+        if (!file_exists($file)) {
+            echo "❌ Migration file not found: $file\n";
+            return;
+        }
+        
+        echo "🔄 Running migration: $file\n";
+        
+        try {
+            $success = TuskDb::migrate($file);
+            if ($success) {
+                echo "✅ Migration completed successfully\n";
+            } else {
+                echo "❌ Migration failed\n";
+            }
+        } catch (Exception $e) {
+            echo "❌ Migration error: " . $e->getMessage() . "\n";
+        }
+    }
+    
+    private function executeQuery() 
+    {
+        $sql = implode(' ', $this->args);
+        if (empty($sql)) {
+            echo "❌ Please provide SQL query\n";
+            echo "Usage: tuskdb query \"SELECT * FROM users LIMIT 5\"\n";
+            return;
+        }
+        
+        echo "🔍 Executing query:\n";
+        echo "   $sql\n\n";
+        
+        try {
+            $startTime = microtime(true);
+            $result = TuskDb::query($sql);
+            $queryTime = (microtime(true) - $startTime) * 1000;
+            
+            if (is_array($result)) {
+                echo "📊 Results (" . count($result) . " rows in " . number_format($queryTime, 2) . "ms):\n\n";
+                
+                if (!empty($result)) {
+                    // Display as table
+                    $this->displayTable($result);
+                } else {
+                    echo "   (No results)\n";
+                }
+            } else {
+                echo "✅ Query executed successfully\n";
+                echo "   Affected rows: $result\n";
+                echo "   Execution time: " . number_format($queryTime, 2) . "ms\n";
+            }
+            
+        } catch (Exception $e) {
+            echo "❌ Query error: " . $e->getMessage() . "\n";
+        }
+    }
+    
+    private function testConnection() 
+    {
+        echo "🔗 Testing database connection...\n\n";
+        
+        try {
+            $result = TuskDb::testConnection();
+            
+            if ($result['success']) {
+                echo "✅ Connection successful!\n";
+                echo "   Type: " . $result['type'] . "\n";
+                echo "   Host: " . $result['host'] . "\n";
+                echo "   Port: " . $result['port'] . "\n";
+                echo "   Database: " . $result['database'] . "\n";
+            } else {
+                echo "❌ Connection failed!\n";
+                echo "   Error: " . $result['error'] . "\n";
+                if (isset($result['attempted_dsn'])) {
+                    echo "   DSN: " . $result['attempted_dsn'] . "\n";
+                }
+            }
+            
+        } catch (Exception $e) {
+            echo "❌ Test error: " . $e->getMessage() . "\n";
+        }
+    }
+    
+    private function checkHealth() 
+    {
+        echo "💊 Database Health Check:\n\n";
+        
+        try {
+            $health = TuskDb::health();
+            
+            if ($health['status'] === 'healthy') {
+                echo "✅ Overall Status: Healthy\n";
+                echo "🔗 Connection: " . ($health['connection'] ? 'Active' : 'Inactive') . "\n";
+                
+                if (isset($health['response_time'])) {
+                    echo "⚡ Response Time: " . $health['response_time'] . "\n";
+                }
+                
+                if (isset($health['last_check'])) {
+                    echo "🕐 Last Check: " . $health['last_check'] . "\n";
+                }
+                
+            } else {
+                echo "❌ Overall Status: " . $health['status'] . "\n";
+                echo "🔗 Connection: " . ($health['connection'] ? 'Active' : 'Failed') . "\n";
+                
+                if (isset($health['error'])) {
+                    echo "❌ Error: " . $health['error'] . "\n";
+                }
+            }
+            
+        } catch (Exception $e) {
+            echo "❌ Health check error: " . $e->getMessage() . "\n";
+        }
+    }
+    
+    private function backupDatabase() 
+    {
+        $outputFile = $this->args[0] ?? 'backup_' . date('Y-m-d_H-i-s') . '.sql';
+        
+        echo "💾 Creating database backup...\n";
+        echo "   Output file: $outputFile\n\n";
+        
+        try {
+            $config = TuskDb::getDbConfig();
+            
+            if ($config['type'] === 'postgresql') {
+                $this->backupPostgreSQL($config, $outputFile);
+            } elseif ($config['type'] === 'sqlite') {
+                $this->backupSQLite($config, $outputFile);
+            } else {
+                echo "❌ Backup not supported for database type: " . $config['type'] . "\n";
+            }
+            
+        } catch (Exception $e) {
+            echo "❌ Backup error: " . $e->getMessage() . "\n";
+        }
+    }
+    
+    private function backupPostgreSQL($config, $outputFile) 
+    {
+        $command = sprintf(
+            'pg_dump -h %s -p %s -U %s -d %s > %s',
+            escapeshellarg($config['host']),
+            escapeshellarg($config['port']),
+            escapeshellarg($config['user']),
+            escapeshellarg($config['name']),
+            escapeshellarg($outputFile)
+        );
+        
+        echo "🔄 Running: pg_dump...\n";
+        exec($command, $output, $returnCode);
+        
+        if ($returnCode === 0) {
+            echo "✅ PostgreSQL backup completed: $outputFile\n";
+        } else {
+            echo "❌ Backup failed with return code: $returnCode\n";
+        }
+    }
+    
+    private function backupSQLite($config, $outputFile) 
+    {
+        $dbFile = $config['path'] ?? 'database.sqlite';
+        
+        if (!file_exists($dbFile)) {
+            echo "❌ SQLite database file not found: $dbFile\n";
+            return;
+        }
+        
+        if (copy($dbFile, $outputFile)) {
+            echo "✅ SQLite backup completed: $outputFile\n";
+        } else {
+            echo "❌ Failed to copy SQLite database\n";
+        }
+    }
+    
+    private function startConsole() 
+    {
+        echo "🖥️ TuskDB Interactive Console\n";
+        echo "Enter SQL queries (type 'exit' to quit, 'help' for commands):\n\n";
+        
+        while (true) {
+            echo "tuskdb> ";
+            $input = trim(fgets(STDIN));
+            
+            if ($input === 'exit' || $input === 'quit') {
+                echo "👋 Goodbye!\n";
+                break;
+            }
+            
+            if ($input === 'help') {
+                echo "\nConsole Commands:\n";
+                echo "  \\d              - List tables\n";
+                echo "  \\dt             - List tables (detailed)\n";
+                echo "  \\q              - Quit console\n";
+                echo "  help            - Show this help\n";
+                echo "  exit/quit       - Exit console\n\n";
+                continue;
+            }
+            
+            if ($input === '\\d' || $input === '\\dt') {
+                // List tables
+                try {
+                    $config = TuskDb::getDbConfig();
+                    if ($config['type'] === 'postgresql') {
+                        $sql = "SELECT tablename FROM pg_tables WHERE schemaname = 'public'";
+                    } else {
+                        $sql = "SELECT name FROM sqlite_master WHERE type='table'";
+                    }
+                    
+                    $result = TuskDb::query($sql);
+                    if (!empty($result)) {
+                        echo "\nTables:\n";
+                        foreach ($result as $row) {
+                            $tableName = $row['tablename'] ?? $row['name'];
+                            echo "  $tableName\n";
+                        }
+                        echo "\n";
+                    } else {
+                        echo "No tables found.\n";
+                    }
+                } catch (Exception $e) {
+                    echo "Error: " . $e->getMessage() . "\n";
+                }
+                continue;
+            }
+            
+            if (empty($input)) {
+                continue;
+            }
+            
+            // Execute SQL
+            try {
+                $startTime = microtime(true);
+                $result = TuskDb::query($input);
+                $queryTime = (microtime(true) - $startTime) * 1000;
+                
+                if (is_array($result)) {
+                    echo "\n(" . count($result) . " rows, " . number_format($queryTime, 2) . "ms)\n\n";
+                    if (!empty($result)) {
+                        $this->displayTable(array_slice($result, 0, 10)); // Show first 10 rows
+                        if (count($result) > 10) {
+                            echo "... and " . (count($result) - 10) . " more rows\n";
+                        }
+                    }
+                } else {
+                    echo "Query OK, $result row(s) affected (" . number_format($queryTime, 2) . "ms)\n";
+                }
+                echo "\n";
+                
+            } catch (Exception $e) {
+                echo "Error: " . $e->getMessage() . "\n\n";
+            }
+        }
+    }
+    
+    private function displayTable($data) 
+    {
+        if (empty($data)) {
+            return;
+        }
+        
+        $headers = array_keys($data[0]);
+        $widths = [];
+        
+        // Calculate column widths
+        foreach ($headers as $header) {
+            $widths[$header] = strlen($header);
+        }
+        
+        foreach ($data as $row) {
+            foreach ($row as $key => $value) {
+                $widths[$key] = max($widths[$key], strlen((string)$value));
+            }
+        }
+        
+        // Print headers
+        foreach ($headers as $header) {
+            echo str_pad($header, $widths[$header] + 2);
+        }
+        echo "\n";
+        
+        // Print separator
+        foreach ($headers as $header) {
+            echo str_repeat('-', $widths[$header] + 2);
+        }
+        echo "\n";
+        
+        // Print data
+        foreach ($data as $row) {
+            foreach ($headers as $header) {
+                $value = $row[$header] ?? '';
+                echo str_pad($value, $widths[$header] + 2);
+            }
+            echo "\n";
+        }
+    }
+    
+    private function showHelp() 
+    {
+        echo "TuskDB Commands:\n\n";
+        echo "📊 status               Show database connection status\n";
+        echo "🧠 wisdom               Display database statistics\n";
+        echo "🔄 migrate <file>       Run SQL migration file\n";
+        echo "🔍 query <sql>          Execute raw SQL query\n";
+        echo "🔗 test                 Test database connection\n";
+        echo "💾 backup [file]        Backup database\n";
+        echo "💊 health               Check database health\n";
+        echo "🖥️ console              Start interactive console\n";
+        echo "❓ help                 Show this help\n\n";
+        
+        echo "Examples:\n";
+        echo "  tuskdb status\n";
+        echo "  tuskdb query \"SELECT * FROM users LIMIT 5\"\n";
+        echo "  tuskdb migrate install.sql\n";
+        echo "  tuskdb backup mybackup.sql\n";
+    }
+}
+
+$cli = new TuskDbCLI($argv);
+$cli->run(); 

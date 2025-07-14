@@ -1,0 +1,1009 @@
+<h1>Performance Optimization for Java</h1>
+
+<h2>JVM Performance Configuration</h2>
+<pre>
+# JVM optimization settings
+jvm: {
+    # Memory configuration
+    memory: {
+        heap_size: {
+            initial: env("JVM_HEAP_INITIAL", "1g")
+            maximum: env("JVM_HEAP_MAX", "4g")
+            
+            # Dynamic sizing based on available memory
+            auto_size: env("JVM_AUTO_SIZE", "true") == "true"
+            memory_percentage: 75  # Use 75% of available memory when auto_size is true
+        }
+        
+        # New generation settings
+        young_generation: {
+            size: env("JVM_YOUNG_GEN", "512m")
+            ratio: 8  # Old:Young ratio
+            survivor_ratio: 8
+        }
+        
+        # Metaspace configuration
+        metaspace: {
+            initial: env("JVM_METASPACE_INITIAL", "128m")
+            maximum: env("JVM_METASPACE_MAX", "512m")
+        }
+        
+        # Direct memory
+        direct_memory: env("JVM_DIRECT_MEMORY", "1g")
+    }
+    
+    # Garbage Collection configuration
+    garbage_collection: {
+        # GC algorithm selection based on heap size
+        algorithm: jvm.memory.heap_size.maximum > "8g" ? "G1GC" : 
+                  jvm.memory.heap_size.maximum > "2g" ? "ParallelGC" : "SerialGC"
+        
+        # G1GC specific settings
+        g1: {
+            enabled: jvm.garbage_collection.algorithm == "G1GC"
+            max_gc_pause: env("G1_MAX_PAUSE", "200")  # milliseconds
+            gc_threads: java("Math.max(1, Runtime.getRuntime().availableProcessors() / 4)")
+            
+            # G1 heap region size
+            region_size: jvm.memory.heap_size.maximum > "16g" ? "32m" : "16m"
+        }
+        
+        # Parallel GC settings
+        parallel: {
+            enabled: jvm.garbage_collection.algorithm == "ParallelGC"
+            gc_threads: java("Runtime.getRuntime().availableProcessors()")
+            adaptive_size_policy: true
+        }
+        
+        # ZGC settings (for very large heaps)
+        zgc: {
+            enabled: jvm.memory.heap_size.maximum > "32g"
+            uncommit: true
+            colored_pointers: true
+        }
+        
+        # GC logging
+        logging: {
+            enabled: env("GC_LOGGING", "true") == "true"
+            file: "/var/log/gc/gc.log"
+            file_size: "100M"
+            file_count: 5
+            print_details: true
+            print_timestamps: true
+        }
+    }
+    
+    # JIT Compiler optimization
+    compiler: {
+        # Tiered compilation
+        tiered_compilation: env("JVM_TIERED_COMPILATION", "true") == "true"
+        
+        # Compilation thresholds
+        compile_threshold: env("JVM_COMPILE_THRESHOLD", "10000")
+        
+        # C1/C2 compiler threads
+        compiler_threads: java("Math.max(1, Runtime.getRuntime().availableProcessors() / 2)")
+        
+        # Code cache settings
+        code_cache: {
+            initial: "64m"
+            reserved: "256m"
+            non_nmethods: "64m"
+        }
+        
+        # Inlining settings
+        inlining: {
+            max_inline_size: 35
+            max_inline_level: 9
+            freq_inline_size: 325
+        }
+    }
+    
+    # Performance monitoring
+    monitoring: {
+        # JFR (Java Flight Recorder)
+        jfr: {
+            enabled: env("JFR_ENABLED", "false") == "true"
+            filename: "/var/log/jfr/app-profile.jfr"
+            settings: "profile"  # default, profile, or custom file
+            duration: env("JFR_DURATION", "1h")
+            max_size: "1g"
+        }
+        
+        # JMX settings
+        jmx: {
+            enabled: env("JMX_ENABLED", "true") == "true"
+            port: env("JMX_PORT", "9999")
+            authenticate: env("JMX_AUTH", "false") == "true"
+            ssl: env("JMX_SSL", "false") == "true"
+        }
+        
+        # Native memory tracking
+        native_memory_tracking: env("NMT_ENABLED", "false") == "true"
+    }
+}
+</pre>
+
+<h2>Java JVM Optimization Service</h2>
+<pre>
+// JvmOptimizationService.java
+@Service
+public class JvmOptimizationService {
+    
+    private final RuntimeMXBean runtimeBean;
+    private final MemoryMXBean memoryBean;
+    private final List&lt;GarbageCollectorMXBean&gt; gcBeans;
+    private final CompilationMXBean compilationBean;
+    
+    public JvmOptimizationService() {
+        this.runtimeBean = ManagementFactory.getRuntimeMXBean();
+        this.memoryBean = ManagementFactory.getMemoryMXBean();
+        this.gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
+        this.compilationBean = ManagementFactory.getCompilationMXBean();
+    }
+    
+    public JvmOptimizationConfig generateOptimalConfiguration() {
+        JvmOptimizationConfig config = new JvmOptimizationConfig();
+        
+        // Analyze system resources
+        long totalMemory = ((com.sun.management.OperatingSystemMXBean) 
+            ManagementFactory.getOperatingSystemMXBean()).getTotalPhysicalMemorySize();
+        int availableProcessors = Runtime.getRuntime().availableProcessors();
+        
+        // Configure memory settings
+        configureMemorySettings(config, totalMemory);
+        
+        // Configure GC settings
+        configureGarbageCollection(config, totalMemory);
+        
+        // Configure compiler settings
+        configureCompilerSettings(config, availableProcessors);
+        
+        return config;
+    }
+    
+    private void configureMemorySettings(JvmOptimizationConfig config, long totalMemory) {
+        // Use 75% of total memory for heap by default
+        long heapSize = (long) (totalMemory * 0.75);
+        
+        config.setInitialHeapSize(Math.min(heapSize / 4, 1024 * 1024 * 1024)); // Max 1GB initial
+        config.setMaximumHeapSize(heapSize);
+        
+        // Young generation sizing
+        config.setYoungGenerationSize(heapSize / 4);
+        
+        // Metaspace sizing
+        config.setInitialMetaspaceSize(128 * 1024 * 1024); // 128MB
+        config.setMaximumMetaspaceSize(512 * 1024 * 1024); // 512MB
+        
+        // Direct memory
+        config.setDirectMemorySize(Math.min(heapSize / 4, 2L * 1024 * 1024 * 1024)); // Max 2GB
+    }
+    
+    private void configureGarbageCollection(JvmOptimizationConfig config, long totalMemory) {
+        long heapSizeGB = totalMemory / (1024 * 1024 * 1024);
+        
+        if (heapSizeGB >= 32) {
+            // Use ZGC for very large heaps
+            config.setGcAlgorithm(GcAlgorithm.ZGC);
+            config.setZgcUncommit(true);
+        } else if (heapSizeGB >= 8) {
+            // Use G1GC for large heaps
+            config.setGcAlgorithm(GcAlgorithm.G1GC);
+            config.setG1MaxGCPauseMillis(200);
+            config.setG1HeapRegionSize(heapSizeGB >= 16 ? 32 * 1024 * 1024 : 16 * 1024 * 1024);
+        } else if (heapSizeGB >= 2) {
+            // Use Parallel GC for medium heaps
+            config.setGcAlgorithm(GcAlgorithm.PARALLEL_GC);
+            config.setParallelGCThreads(Runtime.getRuntime().availableProcessors());
+        } else {
+            // Use Serial GC for small heaps
+            config.setGcAlgorithm(GcAlgorithm.SERIAL_GC);
+        }
+        
+        // Configure GC logging
+        config.setGcLoggingEnabled(true);
+        config.setGcLogFile("/var/log/gc/gc-%t.log");
+        config.setGcLogFileSize(100 * 1024 * 1024); // 100MB
+        config.setGcLogFileCount(5);
+    }
+    
+    private void configureCompilerSettings(JvmOptimizationConfig config, int availableProcessors) {
+        // Enable tiered compilation for better startup and peak performance
+        config.setTieredCompilation(true);
+        
+        // Set compiler threads based on CPU cores
+        config.setCompilerThreads(Math.max(1, availableProcessors / 2));
+        
+        // Configure code cache
+        config.setInitialCodeCacheSize(64 * 1024 * 1024); // 64MB
+        config.setReservedCodeCacheSize(256 * 1024 * 1024); // 256MB
+        
+        // Compilation thresholds
+        config.setCompileThreshold(10000);
+        
+        // Inlining parameters
+        config.setMaxInlineSize(35);
+        config.setMaxInlineLevel(9);
+        config.setFreqInlineSize(325);
+    }
+    
+    public List&lt;String&gt; generateJvmArgs(JvmOptimizationConfig config) {
+        List&lt;String&gt; args = new ArrayList&lt;&gt;();
+        
+        // Memory settings
+        args.add("-Xms" + formatMemorySize(config.getInitialHeapSize()));
+        args.add("-Xmx" + formatMemorySize(config.getMaximumHeapSize()));
+        args.add("-Xmn" + formatMemorySize(config.getYoungGenerationSize()));
+        
+        // Metaspace settings
+        args.add("-XX:MetaspaceSize=" + formatMemorySize(config.getInitialMetaspaceSize()));
+        args.add("-XX:MaxMetaspaceSize=" + formatMemorySize(config.getMaximumMetaspaceSize()));
+        
+        // Direct memory
+        args.add("-XX:MaxDirectMemorySize=" + formatMemorySize(config.getDirectMemorySize()));
+        
+        // GC algorithm
+        switch (config.getGcAlgorithm()) {
+            case G1GC:
+                args.add("-XX:+UseG1GC");
+                args.add("-XX:MaxGCPauseMillis=" + config.getG1MaxGCPauseMillis());
+                args.add("-XX:G1HeapRegionSize=" + formatMemorySize(config.getG1HeapRegionSize()));
+                break;
+            case PARALLEL_GC:
+                args.add("-XX:+UseParallelGC");
+                args.add("-XX:ParallelGCThreads=" + config.getParallelGCThreads());
+                break;
+            case ZGC:
+                args.add("-XX:+UseZGC");
+                if (config.isZgcUncommit()) {
+                    args.add("-XX:+UnlockExperimentalVMOptions");
+                    args.add("-XX:+UseTransparentHugePages");
+                }
+                break;
+            case SERIAL_GC:
+                args.add("-XX:+UseSerialGC");
+                break;
+        }
+        
+        // Compiler settings
+        if (config.isTieredCompilation()) {
+            args.add("-XX:+TieredCompilation");
+        }
+        args.add("-XX:CICompilerCount=" + config.getCompilerThreads());
+        args.add("-XX:CompileThreshold=" + config.getCompileThreshold());
+        
+        // Code cache settings
+        args.add("-XX:InitialCodeCacheSize=" + formatMemorySize(config.getInitialCodeCacheSize()));
+        args.add("-XX:ReservedCodeCacheSize=" + formatMemorySize(config.getReservedCodeCacheSize()));
+        
+        // Inlining settings
+        args.add("-XX:MaxInlineSize=" + config.getMaxInlineSize());
+        args.add("-XX:MaxInlineLevel=" + config.getMaxInlineLevel());
+        args.add("-XX:FreqInlineSize=" + config.getFreqInlineSize());
+        
+        // GC logging
+        if (config.isGcLoggingEnabled()) {
+            args.add("-Xlog:gc*:" + config.getGcLogFile() + ":time,tags");
+            args.add("-XX:+UseGCLogFileRotation");
+            args.add("-XX:NumberOfGCLogFiles=" + config.getGcLogFileCount());
+            args.add("-XX:GCLogFileSize=" + formatMemorySize(config.getGcLogFileSize()));
+        }
+        
+        // Performance monitoring
+        if (config.isJfrEnabled()) {
+            args.add("-XX:+FlightRecorder");
+            args.add("-XX:StartFlightRecording=duration=" + config.getJfrDuration() + 
+                    ",filename=" + config.getJfrFilename() + 
+                    ",settings=" + config.getJfrSettings());
+        }
+        
+        if (config.isNativeMemoryTrackingEnabled()) {
+            args.add("-XX:NativeMemoryTracking=summary");
+        }
+        
+        return args;
+    }
+    
+    private String formatMemorySize(long bytes) {
+        if (bytes >= 1024 * 1024 * 1024) {
+            return (bytes / (1024 * 1024 * 1024)) + "g";
+        } else if (bytes >= 1024 * 1024) {
+            return (bytes / (1024 * 1024)) + "m";
+        } else if (bytes >= 1024) {
+            return (bytes / 1024) + "k";
+        } else {
+            return bytes + "";
+        }
+    }
+    
+    public JvmPerformanceMetrics collectPerformanceMetrics() {
+        JvmPerformanceMetrics metrics = new JvmPerformanceMetrics();
+        
+        // Memory metrics
+        MemoryUsage heapUsage = memoryBean.getHeapMemoryUsage();
+        MemoryUsage nonHeapUsage = memoryBean.getNonHeapMemoryUsage();
+        
+        metrics.setHeapUsed(heapUsage.getUsed());
+        metrics.setHeapMax(heapUsage.getMax());
+        metrics.setNonHeapUsed(nonHeapUsage.getUsed());
+        metrics.setNonHeapMax(nonHeapUsage.getMax());
+        
+        // GC metrics
+        long totalGcTime = 0;
+        long totalGcCount = 0;
+        
+        for (GarbageCollectorMXBean gcBean : gcBeans) {
+            totalGcTime += gcBean.getCollectionTime();
+            totalGcCount += gcBean.getCollectionCount();
+        }
+        
+        metrics.setTotalGcTime(totalGcTime);
+        metrics.setTotalGcCount(totalGcCount);
+        
+        // Compilation metrics
+        if (compilationBean != null) {
+            metrics.setCompilationTime(compilationBean.getTotalCompilationTime());
+        }
+        
+        // Runtime metrics
+        metrics.setUptime(runtimeBean.getUptime());
+        metrics.setStartTime(runtimeBean.getStartTime());
+        
+        return metrics;
+    }
+}
+
+// JvmOptimizationConfig.java
+public class JvmOptimizationConfig {
+    // Memory settings
+    private long initialHeapSize;
+    private long maximumHeapSize;
+    private long youngGenerationSize;
+    private long initialMetaspaceSize;
+    private long maximumMetaspaceSize;
+    private long directMemorySize;
+    
+    // GC settings
+    private GcAlgorithm gcAlgorithm;
+    private int g1MaxGCPauseMillis;
+    private long g1HeapRegionSize;
+    private int parallelGCThreads;
+    private boolean zgcUncommit;
+    
+    // Compiler settings
+    private boolean tieredCompilation;
+    private int compilerThreads;
+    private int compileThreshold;
+    private long initialCodeCacheSize;
+    private long reservedCodeCacheSize;
+    
+    // Inlining settings
+    private int maxInlineSize;
+    private int maxInlineLevel;
+    private int freqInlineSize;
+    
+    // Logging and monitoring
+    private boolean gcLoggingEnabled;
+    private String gcLogFile;
+    private long gcLogFileSize;
+    private int gcLogFileCount;
+    private boolean jfrEnabled;
+    private String jfrFilename;
+    private String jfrSettings;
+    private String jfrDuration;
+    private boolean nativeMemoryTrackingEnabled;
+    
+    // Getters and setters (abbreviated for brevity)
+    // ... all getters and setters for the above fields
+}
+
+// GcAlgorithm enum
+public enum GcAlgorithm {
+    SERIAL_GC,
+    PARALLEL_GC,
+    G1GC,
+    ZGC,
+    SHENANDOAH
+}
+</pre>
+
+<h2>Application Performance Optimization</h2>
+<pre>
+# Application-level performance settings
+performance: {
+    # Connection pooling optimization
+    database: {
+        # HikariCP optimization
+        hikari: {
+            # Pool sizing based on CPU cores and workload
+            minimum_idle: java("Math.max(2, Runtime.getRuntime().availableProcessors() / 2)")
+            maximum_pool_size: java("Runtime.getRuntime().availableProcessors() * 2")
+            
+            # Connection lifecycle
+            connection_timeout: "30000"  # 30 seconds
+            idle_timeout: "600000"       # 10 minutes
+            max_lifetime: "1800000"      # 30 minutes
+            
+            # Performance tuning
+            leak_detection_threshold: "60000"  # 1 minute
+            validation_timeout: "5000"
+            
+            # Prepared statement caching
+            cache_prep_stmts: true
+            prep_stmt_cache_size: 250
+            prep_stmt_cache_sql_limit: 2048
+            
+            # MySQL specific optimizations
+            use_server_prep_stmts: true
+            use_local_session_state: true
+            rewrite_batched_statements: true
+            cache_result_set_metadata: true
+            cache_server_configuration: true
+            maintain_time_stats: false
+        }
+        
+        # JPA/Hibernate optimization
+        jpa: {
+            # Batch processing
+            batch_size: 25
+            order_inserts: true
+            order_updates: true
+            batch_versioned_data: true
+            
+            # Connection release mode
+            connection_release_mode: "after_transaction"
+            
+            # Query optimization
+            default_batch_fetch_size: 16
+            max_fetch_depth: 3
+            
+            # Second level cache
+            use_second_level_cache: true
+            use_query_cache: true
+            cache_region_factory: "org.hibernate.cache.redis.RedisRegionFactory"
+            
+            # Statistics
+            generate_statistics: env("HIBERNATE_STATS", "false") == "true"
+            log_slow_queries: true
+            slow_query_threshold: 1000  # 1 second
+        }
+    }
+    
+    # Caching configuration
+    caching: {
+        # Redis configuration
+        redis: {
+            # Connection pooling
+            jedis: {
+                pool: {
+                    max_total: 128
+                    max_idle: 128
+                    min_idle: 16
+                    test_on_borrow: true
+                    test_on_return: true
+                    test_while_idle: true
+                    min_evictable_idle_time: "60s"
+                    time_between_eviction_runs: "30s"
+                    num_tests_per_eviction_run: 3
+                    block_when_exhausted: true
+                }
+            }
+            
+            # Serialization optimization
+            serializer: "org.springframework.data.redis.serializer.KryoRedisSerializer"
+            
+            # Pipeline and transaction settings
+            enable_pipelining: true
+            pipeline_flush_policy: "buffered"
+            
+            # Clustering
+            cluster: {
+                enabled: env("REDIS_CLUSTER", "false") == "true"
+                max_redirects: 3
+                topology_refresh_period: "30s"
+            }
+        }
+        
+        # Local caching with Caffeine
+        caffeine: {
+            # Default cache settings
+            default: {
+                initial_capacity: 100
+                maximum_size: 10000
+                expire_after_write: "1h"
+                expire_after_access: "30m"
+                refresh_after_write: "15m"
+                
+                # Advanced settings
+                weak_keys: false
+                weak_values: false
+                soft_values: false
+                record_stats: true
+            }
+            
+            # Specific cache configurations
+            caches: {
+                user_cache: {
+                    maximum_size: 1000
+                    expire_after_write: "2h"
+                    record_stats: true
+                },
+                session_cache: {
+                    maximum_size: 5000
+                    expire_after_access: "30m"
+                    weak_values: true
+                },
+                api_rate_limit: {
+                    maximum_size: 100000
+                    expire_after_write: "1m"
+                    initial_capacity: 1000
+                }
+            }
+        }
+    }
+    
+    # Thread pool optimization
+    threading: {
+        # Task executor configuration
+        task_executor: {
+            core_pool_size: java("Runtime.getRuntime().availableProcessors()")
+            max_pool_size: java("Runtime.getRuntime().availableProcessors() * 2")
+            queue_capacity: 100
+            thread_name_prefix: "async-"
+            
+            # Thread lifecycle
+            keep_alive_seconds: 60
+            allow_core_thread_timeout: true
+            
+            # Rejection policy
+            rejection_policy: "CallerRunsPolicy"  # CallerRunsPolicy, AbortPolicy, DiscardPolicy
+        }
+        
+        # Scheduled task executor
+        scheduled_executor: {
+            pool_size: java("Math.max(1, Runtime.getRuntime().availableProcessors() / 4)")
+            thread_name_prefix: "scheduled-"
+            
+            # Error handling
+            continue_existing_periodic_tasks_after_shutdown: false
+            execute_existing_delayed_tasks_after_shutdown: true
+        }
+        
+        # Web request handling
+        tomcat: {
+            # Thread pool for HTTP requests
+            max_threads: 200
+            min_spare_threads: 10
+            
+            # Connection settings
+            max_connections: 8192
+            accept_count: 100
+            connection_timeout: "20s"
+            
+            # Compression
+            compression: "on"
+            compression_min_size: 2048
+            compressible_mime_types: [
+                "text/html",
+                "text/xml",
+                "text/plain",
+                "text/css",
+                "text/javascript",
+                "application/javascript",
+                "application/json",
+                "application/xml"
+            ]
+        }
+    }
+    
+    # Serialization optimization
+    serialization: {
+        # JSON serialization
+        jackson: {
+            # Performance settings
+            disable_default_typing: true
+            fail_on_unknown_properties: false
+            fail_on_empty_beans: false
+            
+            # Features for performance
+            write_dates_as_timestamps: true
+            write_durations_as_timestamps: true
+            
+            # Optimizations
+            use_wrapper_name_as_property_name: false
+            accept_single_value_as_array: true
+            
+            # Streaming
+            enable_streaming: true
+            auto_close_target: true
+        }
+        
+        # Binary serialization
+        kryo: {
+            enabled: env("KRYO_ENABLED", "false") == "true"
+            registration_required: false
+            references: true
+            buffer_size: 4096
+            max_buffer_size: 1048576  # 1MB
+        }
+    }
+}
+</pre>
+
+<h2>Java Performance Monitoring Service</h2>
+<pre>
+// PerformanceMonitoringService.java
+@Service
+public class PerformanceMonitoringService {
+    
+    private final MeterRegistry meterRegistry;
+    private final DataSource dataSource;
+    private final CacheManager cacheManager;
+    
+    private final Timer.Sample applicationStartTime;
+    private final AtomicLong totalRequests = new AtomicLong(0);
+    private final AtomicLong errorCount = new AtomicLong(0);
+    
+    public PerformanceMonitoringService(MeterRegistry meterRegistry, 
+                                       DataSource dataSource, 
+                                       CacheManager cacheManager) {
+        this.meterRegistry = meterRegistry;
+        this.dataSource = dataSource;
+        this.cacheManager = cacheManager;
+        this.applicationStartTime = Timer.start(meterRegistry);
+        
+        initializeMetrics();
+        schedulePerformanceCollection();
+    }
+    
+    private void initializeMetrics() {
+        // JVM metrics
+        Gauge.builder("jvm.memory.heap.used")
+            .register(meterRegistry, this, service -&gt; getHeapMemoryUsed());
+        
+        Gauge.builder("jvm.memory.heap.max")
+            .register(meterRegistry, this, service -&gt; getHeapMemoryMax());
+        
+        Gauge.builder("jvm.memory.non.heap.used")
+            .register(meterRegistry, this, service -&gt; getNonHeapMemoryUsed());
+        
+        Gauge.builder("jvm.gc.time")
+            .register(meterRegistry, this, service -&gt; getTotalGCTime());
+        
+        Gauge.builder("jvm.gc.count")
+            .register(meterRegistry, this, service -&gt; getTotalGCCount());
+        
+        // Database metrics
+        Gauge.builder("database.connections.active")
+            .register(meterRegistry, this, service -&gt; getActiveConnections());
+        
+        Gauge.builder("database.connections.idle")
+            .register(meterRegistry, this, service -&gt; getIdleConnections());
+        
+        // Cache metrics
+        registerCacheMetrics();
+        
+        // Application metrics
+        Counter.builder("application.requests.total")
+            .register(meterRegistry);
+        
+        Counter.builder("application.errors.total")
+            .register(meterRegistry);
+    }
+    
+    private void registerCacheMetrics() {
+        if (cacheManager instanceof CaffeineCacheManager) {
+            CaffeineCacheManager caffeineCacheManager = (CaffeineCacheManager) cacheManager;
+            
+            caffeineCacheManager.getCacheNames().forEach(cacheName -&gt; {
+                Cache cache = caffeineCacheManager.getCache(cacheName);
+                if (cache instanceof CaffeineCache) {
+                    com.github.benmanes.caffeine.cache.Cache&lt;Object, Object&gt; nativeCache = 
+                        ((CaffeineCache) cache).getNativeCache();
+                    
+                    Gauge.builder("cache.size")
+                        .tag("cache", cacheName)
+                        .register(meterRegistry, nativeCache, com.github.benmanes.caffeine.cache.Cache::estimatedSize);
+                    
+                    Gauge.builder("cache.hit.ratio")
+                        .tag("cache", cacheName)
+                        .register(meterRegistry, nativeCache, c -&gt; c.stats().hitRate());
+                    
+                    Gauge.builder("cache.eviction.count")
+                        .tag("cache", cacheName)
+                        .register(meterRegistry, nativeCache, c -&gt; c.stats().evictionCount());
+                }
+            });
+        }
+    }
+    
+    @Scheduled(fixedDelay = 30000) // Every 30 seconds
+    public void collectPerformanceMetrics() {
+        // Collect system performance metrics
+        collectSystemMetrics();
+        
+        // Collect application-specific metrics
+        collectApplicationMetrics();
+        
+        // Detect performance anomalies
+        detectPerformanceAnomalies();
+    }
+    
+    private void collectSystemMetrics() {
+        // CPU usage
+        OperatingSystemMXBean osBean = ManagementFactory.getOperatingSystemMXBean();
+        if (osBean instanceof com.sun.management.OperatingSystemMXBean) {
+            com.sun.management.OperatingSystemMXBean sunOsBean = 
+                (com.sun.management.OperatingSystemMXBean) osBean;
+            
+            Gauge.builder("system.cpu.usage")
+                .register(meterRegistry, sunOsBean, com.sun.management.OperatingSystemMXBean::getProcessCpuLoad);
+            
+            Gauge.builder("system.memory.usage")
+                .register(meterRegistry, sunOsBean, bean -&gt; 
+                    1.0 - ((double) bean.getFreePhysicalMemorySize() / bean.getTotalPhysicalMemorySize()));
+        }
+        
+        // Thread metrics
+        ThreadMXBean threadBean = ManagementFactory.getThreadMXBean();
+        Gauge.builder("jvm.threads.live")
+            .register(meterRegistry, threadBean, ThreadMXBean::getThreadCount);
+        
+        Gauge.builder("jvm.threads.daemon")
+            .register(meterRegistry, threadBean, ThreadMXBean::getDaemonThreadCount);
+        
+        Gauge.builder("jvm.threads.peak")
+            .register(meterRegistry, threadBean, ThreadMXBean::getPeakThreadCount);
+    }
+    
+    private void collectApplicationMetrics() {
+        // Response time metrics
+        recordResponseTimeMetrics();
+        
+        // Error rate metrics
+        recordErrorRateMetrics();
+        
+        // Throughput metrics
+        recordThroughputMetrics();
+    }
+    
+    private void recordResponseTimeMetrics() {
+        // This would typically be done through interceptors or filters
+        // Recording sample response times for different endpoints
+    }
+    
+    private void recordErrorRateMetrics() {
+        long totalRequests = this.totalRequests.get();
+        long errors = this.errorCount.get();
+        
+        if (totalRequests > 0) {
+            double errorRate = (double) errors / totalRequests;
+            Gauge.builder("application.error.rate")
+                .register(meterRegistry, () -&gt; errorRate);
+        }
+    }
+    
+    private void recordThroughputMetrics() {
+        // Requests per second calculation
+        long currentRequests = totalRequests.get();
+        // Implementation would track requests over time windows
+    }
+    
+    private void detectPerformanceAnomalies() {
+        // Check for performance degradation
+        checkMemoryPressure();
+        checkGCPressure();
+        checkDatabasePerformance();
+        checkCacheEfficiency();
+    }
+    
+    private void checkMemoryPressure() {
+        MemoryMXBean memoryBean = ManagementFactory.getMemoryMXBean();
+        MemoryUsage heapUsage = memoryBean.getHeapMemoryUsage();
+        
+        double heapUtilization = (double) heapUsage.getUsed() / heapUsage.getMax();
+        
+        if (heapUtilization > 0.9) {
+            // Log warning about high memory usage
+            System.err.println("WARNING: High heap memory utilization: " + 
+                String.format("%.2f%%", heapUtilization * 100));
+        }
+    }
+    
+    private void checkGCPressure() {
+        List&lt;GarbageCollectorMXBean&gt; gcBeans = ManagementFactory.getGarbageCollectorMXBeans();
+        
+        for (GarbageCollectorMXBean gcBean : gcBeans) {
+            long gcTime = gcBean.getCollectionTime();
+            long gcCount = gcBean.getCollectionCount();
+            
+            if (gcCount > 0) {
+                double avgGCTime = (double) gcTime / gcCount;
+                
+                if (avgGCTime > 100) { // More than 100ms average GC time
+                    System.err.println("WARNING: High GC time for " + gcBean.getName() + 
+                        ": " + String.format("%.2fms", avgGCTime));
+                }
+            }
+        }
+    }
+    
+    private void checkDatabasePerformance() {
+        if (dataSource instanceof HikariDataSource) {
+            HikariDataSource hikariDataSource = (HikariDataSource) dataSource;
+            HikariPoolMXBean poolBean = hikariDataSource.getHikariPoolMXBean();
+            
+            int activeConnections = poolBean.getActiveConnections();
+            int totalConnections = poolBean.getTotalConnections();
+            
+            double connectionUtilization = (double) activeConnections / totalConnections;
+            
+            if (connectionUtilization > 0.9) {
+                System.err.println("WARNING: High database connection utilization: " + 
+                    String.format("%.2f%%", connectionUtilization * 100));
+            }
+        }
+    }
+    
+    private void checkCacheEfficiency() {
+        // Check cache hit rates and suggest optimizations
+        cacheManager.getCacheNames().forEach(cacheName -&gt; {
+            Cache cache = cacheManager.getCache(cacheName);
+            if (cache instanceof CaffeineCache) {
+                com.github.benmanes.caffeine.cache.Cache&lt;Object, Object&gt; nativeCache = 
+                    ((CaffeineCache) cache).getNativeCache();
+                
+                double hitRate = nativeCache.stats().hitRate();
+                
+                if (hitRate < 0.8) { // Less than 80% hit rate
+                    System.err.println("WARNING: Low cache hit rate for " + cacheName + 
+                        ": " + String.format("%.2f%%", hitRate * 100));
+                }
+            }
+        });
+    }
+    
+    // Helper methods for metrics
+    private double getHeapMemoryUsed() {
+        return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getUsed();
+    }
+    
+    private double getHeapMemoryMax() {
+        return ManagementFactory.getMemoryMXBean().getHeapMemoryUsage().getMax();
+    }
+    
+    private double getNonHeapMemoryUsed() {
+        return ManagementFactory.getMemoryMXBean().getNonHeapMemoryUsage().getUsed();
+    }
+    
+    private double getTotalGCTime() {
+        return ManagementFactory.getGarbageCollectorMXBeans().stream()
+            .mapToLong(GarbageCollectorMXBean::getCollectionTime)
+            .sum();
+    }
+    
+    private double getTotalGCCount() {
+        return ManagementFactory.getGarbageCollectorMXBeans().stream()
+            .mapToLong(GarbageCollectorMXBean::getCollectionCount)
+            .sum();
+    }
+    
+    private double getActiveConnections() {
+        if (dataSource instanceof HikariDataSource) {
+            HikariDataSource hikariDataSource = (HikariDataSource) dataSource;
+            return hikariDataSource.getHikariPoolMXBean().getActiveConnections();
+        }
+        return 0;
+    }
+    
+    private double getIdleConnections() {
+        if (dataSource instanceof HikariDataSource) {
+            HikariDataSource hikariDataSource = (HikariDataSource) dataSource;
+            return hikariDataSource.getHikariPoolMXBean().getIdleConnections();
+        }
+        return 0;
+    }
+    
+    // Method to record request metrics (called from filters/interceptors)
+    public void recordRequest() {
+        totalRequests.incrementAndGet();
+        meterRegistry.counter("application.requests.total").increment();
+    }
+    
+    public void recordError() {
+        errorCount.incrementAndGet();
+        meterRegistry.counter("application.errors.total").increment();
+    }
+    
+    public void recordResponseTime(long responseTimeMs) {
+        Timer.builder("application.response.time")
+            .register(meterRegistry)
+            .record(responseTimeMs, TimeUnit.MILLISECONDS);
+    }
+}
+</pre>
+
+<h2>Performance Testing Integration</h2>
+<pre>
+# Performance testing configuration
+performance_testing: {
+    # JMeter integration
+    jmeter: {
+        enabled: env("JMETER_TESTING", "false") == "true"
+        test_plans_directory: "src/test/jmeter"
+        
+        # Load testing scenarios
+        scenarios: {
+            smoke_test: {
+                users: 1
+                duration: "1m"
+                ramp_up: "10s"
+            }
+            load_test: {
+                users: 100
+                duration: "10m"
+                ramp_up: "2m"
+            }
+            stress_test: {
+                users: 500
+                duration: "15m"
+                ramp_up: "5m"
+            }
+            spike_test: {
+                users: 1000
+                duration: "5m"
+                ramp_up: "30s"
+            }
+        }
+        
+        # Performance thresholds
+        thresholds: {
+            average_response_time: "200ms"
+            p95_response_time: "500ms"
+            p99_response_time: "1000ms"
+            error_rate: "1%"
+            throughput: "100/sec"
+        }
+    }
+    
+    # Gatling integration
+    gatling: {
+        enabled: env("GATLING_TESTING", "false") == "true"
+        simulations_directory: "src/test/gatling"
+        
+        # Simulation configuration
+        simulation: {
+            base_url: env("GATLING_BASE_URL", "http://localhost:8080")
+            users: env("GATLING_USERS", "10")
+            duration: env("GATLING_DURATION", "60")
+            
+            # Advanced settings
+            max_connections_per_host: 10
+            request_timeout: "30s"
+            connection_timeout: "10s"
+        }
+    }
+    
+    # Continuous performance testing
+    continuous_testing: {
+        enabled: env("CONTINUOUS_PERF_TESTING", "false") == "true"
+        schedule: "0 2 * * *"  # Daily at 2 AM
+        
+        # Regression detection
+        baseline_comparison: true
+        performance_degradation_threshold: "10%"  # Alert if performance degrades by 10%
+        
+        # Reporting
+        reports: {
+            html_report: true
+            json_report: true
+            junit_report: true
+            
+            # Report destinations
+            s3_bucket: env("PERF_REPORTS_S3_BUCKET")
+            slack_webhook: env("PERF_REPORTS_SLACK_WEBHOOK")
+        }
+    }
+}
+</pre>

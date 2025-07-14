@@ -1,0 +1,691 @@
+<h1>Built-in Functions in TuskLang Python</h1>
+
+<h2>Comprehensive Function Library</h2>
+<p>TuskLang provides an extensive collection of built-in functions for Python applications including string manipulation, data processing, mathematical operations, and system utilities.</p>
+
+<h3>functions.tsk</h3>
+<pre>
+# String Functions
+app_name: "Python TuskLang"
+app_slug: lower(app_name)
+app_title: title(app_name)
+app_upper: upper(app_name)
+
+formatted_name: concat(app_name, " v", version, " (", environment, ")")
+trimmed_input: trim("  hello world  ")
+padded_string: pad_left("42", 5, "0")
+
+# Date and Time Functions
+current_timestamp: now()
+current_date: date()
+current_time: time()
+formatted_date: date_format(now(), "Y-m-d H:i:s")
+iso_date: date_format(now(), "c")
+
+days_ago_7: date_sub(now(), 7, "days")
+future_date: date_add(now(), 30, "days")
+timestamp_from_string: strtotime("2024-12-31 23:59:59")
+
+# Mathematical Functions
+random_number: rand(1, 100)
+random_float: rand_float(0.0, 1.0)
+absolute_value: abs(-42)
+ceiling_value: ceil(3.14)
+floor_value: floor(3.14)
+rounded_value: round(3.14159, 2)
+
+min_value: min(10, 20, 5, 30)
+max_value: max(10, 20, 5, 30)
+sum_values: sum([1, 2, 3, 4, 5])
+average_values: avg([10, 20, 30, 40, 50])
+
+# Array Functions
+user_ids: [1, 2, 3, 4, 5]
+usernames: ["alice", "bob", "charlie", "diana"]
+
+array_length: count(user_ids)
+first_user: first(usernames)
+last_user: last(usernames)
+random_user: rand_item(usernames)
+
+joined_names: join(usernames, ", ")
+sorted_names: sort(usernames)
+reversed_names: reverse(usernames)
+unique_values: unique([1, 2, 2, 3, 3, 3, 4])
+
+# Object/Dictionary Functions
+user_data: {
+    "id": 123,
+    "name": "John Doe",
+    "email": "john@example.com",
+    "roles": ["user", "editor"]
+}
+
+user_keys: keys(user_data)
+user_values: values(user_data)
+has_email: has_key(user_data, "email")
+user_name: get(user_data, "name", "Unknown")
+
+# Type Checking and Conversion
+is_string_check: is_string("hello")
+is_number_check: is_number(42)
+is_array_check: is_array([1, 2, 3])
+is_object_check: is_object(user_data)
+is_boolean_check: is_boolean(true)
+
+string_to_int: to_int("42")
+string_to_float: to_float("3.14")
+number_to_string: to_string(123)
+array_to_json: to_json([1, 2, 3])
+json_to_object: from_json('{"name": "test"}')
+
+# Hashing and Encoding Functions
+md5_hash: md5("hello world")
+sha1_hash: sha1("hello world")
+sha256_hash: sha256("hello world")
+password_hash: bcrypt("mypassword")
+
+base64_encoded: base64_encode("hello world")
+base64_decoded: base64_decode("aGVsbG8gd29ybGQ=")
+url_encoded: url_encode("hello world!")
+url_decoded: url_decode("hello%20world%21")
+
+# UUID and Random Functions
+uuid_v4: uuid()
+random_string: random_string(16)
+random_bytes: random_bytes(32)
+secret_key: generate_secret(64)
+
+# File System Functions
+file_exists_check: file_exists("/etc/hosts")
+file_contents: file_get_contents("config.json")
+file_size: file_size("app.log")
+directory_listing: list_directory("/tmp")
+
+current_directory: getcwd()
+script_directory: dirname(__file__)
+absolute_path: realpath("./config")
+
+# Network and URL Functions
+is_valid_email: is_email("user@example.com")
+is_valid_url: is_url("https://example.com")
+is_valid_ip: is_ip("192.168.1.1")
+
+parse_url_result: parse_url("https://user:pass@example.com:8080/path?query=value#fragment")
+build_url_result: build_url({
+    "scheme": "https",
+    "host": "api.example.com",
+    "path": "/v1/users",
+    "query": "limit=10"
+})
+
+# Regular Expression Functions
+email_pattern: "/^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$/"
+email_match: preg_match(email_pattern, "user@example.com")
+phone_extract: preg_match_all("/\d{3}-\d{3}-\d{4}/", "Call 555-123-4567 or 555-987-6543")
+
+# Environment and System Functions
+env_variable: env("HOME", "/tmp")
+system_user: env("USER", "unknown")
+hostname: hostname()
+operating_system: uname("s")
+php_version: version()
+
+# Conditional Functions
+environment: env("ENVIRONMENT", "development")
+is_production: if(environment == "production", true, false)
+database_pool: if_else(is_production, 20, 5)
+log_level: switch(environment, {
+    "production": "ERROR",
+    "staging": "WARN", 
+    "development": "DEBUG"
+}, "INFO")
+
+# Cache and Performance Functions
+cache_key: cache_key("user", user_id, "profile")
+ttl_seconds: ttl_parse("5m")
+memory_usage: memory_get_usage()
+peak_memory: memory_get_peak_usage()
+execution_time: microtime(true)
+
+# Validation Functions
+validated_email: validate_email("user@example.com")
+validated_phone: validate_phone("+1-555-123-4567")
+validated_url: validate_url("https://example.com")
+sanitized_input: sanitize_string("<script>alert('xss')</script>")
+
+# Advanced Array Functions
+numbers: [1, 2, 3, 4, 5, 6, 7, 8, 9, 10]
+even_numbers: filter(numbers, "n => n % 2 == 0")
+squared_numbers: map(numbers, "n => n * n")
+sum_of_numbers: reduce(numbers, "acc, n => acc + n", 0)
+
+grouped_data: group_by(users, "department")
+chunked_array: chunk(numbers, 3)
+sliced_array: slice(numbers, 2, 5)
+
+# Database Helper Functions
+sql_escape: escape_string("user's input")
+query_builder: build_query("users", {
+    "where": {"active": true},
+    "order": "created_at DESC",
+    "limit": 10
+})
+
+# Localization Functions
+current_locale: locale()
+translated_text: translate("hello", "es")
+formatted_currency: format_currency(1234.56, "USD")
+formatted_number: format_number(1234567.89, 2)
+
+# Security Functions
+generate_token: generate_token(32)
+csrf_token: csrf_token()
+jwt_encode: jwt_encode({"user_id": 123}, secret_key)
+is_safe_string: is_safe_string(user_input)
+
+# Debugging Functions
+debug_dump: var_dump(user_data)
+debug_export: var_export(configuration)
+stack_trace: debug_backtrace()
+error_log_entry: error_log("Debug message", "/tmp/debug.log")
+</pre>
+
+<h3>Python Built-in Functions Implementation</h3>
+<pre>
+import os
+import re
+import json
+import hashlib
+import base64
+import uuid
+import random
+import string
+import math
+import time
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Union, Optional, Callable
+from urllib.parse import urlparse, urlunparse, quote, unquote
+import bcrypt
+from functools import reduce
+
+class TuskLangBuiltinFunctions:
+    """Implementation of TuskLang built-in functions for Python."""
+    
+    def __init__(self):
+        self.functions = self._register_functions()
+    
+    def _register_functions(self) -> Dict[str, Callable]:
+        """Register all built-in functions."""
+        return {
+            # String functions
+            'lower': lambda x: str(x).lower(),
+            'upper': lambda x: str(x).upper(),
+            'title': lambda x: str(x).title(),
+            'trim': lambda x: str(x).strip(),
+            'concat': lambda *args: ''.join(str(arg) for arg in args),
+            'pad_left': lambda s, length, char=' ': str(s).rjust(int(length), str(char)),
+            'pad_right': lambda s, length, char=' ': str(s).ljust(int(length), str(char)),
+            
+            # Date and time functions
+            'now': lambda: int(time.time()),
+            'date': lambda: datetime.now().strftime('%Y-%m-%d'),
+            'time': lambda: datetime.now().strftime('%H:%M:%S'),
+            'date_format': self._date_format,
+            'date_add': self._date_add,
+            'date_sub': self._date_sub,
+            'strtotime': self._strtotime,
+            
+            # Mathematical functions
+            'rand': lambda min_val=0, max_val=100: random.randint(int(min_val), int(max_val)),
+            'rand_float': lambda min_val=0.0, max_val=1.0: random.uniform(float(min_val), float(max_val)),
+            'abs': lambda x: abs(float(x)),
+            'ceil': lambda x: math.ceil(float(x)),
+            'floor': lambda x: math.floor(float(x)),
+            'round': lambda x, decimals=0: round(float(x), int(decimals)),
+            'min': lambda *args: min(float(x) for x in args),
+            'max': lambda *args: max(float(x) for x in args),
+            'sum': lambda arr: sum(float(x) for x in arr),
+            'avg': lambda arr: sum(float(x) for x in arr) / len(arr) if arr else 0,
+            
+            # Array functions
+            'count': lambda x: len(x) if hasattr(x, '__len__') else 0,
+            'first': lambda arr: arr[0] if arr else None,
+            'last': lambda arr: arr[-1] if arr else None,
+            'rand_item': lambda arr: random.choice(arr) if arr else None,
+            'join': lambda arr, sep=',': str(sep).join(str(x) for x in arr),
+            'sort': lambda arr: sorted(arr),
+            'reverse': lambda arr: list(reversed(arr)),
+            'unique': lambda arr: list(dict.fromkeys(arr)),
+            'chunk': self._chunk_array,
+            'slice': lambda arr, start, length=None: arr[start:start+length] if length else arr[start:],
+            
+            # Object/Dictionary functions
+            'keys': lambda obj: list(obj.keys()) if isinstance(obj, dict) else [],
+            'values': lambda obj: list(obj.values()) if isinstance(obj, dict) else [],
+            'has_key': lambda obj, key: key in obj if isinstance(obj, dict) else False,
+            'get': lambda obj, key, default=None: obj.get(key, default) if isinstance(obj, dict) else default,
+            
+            # Type checking and conversion
+            'is_string': lambda x: isinstance(x, str),
+            'is_number': lambda x: isinstance(x, (int, float)),
+            'is_array': lambda x: isinstance(x, (list, tuple)),
+            'is_object': lambda x: isinstance(x, dict),
+            'is_boolean': lambda x: isinstance(x, bool),
+            'to_int': lambda x: int(float(x)) if str(x).replace('.', '').replace('-', '').isdigit() else 0,
+            'to_float': lambda x: float(x) if isinstance(x, (int, float, str)) else 0.0,
+            'to_string': lambda x: str(x),
+            'to_json': lambda x: json.dumps(x, default=str),
+            'from_json': lambda x: json.loads(x) if isinstance(x, str) else x,
+            
+            # Hashing and encoding functions
+            'md5': lambda x: hashlib.md5(str(x).encode()).hexdigest(),
+            'sha1': lambda x: hashlib.sha1(str(x).encode()).hexdigest(),
+            'sha256': lambda x: hashlib.sha256(str(x).encode()).hexdigest(),
+            'bcrypt': self._bcrypt_hash,
+            'base64_encode': lambda x: base64.b64encode(str(x).encode()).decode(),
+            'base64_decode': lambda x: base64.b64decode(str(x).encode()).decode(),
+            'url_encode': lambda x: quote(str(x)),
+            'url_decode': lambda x: unquote(str(x)),
+            
+            # UUID and random functions
+            'uuid': lambda: str(uuid.uuid4()),
+            'random_string': self._random_string,
+            'random_bytes': lambda length=32: os.urandom(int(length)).hex(),
+            'generate_secret': lambda length=64: os.urandom(int(length)).hex(),
+            
+            # File system functions
+            'file_exists': lambda path: os.path.exists(str(path)),
+            'file_get_contents': self._file_get_contents,
+            'file_size': lambda path: os.path.getsize(str(path)) if os.path.exists(str(path)) else 0,
+            'list_directory': lambda path: os.listdir(str(path)) if os.path.isdir(str(path)) else [],
+            'getcwd': lambda: os.getcwd(),
+            'dirname': lambda path: os.path.dirname(str(path)),
+            'realpath': lambda path: os.path.realpath(str(path)),
+            
+            # Network and URL functions
+            'is_email': self._is_email,
+            'is_url': self._is_url,
+            'is_ip': self._is_ip,
+            'parse_url': self._parse_url,
+            'build_url': self._build_url,
+            
+            # Regular expression functions
+            'preg_match': self._preg_match,
+            'preg_match_all': self._preg_match_all,
+            
+            # Environment and system functions
+            'env': lambda var, default='': os.getenv(str(var), str(default)),
+            'hostname': lambda: os.uname().nodename if hasattr(os, 'uname') else 'unknown',
+            'uname': lambda part='a': getattr(os.uname(), {'s': 'sysname', 'n': 'nodename', 'r': 'release', 'v': 'version', 'm': 'machine'}.get(part, 'sysname'), 'unknown') if hasattr(os, 'uname') else 'unknown',
+            'version': lambda: f"{__import__('sys').version_info.major}.{__import__('sys').version_info.minor}.{__import__('sys').version_info.micro}",
+            
+            # Conditional functions
+            'if': lambda condition, true_val, false_val: true_val if condition else false_val,
+            'if_else': lambda condition, true_val, false_val: true_val if condition else false_val,
+            'switch': self._switch,
+            
+            # Cache and performance functions
+            'cache_key': lambda *parts: ':'.join(str(part) for part in parts),
+            'ttl_parse': self._ttl_parse,
+            'memory_get_usage': lambda: __import__('psutil').Process().memory_info().rss if self._has_psutil() else 0,
+            'microtime': lambda as_float=False: time.time() if as_float else f"{time.time():.6f}",
+            
+            # Validation functions
+            'validate_email': self._validate_email,
+            'validate_phone': self._validate_phone,
+            'validate_url': self._validate_url,
+            'sanitize_string': self._sanitize_string,
+            
+            # Advanced array functions
+            'filter': self._filter_array,
+            'map': self._map_array,
+            'reduce': self._reduce_array,
+            'group_by': self._group_by,
+            
+            # Security functions
+            'generate_token': lambda length=32: os.urandom(int(length)).hex(),
+            'csrf_token': lambda: str(uuid.uuid4()).replace('-', ''),
+            'is_safe_string': self._is_safe_string,
+            
+            # Debugging functions
+            'var_dump': lambda x: repr(x),
+            'var_export': lambda x: json.dumps(x, indent=2, default=str),
+            'error_log': self._error_log,
+        }
+    
+    def call_function(self, name: str, *args) -> Any:
+        """Call a built-in function."""
+        if name in self.functions:
+            try:
+                return self.functions[name](*args)
+            except Exception as e:
+                return f"Error in {name}: {e}"
+        return f"Unknown function: {name}"
+    
+    # Helper methods for complex functions
+    
+    def _date_format(self, timestamp, format_str='%Y-%m-%d %H:%M:%S'):
+        """Format timestamp using Python strftime."""
+        if isinstance(timestamp, (int, float)):
+            dt = datetime.fromtimestamp(timestamp)
+        else:
+            dt = datetime.now()
+        
+        # Convert PHP-style format to Python
+        format_map = {
+            'Y': '%Y', 'm': '%m', 'd': '%d',
+            'H': '%H', 'i': '%M', 's': '%S',
+            'c': '%Y-%m-%dT%H:%M:%S'
+        }
+        
+        for php_fmt, py_fmt in format_map.items():
+            format_str = format_str.replace(php_fmt, py_fmt)
+        
+        return dt.strftime(format_str)
+    
+    def _date_add(self, timestamp, amount, unit='days'):
+        """Add time to timestamp."""
+        dt = datetime.fromtimestamp(int(timestamp))
+        
+        if unit == 'days':
+            dt += timedelta(days=int(amount))
+        elif unit == 'hours':
+            dt += timedelta(hours=int(amount))
+        elif unit == 'minutes':
+            dt += timedelta(minutes=int(amount))
+        elif unit == 'seconds':
+            dt += timedelta(seconds=int(amount))
+        
+        return int(dt.timestamp())
+    
+    def _date_sub(self, timestamp, amount, unit='days'):
+        """Subtract time from timestamp."""
+        return self._date_add(timestamp, -int(amount), unit)
+    
+    def _strtotime(self, date_string):
+        """Parse date string to timestamp."""
+        try:
+            dt = datetime.fromisoformat(date_string.replace(' ', 'T'))
+            return int(dt.timestamp())
+        except:
+            return int(time.time())
+    
+    def _bcrypt_hash(self, password):
+        """Hash password with bcrypt."""
+        try:
+            return bcrypt.hashpw(str(password).encode(), bcrypt.gensalt()).decode()
+        except:
+            return self.functions['sha256'](password)
+    
+    def _random_string(self, length=16, chars=None):
+        """Generate random string."""
+        if chars is None:
+            chars = string.ascii_letters + string.digits
+        return ''.join(random.choice(chars) for _ in range(int(length)))
+    
+    def _file_get_contents(self, path):
+        """Read file contents."""
+        try:
+            with open(str(path), 'r', encoding='utf-8') as f:
+                return f.read()
+        except:
+            return ''
+    
+    def _is_email(self, email):
+        """Validate email address."""
+        pattern = r'^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$'
+        return bool(re.match(pattern, str(email)))
+    
+    def _is_url(self, url):
+        """Validate URL."""
+        try:
+            result = urlparse(str(url))
+            return all([result.scheme, result.netloc])
+        except:
+            return False
+    
+    def _is_ip(self, ip):
+        """Validate IP address."""
+        parts = str(ip).split('.')
+        return len(parts) == 4 and all(0 <= int(part) <= 255 for part in parts if part.isdigit())
+    
+    def _parse_url(self, url):
+        """Parse URL into components."""
+        parsed = urlparse(str(url))
+        return {
+            'scheme': parsed.scheme,
+            'host': parsed.hostname,
+            'port': parsed.port,
+            'path': parsed.path,
+            'query': parsed.query,
+            'fragment': parsed.fragment,
+            'username': parsed.username,
+            'password': parsed.password
+        }
+    
+    def _build_url(self, components):
+        """Build URL from components."""
+        if not isinstance(components, dict):
+            return ''
+        
+        scheme = components.get('scheme', 'http')
+        host = components.get('host', 'localhost')
+        port = components.get('port', '')
+        path = components.get('path', '')
+        query = components.get('query', '')
+        fragment = components.get('fragment', '')
+        
+        netloc = host
+        if port:
+            netloc += f":{port}"
+        
+        return urlunparse((scheme, netloc, path, '', query, fragment))
+    
+    def _preg_match(self, pattern, text):
+        """Match regular expression."""
+        try:
+            return bool(re.search(str(pattern).strip('/'), str(text)))
+        except:
+            return False
+    
+    def _preg_match_all(self, pattern, text):
+        """Find all regex matches."""
+        try:
+            return re.findall(str(pattern).strip('/'), str(text))
+        except:
+            return []
+    
+    def _switch(self, value, cases, default=None):
+        """Switch statement implementation."""
+        if isinstance(cases, dict):
+            return cases.get(value, default)
+        return default
+    
+    def _ttl_parse(self, ttl_str):
+        """Parse TTL string to seconds."""
+        if not ttl_str:
+            return 300
+        
+        ttl_str = str(ttl_str)
+        if ttl_str.isdigit():
+            return int(ttl_str)
+        
+        unit = ttl_str[-1].lower()
+        try:
+            value = int(ttl_str[:-1])
+        except:
+            return 300
+        
+        multipliers = {'s': 1, 'm': 60, 'h': 3600, 'd': 86400}
+        return value * multipliers.get(unit, 60)
+    
+    def _has_psutil(self):
+        """Check if psutil is available."""
+        try:
+            import psutil
+            return True
+        except ImportError:
+            return False
+    
+    def _validate_email(self, email):
+        """Comprehensive email validation."""
+        return self._is_email(email)
+    
+    def _validate_phone(self, phone):
+        """Validate phone number."""
+        # Simple international phone validation
+        pattern = r'^\+?[1-9]\d{1,14}$'
+        clean_phone = re.sub(r'[\s\-\(\)]', '', str(phone))
+        return bool(re.match(pattern, clean_phone))
+    
+    def _validate_url(self, url):
+        """Comprehensive URL validation."""
+        return self._is_url(url)
+    
+    def _sanitize_string(self, text):
+        """Sanitize string for safe output."""
+        # Basic HTML escaping
+        replacements = {
+            '<': '&lt;',
+            '>': '&gt;',
+            '"': '&quot;',
+            "'": '&#x27;',
+            '&': '&amp;'
+        }
+        
+        result = str(text)
+        for char, replacement in replacements.items():
+            result = result.replace(char, replacement)
+        
+        return result
+    
+    def _filter_array(self, arr, condition):
+        """Filter array with condition."""
+        # Simple condition evaluation (in real implementation, use safe eval)
+        try:
+            return [item for item in arr if eval(condition.replace('n', str(item)))]
+        except:
+            return arr
+    
+    def _map_array(self, arr, transformation):
+        """Map array with transformation."""
+        # Simple transformation (in real implementation, use safe eval)
+        try:
+            return [eval(transformation.replace('n', str(item))) for item in arr]
+        except:
+            return arr
+    
+    def _reduce_array(self, arr, reducer, initial=0):
+        """Reduce array with reducer function."""
+        # Simple reduction (in real implementation, use safe eval)
+        try:
+            result = initial
+            for item in arr:
+                expr = reducer.replace('acc', str(result)).replace('n', str(item))
+                result = eval(expr)
+            return result
+        except:
+            return initial
+    
+    def _group_by(self, arr, key):
+        """Group array by key."""
+        if not isinstance(arr, list):
+            return {}
+        
+        groups = {}
+        for item in arr:
+            if isinstance(item, dict) and key in item:
+                group_key = item[key]
+                if group_key not in groups:
+                    groups[group_key] = []
+                groups[group_key].append(item)
+        
+        return groups
+    
+    def _chunk_array(self, arr, size):
+        """Split array into chunks."""
+        size = int(size)
+        return [arr[i:i + size] for i in range(0, len(arr), size)]
+    
+    def _is_safe_string(self, text):
+        """Check if string is safe (no script tags, etc.)."""
+        dangerous_patterns = [
+            r'<script.*?>.*?</script>',
+            r'javascript:',
+            r'on\w+\s*=',
+            r'<iframe',
+            r'<object',
+            r'<embed'
+        ]
+        
+        text_str = str(text).lower()
+        return not any(re.search(pattern, text_str, re.IGNORECASE | re.DOTALL) for pattern in dangerous_patterns)
+    
+    def _error_log(self, message, file_path=None):
+        """Log error message."""
+        timestamp = datetime.now().strftime('%Y-%m-%d %H:%M:%S')
+        log_message = f"[{timestamp}] {message}\n"
+        
+        if file_path:
+            try:
+                with open(str(file_path), 'a') as f:
+                    f.write(log_message)
+            except:
+                pass
+        else:
+            print(log_message.strip())
+        
+        return message
+
+# Example usage
+def demonstrate_builtin_functions():
+    """Demonstrate built-in functions."""
+    
+    functions = TuskLangBuiltinFunctions()
+    
+    # Test various function categories
+    tests = [
+        # String functions
+        ('lower', ['HELLO WORLD']),
+        ('upper', ['hello world']),
+        ('concat', ['Hello', ' ', 'World', '!']),
+        
+        # Math functions
+        ('rand', [1, 100]),
+        ('round', [3.14159, 2]),
+        ('sum', [[1, 2, 3, 4, 5]]),
+        
+        # Array functions
+        ('count', [['a', 'b', 'c']]),
+        ('join', [['apple', 'banana', 'cherry'], ', ']),
+        ('unique', [[1, 2, 2, 3, 3, 3, 4]]),
+        
+        # Date functions
+        ('date', []),
+        ('now', []),
+        
+        # Hashing functions
+        ('md5', ['hello world']),
+        ('uuid', []),
+        
+        # Validation functions
+        ('is_email', ['user@example.com']),
+        ('is_url', ['https://example.com']),
+    ]
+    
+    print("Built-in Functions Demo:")
+    print("=" * 50)
+    
+    for func_name, args in tests:
+        try:
+            result = functions.call_function(func_name, *args)
+            print(f"{func_name}({', '.join(map(str, args))}): {result}")
+        except Exception as e:
+            print(f"{func_name}: Error - {e}")
+
+if __name__ == "__main__":
+    demonstrate_builtin_functions()
+</pre>
+
+<p>TuskLang's comprehensive built-in function library provides powerful utilities for Python applications covering string manipulation, data processing, validation, and system operations.</p>

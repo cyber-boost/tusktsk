@@ -1,0 +1,503 @@
+<h1>Data Types with TuskLang in Rust</h1>
+
+<h2>Type System Integration</h2>
+<p>TuskLang integrates seamlessly with Rust's type system, providing compile-time safety and runtime validation for configuration data.</p>
+
+<h3>Primitive Types</h3>
+<pre>
+# primitive-types.tsk
+# String types
+app_name: "Rust TuskLang App"
+description: "High-performance configuration parsing"
+empty_string: ""
+
+# Integer types (various sizes)
+small_number: 42           # i32/u32
+large_number: 9223372036854775807  # i64/u64
+port: 8080                # u16
+max_users: 1000000        # u32
+
+# Floating point numbers
+pi: 3.14159265359
+temperature: -40.5
+percentage: 99.99
+
+# Boolean values
+debug_enabled: true
+production_mode: false
+auto_backup: true
+
+# Null/None values
+optional_field: null
+</pre>
+
+<h3>Rust Type Definitions</h3>
+<pre>
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+struct PrimitiveTypes {
+    // String handling with validation
+    app_name: String,
+    description: String,
+    
+    // Optional strings (null becomes None)
+    #[serde(default)]
+    empty_string: Option<String>,
+    
+    // Integer types with appropriate sizing
+    small_number: i32,
+    large_number: i64,
+    port: u16,
+    max_users: u32,
+    
+    // Floating point with precision
+    pi: f64,
+    temperature: f32,
+    percentage: f64,
+    
+    // Boolean flags
+    debug_enabled: bool,
+    production_mode: bool,
+    auto_backup: bool,
+    
+    // Optional field handling
+    optional_field: Option<String>,
+}
+
+// Custom validation for primitive types
+impl PrimitiveTypes {
+    fn validate(&self) -> Result<(), TypeError> {
+        if self.app_name.is_empty() {
+            return Err(TypeError::EmptyString("app_name".to_string()));
+        }
+        
+        if self.port == 0 {
+            return Err(TypeError::InvalidRange("port must be > 0".to_string()));
+        }
+        
+        if !(0.0..=100.0).contains(&self.percentage) {
+            return Err(TypeError::InvalidRange("percentage must be 0-100".to_string()));
+        }
+        
+        Ok(())
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+enum TypeError {
+    #[error("Empty string not allowed for field: {0}")]
+    EmptyString(String),
+    
+    #[error("Value out of range: {0}")]
+    InvalidRange(String),
+    
+    #[error("Type mismatch: expected {expected}, got {actual}")]
+    TypeMismatch { expected: String, actual: String },
+}
+</pre>
+
+<h3>Complex Data Structures</h3>
+<pre>
+# complex-types.tsk
+# Nested configuration objects
+database {
+    primary {
+        host: "primary-db.example.com"
+        port: 5432
+        credentials {
+            username: env("DB_USER")
+            password: env("DB_PASS")
+            ssl_cert: file("certs/db.pem")
+        }
+        
+        performance {
+            max_connections: 100
+            connection_timeout: 30.0
+            query_timeout: 60.0
+            retry_attempts: 3
+        }
+    }
+    
+    replicas: [
+        {
+            host: "replica1.example.com"
+            port: 5432
+            weight: 1.0
+            read_only: true
+        },
+        {
+            host: "replica2.example.com"
+            port: 5432
+            weight: 0.8
+            read_only: true
+        }
+    ]
+}
+
+# Feature matrices
+feature_matrix {
+    user_tiers: {
+        free: {
+            api_calls_per_day: 1000
+            storage_gb: 1
+            support_level: "community"
+            features: ["basic_api", "web_interface"]
+        }
+        
+        premium: {
+            api_calls_per_day: 100000
+            storage_gb: 100
+            support_level: "email"
+            features: ["basic_api", "web_interface", "analytics", "webhooks"]
+        }
+        
+        enterprise: {
+            api_calls_per_day: -1  # unlimited
+            storage_gb: 1000
+            support_level: "phone"
+            features: ["basic_api", "web_interface", "analytics", "webhooks", "custom_integrations", "sla"]
+        }
+    }
+}
+
+// Rust structures for complex types
+#[derive(Debug, Deserialize, Serialize)]
+struct ComplexConfig {
+    database: DatabaseConfig,
+    feature_matrix: FeatureMatrix,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct DatabaseConfig {
+    primary: DatabaseInstance,
+    replicas: Vec<ReplicaInstance>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct DatabaseInstance {
+    host: String,
+    port: u16,
+    credentials: DatabaseCredentials,
+    performance: PerformanceConfig,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct DatabaseCredentials {
+    username: String,
+    password: String,
+    ssl_cert: Option<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct PerformanceConfig {
+    max_connections: u32,
+    connection_timeout: f64,
+    query_timeout: f64,
+    retry_attempts: u8,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct ReplicaInstance {
+    host: String,
+    port: u16,
+    weight: f64,
+    read_only: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct FeatureMatrix {
+    user_tiers: HashMap<String, UserTier>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct UserTier {
+    api_calls_per_day: i32,  // -1 for unlimited
+    storage_gb: u32,
+    support_level: String,
+    features: Vec<String>,
+}
+</pre>
+
+<h3>Enums and Tagged Unions</h3>
+<pre>
+# enums-unions.tsk
+# Configuration with different modes
+server_mode: "production"  # development, staging, production
+
+# Different authentication methods
+auth_method: "jwt"  # jwt, oauth, basic, apikey
+
+# Logging configuration with different outputs
+logging {
+    level: "info"  # debug, info, warn, error
+    
+    outputs: [
+        {
+            type: "console"
+            format: "human"
+            colored: true
+        },
+        {
+            type: "file"
+            path: "/var/log/app.log"
+            format: "json"
+            rotation: {
+                max_size_mb: 100
+                max_files: 10
+            }
+        },
+        {
+            type: "syslog"
+            facility: "daemon"
+            tag: "my-rust-app"
+        }
+    ]
+}
+
+// Rust enums for type safety
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "lowercase")]
+enum ServerMode {
+    Development,
+    Staging,
+    Production,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "lowercase")]
+enum AuthMethod {
+    Jwt,
+    OAuth,
+    Basic,
+    ApiKey,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone, PartialEq)]
+#[serde(rename_all = "lowercase")]
+enum LogLevel {
+    Debug,
+    Info,
+    Warn,
+    Error,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct LoggingConfig {
+    level: LogLevel,
+    outputs: Vec<LogOutput>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(tag = "type", rename_all = "lowercase")]
+enum LogOutput {
+    Console {
+        format: LogFormat,
+        colored: bool,
+    },
+    File {
+        path: String,
+        format: LogFormat,
+        rotation: Option<RotationConfig>,
+    },
+    Syslog {
+        facility: String,
+        tag: String,
+    },
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+#[serde(rename_all = "lowercase")]
+enum LogFormat {
+    Human,
+    Json,
+    Structured,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct RotationConfig {
+    max_size_mb: u32,
+    max_files: u32,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct EnumConfig {
+    server_mode: ServerMode,
+    auth_method: AuthMethod,
+    logging: LoggingConfig,
+}
+
+// Pattern matching for enum handling
+impl EnumConfig {
+    fn is_production(&self) -> bool {
+        matches!(self.server_mode, ServerMode::Production)
+    }
+    
+    fn requires_secure_auth(&self) -> bool {
+        matches!(self.auth_method, AuthMethod::Jwt | AuthMethod::OAuth)
+    }
+    
+    fn get_log_file_path(&self) -> Option<String> {
+        self.logging.outputs
+            .iter()
+            .find_map(|output| match output {
+                LogOutput::File { path, .. } => Some(path.clone()),
+                _ => None,
+            })
+    }
+}
+</pre>
+
+<h3>Custom Types and Validation</h3>
+<pre>
+# custom-types.tsk
+# Custom validated types
+email_settings {
+    admin_email: "admin@example.com"
+    from_address: "noreply@example.com"
+    smtp {
+        host: "smtp.example.com"
+        port: 587
+        encryption: "tls"
+    }
+}
+
+rate_limiting {
+    default_rate: "100/minute"
+    burst_rate: "1000/hour"
+    premium_rate: "10000/minute"
+}
+
+security {
+    password_policy {
+        min_length: 12
+        require_uppercase: true
+        require_numbers: true
+        require_symbols: true
+        max_age_days: 90
+    }
+    
+    session {
+        timeout_minutes: 30
+        extend_on_activity: true
+        secure_cookies: true
+    }
+}
+
+// Custom types with validation
+use regex::Regex;
+use std::str::FromStr;
+use std::fmt;
+
+#[derive(Debug, Clone, PartialEq)]
+struct EmailAddress(String);
+
+impl<'de> Deserialize<'de> for EmailAddress {
+    fn deserialize<D>(deserializer: D) -> Result<Self, D::Error>
+    where
+        D: serde::Deserializer<'de>,
+    {
+        let s = String::deserialize(deserializer)?;
+        EmailAddress::from_str(&s).map_err(serde::de::Error::custom)
+    }
+}
+
+impl Serialize for EmailAddress {
+    fn serialize<S>(&self, serializer: S) -> Result<S::Ok, S::Error>
+    where
+        S: serde::Serializer,
+    {
+        self.0.serialize(serializer)
+    }
+}
+
+impl FromStr for EmailAddress {
+    type Err = ValidationError;
+    
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let email_regex = Regex::new(r"^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}$")
+            .unwrap();
+        
+        if email_regex.is_match(s) {
+            Ok(EmailAddress(s.to_string()))
+        } else {
+            Err(ValidationError::InvalidEmail(s.to_string()))
+        }
+    }
+}
+
+impl fmt::Display for EmailAddress {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        write!(f, "{}", self.0)
+    }
+}
+
+#[derive(Debug, Clone, PartialEq)]
+struct RateLimit {
+    requests: u32,
+    period: RatePeriod,
+}
+
+#[derive(Debug, Clone, PartialEq)]
+enum RatePeriod {
+    Second,
+    Minute,
+    Hour,
+    Day,
+}
+
+impl FromStr for RateLimit {
+    type Err = ValidationError;
+    
+    fn from_str(s: &str) -> Result<Self, Self::Err> {
+        let parts: Vec<&str> = s.split('/').collect();
+        if parts.len() != 2 {
+            return Err(ValidationError::InvalidRateFormat(s.to_string()));
+        }
+        
+        let requests: u32 = parts[0].parse()
+            .map_err(|_| ValidationError::InvalidRateFormat(s.to_string()))?;
+        
+        let period = match parts[1] {
+            "second" => RatePeriod::Second,
+            "minute" => RatePeriod::Minute,
+            "hour" => RatePeriod::Hour,
+            "day" => RatePeriod::Day,
+            _ => return Err(ValidationError::InvalidRateFormat(s.to_string())),
+        };
+        
+        Ok(RateLimit { requests, period })
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+enum ValidationError {
+    #[error("Invalid email address: {0}")]
+    InvalidEmail(String),
+    
+    #[error("Invalid rate format: {0}")]
+    InvalidRateFormat(String),
+    
+    #[error("Password policy violation: {0}")]
+    PasswordPolicy(String),
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct CustomTypesConfig {
+    email_settings: EmailSettings,
+    rate_limiting: RateLimitingConfig,
+    security: SecurityConfig,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct EmailSettings {
+    admin_email: EmailAddress,
+    from_address: EmailAddress,
+    smtp: SmtpConfig,
+}
+</pre>
+
+<p>TuskLang's integration with Rust's type system provides powerful compile-time guarantees and runtime validation for configuration data, enabling robust and type-safe applications.</p>

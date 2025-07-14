@@ -1,0 +1,523 @@
+<h1>Functions & Methods</h1>
+
+<h2>Built-in Functions and Custom Methods in Bash</h2>
+<p>TuskLang functions translate to bash functions with parameter handling and return values.</p>
+
+<h3>functions.tsk</h3>
+<pre>
+# Built-in functions
+builtins {
+    # Environment functions
+    home: env("HOME")
+    path: env("PATH", "/usr/local/bin:/usr/bin:/bin")
+    shell: env("SHELL", "/bin/bash")
+    
+    # File functions
+    config: file("/etc/app/config.conf")
+    template: file("./templates/main.tpl", "Template not found")
+    
+    # Command execution
+    hostname: cmd("hostname")
+    date: cmd("date +%Y-%m-%d")
+    user: cmd("whoami")
+    
+    # String functions
+    formatted: sprintf("Hello %s, you have %d messages", @var.user, 5)
+    uppercase: upper(@var.name)
+    lowercase: lower(@var.name)
+    trimmed: trim("  spaces  ")
+    
+    # Array functions
+    joined: join(@var.items, ", ")
+    split_path: split(@var.PATH, ":")
+    first_item: first(@var.items)
+    last_item: last(@var.items)
+    
+    # Math functions
+    sum: add(10, 20, 30)
+    product: multiply(2, 3, 4)
+    maximum: max(@var.numbers)
+    minimum: min(@var.numbers)
+    rounded: round(3.14159, 2)
+}
+
+# Custom function definitions
+functions {
+    # Simple function
+    greet: @fn(name) => "Hello, ${name}!"
+    
+    # Function with multiple parameters
+    calculate: @fn(a, b, op) => {
+        switch(op) {
+            case "+": @return a + b
+            case "-": @return a - b
+            case "*": @return a * b
+            case "/": @return a / b
+            default: @error("Unknown operation")
+        }
+    }
+    
+    # Function with validation
+    validate_email: @fn(email) => {
+        if (!@regex.match(email, "^[^@]+@[^@]+\\.[^@]+$")) {
+            @return false
+        }
+        @return true
+    }
+    
+    # Recursive function
+    factorial: @fn(n) => {
+        if (n <= 1) @return 1
+        @return n * @factorial(n - 1)
+    }
+    
+    # Function with side effects
+    log_message: @fn(level, message) => {
+        @file.append("/var/log/app.log", "[${level}] ${@date()} ${message}\n")
+        if (level == "ERROR") {
+            @notify.admin(message)
+        }
+    }
+}
+
+# Method chaining
+chains {
+    # String chain
+    processed: @var.input
+        |> trim()
+        |> lower()
+        |> replace(" ", "_")
+        |> prefix("user_")
+    
+    # Array chain
+    filtered: @var.numbers
+        |> filter(n => n > 0)
+        |> map(n => n * 2)
+        |> sort()
+        |> take(5)
+    
+    # Data pipeline
+    result: @file("data.json")
+        |> json_decode()
+        |> get("users")
+        |> filter(u => u.active)
+        |> map(u => u.email)
+        |> unique()
+}
+</pre>
+
+<h3>Bash Function Implementation</h3>
+<pre>
+#!/bin/bash
+
+# TuskLang function library
+
+# Built-in environment functions
+tusk_fn_env() {
+    local var_name="$1"
+    local default="$2"
+    echo "${!var_name:-$default}"
+}
+
+# File functions
+tusk_fn_file() {
+    local file_path="$1"
+    local default="$2"
+    
+    if [ -f "$file_path" ]; then
+        cat "$file_path"
+    else
+        echo "${default:-}"
+    fi
+}
+
+# Command execution
+tusk_fn_cmd() {
+    local command="$1"
+    eval "$command" 2>/dev/null || echo ""
+}
+
+# String functions
+tusk_fn_sprintf() {
+    printf "$@"
+}
+
+tusk_fn_upper() {
+    echo "${1^^}"
+}
+
+tusk_fn_lower() {
+    echo "${1,,}"
+}
+
+tusk_fn_trim() {
+    local str="$1"
+    str="${str#"${str%%[![:space:]]*}"}"
+    str="${str%"${str##*[![:space:]]}"}"
+    echo "$str"
+}
+
+tusk_fn_replace() {
+    local str="$1"
+    local search="$2"
+    local replace="$3"
+    echo "${str//$search/$replace}"
+}
+
+tusk_fn_prefix() {
+    local str="$1"
+    local prefix="$2"
+    echo "${prefix}${str}"
+}
+
+tusk_fn_suffix() {
+    local str="$1"
+    local suffix="$2"
+    echo "${str}${suffix}"
+}
+
+# Array functions
+tusk_fn_join() {
+    local array_name="$1"
+    local delimiter="$2"
+    local result=""
+    local first=1
+    
+    eval "for item in \"\${${array_name}[@]}\"; do
+        if [ \$first -eq 1 ]; then
+            result=\"\$item\"
+            first=0
+        else
+            result=\"\${result}\${delimiter}\${item}\"
+        fi
+    done"
+    
+    echo "$result"
+}
+
+tusk_fn_split() {
+    local string="$1"
+    local delimiter="$2"
+    local array_name="$3"
+    
+    IFS="$delimiter" read -ra "$array_name" <<< "$string"
+}
+
+tusk_fn_first() {
+    local array_name="$1"
+    eval "echo \"\${${array_name}[0]}\""
+}
+
+tusk_fn_last() {
+    local array_name="$1"
+    eval "echo \"\${${array_name}[-1]}\""
+}
+
+# Math functions
+tusk_fn_add() {
+    local sum=0
+    for num in "$@"; do
+        ((sum += num))
+    done
+    echo $sum
+}
+
+tusk_fn_multiply() {
+    local product=1
+    for num in "$@"; do
+        ((product *= num))
+    done
+    echo $product
+}
+
+tusk_fn_max() {
+    local max="$1"
+    shift
+    for num in "$@"; do
+        [ "$num" -gt "$max" ] && max="$num"
+    done
+    echo $max
+}
+
+tusk_fn_min() {
+    local min="$1"
+    shift
+    for num in "$@"; do
+        [ "$num" -lt "$min" ] && min="$num"
+    done
+    echo $min
+}
+
+tusk_fn_round() {
+    local number="$1"
+    local decimals="${2:-0}"
+    printf "%.${decimals}f" "$number"
+}
+
+# Custom function implementation
+tusk_define_function() {
+    local name="$1"
+    local body="$2"
+    
+    # Create function dynamically
+    eval "tusk_fn_$name() { $body; }"
+}
+
+# Function with error handling
+tusk_fn_with_error() {
+    local fn_name="$1"
+    shift
+    
+    # Set up error trap
+    set -e
+    trap 'echo "Error in function $fn_name" >&2; return 1' ERR
+    
+    # Execute function
+    "tusk_fn_$fn_name" "$@"
+    
+    # Reset trap
+    trap - ERR
+    set +e
+}
+
+# Pipe operator implementation
+tusk_pipe() {
+    local input="$1"
+    shift
+    
+    local result="$input"
+    for operation in "$@"; do
+        result=$(echo "$result" | $operation)
+    done
+    
+    echo "$result"
+}
+
+# Filter function
+tusk_fn_filter() {
+    local array_name="$1"
+    local condition="$2"
+    local result_name="${3:-filtered}"
+    
+    eval "declare -a $result_name=()"
+    
+    eval "for item in \"\${${array_name}[@]}\"; do
+        if $condition \"\$item\"; then
+            ${result_name}+=(\"\$item\")
+        fi
+    done"
+}
+
+# Map function
+tusk_fn_map() {
+    local array_name="$1"
+    local transform="$2"
+    local result_name="${3:-mapped}"
+    
+    eval "declare -a $result_name=()"
+    
+    eval "for item in \"\${${array_name}[@]}\"; do
+        transformed=\$($transform \"\$item\")
+        ${result_name}+=(\"\$transformed\")
+    done"
+}
+
+# Sort function
+tusk_fn_sort() {
+    local array_name="$1"
+    local numeric="${2:-false}"
+    
+    if [ "$numeric" = "true" ]; then
+        eval "IFS=\$'\\n' ${array_name}=(\$(sort -n <<< \"\${${array_name}[*]}\"))"
+    else
+        eval "IFS=\$'\\n' ${array_name}=(\$(sort <<< \"\${${array_name}[*]}\"))"
+    fi
+}
+
+# Take function
+tusk_fn_take() {
+    local array_name="$1"
+    local count="$2"
+    local result_name="${3:-taken}"
+    
+    eval "declare -a $result_name=(\"\${${array_name}[@]:0:$count}\")"
+}
+
+# Unique function
+tusk_fn_unique() {
+    local array_name="$1"
+    local result_name="${2:-unique}"
+    
+    eval "declare -a $result_name=()"
+    eval "declare -A seen=()"
+    
+    eval "for item in \"\${${array_name}[@]}\"; do
+        if [ -z \"\${seen[\$item]:-}\" ]; then
+            ${result_name}+=(\"\$item\")
+            seen[\$item]=1
+        fi
+    done"
+}
+
+# Memoization decorator
+declare -A tusk_memo_cache
+
+tusk_memoize() {
+    local fn_name="$1"
+    local cache_key="$fn_name:$*"
+    
+    # Check cache
+    if [ -n "${tusk_memo_cache[$cache_key]:-}" ]; then
+        echo "${tusk_memo_cache[$cache_key]}"
+        return
+    fi
+    
+    # Call function and cache result
+    shift
+    local result=$("tusk_fn_$fn_name" "$@")
+    tusk_memo_cache[$cache_key]="$result"
+    echo "$result"
+}
+
+# Async function execution
+tusk_async() {
+    local fn_name="$1"
+    shift
+    
+    # Run in background and return PID
+    (
+        result=$("tusk_fn_$fn_name" "$@")
+        echo "$result" > "/tmp/tusk_async_$$"
+    ) &
+    
+    echo $!
+}
+
+tusk_await() {
+    local pid="$1"
+    wait "$pid"
+    cat "/tmp/tusk_async_$pid"
+    rm -f "/tmp/tusk_async_$pid"
+}
+</pre>
+
+<h3>Usage Example</h3>
+<pre>
+#!/bin/bash
+
+# Load TuskLang functions
+source /usr/local/lib/tusklang.sh
+source /usr/local/lib/tusklang-functions.sh
+
+# Using built-in functions
+echo "Home directory: $(tusk_fn_env "HOME")"
+echo "Current date: $(tusk_fn_cmd "date +%Y-%m-%d")"
+echo "Hostname: $(tusk_fn_cmd "hostname")"
+
+# String manipulation
+name="  John Doe  "
+processed=$(echo "$name" | 
+    xargs -I {} bash -c 'tusk_fn_trim "{}"' |
+    xargs -I {} bash -c 'tusk_fn_lower "{}"' |
+    xargs -I {} bash -c 'tusk_fn_replace "{}" " " "_"')
+echo "Processed name: $processed"
+
+# Array operations
+declare -a numbers=(5 2 8 1 9 3)
+echo "Original: ${numbers[@]}"
+tusk_fn_sort numbers true
+echo "Sorted: ${numbers[@]}"
+
+max=$(tusk_fn_max "${numbers[@]}")
+min=$(tusk_fn_min "${numbers[@]}")
+echo "Max: $max, Min: $min"
+
+# Custom function definition
+tusk_define_function "greet" '
+    local name="$1"
+    echo "Hello, $name!"
+'
+
+tusk_fn_greet "Alice"
+
+# Validation function
+tusk_define_function "validate_email" '
+    local email="$1"
+    if [[ "$email" =~ ^[^@]+@[^@]+\.[^@]+$ ]]; then
+        echo "true"
+    else
+        echo "false"
+    fi
+'
+
+email="user@example.com"
+if [ "$(tusk_fn_validate_email "$email")" = "true" ]; then
+    echo "$email is valid"
+fi
+
+# Factorial with memoization
+tusk_define_function "factorial" '
+    local n="$1"
+    if [ "$n" -le 1 ]; then
+        echo 1
+    else
+        local prev=$(tusk_memoize factorial $((n-1)))
+        echo $((n * prev))
+    fi
+'
+
+echo "5! = $(tusk_memoize factorial 5)"
+echo "6! = $(tusk_memoize factorial 6)" # Uses cached 5!
+
+# Array processing pipeline
+declare -a data=(1 -2 3 -4 5 6 -7 8 9 10)
+
+# Filter positive numbers
+is_positive() { [ "$1" -gt 0 ] && return 0 || return 1; }
+tusk_fn_filter data is_positive positive
+
+# Double each number
+double() { echo $((2 * $1)); }
+tusk_fn_map positive double doubled
+
+# Take first 5
+tusk_fn_take doubled 5 result
+
+echo "Pipeline result: ${result[@]}"
+
+# Async function execution
+tusk_define_function "slow_operation" '
+    sleep 2
+    echo "Operation complete: $1"
+'
+
+echo "Starting async operations..."
+pid1=$(tusk_async slow_operation "Task 1")
+pid2=$(tusk_async slow_operation "Task 2")
+
+echo "Waiting for results..."
+result1=$(tusk_await $pid1)
+result2=$(tusk_await $pid2)
+
+echo "Result 1: $result1"
+echo "Result 2: $result2"
+
+# Function composition
+compose() {
+    local input="$1"
+    shift
+    local result="$input"
+    
+    for fn in "$@"; do
+        result=$(tusk_fn_$fn "$result")
+    done
+    
+    echo "$result"
+}
+
+text="  HELLO WORLD  "
+result=$(compose "$text" trim lower)
+echo "Composed result: $result"
+</pre>
+
+<p>TuskLang functions in bash provide a rich set of built-in utilities and support for custom function definitions, memoization, async execution, and functional programming patterns.</p>

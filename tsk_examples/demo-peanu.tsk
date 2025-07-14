@@ -1,0 +1,142 @@
+# 🥜 Demo peanu.tsk - Hierarchical Configuration System
+# =================================================
+# This file demonstrates the CSS-like inheritance pattern
+# for TuskLang configuration management.
+#
+# Key Features:
+# - Auto-parent lookup system
+# - CSS-like inheritance and overrides
+# - Configuration chain resolution
+# - Performance caching
+# - Binary compilation support
+
+# Application Configuration
+app_name: "TuskLang Demo Application"
+version: "1.0.0"
+environment: "development"
+
+# Database Configuration
+database:
+    type: "sqlite"
+    host: "localhost"
+    port: 5432
+    name: "tusklang_demo"
+    pool_size: 10
+    timeout: 30
+    ssl: false
+
+# Server Configuration
+server:
+    host: "0.0.0.0"
+    port: 3574
+    workers: 4
+    max_connections: 100
+    keep_alive: 30
+    gzip: true
+
+# Cache Configuration
+cache:
+    enabled: true
+    ttl: 3600
+    max_size: "100MB"
+    compression: true
+    
+# Security Configuration
+security:
+    cors_enabled: true
+    csrf_protection: true
+    rate_limiting: true
+    max_requests_per_minute: 60
+    allowed_origins: ["localhost", "127.0.0.1"]
+
+# Features Configuration
+features:
+    logging: true
+    metrics: true
+    profiling: false
+    debug: true
+    auto_backup: true
+
+# Performance Configuration
+performance:
+    jit_compilation: true
+    binary_caching: true
+    gzip_compression: true
+    minify_output: false
+    optimize_queries: true
+
+# Advanced Configuration
+advanced:
+    peanuts_processing: true
+    fujsen_operators: true
+    variable_interpolation: true
+    template_caching: true
+    smart_compilation: true
+
+# Example variable syntax (both supported)
+welcome_message: "Welcome to $app_name v$version!"
+alt_message: "Hello from {{app_name}} running on {{server.host}}:{{server.port}}"
+
+# Example nested configuration
+ui:
+    theme: "dark"
+    colors:
+        primary: "#3498db"
+        secondary: "#2ecc71"
+        accent: "#e74c3c"
+        background: "#2c3e50"
+        text: "#ecf0f1"
+    
+    layout:
+        sidebar_width: 250
+        header_height: 64
+        footer_height: 48
+        content_padding: 24
+    
+    animations:
+        enabled: true
+        duration: 300
+        easing: "ease-in-out"
+
+# Example array configurations
+plugins: [
+    "authentication",
+    "authorization", 
+    "logging",
+    "monitoring",
+    "backup"
+]
+
+# Example conditional configuration
+debug_features: {
+    sql_logging: $features.debug
+    request_timing: $features.profiling
+    memory_usage: $features.metrics
+}
+
+# Example environment-specific overrides
+# (This would be overridden by child peanu.tsk files)
+overrides:
+    production: {
+        debug: false
+        logging_level: "error"
+        cache_ttl: 7200
+    }
+    staging: {
+        debug: true
+        logging_level: "info"
+        cache_ttl: 1800
+    }
+    development: {
+        debug: true
+        logging_level: "debug"
+        cache_ttl: 300
+    }
+
+# Meta information
+meta:
+    created_by: "TuskLang Configuration System"
+    created_at: "2024-01-15"
+    version: "1.0.0"
+    description: "Demo configuration showing hierarchical inheritance"
+    documentation: "https://tusklang.org/docs/config" 

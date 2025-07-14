@@ -1,0 +1,242 @@
+<h1>Collections and Structures with TuskLang in Go</h1>
+
+<h2>Arrays and Slices</h2>
+<p>Working with TuskLang arrays and converting them to Go slices and arrays.</p>
+
+<h3>Array Syntax</h3>
+<pre>
+# arrays.tsk
+features: ["auth", "logging", "metrics", "cache"]
+ports: [8080, 8081, 8082]
+enabled_services: [true, false, true, true]
+config_files: ["app.conf", "db.conf", "cache.conf"]
+
+# Mixed type arrays (handled as []interface{})
+mixed_data: ["string", 42, true, null]
+</pre>
+
+<h3>Go Array Processing</h3>
+<pre>
+type ArrayConfig struct {
+    Features        []string      `tusk:"features"`
+    Ports          []int         `tusk:"ports"`
+    EnabledServices []bool        `tusk:"enabled_services"`
+    ConfigFiles    []string      `tusk:"config_files"`
+    MixedData      []interface{} `tusk:"mixed_data"`
+}
+
+func parseArrays(data map[string]interface{}) (*ArrayConfig, error) {
+    config := &ArrayConfig{}
+    
+    // Parse string arrays
+    if features, ok := data["features"].([]interface{}); ok {
+        config.Features = make([]string, len(features))
+        for i, v := range features {
+            if str, ok := v.(string); ok {
+                config.Features[i] = str
+            }
+        }
+    }
+    
+    // Parse integer arrays
+    if ports, ok := data["ports"].([]interface{}); ok {
+        config.Ports = make([]int, len(ports))
+        for i, v := range ports {
+            if num, ok := v.(int); ok {
+                config.Ports[i] = num
+            } else if floatNum, ok := v.(float64); ok {
+                config.Ports[i] = int(floatNum)
+            }
+        }
+    }
+    
+    // Parse boolean arrays
+    if services, ok := data["enabled_services"].([]interface{}); ok {
+        config.EnabledServices = make([]bool, len(services))
+        for i, v := range services {
+            if b, ok := v.(bool); ok {
+                config.EnabledServices[i] = b
+            }
+        }
+    }
+    
+    return config, nil
+}
+</pre>
+
+<h3>Nested Objects</h3>
+<pre>
+# nested.tsk
+database {
+    primary {
+        host: "localhost"
+        port: 5432
+        credentials {
+            username: env("DB_USER", "postgres")
+            password: env("DB_PASS", "")
+        }
+    }
+    
+    replicas: [
+        {
+            host: "replica1.example.com"
+            port: 5432
+            weight: 1
+        },
+        {
+            host: "replica2.example.com" 
+            port: 5432
+            weight: 2
+        }
+    ]
+}
+</pre>
+
+<h3>Go Struct Mapping</h3>
+<pre>
+type DatabaseConfig struct {
+    Primary  PrimaryDB `tusk:"primary"`
+    Replicas []Replica `tusk:"replicas"`
+}
+
+type PrimaryDB struct {
+    Host        string      `tusk:"host"`
+    Port        int         `tusk:"port"`
+    Credentials Credentials `tusk:"credentials"`
+}
+
+type Credentials struct {
+    Username string `tusk:"username"`
+    Password string `tusk:"password"`
+}
+
+type Replica struct {
+    Host   string `tusk:"host"`
+    Port   int    `tusk:"port"`
+    Weight int    `tusk:"weight"`
+}
+
+func parseNestedStructures(data map[string]interface{}) (*DatabaseConfig, error) {
+    config := &DatabaseConfig{}
+    
+    if dbData, ok := data["database"].(map[string]interface{}); ok {
+        // Parse primary database
+        if primaryData, ok := dbData["primary"].(map[string]interface{}); ok {
+            config.Primary = PrimaryDB{}
+            
+            if host, ok := primaryData["host"].(string); ok {
+                config.Primary.Host = host
+            }
+            
+            if port, ok := primaryData["port"].(int); ok {
+                config.Primary.Port = port
+            }
+            
+            // Parse nested credentials
+            if credData, ok := primaryData["credentials"].(map[string]interface{}); ok {
+                config.Primary.Credentials = Credentials{}
+                
+                if username, ok := credData["username"].(string); ok {
+                    config.Primary.Credentials.Username = username
+                }
+                
+                if password, ok := credData["password"].(string); ok {
+                    config.Primary.Credentials.Password = password
+                }
+            }
+        }
+        
+        // Parse replica array
+        if replicasData, ok := dbData["replicas"].([]interface{}); ok {
+            config.Replicas = make([]Replica, len(replicasData))
+            
+            for i, replicaInterface := range replicasData {
+                if replicaData, ok := replicaInterface.(map[string]interface{}); ok {
+                    replica := Replica{}
+                    
+                    if host, ok := replicaData["host"].(string); ok {
+                        replica.Host = host
+                    }
+                    
+                    if port, ok := replicaData["port"].(int); ok {
+                        replica.Port = port
+                    }
+                    
+                    if weight, ok := replicaData["weight"].(int); ok {
+                        replica.Weight = weight
+                    }
+                    
+                    config.Replicas[i] = replica
+                }
+            }
+        }
+    }
+    
+    return config, nil
+}
+</pre>
+
+<h3>Collection Utilities</h3>
+<pre>
+// Generic array conversion utilities
+func ToStringSlice(data interface{}) []string {
+    if arr, ok := data.([]interface{}); ok {
+        result := make([]string, len(arr))
+        for i, v := range arr {
+            result[i] = fmt.Sprintf("%v", v)
+        }
+        return result
+    }
+    return nil
+}
+
+func ToIntSlice(data interface{}) []int {
+    if arr, ok := data.([]interface{}); ok {
+        result := make([]int, 0, len(arr))
+        for _, v := range arr {
+            switch num := v.(type) {
+            case int:
+                result = append(result, num)
+            case float64:
+                result = append(result, int(num))
+            case string:
+                if parsed, err := strconv.Atoi(num); err == nil {
+                    result = append(result, parsed)
+                }
+            }
+        }
+        return result
+    }
+    return nil
+}
+
+func ValidateArrayStructure(data interface{}, expectedType string) error {
+    arr, ok := data.([]interface{})
+    if !ok {
+        return fmt.Errorf("expected array, got %T", data)
+    }
+    
+    for i, item := range arr {
+        switch expectedType {
+        case "string":
+            if _, ok := item.(string); !ok {
+                return fmt.Errorf("item %d is not a string: %T", i, item)
+            }
+        case "int":
+            if _, ok := item.(int); !ok {
+                if _, ok := item.(float64); !ok {
+                    return fmt.Errorf("item %d is not a number: %T", i, item)
+                }
+            }
+        case "bool":
+            if _, ok := item.(bool); !ok {
+                return fmt.Errorf("item %d is not a boolean: %T", i, item)
+            }
+        }
+    }
+    
+    return nil
+}
+</pre>
+
+<p>TuskLang collections map naturally to Go slices and structs, providing type-safe access to complex data structures.</p>

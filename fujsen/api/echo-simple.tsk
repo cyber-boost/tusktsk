@@ -1,0 +1,18 @@
+#!api
+# 🔊 Simple Echo API Endpoint
+# ===========================
+# Simplified for parser compatibility
+
+method: @request.method
+body: @request.body
+query_params: @request.query
+headers: @request.headers
+ip: @request.ip
+user_agent: @request.user_agent
+format: @request.query.format || "json"
+timestamp: @request.timestamp
+cached_time: @cache("1m", php(time()))
+metrics_count: @metrics("echo_requests", 1)
+
+# Final response (single line to avoid parser issues)
+result: @json({"echo": "Hello from FUJSEN!", "method": method, "query": query_params, "timestamp": timestamp, "cached_time": cached_time, "metrics": metrics_count}) 

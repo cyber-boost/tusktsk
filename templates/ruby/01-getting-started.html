@@ -1,0 +1,163 @@
+<h1>Getting Started with TuskLang in Ruby</h1>
+
+<h2>Basic TuskLang Configuration</h2>
+<p>TuskLang provides a clean alternative to JSON and YAML for Ruby applications, with enhanced features and better type safety.</p>
+
+<h3>config.tsk</h3>
+<pre>
+# Application configuration
+name: "My Ruby App"
+version: "1.0.0"
+port: 3000
+
+# Server settings
+server {
+    host: "localhost"
+    port: env("PORT", 3000)
+    timeout: 30
+    threads: 5
+}
+
+# Database configuration
+database {
+    adapter: "postgresql"
+    host: env("DB_HOST", "localhost")
+    port: env("DB_PORT", 5432)
+    database: env("DB_NAME", "myapp_development")
+    username: env("DB_USER", "postgres")
+    password: env("DB_PASSWORD", "")
+    pool: 5
+}
+</pre>
+
+<h3>Ruby Usage</h3>
+<pre>
+#!/usr/bin/env ruby
+
+require 'ostruct'
+
+class TuskLangParser
+  def self.parse_file(filename)
+    content = File.read(filename)
+    parse(content)
+  end
+
+  def self.parse(content)
+    config = OpenStruct.new
+    current_section = config
+    section_stack = []
+    
+    content.each_line do |line|
+      line = line.strip
+      next if line.empty? || line.start_with?('#')
+      
+      if line.include?('{')
+        # Start of nested section
+        key = line.split('{').first.strip
+        new_section = OpenStruct.new
+        current_section.send("#{key}=", new_section)
+        section_stack.push(current_section)
+        current_section = new_section
+      elsif line == '}'
+        # End of nested section
+        current_section = section_stack.pop
+      elsif line.include?(':') || line.include?('=')
+        # Key-value pair
+        separator = line.include?(':') ? ':' : '='
+        key, value = line.split(separator, 2).map(&:strip)
+        
+        # Handle env() function
+        if value.start_with?('env(')
+          value = parse_env_function(value)
+        else
+          value = clean_value(value)
+        end
+        
+        current_section.send("#{key}=", value)
+      end
+    end
+    
+    config
+  end
+
+  private
+
+  def self.parse_env_function(value)
+    # Extract content from env("VAR", "default")
+    content = value.match(/env\("([^"]+)"(?:,\s*"?([^"]*)"?)?\)/)[1..2]
+    env_var = content[0]
+    default_val = content[1] || ""
+    
+    ENV[env_var] || default_val
+  end
+
+  def self.clean_value(value)
+    value = value.gsub(/^["']|["']$/, '') # Remove quotes
+    
+    # Convert to appropriate Ruby types
+    case value
+    when /^\d+$/
+      value.to_i
+    when /^\d+\.\d+$/
+      value.to_f
+    when /^(true|false)$/
+      value == 'true'
+    else
+      value
+    end
+  end
+end
+
+class MyApp
+  attr_reader :config
+
+  def initialize(config_file = 'config.tsk')
+    @config = TuskLangParser.parse_file(config_file)
+  end
+
+  def start
+    puts "Starting #{config.name} v#{config.version}"
+    puts "Server: #{config.server.host}:#{config.server.port}"
+    puts "Database: #{config.database.adapter}://#{config.database.host}:#{config.database.port}/#{config.database.database}"
+    
+    # Start your Ruby application here
+    start_server
+  end
+
+  private
+
+  def start_server
+    require 'webrick'
+    
+    server = WEBrick::HTTPServer.new(
+      Port: config.server.port,
+      Host: config.server.host
+    )
+    
+    server.mount_proc '/' do |req, res|
+      res.content_type = 'application/json'
+      res.body = {
+        app: config.name,
+        version: config.version,
+        status: 'running',
+        timestamp: Time.now.iso8601
+      }.to_json
+    end
+    
+    trap 'INT' do
+      server.shutdown
+    end
+    
+    puts "Server running on http://#{config.server.host}:#{config.server.port}"
+    server.start
+  end
+end
+
+# Usage example
+if __FILE__ == $0
+  app = MyApp.new
+  app.start
+end
+</pre>
+
+<p>TuskLang simplifies configuration management in Ruby applications with clean syntax and environment variable support.</p>

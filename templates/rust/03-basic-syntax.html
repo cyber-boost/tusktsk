@@ -1,0 +1,364 @@
+<h1>Basic Syntax with TuskLang in Rust</h1>
+
+<h2>TuskLang Syntax Fundamentals</h2>
+<p>Understanding TuskLang syntax and how it maps to Rust data structures with type safety and pattern matching.</p>
+
+<h3>Basic Key-Value Pairs</h3>
+<pre>
+# basic-syntax.tsk
+# String values
+app_name: "My Rust Application"
+description: "A high-performance web service"
+
+# Numeric values
+port: 8080
+max_connections: 1000
+timeout_seconds: 30.5
+enabled: true
+
+# Using equals syntax (alternative)
+version = "1.2.3"
+debug_mode = false
+</pre>
+
+<h3>Rust Type Mapping</h3>
+<pre>
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct BasicConfig {
+    app_name: String,
+    description: String,
+    port: u16,
+    max_connections: u32,
+    timeout_seconds: f64,
+    enabled: bool,
+    version: String,
+    debug_mode: bool,
+}
+
+// Custom deserialization for flexible parsing
+impl BasicConfig {
+    fn from_tusk_value(value: &TuskValue) -> Result<Self, ParseError> {
+        match value {
+            TuskValue::Object(map) => {
+                Ok(BasicConfig {
+                    app_name: map.get("app_name")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("Unnamed App")
+                        .to_string(),
+                    description: map.get("description")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("")
+                        .to_string(),
+                    port: map.get("port")
+                        .and_then(|v| v.as_u64())
+                        .unwrap_or(8080) as u16,
+                    max_connections: map.get("max_connections")
+                        .and_then(|v| v.as_u64())
+                        .unwrap_or(1000) as u32,
+                    timeout_seconds: map.get("timeout_seconds")
+                        .and_then(|v| v.as_f64())
+                        .unwrap_or(30.0),
+                    enabled: map.get("enabled")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(true),
+                    version: map.get("version")
+                        .and_then(|v| v.as_str())
+                        .unwrap_or("1.0.0")
+                        .to_string(),
+                    debug_mode: map.get("debug_mode")
+                        .and_then(|v| v.as_bool())
+                        .unwrap_or(false),
+                })
+            }
+            _ => Err(ParseError::InvalidStructure),
+        }
+    }
+}
+</pre>
+
+<h3>Nested Objects</h3>
+<pre>
+# nested-objects.tsk
+database {
+    connection {
+        host: "localhost"
+        port: 5432
+        username: "postgres"
+        password: env("DB_PASSWORD", "")
+        
+        pool {
+            min_size: 5
+            max_size: 20
+            timeout: 30
+        }
+    }
+    
+    options {
+        auto_vacuum: true
+        journal_mode: "WAL"
+        synchronous: "NORMAL"
+    }
+}
+
+server {
+    http {
+        bind_address: "0.0.0.0"
+        port: 8080
+        keep_alive: true
+    }
+    
+    tls {
+        enabled: false
+        cert_file: "/path/to/cert.pem"
+        key_file: "/path/to/key.pem"
+    }
+}
+
+// Rust structures for nested objects
+#[derive(Debug, Deserialize, Serialize)]
+struct AppConfig {
+    database: DatabaseConfig,
+    server: ServerConfig,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct DatabaseConfig {
+    connection: ConnectionConfig,
+    options: DatabaseOptions,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct ConnectionConfig {
+    host: String,
+    port: u16,
+    username: String,
+    password: String,
+    pool: PoolConfig,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct PoolConfig {
+    min_size: u32,
+    max_size: u32,
+    timeout: u64,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct DatabaseOptions {
+    auto_vacuum: bool,
+    journal_mode: String,
+    synchronous: String,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct ServerConfig {
+    http: HttpConfig,
+    tls: TlsConfig,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct HttpConfig {
+    bind_address: String,
+    port: u16,
+    keep_alive: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct TlsConfig {
+    enabled: bool,
+    cert_file: String,
+    key_file: String,
+}
+</pre>
+
+<h3>Arrays and Collections</h3>
+<pre>
+# arrays-collections.tsk
+# Simple arrays
+allowed_origins: ["http://localhost:3000", "https://example.com", "https://api.example.com"]
+supported_formats: ["json", "xml", "yaml"]
+numeric_array: [1, 2, 3, 42, 100]
+boolean_flags: [true, false, true]
+
+# Mixed arrays (requires special handling)
+mixed_values: ["string", 42, true, 3.14]
+
+# Array of objects
+middleware: [
+    {
+        name: "cors"
+        enabled: true
+        config: {
+            allow_credentials: true
+            max_age: 3600
+        }
+    },
+    {
+        name: "rate_limit"
+        enabled: true
+        config: {
+            requests_per_minute: 100
+            burst_size: 10
+        }
+    },
+    {
+        name: "auth"
+        enabled: false
+        config: {
+            jwt_secret: env("JWT_SECRET")
+            token_expiry: "24h"
+        }
+    }
+]
+
+// Rust handling of arrays
+use std::collections::HashMap;
+
+#[derive(Debug, Deserialize, Serialize)]
+struct CollectionsConfig {
+    allowed_origins: Vec<String>,
+    supported_formats: Vec<String>,
+    numeric_array: Vec<i32>,
+    boolean_flags: Vec<bool>,
+    middleware: Vec<MiddlewareConfig>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct MiddlewareConfig {
+    name: String,
+    enabled: bool,
+    config: HashMap<String, serde_json::Value>,
+}
+
+// Custom validation for arrays
+impl CollectionsConfig {
+    fn validate(&self) -> Result<(), ValidationError> {
+        if self.allowed_origins.is_empty() {
+            return Err(ValidationError::new("allowed_origins cannot be empty"));
+        }
+        
+        for origin in &self.allowed_origins {
+            if !origin.starts_with("http://") && !origin.starts_with("https://") {
+                return Err(ValidationError::new(&format!("Invalid origin: {}", origin)));
+            }
+        }
+        
+        for middleware in &self.middleware {
+            if middleware.name.is_empty() {
+                return Err(ValidationError::new("Middleware name cannot be empty"));
+            }
+        }
+        
+        Ok(())
+    }
+}
+</pre>
+
+<h3>Comments and Documentation</h3>
+<pre>
+# comments-documentation.tsk
+
+# This is a single-line comment
+# Comments can provide context and documentation
+
+# Application metadata
+# These values define the basic application information
+name: "Rust TuskLang Demo"  # Application display name
+version: "2.1.0"            # Semantic version
+author: "Rust Developer"    # Primary maintainer
+
+# Multi-line concept comments
+# The server configuration section defines how the HTTP server
+# behaves including binding, timeouts, and performance settings
+server {
+    # Network binding configuration
+    host: "0.0.0.0"          # Bind to all interfaces
+    port: 8080               # Standard HTTP port
+    
+    # Performance tuning
+    worker_threads: 4        # Number of async workers
+    max_requests: 10000      # Maximum concurrent requests
+    
+    # Timeout configurations (in seconds)
+    read_timeout: 30         # Request read timeout
+    write_timeout: 60        # Response write timeout
+    idle_timeout: 120        # Connection idle timeout
+}
+
+# Feature flags for conditional functionality
+features {
+    # Authentication and authorization
+    enable_auth: true        # JWT-based authentication
+    enable_2fa: false        # Two-factor authentication
+    
+    # Performance features
+    enable_caching: true     # Redis-based caching
+    enable_compression: true # GZIP response compression
+    
+    # Development features
+    debug_logging: env("DEBUG", false)  # Verbose debug output
+    hot_reload: env("HOT_RELOAD", false) # Auto-restart on changes
+}
+
+// Rust implementation with documentation
+/// Main application configuration structure
+/// 
+/// This structure represents the complete application configuration
+/// parsed from TuskLang files with full type safety and validation.
+#[derive(Debug, Deserialize, Serialize)]
+pub struct DocumentedConfig {
+    /// Application name used in logs and metrics
+    pub name: String,
+    
+    /// Semantic version string
+    pub version: String,
+    
+    /// Primary application maintainer
+    pub author: String,
+    
+    /// HTTP server configuration
+    pub server: ServerConfig,
+    
+    /// Feature flags for conditional functionality
+    pub features: FeatureFlags,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+pub struct FeatureFlags {
+    pub enable_auth: bool,
+    pub enable_2fa: bool,
+    pub enable_caching: bool,
+    pub enable_compression: bool,
+    pub debug_logging: bool,
+    pub hot_reload: bool,
+}
+
+impl DocumentedConfig {
+    /// Validates the configuration and returns detailed error information
+    pub fn validate(&self) -> Result<(), Vec<String>> {
+        let mut errors = Vec::new();
+        
+        if self.name.trim().is_empty() {
+            errors.push("Application name cannot be empty".to_string());
+        }
+        
+        if !self.version.contains('.') {
+            errors.push("Version should follow semantic versioning (x.y.z)".to_string());
+        }
+        
+        if self.server.port == 0 || self.server.port > 65535 {
+            errors.push("Server port must be between 1 and 65535".to_string());
+        }
+        
+        if errors.is_empty() {
+            Ok(())
+        } else {
+            Err(errors)
+        }
+    }
+}
+</pre>
+
+<p>TuskLang syntax in Rust provides excellent type safety through serde, enabling robust configuration parsing with compile-time guarantees and runtime validation.</p>

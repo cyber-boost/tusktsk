@@ -1,0 +1,512 @@
+<h1>Advanced String Handling in TuskLang Python</h1>
+
+<h2>String Operations and Formatting</h2>
+<p>TuskLang provides sophisticated string handling capabilities including interpolation, templates, and advanced formatting for Python applications.</p>
+
+<h3>strings.tsk</h3>
+<pre>
+# Basic String Types
+simple_string: hello_world
+quoted_string: "Hello, World!"
+single_quoted: 'Single quoted string'
+empty_string: ""
+
+# Multi-line Strings
+description: """
+This is a multi-line string that can span
+multiple lines with proper indentation
+and formatting preserved.
+"""
+
+help_text: '''
+Usage: myapp [OPTIONS] COMMAND
+
+Options:
+  --verbose    Enable verbose output
+  --config     Configuration file path
+  --help       Show this help message
+'''
+
+# String Interpolation
+app_name: "Python TuskLang"
+version: "2.1.0"
+welcome_message: "Welcome to ${app_name} version ${version}!"
+full_title: "${app_name} v${version} - Configuration System"
+
+# Environment Variable Interpolation
+user_home: env("HOME", "/home/default")
+config_path: "${user_home}/.config/myapp/settings.json"
+log_file: "${user_home}/logs/app-${date}.log"
+
+# Template Strings with Functions
+current_date: template("Today is ${date('%Y-%m-%d')}")
+greeting: template("Hello ${env('USER', 'there')}!")
+system_info: template("Running on ${platform()} with Python ${python_version()}")
+
+# URL and Path Construction
+base_url: "https://api.example.com"
+api_version: "v1"
+endpoints {
+    users: "${base_url}/${api_version}/users"
+    posts: "${base_url}/${api_version}/posts"
+    auth: "${base_url}/${api_version}/auth/login"
+}
+
+# Database Connection Strings
+db_host: env("DB_HOST", "localhost")
+db_port: env("DB_PORT", "5432")
+db_name: env("DB_NAME", "myapp")
+db_user: env("DB_USER", "postgres")
+db_pass: env("DB_PASSWORD", "")
+
+primary_db_url: "postgresql://${db_user}:${db_pass}@${db_host}:${db_port}/${db_name}"
+replica_db_url: "postgresql://${db_user}:${db_pass}@replica.${db_host}:${db_port}/${db_name}"
+
+# Advanced String Formatting
+log_format: "[${timestamp('%Y-%m-%d %H:%M:%S')}] ${level} - ${message}"
+error_template: "Error in ${module}.${function}() at line ${line}: ${error_message}"
+api_response_template: '''
+{
+    "status": "${status}",
+    "message": "${message}",
+    "data": ${data},
+    "timestamp": "${timestamp('iso')}"
+}
+'''
+
+# Regular Expressions
+email_regex: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+phone_regex: "^\\+?[1-9]\\d{1,14}$"
+uuid_regex: "^[0-9a-f]{8}-[0-9a-f]{4}-4[0-9a-f]{3}-[89ab][0-9a-f]{3}-[0-9a-f]{12}$"
+
+# File Paths with Variables
+app_root: env("APP_ROOT", "/opt/myapp")
+paths {
+    config: "${app_root}/config"
+    logs: "${app_root}/logs"
+    data: "${app_root}/data"
+    temp: "${app_root}/tmp"
+    uploads: "${app_root}/uploads/${date('%Y/%m')}"
+}
+
+# Conditional String Values
+environment: env("ENVIRONMENT", "development")
+debug_mode: env("DEBUG", "false")
+log_level: if("${debug_mode}" == "true", "DEBUG", "INFO")
+database_pool_size: if("${environment}" == "production", "20", "5")
+
+# String Lists and Arrays
+supported_formats: ["json", "yaml", "toml", "ini"]
+allowed_origins: [
+    "https://app.example.com",
+    "https://admin.example.com",
+    "https://${subdomain}.example.com"
+]
+
+# Complex String Operations
+secret_key: env("SECRET_KEY", generate_secret(32))
+session_id: generate_uuid()
+cache_key: hash("${user_id}:${resource_type}:${resource_id}")
+backup_filename: "backup_${database_name}_${timestamp('%Y%m%d_%H%M%S')}.sql"
+
+# Localization Strings
+messages {
+    en {
+        welcome: "Welcome to the application"
+        goodbye: "Thank you for using our service"
+        error_invalid_user: "Invalid username or password"
+    }
+    
+    es {
+        welcome: "Bienvenido a la aplicación"
+        goodbye: "Gracias por usar nuestro servicio"
+        error_invalid_user: "Nombre de usuario o contraseña inválidos"
+    }
+    
+    fr {
+        welcome: "Bienvenue dans l'application"
+        goodbye: "Merci d'utiliser notre service"
+        error_invalid_user: "Nom d'utilisateur ou mot de passe invalide"
+    }
+}
+
+# Command Line Templates
+cli_commands {
+    start: "python -m myapp.server --port ${port} --host ${host}"
+    migrate: "python -m myapp.db migrate --url '${primary_db_url}'"
+    backup: "pg_dump '${primary_db_url}' > '${backup_filename}'"
+    restore: "psql '${primary_db_url}' < '${backup_file}'"
+}
+</pre>
+
+<h3>Python String Processor</h3>
+<pre>
+import os
+import re
+import uuid
+import hashlib
+import platform
+import sys
+from datetime import datetime
+from typing import Any, Dict, List, Optional, Callable, Union
+from string import Template
+import secrets
+
+class TuskLangStringProcessor:
+    """Advanced string processing for TuskLang configurations."""
+    
+    def __init__(self):
+        self.variables = {}
+        self.functions = self._init_builtin_functions()
+        self.template_pattern = re.compile(r'\$\{([^}]+)\}')
+        self.env_pattern = re.compile(r'env\("([^"]+)"(?:,\s*"([^"]*)")?\)')
+        
+    def _init_builtin_functions(self) -> Dict[str, Callable]:
+        """Initialize built-in template functions."""
+        return {
+            'date': self._date_function,
+            'timestamp': self._timestamp_function,
+            'env': self._env_function,
+            'platform': self._platform_function,
+            'python_version': self._python_version_function,
+            'generate_secret': self._generate_secret_function,
+            'generate_uuid': self._generate_uuid_function,
+            'hash': self._hash_function,
+            'upper': lambda x: str(x).upper(),
+            'lower': lambda x: str(x).lower(),
+            'title': lambda x: str(x).title(),
+            'strip': lambda x: str(x).strip(),
+        }
+    
+    def set_variable(self, name: str, value: Any) -> None:
+        """Set a template variable."""
+        self.variables[name] = value
+    
+    def set_variables(self, variables: Dict[str, Any]) -> None:
+        """Set multiple template variables."""
+        self.variables.update(variables)
+    
+    def process_string(self, text: str) -> str:
+        """Process a string with all TuskLang string features."""
+        if not isinstance(text, str):
+            return text
+        
+        # Handle multi-line strings
+        text = self._process_multiline_string(text)
+        
+        # Process environment variables first
+        text = self._process_env_functions(text)
+        
+        # Process template variables and functions
+        text = self._process_template_variables(text)
+        
+        # Handle conditional expressions
+        text = self._process_conditionals(text)
+        
+        return text
+    
+    def _process_multiline_string(self, text: str) -> str:
+        """Process multi-line string formatting."""
+        # Handle triple-quoted strings
+        if text.startswith('"""') and text.endswith('"""'):
+            content = text[3:-3]
+            return self._dedent_multiline(content)
+        elif text.startswith("'''") and text.endswith("'''"):
+            content = text[3:-3]
+            return self._dedent_multiline(content)
+        
+        return text
+    
+    def _dedent_multiline(self, text: str) -> str:
+        """Remove common leading whitespace from multiline strings."""
+        lines = text.split('\n')
+        
+        # Remove empty lines from start and end
+        while lines and not lines[0].strip():
+            lines.pop(0)
+        while lines and not lines[-1].strip():
+            lines.pop()
+        
+        if not lines:
+            return ""
+        
+        # Find minimum indentation
+        min_indent = float('inf')
+        for line in lines:
+            if line.strip():  # Only consider non-empty lines
+                indent = len(line) - len(line.lstrip())
+                min_indent = min(min_indent, indent)
+        
+        # Remove common indentation
+        if min_indent < float('inf'):
+            lines = [line[min_indent:] if len(line) >= min_indent else line for line in lines]
+        
+        return '\n'.join(lines)
+    
+    def _process_env_functions(self, text: str) -> str:
+        """Process env() function calls."""
+        def replace_env(match):
+            env_var = match.group(1)
+            default_val = match.group(2) or ""
+            return os.getenv(env_var, default_val)
+        
+        return self.env_pattern.sub(replace_env, text)
+    
+    def _process_template_variables(self, text: str) -> str:
+        """Process ${variable} template substitutions."""
+        def replace_template(match):
+            expr = match.group(1)
+            return str(self._evaluate_template_expression(expr))
+        
+        return self.template_pattern.sub(replace_template, text)
+    
+    def _evaluate_template_expression(self, expr: str) -> Any:
+        """Evaluate a template expression."""
+        expr = expr.strip()
+        
+        # Check if it's a function call
+        if '(' in expr and expr.endswith(')'):
+            func_name = expr[:expr.index('(')]
+            args_str = expr[expr.index('(') + 1:-1]
+            
+            if func_name in self.functions:
+                # Parse arguments
+                args = self._parse_function_args(args_str) if args_str else []
+                return self.functions[func_name](*args)
+        
+        # Check if it's a variable reference
+        if expr in self.variables:
+            return self.variables[expr]
+        
+        # Try to evaluate as environment variable
+        if expr.upper() in os.environ:
+            return os.environ[expr.upper()]
+        
+        # Return as-is if not found
+        return f"${{{expr}}}"
+    
+    def _parse_function_args(self, args_str: str) -> List[str]:
+        """Parse function arguments from string."""
+        args = []
+        current_arg = ""
+        in_quotes = False
+        quote_char = None
+        
+        for char in args_str:
+            if char in ('"', "'") and (not current_arg or current_arg[-1] != '\\'):
+                if not in_quotes:
+                    in_quotes = True
+                    quote_char = char
+                elif char == quote_char:
+                    in_quotes = False
+                    quote_char = None
+                else:
+                    current_arg += char
+            elif char == ',' and not in_quotes:
+                args.append(current_arg.strip().strip('"\''))
+                current_arg = ""
+            else:
+                current_arg += char
+        
+        if current_arg.strip():
+            args.append(current_arg.strip().strip('"\''))
+        
+        return args
+    
+    def _process_conditionals(self, text: str) -> str:
+        """Process if() conditional expressions."""
+        if_pattern = re.compile(r'if\(\s*"([^"]*)"\s*==\s*"([^"]*)",\s*"([^"]*)",\s*"([^"]*)"\s*\)')
+        
+        def replace_conditional(match):
+            condition_left = match.group(1)
+            condition_right = match.group(2)
+            true_value = match.group(3)
+            false_value = match.group(4)
+            
+            # Process template variables in conditions
+            condition_left = self._process_template_variables(condition_left)
+            condition_right = self._process_template_variables(condition_right)
+            
+            return true_value if condition_left == condition_right else false_value
+        
+        return if_pattern.sub(replace_conditional, text)
+    
+    # Built-in template functions
+    def _date_function(self, format_str: str = '%Y-%m-%d') -> str:
+        """Format current date."""
+        if format_str == 'iso':
+            return datetime.now().isoformat()
+        return datetime.now().strftime(format_str)
+    
+    def _timestamp_function(self, format_str: str = '%Y-%m-%d %H:%M:%S') -> str:
+        """Format current timestamp."""
+        if format_str == 'iso':
+            return datetime.now().isoformat()
+        elif format_str == 'unix':
+            return str(int(datetime.now().timestamp()))
+        return datetime.now().strftime(format_str)
+    
+    def _env_function(self, var_name: str, default: str = "") -> str:
+        """Get environment variable."""
+        return os.getenv(var_name, default)
+    
+    def _platform_function(self) -> str:
+        """Get platform name."""
+        return platform.system()
+    
+    def _python_version_function(self) -> str:
+        """Get Python version."""
+        return f"{sys.version_info.major}.{sys.version_info.minor}.{sys.version_info.micro}"
+    
+    def _generate_secret_function(self, length: str = "32") -> str:
+        """Generate a random secret."""
+        return secrets.token_hex(int(length))
+    
+    def _generate_uuid_function(self) -> str:
+        """Generate a UUID."""
+        return str(uuid.uuid4())
+    
+    def _hash_function(self, text: str, algorithm: str = "sha256") -> str:
+        """Hash text using specified algorithm."""
+        text_bytes = text.encode('utf-8')
+        
+        if algorithm.lower() == 'md5':
+            return hashlib.md5(text_bytes).hexdigest()
+        elif algorithm.lower() == 'sha1':
+            return hashlib.sha1(text_bytes).hexdigest()
+        elif algorithm.lower() == 'sha256':
+            return hashlib.sha256(text_bytes).hexdigest()
+        elif algorithm.lower() == 'sha512':
+            return hashlib.sha512(text_bytes).hexdigest()
+        else:
+            return hashlib.sha256(text_bytes).hexdigest()
+
+class TuskLangAdvancedStringParser:
+    """Parser with advanced string processing capabilities."""
+    
+    def __init__(self):
+        self.string_processor = TuskLangStringProcessor()
+    
+    def parse_file(self, filename: str, variables: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Parse file with string processing."""
+        if variables:
+            self.string_processor.set_variables(variables)
+        
+        with open(filename, 'r', encoding='utf-8') as f:
+            return self.parse(f.read())
+    
+    def parse(self, content: str, variables: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
+        """Parse content with advanced string processing."""
+        if variables:
+            self.string_processor.set_variables(variables)
+        
+        # First pass: basic parsing
+        result = self._basic_parse(content)
+        
+        # Second pass: process all strings
+        return self._process_strings_recursive(result)
+    
+    def _basic_parse(self, content: str) -> Dict[str, Any]:
+        """Basic parsing without string processing."""
+        result = {}
+        current_section = None
+        
+        for line in content.split('\n'):
+            line = line.strip()
+            
+            if not line or line.startswith('#'):
+                continue
+            
+            if line.endswith(' {'):
+                current_section = line[:-2].strip()
+                result[current_section] = {}
+                continue
+            
+            if line == '}':
+                current_section = None
+                continue
+            
+            if ':' in line:
+                key, value = line.split(':', 1)
+                key = key.strip()
+                value = value.strip()
+                
+                # Remove quotes
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1]
+                
+                if current_section:
+                    result[current_section][key] = value
+                else:
+                    result[key] = value
+        
+        return result
+    
+    def _process_strings_recursive(self, obj: Any) -> Any:
+        """Recursively process strings in nested structures."""
+        if isinstance(obj, dict):
+            return {key: self._process_strings_recursive(value) for key, value in obj.items()}
+        elif isinstance(obj, list):
+            return [self._process_strings_recursive(item) for item in obj]
+        elif isinstance(obj, str):
+            return self.string_processor.process_string(obj)
+        else:
+            return obj
+
+# Example usage
+def demonstrate_advanced_strings():
+    """Demonstrate advanced string processing."""
+    
+    # Set up variables
+    variables = {
+        'app_name': 'Python TuskLang Demo',
+        'version': '1.0.0',
+        'environment': 'development',
+        'user_id': 12345,
+        'database_name': 'myapp_dev'
+    }
+    
+    sample_config = '''
+# String interpolation demo
+app_title: "${app_name} v${version}"
+config_file: "${env('HOME')}/.config/${lower(app_name)}/settings.json"
+log_file: "/var/log/${lower(app_name)}_${date('%Y%m%d')}.log"
+
+# Conditional strings
+database_url: if("${environment}" == "production", 
+    "postgresql://prod:secret@prod-db:5432/myapp",
+    "postgresql://dev:dev@localhost:5432/myapp_dev")
+
+# Function calls
+startup_time: "${timestamp('iso')}"
+secret_key: "${generate_secret(64)}"
+session_id: "${generate_uuid()}"
+
+# Multi-line template
+email_template: """
+Hello ${user_name},
+
+Welcome to ${app_name}!
+
+Your account has been created successfully.
+Login at: ${base_url}/login
+
+Best regards,
+The ${app_name} Team
+"""
+'''
+    
+    parser = TuskLangAdvancedStringParser()
+    config = parser.parse(sample_config, variables)
+    
+    print("Processed configuration with advanced strings:")
+    for key, value in config.items():
+        print(f"{key}: {value}")
+    
+    return config
+
+if __name__ == "__main__":
+    demonstrate_advanced_strings()
+</pre>
+
+<p>TuskLang's advanced string system provides powerful templating, interpolation, and formatting capabilities that integrate seamlessly with Python applications.</p>

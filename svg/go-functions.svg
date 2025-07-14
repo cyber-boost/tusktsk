@@ -1,0 +1,36 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>Functions</title>
+  <desc>Go functions and methods with parameters and return values</desc>
+  
+  <!-- Background -->
+  <rect x="8" y="8" width="48" height="48" rx="4" fill="#2A2A3E" stroke="#00ADD8" stroke-width="2"/>
+  
+  <!-- Function container -->
+  <rect x="12" y="16" width="40" height="32" rx="3" fill="#5DC9E2" opacity="0.2" stroke="#5DC9E2" stroke-width="2"/>
+  
+  <!-- Function keyword -->
+  <text x="32" y="26" font-family="Courier New" font-size="8" text-anchor="middle" fill="#00ADD8" font-weight="bold">func</text>
+  
+  <!-- Function name -->
+  <text x="32" y="34" font-family="Courier New" font-size="7" text-anchor="middle" fill="#007D9C" font-weight="bold">calculate</text>
+  
+  <!-- Parameters -->
+  <g stroke="#007D9C" stroke-width="1.5" fill="none">
+    <path d="M 16 40 L 48 40" opacity="0.8"/>
+  </g>
+  
+  <!-- Parameter indicators -->
+  <text x="18" y="38" font-family="Courier New" font-size="5" fill="#007D9C" font-weight="bold">a, b int</text>
+  
+  <!-- Return arrow -->
+  <g fill="#00ADD8">
+    <polygon points="32,44 36,46 32,48" opacity="0.9"/>
+  </g>
+  
+  <!-- Return type -->
+  <text x="32" y="52" font-family="Courier New" font-size="6" text-anchor="middle" fill="#00ADD8" font-weight="bold">int</text>
+  
+  <!-- Function call indicator -->
+  <circle cx="16" cy="40" r="1" fill="#007D9C"/>
+  <circle cx="48" cy="40" r="1" fill="#007D9C"/>
+</svg> 

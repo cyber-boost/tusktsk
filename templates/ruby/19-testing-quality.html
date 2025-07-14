@@ -1,0 +1,1351 @@
+<h1>Testing and Quality Assurance in TuskLang for Ruby</h1>
+
+<h2>Comprehensive Testing and Quality Control</h2>
+<p>TuskLang provides extensive testing capabilities and quality assurance tools for Ruby applications including unit testing, integration testing, and code quality metrics.</p>
+
+<h3>testing.tsk</h3>
+<pre>
+# Testing and Quality Configuration
+testing: {
+    # Test Framework Configuration
+    framework: {
+        # RSpec configuration
+        rspec: {
+            enabled: env("RSPEC_ENABLED", true)
+            version: "~> 3.12"
+            
+            # Configuration options
+            config: {
+                formatter: "documentation"
+                color: true
+                fail_fast: env("FAIL_FAST", false)
+                profile: 10
+                order: "random"
+                
+                # Output settings
+                output_stream: "spec/test_results.txt"
+                deprecation_stream: "spec/deprecations.txt"
+                
+                # Filtering
+                default_filters: {
+                    focus: true
+                    run_all_when_everything_filtered: true
+                }
+                
+                # Shared examples
+                shared_context_metadata_behavior: "apply_to_host_groups"
+            }
+            
+            # Parallel testing
+            parallel: {
+                enabled: env("PARALLEL_TESTS", false)
+                processes: env("PARALLEL_PROCESSES", cpu_count())
+                test_env_number: env("TEST_ENV_NUMBER")
+            }
+            
+            # Coverage integration
+            coverage: {
+                enabled: env("COVERAGE", false)
+                minimum_coverage: 80
+                track_files: "app/**/*.rb"
+                add_filter: ["spec/", "config/", "db/"]
+            }
+        }
+        
+        # Minitest configuration
+        minitest: {
+            enabled: env("MINITEST_ENABLED", false)
+            
+            config: {
+                reporter: "ProgressReporter"
+                verbose: false
+                pride: true
+                
+                # Parallel execution
+                parallel: env("MINITEST_PARALLEL", false)
+                
+                # Retry flaky tests
+                retry: {
+                    enabled: true
+                    count: 3
+                    verbose: true
+                }
+            }
+        }
+        
+        # Cucumber for BDD
+        cucumber: {
+            enabled: env("CUCUMBER_ENABLED", false)
+            
+            config: {
+                format: ["pretty", "html:reports/cucumber.html"]
+                strict: true
+                guess: false
+                
+                # Step definitions
+                require: ["features/support", "features/step_definitions"]
+                
+                # Tags
+                tags: {
+                    default: ["~@wip", "~@manual"]
+                    smoke: ["@smoke"]
+                    regression: ["~@wip"]
+                }
+            }
+        }
+    }
+    
+    # Test Types and Organization
+    test_types: {
+        # Unit tests
+        unit: {
+            path: "spec/unit"
+            pattern: "*_spec.rb"
+            
+            # Test data
+            fixtures: {
+                enabled: true
+                path: "spec/fixtures"
+                auto_load: false
+            }
+            
+            factories: {
+                enabled: true
+                definition_file_paths: ["spec/factories"]
+                
+                # Factory Bot configuration
+                factory_bot: {
+                    lint_factories: env("LINT_FACTORIES", true)
+                    build_strategy: "build"
+                    create_strategy: "create"
+                    
+                    # Sequences
+                    sequences: {
+                        email: "user{n}@example.com"
+                        username: "user{n}"
+                    }
+                }
+            }
+            
+            # Mocking and stubbing
+            mocks: {
+                framework: "rspec"
+                verify_partial_doubles: true
+                verify_doubled_constant_names: true
+                transfer_nested_constants: true
+                
+                # WebMock for HTTP
+                webmock: {
+                    enabled: true
+                    allow_localhost: false
+                    allow: []
+                    disable_net_connect: true
+                }
+            }
+        }
+        
+        # Integration tests
+        integration: {
+            path: "spec/integration"
+            pattern: "*_spec.rb"
+            
+            # Database transactions
+            use_transactional_fixtures: false
+            
+            # Database cleaner
+            database_cleaner: {
+                strategy: "truncation"
+                clean_with: "truncation"
+                
+                # Per-ORM configuration
+                active_record: {
+                    strategy: "transaction"
+                    clean_with: "truncation"
+                }
+            }
+            
+            # API testing
+            api_testing: {
+                base_url: env("API_TEST_URL", "http://localhost:3000")
+                headers: {
+                    "Content-Type": "application/json"
+                    "Accept": "application/json"
+                }
+                
+                # Response validation
+                validate_responses: true
+                schema_validation: {
+                    enabled: true
+                    schema_path: "spec/schemas"
+                }
+            }
+        }
+        
+        # End-to-end tests
+        e2e: {
+            path: "spec/e2e"
+            pattern: "*_spec.rb"
+            
+            # Browser testing with Capybara
+            capybara: {
+                default_driver: "selenium_chrome_headless"
+                javascript_driver: "selenium_chrome_headless"
+                
+                # Timeouts
+                default_max_wait_time: 10
+                default_normalize_ws: true
+                
+                # Screenshots
+                save_path: "tmp/capybara"
+                automatic_label_click: true
+                
+                # Screenshot on failure
+                screenshot: {
+                    enabled: true
+                    on_failure: true
+                    path: "tmp/screenshots"
+                }
+                
+                # Selenium configuration
+                selenium: {
+                    chrome_options: [
+                        "--headless",
+                        "--no-sandbox",
+                        "--disable-dev-shm-usage",
+                        "--disable-gpu",
+                        "--window-size=1920,1080"
+                    ]
+                    
+                    firefox_options: [
+                        "--headless",
+                        "--width=1920",
+                        "--height=1080"
+                    ]
+                }
+            }
+            
+            # Mobile testing
+            mobile_testing: {
+                enabled: env("MOBILE_TESTING", false)
+                devices: [
+                    {name: "iPhone 12", width: 390, height: 844},
+                    {name: "Samsung Galaxy S21", width: 384, height: 854},
+                    {name: "iPad Pro", width: 1024, height: 1366}
+                ]
+            }
+        }
+        
+        # Performance tests
+        performance: {
+            path: "spec/performance"
+            pattern: "*_spec.rb"
+            
+            # Load testing
+            load_testing: {
+                tool: "ruby-jmeter"
+                
+                scenarios: {
+                    light_load: {
+                        threads: 10
+                        ramp_time: 60
+                        duration: 300
+                    }
+                    
+                    stress_test: {
+                        threads: 100
+                        ramp_time: 120
+                        duration: 600
+                    }
+                }
+                
+                # Metrics collection
+                metrics: {
+                    response_time: {
+                        target: 500  # milliseconds
+                        percentiles: [50, 90, 95, 99]
+                    }
+                    
+                    throughput: {
+                        minimum: 100  # requests per second
+                    }
+                    
+                    error_rate: {
+                        maximum: 0.01  # 1%
+                    }
+                }
+            }
+            
+            # Memory testing
+            memory_testing: {
+                enabled: env("MEMORY_TESTING", false)
+                max_memory_growth: 10  # MB
+                gc_stats: true
+                
+                # Memory profiling
+                profiling: {
+                    tool: "memory_profiler"
+                    track_allocations: true
+                    detailed_report: false
+                }
+            }
+        }
+        
+        # Security tests
+        security: {
+            path: "spec/security"
+            pattern: "*_spec.rb"
+            
+            # Vulnerability scanning
+            vulnerability_scanning: {
+                enabled: env("SECURITY_TESTING", false)
+                
+                tools: {
+                    # Brakeman for static analysis
+                    brakeman: {
+                        enabled: true
+                        confidence_threshold: 2
+                        ignore_file: ".brakeman.ignore"
+                    }
+                    
+                    # Bundle audit for dependencies
+                    bundle_audit: {
+                        enabled: true
+                        update_database: true
+                        ignore: []
+                    }
+                }
+            }
+            
+            # Penetration testing
+            penetration_testing: {
+                enabled: env("PENTEST_ENABLED", false)
+                
+                # OWASP ZAP integration
+                zap: {
+                    proxy_host: "localhost"
+                    proxy_port: 8080
+                    target_url: env("PENTEST_TARGET_URL")
+                    
+                    # Scan types
+                    passive_scan: true
+                    active_scan: false
+                    spider_scan: true
+                }
+            }
+        }
+    }
+    
+    # Test Data Management
+    data_management: {
+        # Test database
+        database: {
+            # Multiple database support
+            databases: {
+                primary: {
+                    adapter: "sqlite3"
+                    database: ":memory:"
+                    pool: 1
+                }
+                
+                analytics: {
+                    adapter: "sqlite3"
+                    database: "db/test_analytics.sqlite3"
+                    pool: 1
+                }
+            }
+            
+            # Database setup
+            setup: {
+                load_schema: true
+                run_migrations: false
+                seed_data: false
+                
+                # Per-test cleanup
+                cleanup_strategy: "truncation"
+                cleanup_tables: ["users", "posts", "comments"]
+                preserve_tables: ["schema_migrations", "ar_internal_metadata"]
+            }
+        }
+        
+        # Factory definitions
+        factories: {
+            user: {
+                name: "John Doe"
+                email: sequence("email")
+                password: "password123"
+                confirmed_at: "Time.current"
+                
+                # Traits
+                traits: {
+                    admin: {
+                        role: "admin"
+                        admin_confirmed_at: "Time.current"
+                    }
+                    
+                    premium: {
+                        subscription_type: "premium"
+                        subscription_expires_at: "1.year.from_now"
+                    }
+                }
+                
+                # Associations
+                associations: {
+                    profile: "factory: :profile"
+                    posts: "factory: :post, count: 3"
+                }
+            }
+            
+            post: {
+                title: "Sample Post"
+                content: "This is sample post content."
+                published: true
+                published_at: "Time.current"
+                
+                # Associations
+                associations: {
+                    user: "factory: :user"
+                    category: "factory: :category"
+                }
+            }
+        }
+        
+        # VCR for HTTP interactions
+        vcr: {
+            enabled: env("VCR_ENABLED", true)
+            
+            config: {
+                cassette_library_dir: "spec/vcr_cassettes"
+                hook_into: ["webmock"]
+                
+                # Recording mode
+                record: env("VCR_RECORD_MODE", "once")  # once, new_episodes, all, none
+                
+                # Request matching
+                match_requests_on: ["method", "uri", "body"]
+                
+                # Sensitive data filtering
+                filter_sensitive_data: {
+                    "<API_KEY>": env("API_KEY")
+                    "<ACCESS_TOKEN>": "lambda { |interaction| get_token(interaction) }"
+                }
+                
+                # Cassette configuration
+                default_cassette_options: {
+                    serialize_with: "json"
+                    persist_exact_body_bytes: false
+                    decode_compressed_response: true
+                    
+                    # Re-record after time
+                    re_record_interval: 86400  # 24 hours
+                }
+            }
+        }
+        
+        # Test data generation
+        data_generation: {
+            # Faker integration
+            faker: {
+                enabled: true
+                locale: "en"
+                
+                # Deterministic data
+                seed: 12345
+                
+                # Custom providers
+                custom_providers: [
+                    "CustomCompanyProvider",
+                    "CustomProductProvider"
+                ]
+            }
+            
+            # Time travel
+            time_travel: {
+                enabled: true
+                library: "timecop"
+                
+                # Freeze time for tests
+                freeze_time: false
+                default_time: "2024-01-01 12:00:00 UTC"
+            }
+        }
+    }
+    
+    # Code Quality and Analysis
+    quality: {
+        # Code coverage
+        coverage: {
+            tool: "simplecov"
+            
+            config: {
+                minimum_coverage: 85
+                minimum_coverage_by_file: 70
+                refuse_coverage_drop: true
+                
+                # Coverage formats
+                formatters: [
+                    "SimpleCov::Formatter::HTMLFormatter",
+                    "SimpleCov::Formatter::Console"
+                ]
+                
+                # Groups
+                groups: {
+                    "Models": "app/models"
+                    "Controllers": "app/controllers"
+                    "Services": "app/services"
+                    "Libraries": "lib"
+                }
+                
+                # Filters
+                add_filter: [
+                    "/spec/",
+                    "/config/",
+                    "/db/",
+                    "/vendor/"
+                ]
+                
+                # Track files
+                track_files: "app/**/*.rb"
+            }
+        }
+        
+        # Static analysis
+        static_analysis: {
+            # RuboCop
+            rubocop: {
+                enabled: true
+                config_file: ".rubocop.yml"
+                
+                # Auto-correction
+                auto_correct: env("RUBOCOP_AUTO_CORRECT", false)
+                auto_gen_config: false
+                
+                # Exclude paths
+                exclude_paths: [
+                    "vendor/**/*",
+                    "db/migrate/**/*",
+                    "bin/**/*"
+                ]
+                
+                # Specific cops
+                cops: {
+                    "Metrics/LineLength": {max: 120}
+                    "Style/Documentation": {enabled: false}
+                    "Metrics/MethodLength": {max: 25}
+                    "Metrics/ClassLength": {max: 200}
+                }
+            }
+            
+            # Reek (code smell detection)
+            reek: {
+                enabled: true
+                config_file: ".reek.yml"
+                
+                # Exclude paths
+                exclude_paths: [
+                    "spec/**/*",
+                    "db/migrate/**/*"
+                ]
+                
+                # Smell configuration
+                smell_configuration: {
+                    "TooManyInstanceVariables": {max_instance_variables: 6}
+                    "TooManyParameters": {max_parameters: 4}
+                    "UtilityFunction": {enabled: false}
+                }
+            }
+            
+            # Flog (complexity analysis)
+            flog: {
+                enabled: env("FLOG_ENABLED", false)
+                threshold: 25
+                methods: true
+                
+                # Exclude paths
+                exclude: ["spec/**/*", "test/**/*"]
+            }
+        }
+        
+        # Documentation quality
+        documentation: {
+            # YARD documentation
+            yard: {
+                enabled: true
+                
+                # Documentation coverage
+                coverage_threshold: 80
+                undocumented_files_threshold: 5
+                
+                # Options
+                options: {
+                    markup: "markdown"
+                    private: false
+                    protected: true
+                    
+                    # Output
+                    output_dir: "doc"
+                    readme: "README.md"
+                    
+                    # Plugins
+                    plugins: ["yard-rails"]
+                }
+                
+                # Custom tags
+                tags: [
+                    {name: "api", title: "API"},
+                    {name: "since", title: "Since Version"}
+                ]
+            }
+            
+            # Inch (documentation quality)
+            inch: {
+                enabled: env("INCH_ENABLED", false)
+                
+                # Thresholds
+                grade_threshold: "B"
+                min_score: 75
+                
+                # Exclude paths
+                exclude: ["spec/**/*", "test/**/*"]
+            }
+        }
+        
+        # Dependency analysis
+        dependencies: {
+            # Bundle audit
+            bundle_audit: {
+                enabled: true
+                update_database: true
+                
+                # Ignore specific advisories
+                ignore: []
+                
+                # Fail on vulnerabilities
+                fail_on_advisory: true
+            }
+            
+            # License checking
+            license_finder: {
+                enabled: env("LICENSE_CHECK", false)
+                
+                # Approved licenses
+                approved_licenses: [
+                    "MIT",
+                    "Apache 2.0",
+                    "BSD",
+                    "ISC",
+                    "Ruby"
+                ]
+                
+                # Restricted licenses
+                restricted_licenses: [
+                    "GPL",
+                    "LGPL",
+                    "AGPL"
+                ]
+            }
+            
+            # Dependency freshness
+            dependency_check: {
+                enabled: env("DEPENDENCY_CHECK", false)
+                
+                # Outdated threshold
+                outdated_threshold: 30  # days
+                major_version_updates: false
+                security_updates_only: false
+            }
+        }
+    }
+    
+    # Continuous Integration
+    ci: {
+        # CI configuration
+        configuration: {
+            platform: env("CI_PLATFORM", "github_actions")
+            
+            # Build matrix
+            matrix: {
+                ruby_versions: ["3.0", "3.1", "3.2"]
+                rails_versions: ["6.1", "7.0", "7.1"]
+                databases: ["sqlite3", "postgresql", "mysql"]
+            }
+            
+            # Parallel execution
+            parallel: {
+                enabled: true
+                max_parallel: 4
+                split_tests: true
+            }
+            
+            # Caching
+            cache: {
+                enabled: true
+                cache_keys: [
+                    "gems-{{ checksum('Gemfile.lock') }}",
+                    "node-modules-{{ checksum('package-lock.json') }}"
+                ]
+                
+                # Cache paths
+                paths: [
+                    "vendor/bundle",
+                    "node_modules",
+                    ".bundle"
+                ]
+            }
+        }
+        
+        # Test reporting
+        reporting: {
+            # JUnit XML for CI
+            junit: {
+                enabled: true
+                output_file: "test-results/rspec.xml"
+            }
+            
+            # Coverage reporting
+            coverage_reporting: {
+                enabled: true
+                format: "lcov"
+                
+                # External services
+                codecov: {
+                    enabled: env("CODECOV_ENABLED", false)
+                    token: env("CODECOV_TOKEN")
+                }
+                
+                coveralls: {
+                    enabled: env("COVERALLS_ENABLED", false)
+                    repo_token: env("COVERALLS_REPO_TOKEN")
+                }
+            }
+            
+            # Performance tracking
+            performance_tracking: {
+                enabled: env("PERF_TRACKING", false)
+                
+                # Benchmarks
+                benchmarks: {
+                    track_memory: true
+                    track_allocations: true
+                    compare_to_baseline: true
+                }
+            }
+        }
+        
+        # Quality gates
+        quality_gates: {
+            coverage_threshold: 80
+            complexity_threshold: 25
+            duplication_threshold: 5  # percentage
+            
+            # Fail conditions
+            fail_on: {
+                coverage_drop: 5      # percentage points
+                new_violations: true
+                security_issues: true
+                performance_regression: 20  # percentage
+            }
+        }
+    }
+    
+    # Test Environment Configuration
+    environment: {
+        # Environment variables for testing
+        variables: {
+            RAILS_ENV: "test"
+            RACK_ENV: "test"
+            NODE_ENV: "test"
+            
+            # Database
+            DATABASE_URL: "sqlite3:///:memory:"
+            
+            # External services
+            REDIS_URL: "redis://localhost:6379/1"
+            ELASTICSEARCH_URL: "http://localhost:9200"
+            
+            # Feature flags for testing
+            FEATURE_NEW_UI: "false"
+            FEATURE_BETA_API: "true"
+            
+            # Test-specific settings
+            DISABLE_ANIMATIONS: "true"
+            SKIP_EXTERNAL_APIS: "true"
+            LOG_LEVEL: "error"
+        }
+        
+        # Services for testing
+        services: {
+            database: {
+                image: "postgres:13-alpine"
+                environment: {
+                    POSTGRES_DB: "test_db"
+                    POSTGRES_USER: "test_user"
+                    POSTGRES_PASSWORD: "test_password"
+                }
+                ports: ["5432:5432"]
+            }
+            
+            redis: {
+                image: "redis:6-alpine"
+                ports: ["6379:6379"]
+            }
+            
+            elasticsearch: {
+                image: "elasticsearch:7.10.0"
+                environment: {
+                    "discovery.type": "single-node"
+                    "ES_JAVA_OPTS": "-Xms512m -Xmx512m"
+                }
+                ports: ["9200:9200"]
+            }
+        }
+        
+        # Test isolation
+        isolation: {
+            # Process isolation
+            separate_processes: env("SEPARATE_PROCESSES", false)
+            
+            # Database isolation
+            database_isolation: "transaction"  # transaction, truncation, deletion
+            
+            # File system isolation
+            temp_directories: true
+            cleanup_temp_files: true
+            
+            # Network isolation
+            block_external_requests: true
+            allow_localhost: true
+        }
+    }
+}
+</pre>
+
+<h3>Ruby Testing Framework</h3>
+<pre>
+#!/usr/bin/env ruby
+
+require 'rspec/core'
+require 'factory_bot'
+require 'database_cleaner'
+require 'webmock/rspec'
+require 'vcr'
+require 'simplecov'
+
+class TuskLangTestFramework
+  attr_reader :config, :test_results
+
+  def initialize(config)
+    @config = config
+    @test_results = {}
+    @coverage_data = {}
+  end
+
+  def setup_test_environment
+    puts "Setting up TuskLang test environment..."
+    
+    setup_rspec if @config.testing.framework.rspec&.enabled
+    setup_coverage if @config.testing.quality.coverage
+    setup_database_cleaner if @config.testing.test_types.integration
+    setup_vcr if @config.testing.data_management.vcr&.enabled
+    setup_factory_bot if @config.testing.test_types.unit.factories&.enabled
+    setup_webmock if @config.testing.test_types.unit.mocks.webmock&.enabled
+    
+    puts "Test environment setup completed"
+  end
+
+  def run_test_suite(test_type = 'all')
+    puts "Running #{test_type} tests..."
+    
+    case test_type
+    when 'unit'
+      run_unit_tests
+    when 'integration'
+      run_integration_tests
+    when 'e2e'
+      run_e2e_tests
+    when 'performance'
+      run_performance_tests
+    when 'security'
+      run_security_tests
+    when 'all'
+      run_all_tests
+    else
+      puts "Unknown test type: #{test_type}"
+      return false
+    end
+    
+    generate_reports
+    check_quality_gates
+  end
+
+  def run_all_tests
+    @test_results[:unit] = run_unit_tests
+    @test_results[:integration] = run_integration_tests
+    @test_results[:e2e] = run_e2e_tests if @config.testing.test_types.e2e
+    @test_results[:performance] = run_performance_tests if @config.testing.test_types.performance
+    @test_results[:security] = run_security_tests if @config.testing.test_types.security
+  end
+
+  def run_unit_tests
+    puts "Running unit tests..."
+    
+    # Setup test environment
+    setup_test_database
+    
+    # Configure RSpec for unit tests
+    RSpec.configure do |config|
+      config.include FactoryBot::Syntax::Methods if defined?(FactoryBot)
+      config.use_transactional_fixtures = true
+      
+      # Mock external services
+      config.before(:each) do
+        stub_external_apis if @config.testing.test_types.unit.mocks.webmock&.enabled
+      end
+    end
+    
+    # Run unit tests
+    unit_pattern = File.join(@config.testing.test_types.unit.path, @config.testing.test_types.unit.pattern)
+    result = run_rspec_tests(unit_pattern)
+    
+    puts "Unit tests completed: #{result[:examples]} examples, #{result[:failures]} failures"
+    result
+  end
+
+  def run_integration_tests
+    puts "Running integration tests..."
+    
+    # Setup test database with cleaning strategy
+    setup_database_cleaning
+    
+    # Configure for integration tests
+    RSpec.configure do |config|
+      config.use_transactional_fixtures = false
+      
+      config.before(:suite) do
+        DatabaseCleaner.clean_with(:truncation)
+      end
+      
+      config.before(:each) do
+        DatabaseCleaner.strategy = :transaction
+      end
+      
+      config.before(:each, :js => true) do
+        DatabaseCleaner.strategy = :truncation
+      end
+      
+      config.before(:each) do
+        DatabaseCleaner.start
+      end
+      
+      config.after(:each) do
+        DatabaseCleaner.clean
+      end
+    end
+    
+    # Run integration tests
+    integration_pattern = File.join(@config.testing.test_types.integration.path, @config.testing.test_types.integration.pattern)
+    result = run_rspec_tests(integration_pattern)
+    
+    puts "Integration tests completed: #{result[:examples]} examples, #{result[:failures]} failures"
+    result
+  end
+
+  def run_e2e_tests
+    puts "Running end-to-end tests..."
+    
+    # Setup Capybara
+    setup_capybara
+    
+    # Run E2E tests
+    e2e_pattern = File.join(@config.testing.test_types.e2e.path, @config.testing.test_types.e2e.pattern)
+    result = run_rspec_tests(e2e_pattern)
+    
+    puts "E2E tests completed: #{result[:examples]} examples, #{result[:failures]} failures"
+    result
+  end
+
+  def run_performance_tests
+    puts "Running performance tests..."
+    
+    # Setup performance monitoring
+    setup_performance_monitoring
+    
+    performance_results = {}
+    
+    # Load testing
+    if @config.testing.test_types.performance.load_testing
+      performance_results[:load_test] = run_load_tests
+    end
+    
+    # Memory testing
+    if @config.testing.test_types.performance.memory_testing&.enabled
+      performance_results[:memory_test] = run_memory_tests
+    end
+    
+    puts "Performance tests completed"
+    performance_results
+  end
+
+  def run_security_tests
+    puts "Running security tests..."
+    
+    security_results = {}
+    
+    # Static analysis with Brakeman
+    if @config.testing.test_types.security.vulnerability_scanning.tools.brakeman&.enabled
+      security_results[:brakeman] = run_brakeman_scan
+    end
+    
+    # Dependency audit
+    if @config.testing.test_types.security.vulnerability_scanning.tools.bundle_audit&.enabled
+      security_results[:bundle_audit] = run_bundle_audit
+    end
+    
+    puts "Security tests completed"
+    security_results
+  end
+
+  private
+
+  def setup_rspec
+    RSpec.configure do |config|
+      rspec_config = @config.testing.framework.rspec.config
+      
+      config.color = rspec_config.color
+      config.fail_fast = rspec_config.fail_fast if rspec_config.fail_fast
+      config.profile_examples = rspec_config.profile
+      config.order = rspec_config.order
+      
+      # Formatter
+      config.formatter = rspec_config.formatter
+      
+      # Output streams
+      if rspec_config.output_stream
+        config.output_stream = File.open(rspec_config.output_stream, 'w')
+      end
+      
+      # Shared context behavior
+      config.shared_context_metadata_behavior = rspec_config.shared_context_metadata_behavior.to_sym
+      
+      # Mock framework
+      config.mock_with :rspec do |mocks|
+        mocks.verify_partial_doubles = true
+        mocks.verify_doubled_constant_names = true
+      end
+    end
+  end
+
+  def setup_coverage
+    return unless defined?(SimpleCov)
+    
+    coverage_config = @config.testing.quality.coverage.config
+    
+    SimpleCov.start do
+      # Minimum coverage
+      minimum_coverage coverage_config.minimum_coverage
+      refuse_coverage_drop if coverage_config.refuse_coverage_drop
+      
+      # Formatters
+      formatters = coverage_config.formatters.map do |formatter_name|
+        Object.const_get(formatter_name)
+      end
+      formatter SimpleCov::Formatter::MultiFormatter.new(formatters)
+      
+      # Groups
+      coverage_config.groups.each do |group_name, path|
+        add_group group_name, path
+      end
+      
+      # Filters
+      coverage_config.add_filter.each do |filter|
+        add_filter filter
+      end
+      
+      # Track files
+      track_files coverage_config.track_files if coverage_config.track_files
+    end
+  end
+
+  def setup_database_cleaner
+    DatabaseCleaner.allow_remote_database_url = true
+    DatabaseCleaner.allow_production = false
+    
+    # Configure strategies per ORM
+    if defined?(ActiveRecord)
+      strategy = @config.testing.test_types.integration.database_cleaner.active_record.strategy
+      DatabaseCleaner[:active_record].strategy = strategy.to_sym
+    end
+  end
+
+  def setup_vcr
+    vcr_config = @config.testing.data_management.vcr.config
+    
+    VCR.configure do |config|
+      config.cassette_library_dir = vcr_config.cassette_library_dir
+      config.hook_into(*vcr_config.hook_into.map(&:to_sym))
+      config.default_cassette_options = {
+        record: vcr_config.record.to_sym,
+        match_requests_on: vcr_config.match_requests_on.map(&:to_sym)
+      }
+      
+      # Filter sensitive data
+      vcr_config.filter_sensitive_data.each do |placeholder, value|
+        if value.is_a?(String)
+          config.filter_sensitive_data(placeholder) { value }
+        else
+          # Assume it's a callable
+          config.filter_sensitive_data(placeholder, &value)
+        end
+      end
+    end
+  end
+
+  def setup_factory_bot
+    FactoryBot.definition_file_paths = @config.testing.test_types.unit.factories.factory_bot.definition_file_paths
+    FactoryBot.find_definitions
+    
+    # Lint factories if enabled
+    if @config.testing.test_types.unit.factories.factory_bot.lint_factories
+      FactoryBot.lint
+    end
+  end
+
+  def setup_webmock
+    WebMock.disable_net_connect!(
+      allow_localhost: @config.testing.test_types.unit.mocks.webmock.allow_localhost,
+      allow: @config.testing.test_types.unit.mocks.webmock.allow
+    )
+  end
+
+  def setup_capybara
+    return unless defined?(Capybara)
+    
+    capybara_config = @config.testing.test_types.e2e.capybara
+    
+    Capybara.configure do |config|
+      config.default_driver = capybara_config.default_driver.to_sym
+      config.javascript_driver = capybara_config.javascript_driver.to_sym
+      config.default_max_wait_time = capybara_config.default_max_wait_time
+      config.save_path = capybara_config.save_path
+      
+      # Screenshot configuration
+      if capybara_config.screenshot&.enabled
+        config.save_path = capybara_config.screenshot.path
+      end
+    end
+    
+    # Selenium configuration
+    if capybara_config.selenium
+      Capybara.register_driver :selenium_chrome_headless do |app|
+        options = Selenium::WebDriver::Chrome::Options.new
+        capybara_config.selenium.chrome_options.each { |opt| options.add_argument(opt) }
+        
+        Capybara::Selenium::Driver.new(app, browser: :chrome, options: options)
+      end
+    end
+  end
+
+  def setup_test_database
+    # This would setup the test database based on configuration
+    puts "  Setting up test database"
+  end
+
+  def setup_database_cleaning
+    strategy = @config.testing.test_types.integration.database_cleaner.strategy
+    DatabaseCleaner.strategy = strategy.to_sym
+  end
+
+  def setup_performance_monitoring
+    # Setup performance monitoring tools
+    puts "  Setting up performance monitoring"
+  end
+
+  def run_rspec_tests(pattern)
+    # Run RSpec tests and capture results
+    output = []
+    
+    RSpec::Core::Runner.run([pattern], STDERR, output) do |config|
+      config.formatter = 'json'
+    end
+    
+    # Parse results (simplified)
+    {
+      examples: 10,   # Would parse actual results
+      failures: 0,
+      pending: 0,
+      duration: 1.5
+    }
+  end
+
+  def run_load_tests
+    load_config = @config.testing.test_types.performance.load_testing
+    
+    puts "  Running load tests with #{load_config.tool}"
+    
+    # Simulate load test results
+    {
+      scenario: 'light_load',
+      threads: 10,
+      duration: 300,
+      total_requests: 15000,
+      requests_per_second: 50,
+      average_response_time: 200,
+      error_rate: 0.001
+    }
+  end
+
+  def run_memory_tests
+    puts "  Running memory tests"
+    
+    # Simulate memory test results
+    {
+      initial_memory: 50.5,   # MB
+      final_memory: 55.2,     # MB
+      memory_growth: 4.7,     # MB
+      gc_runs: 5,
+      objects_created: 10000
+    }
+  end
+
+  def run_brakeman_scan
+    puts "  Running Brakeman security scan"
+    
+    # Simulate Brakeman results
+    {
+      warnings: 0,
+      confidence_levels: {high: 0, medium: 0, weak: 0},
+      scan_duration: 2.3
+    }
+  end
+
+  def run_bundle_audit
+    puts "  Running Bundle Audit"
+    
+    # Simulate bundle audit results
+    {
+      vulnerabilities: 0,
+      advisories_checked: 150,
+      gems_checked: 75
+    }
+  end
+
+  def stub_external_apis
+    # Stub common external API calls
+    WebMock.stub_request(:get, "https://api.example.com/users")
+      .to_return(status: 200, body: '{"users": []}', headers: {'Content-Type' => 'application/json'})
+  end
+
+  def generate_reports
+    puts "Generating test reports..."
+    
+    # Generate coverage report
+    generate_coverage_report if @config.testing.quality.coverage
+    
+    # Generate performance report
+    generate_performance_report if @test_results[:performance]
+    
+    # Generate security report
+    generate_security_report if @test_results[:security]
+  end
+
+  def generate_coverage_report
+    puts "  Generating coverage report"
+    # Coverage report would be generated by SimpleCov
+  end
+
+  def generate_performance_report
+    puts "  Generating performance report"
+    # Generate performance analysis
+  end
+
+  def generate_security_report
+    puts "  Generating security report"
+    # Generate security analysis
+  end
+
+  def check_quality_gates
+    puts "Checking quality gates..."
+    
+    quality_gates = @config.testing.ci.quality_gates
+    
+    # Check coverage threshold
+    if @coverage_data[:percentage] && @coverage_data[:percentage] < quality_gates.coverage_threshold
+      puts "  FAIL: Coverage (#{@coverage_data[:percentage]}%) below threshold (#{quality_gates.coverage_threshold}%)"
+      return false
+    end
+    
+    # Check for failures
+    total_failures = @test_results.values.sum { |result| result.is_a?(Hash) ? result[:failures] || 0 : 0 }
+    if total_failures > 0
+      puts "  FAIL: #{total_failures} test failures found"
+      return false
+    end
+    
+    puts "  PASS: All quality gates passed"
+    true
+  end
+end
+
+# Test result reporter
+class TuskLangTestReporter
+  def initialize(config)
+    @config = config
+  end
+
+  def generate_junit_report(results, output_file)
+    # Generate JUnit XML report
+    puts "Generating JUnit report: #{output_file}"
+  end
+
+  def send_coverage_report(coverage_data)
+    # Send coverage to external service
+    if @config.testing.ci.reporting.coverage_reporting.codecov&.enabled
+      send_to_codecov(coverage_data)
+    end
+    
+    if @config.testing.ci.reporting.coverage_reporting.coveralls&.enabled
+      send_to_coveralls(coverage_data)
+    end
+  end
+
+  private
+
+  def send_to_codecov(data)
+    puts "Sending coverage to Codecov"
+  end
+
+  def send_to_coveralls(data)
+    puts "Sending coverage to Coveralls"
+  end
+end
+
+if __FILE__ == $0
+  # Example usage
+  config = OpenStruct.new(
+    testing: OpenStruct.new(
+      framework: OpenStruct.new(
+        rspec: OpenStruct.new(
+          enabled: true,
+          config: OpenStruct.new(
+            color: true,
+            fail_fast: false,
+            profile: 10,
+            formatter: 'documentation'
+          )
+        )
+      ),
+      test_types: OpenStruct.new(
+        unit: OpenStruct.new(
+          path: 'spec/unit',
+          pattern: '*_spec.rb'
+        )
+      )
+    )
+  )
+  
+  framework = TuskLangTestFramework.new(config)
+  framework.setup_test_environment
+  framework.run_test_suite('unit')
+end
+</pre>
+
+<p>TuskLang's testing and quality assurance features provide comprehensive test automation, code quality analysis, and continuous integration support for Ruby applications with industry-standard tools and practices.</p>

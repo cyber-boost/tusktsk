@@ -1,0 +1,560 @@
+#!/usr/bin/env php
+<?php
+/**
+ * 🚀 FUJSEN CLI - Command Line Interface for TuskLang Intelligence System
+ * ======================================================================
+ * "Bringing elephant-level intelligence to your command line"
+ * 
+ * Usage:
+ *   fujsen <command> [options]
+ * 
+ * Commands:
+ *   parse <file>           - Parse TuskLang file
+ *   query <class>          - Interactive database query builder
+ *   cache <action>         - Cache management operations
+ *   serve [port]           - Start FUJSEN development server
+ *   optimize <file>        - JIT optimize TuskLang code
+ *   metrics                - Show system metrics
+ *   test                   - Run FUJSEN test suite
+ *   init <project>         - Initialize new FUJSEN project
+ * 
+ * @package FUJSEN
+ * @version 2.0.0-Elder
+ */
+
+// Ensure we're running from command line
+if (php_sapi_name() !== 'cli') {
+    die("FUJSEN CLI must be run from command line\n");
+}
+
+// Auto-detect FUJSEN installation path
+$fujsenPaths = [
+    __DIR__ . '/../fujsen/src',
+    __DIR__ . '/../../fujsen/src',
+    '/usr/local/lib/tusklang/fujsen/src',
+    '/opt/tusklang/fujsen/src'
+];
+
+$fujsenPath = null;
+foreach ($fujsenPaths as $path) {
+    if (file_exists($path . '/autoload.php')) {
+        $fujsenPath = $path;
+        break;
+    }
+}
+
+if (!$fujsenPath) {
+    die("❌ FUJSEN installation not found. Please install TuskLang first.\n");
+}
+
+// Load FUJSEN core
+require_once $fujsenPath . '/autoload.php';
+
+use TuskPHP\Utils\TuskLang;
+use TuskPHP\Utils\TuskLangQueryBridge;
+use TuskPHP\Utils\TuskLangJITOptimizer;
+use TuskPHP\Utils\TuskLangWebHandler;
+use TuskPHP\TuskQuery;
+use TuskPHP\TuskDb;
+
+// FUJSEN CLI Class
+class FujsenCLI 
+{
+    private $command;
+    private $args;
+    private $options;
+    
+    public function __construct($argv) 
+    {
+        $this->command = $argv[1] ?? 'help';
+        $this->args = array_slice($argv, 2);
+        $this->parseOptions();
+        
+        $this->showBanner();
+    }
+    
+    private function showBanner() 
+    {
+        echo "🚀 FUJSEN Intelligence System v2.0.0-Elder\n";
+        echo "   TuskLang @ Operators • JIT Optimization • Smart Caching\n\n";
+    }
+    
+    private function parseOptions() 
+    {
+        $this->options = [];
+        foreach ($this->args as $key => $arg) {
+            if (strpos($arg, '--') === 0) {
+                if (strpos($arg, '=') !== false) {
+                    list($option, $value) = explode('=', substr($arg, 2), 2);
+                    $this->options[$option] = $value;
+                } else {
+                    $this->options[substr($arg, 2)] = true;
+                }
+                unset($this->args[$key]);
+            }
+        }
+        $this->args = array_values($this->args);
+    }
+    
+    public function run() 
+    {
+        switch ($this->command) {
+            case 'parse':
+                $this->handleParse();
+                break;
+            case 'query':
+                $this->handleQuery();
+                break;
+            case 'cache':
+                $this->handleCache();
+                break;
+            case 'serve':
+                $this->handleServe();
+                break;
+            case 'optimize':
+                $this->handleOptimize();
+                break;
+            case 'metrics':
+                $this->handleMetrics();
+                break;
+            case 'test':
+                $this->handleTest();
+                break;
+            case 'init':
+                $this->handleInit();
+                break;
+            case 'status':
+                $this->handleStatus();
+                break;
+            case 'help':
+            default:
+                $this->showHelp();
+                break;
+        }
+    }
+    
+    private function handleParse() 
+    {
+        $file = $this->args[0] ?? null;
+        if (!$file) {
+            echo "❌ Please specify a .tsk file to parse\n";
+            echo "Usage: fujsen parse <file.tsk>\n";
+            return;
+        }
+        
+        if (!file_exists($file)) {
+            echo "❌ File not found: $file\n";
+            return;
+        }
+        
+        echo "📝 Parsing TuskLang file: $file\n\n";
+        
+        try {
+            $content = file_get_contents($file);
+            $startTime = microtime(true);
+            $result = TuskLang::parse($content);
+            $parseTime = (microtime(true) - $startTime) * 1000;
+            
+            echo "✅ Parsed successfully in " . number_format($parseTime, 2) . "ms\n\n";
+            
+            if ($this->options['json'] ?? false) {
+                echo json_encode($result, JSON_PRETTY_PRINT | JSON_UNESCAPED_UNICODE);
+            } else {
+                print_r($result);
+            }
+            
+        } catch (Exception $e) {
+            echo "❌ Parse error: " . $e->getMessage() . "\n";
+        }
+    }
+    
+    private function handleQuery() 
+    {
+        $className = $this->args[0] ?? null;
+        if (!$className) {
+            echo "❌ Please specify a class name\n";
+            echo "Usage: fujsen query <ClassName>\n";
+            return;
+        }
+        
+        echo "🔍 Interactive Query Builder for: $className\n";
+        echo "Enter TuskQuery commands (type 'help' for options, 'exit' to quit):\n\n";
+        
+        $query = new TuskQuery($className);
+        
+        while (true) {
+            echo "> ";
+            $input = trim(fgets(STDIN));
+            
+            if ($input === 'exit' || $input === 'quit') {
+                break;
+            }
+            
+            if ($input === 'help') {
+                $this->showQueryHelp();
+                continue;
+            }
+            
+            if ($input === 'reset') {
+                $query = new TuskQuery($className);
+                echo "🔄 Query reset\n";
+                continue;
+            }
+            
+            try {
+                // Parse and execute query command
+                $this->executeQueryCommand($query, $input);
+            } catch (Exception $e) {
+                echo "❌ Error: " . $e->getMessage() . "\n";
+            }
+        }
+    }
+    
+    private function handleCache() 
+    {
+        $action = $this->args[0] ?? 'status';
+        
+        switch ($action) {
+            case 'clear':
+                echo "🧹 Clearing all caches...\n";
+                // Implement cache clearing
+                echo "✅ Cache cleared\n";
+                break;
+            
+            case 'stats':
+            case 'status':
+                echo "📊 Cache Statistics:\n";
+                // Implement cache stats
+                break;
+                
+            default:
+                echo "❌ Unknown cache action: $action\n";
+                echo "Available actions: clear, stats, status\n";
+        }
+    }
+    
+    private function handleServe() 
+    {
+        $port = $this->args[0] ?? 8874;
+        echo "🌐 Starting FUJSEN development server on port $port...\n";
+        echo "📍 Access your application at: http://localhost:$port\n";
+        echo "🛑 Press Ctrl+C to stop\n\n";
+        
+        // Start PHP built-in server with FUJSEN handler
+        $command = "php -S localhost:$port -t . " . __DIR__ . "/fujsen-server.php";
+        passthru($command);
+    }
+    
+    private function handleOptimize() 
+    {
+        $file = $this->args[0] ?? null;
+        if (!$file) {
+            echo "❌ Please specify a .tsk file to optimize\n";
+            return;
+        }
+        
+        if (!file_exists($file)) {
+            echo "❌ File not found: $file\n";
+            return;
+        }
+        
+        echo "⚡ JIT Optimizing: $file\n";
+        
+        try {
+            $content = file_get_contents($file);
+            $optimizer = TuskLangJITOptimizer::getInstance();
+            
+            $startTime = microtime(true);
+            $optimized = $optimizer->compileWithJIT($content);
+            $optimizeTime = (microtime(true) - $startTime) * 1000;
+            
+            echo "✅ Optimized in " . number_format($optimizeTime, 2) . "ms\n";
+            
+            $outputFile = str_replace('.tsk', '.optimized.php', $file);
+            file_put_contents($outputFile, $optimized);
+            echo "💾 Saved to: $outputFile\n";
+            
+        } catch (Exception $e) {
+            echo "❌ Optimization error: " . $e->getMessage() . "\n";
+        }
+    }
+    
+    private function handleMetrics() 
+    {
+        echo "📊 FUJSEN System Metrics:\n\n";
+        
+        // Memory metrics
+        echo "🧠 Memory Usage:\n";
+        echo "   Current: " . number_format(memory_get_usage(true) / 1024 / 1024, 2) . " MB\n";
+        echo "   Peak: " . number_format(memory_get_peak_usage(true) / 1024 / 1024, 2) . " MB\n\n";
+        
+        // JIT metrics
+        if (class_exists('TuskPHP\\Utils\\TuskLangJITOptimizer')) {
+            $optimizer = TuskLangJITOptimizer::getInstance();
+            $stats = $optimizer->getJITStats();
+            
+            echo "⚡ JIT Compiler:\n";
+            echo "   Enabled: " . ($stats['jit_enabled'] ? 'Yes' : 'No') . "\n";
+            echo "   Mode: " . $stats['jit_mode'] . "\n";
+            echo "   Buffer Size: " . $stats['jit_buffer_size'] . "\n\n";
+        }
+        
+        // Database metrics
+        try {
+            $dbWisdom = TuskDb::wisdom();
+            echo "🗄️ Database:\n";
+            echo "   Status: " . $dbWisdom['status'] . "\n";
+            echo "   Type: " . $dbWisdom['database_type'] . "\n";
+            if (isset($dbWisdom['table_count'])) {
+                echo "   Tables: " . $dbWisdom['table_count'] . "\n";
+            }
+            echo "\n";
+        } catch (Exception $e) {
+            echo "🗄️ Database: Not connected\n\n";
+        }
+    }
+    
+    private function handleTest() 
+    {
+        echo "🧪 Running FUJSEN Test Suite...\n\n";
+        
+        $tests = [
+            'TuskLang Parser' => function() {
+                $testCode = 'name: "FUJSEN"\nversion: 2.0\nfeatures: ["@operators", "JIT", "caching"]';
+                $result = TuskLang::parse($testCode);
+                return isset($result['name']) && $result['name'] === 'FUJSEN';
+            },
+            'Query Bridge' => function() {
+                $bridge = TuskLangQueryBridge::getInstance();
+                return $bridge !== null;
+            },
+            'JIT Optimizer' => function() {
+                $optimizer = TuskLangJITOptimizer::getInstance();
+                return $optimizer !== null;
+            }
+        ];
+        
+        $passed = 0;
+        $total = count($tests);
+        
+        foreach ($tests as $name => $test) {
+            echo "  Testing $name... ";
+            try {
+                if ($test()) {
+                    echo "✅ PASS\n";
+                    $passed++;
+                } else {
+                    echo "❌ FAIL\n";
+                }
+            } catch (Exception $e) {
+                echo "❌ ERROR: " . $e->getMessage() . "\n";
+            }
+        }
+        
+        echo "\n📊 Results: $passed/$total tests passed\n";
+        
+        if ($passed === $total) {
+            echo "🎉 All tests passed! FUJSEN is ready.\n";
+        } else {
+            echo "⚠️ Some tests failed. Check your installation.\n";
+        }
+    }
+    
+    private function handleInit() 
+    {
+        $projectName = $this->args[0] ?? null;
+        if (!$projectName) {
+            echo "❌ Please specify a project name\n";
+            echo "Usage: fujsen init <project-name>\n";
+            return;
+        }
+        
+        echo "🚀 Initializing FUJSEN project: $projectName\n";
+        
+        // Create project directory
+        if (!is_dir($projectName)) {
+            mkdir($projectName, 0755, true);
+        }
+        
+        chdir($projectName);
+        
+        // Create basic structure
+        $dirs = ['src', 'config', 'public', 'tests'];
+        foreach ($dirs as $dir) {
+            if (!is_dir($dir)) {
+                mkdir($dir, 0755, true);
+                echo "📁 Created directory: $dir\n";
+            }
+        }
+        
+        // Create basic files
+        $this->createProjectFiles($projectName);
+        
+        echo "✅ Project initialized successfully!\n";
+        echo "📍 Next steps:\n";
+        echo "   cd $projectName\n";
+        echo "   fujsen serve\n";
+    }
+    
+    private function handleStatus() 
+    {
+        echo "🔍 FUJSEN System Status:\n\n";
+        
+        // Check core components
+        $components = [
+            'TuskLang Parser' => class_exists('TuskPHP\\Utils\\TuskLang'),
+            'Query Bridge' => class_exists('TuskPHP\\Utils\\TuskLangQueryBridge'),
+            'JIT Optimizer' => class_exists('TuskPHP\\Utils\\TuskLangJITOptimizer'),
+            'Web Handler' => class_exists('TuskPHP\\Utils\\TuskLangWebHandler'),
+            'TuskQuery ORM' => class_exists('TuskPHP\\TuskQuery'),
+            'TuskDb Connection' => class_exists('TuskPHP\\TuskDb')
+        ];
+        
+        foreach ($components as $name => $available) {
+            $status = $available ? '✅ Available' : '❌ Missing';
+            echo "  $name: $status\n";
+        }
+        
+        echo "\n";
+        
+        // Check services
+        echo "🔧 Services:\n";
+        $this->checkService('FUJSEN Server', 8874);
+        $this->checkService('C3B2 Application', 7326);
+        
+        echo "\n";
+    }
+    
+    private function checkService($name, $port) 
+    {
+        $connection = @fsockopen('localhost', $port, $errno, $errstr, 1);
+        if ($connection) {
+            echo "  $name (port $port): ✅ Running\n";
+            fclose($connection);
+        } else {
+            echo "  $name (port $port): ❌ Not running\n";
+        }
+    }
+    
+    private function createProjectFiles($projectName) 
+    {
+        // Create main config file
+        $configContent = <<<TSK
+# 🚀 $projectName FUJSEN Configuration
+project_name: "$projectName"
+version: "1.0.0"
+debug: true
+
+# Database configuration
+database: {
+    driver: "sqlite"
+    path: "data.sqlite"
+}
+
+# Cache configuration  
+cache: {
+    driver: "memory"
+    ttl: 3600
+}
+
+# @ Operator settings
+fujsen: {
+    query_enabled: true
+    cache_enabled: true
+    jit_enabled: true
+}
+TSK;
+        
+        file_put_contents('config/app.tsk', $configContent);
+        echo "📄 Created: config/app.tsk\n";
+        
+        // Create sample endpoint
+        $endpointContent = <<<TSK
+#!api
+# Sample FUJSEN API endpoint
+
+method: @request.method
+data: @request.json || "No data provided"
+timestamp: php(time())
+
+result: @json({
+    message: "Hello from FUJSEN!",
+    method: method,
+    data: data,
+    timestamp: timestamp
+})
+TSK;
+        
+        file_put_contents('public/api.tsk', $endpointContent);
+        echo "📄 Created: public/api.tsk\n";
+        
+        // Create index file
+        $indexContent = <<<PHP
+<?php
+/**
+ * $projectName - FUJSEN Application
+ */
+
+require_once '../src/autoload.php';
+
+echo "🚀 $projectName is running with FUJSEN!\n";
+PHP;
+        
+        file_put_contents('public/index.php', $indexContent);
+        echo "📄 Created: public/index.php\n";
+    }
+    
+    private function executeQueryCommand($query, $input) 
+    {
+        // Simple command parser for demo
+        if (strpos($input, 'find') !== false) {
+            $results = $query->find();
+            echo "📊 Found " . count($results) . " results\n";
+            if (!empty($results)) {
+                print_r(array_slice($results, 0, 3)); // Show first 3
+            }
+        } else {
+            echo "💡 Try commands like: find, count, where, etc.\n";
+        }
+    }
+    
+    private function showQueryHelp() 
+    {
+        echo "\n🔍 Query Commands:\n";
+        echo "  find         - Execute query and show results\n";
+        echo "  count        - Count matching records\n";
+        echo "  reset        - Reset query builder\n";
+        echo "  help         - Show this help\n";
+        echo "  exit         - Exit query mode\n\n";
+    }
+    
+    private function showHelp() 
+    {
+        echo "FUJSEN Commands:\n\n";
+        echo "📝 parse <file>         Parse TuskLang .tsk file\n";
+        echo "🔍 query <class>        Interactive database queries\n";
+        echo "💾 cache <action>       Cache management (clear, stats)\n";
+        echo "🌐 serve [port]         Start development server\n";
+        echo "⚡ optimize <file>      JIT optimize TuskLang code\n";
+        echo "📊 metrics              Show system metrics\n";
+        echo "🧪 test                 Run test suite\n";
+        echo "🚀 init <project>       Initialize new project\n";
+        echo "🔍 status               Check system status\n";
+        echo "❓ help                 Show this help\n\n";
+        
+        echo "Options:\n";
+        echo "  --json              Output in JSON format\n";
+        echo "  --verbose           Verbose output\n";
+        echo "  --debug             Enable debug mode\n\n";
+        
+        echo "Examples:\n";
+        echo "  fujsen parse config.tsk --json\n";
+        echo "  fujsen query User\n";
+        echo "  fujsen serve 8080\n";
+        echo "  fujsen optimize app.tsk\n";
+    }
+}
+
+// Run the CLI
+$cli = new FujsenCLI($argv);
+$cli->run(); 

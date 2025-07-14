@@ -1,0 +1,1309 @@
+<h1>CLI & Scripting</h1>
+
+<h2>Building Command-Line Tools with TuskLang in Bash</h2>
+<p>Create powerful CLI applications with argument parsing, interactive prompts, and rich output formatting.</p>
+
+<h3>cli.tsk</h3>
+<pre>
+#!cli
+
+# CLI application configuration
+cli {
+    name: "tusk"
+    version: "1.0.0"
+    description: "TuskLang CLI - Modern configuration management"
+    
+    # Global options
+    options: {
+        verbose: {
+            short: "v"
+            long: "verbose"
+            description: "Enable verbose output"
+            type: "boolean"
+            default: false
+        }
+        
+        config: {
+            short: "c"
+            long: "config"
+            description: "Configuration file path"
+            type: "string"
+            default: "./tusk.config.tsk"
+            env: "TUSK_CONFIG"
+        }
+        
+        output: {
+            short: "o"
+            long: "output"
+            description: "Output format"
+            type: "choice"
+            choices: ["json", "yaml", "table", "plain"]
+            default: "table"
+        }
+        
+        color: {
+            long: "color"
+            description: "Color output"
+            type: "choice"
+            choices: ["auto", "always", "never"]
+            default: "auto"
+        }
+    }
+    
+    # Commands
+    commands: {
+        # Initialize new project
+        init: {
+            description: "Initialize a new TuskLang project"
+            
+            options: {
+                template: {
+                    short: "t"
+                    long: "template"
+                    description: "Project template"
+                    type: "choice"
+                    choices: ["basic", "web", "api", "library"]
+                    default: "basic"
+                }
+                
+                force: {
+                    short: "f"
+                    long: "force"
+                    description: "Overwrite existing files"
+                    type: "boolean"
+                    default: false
+                }
+            }
+            
+            handler: @commands.init
+        }
+        
+        # Parse and validate
+        validate: {
+            description: "Validate TuskLang configuration files"
+            
+            arguments: {
+                files: {
+                    description: "Files to validate"
+                    type: "array"
+                    required: true
+                    variadic: true
+                }
+            }
+            
+            options: {
+                strict: {
+                    short: "s"
+                    long: "strict"
+                    description: "Enable strict validation"
+                    type: "boolean"
+                    default: false
+                }
+                
+                schema: {
+                    long: "schema"
+                    description: "Schema file for validation"
+                    type: "string"
+                }
+            }
+            
+            handler: @commands.validate
+        }
+        
+        # Convert between formats
+        convert: {
+            description: "Convert between configuration formats"
+            
+            arguments: {
+                input: {
+                    description: "Input file"
+                    type: "string"
+                    required: true
+                }
+            }
+            
+            options: {
+                from: {
+                    short: "f"
+                    long: "from"
+                    description: "Input format"
+                    type: "choice"
+                    choices: ["tusk", "json", "yaml", "env"]
+                    default: "auto"
+                }
+                
+                to: {
+                    short: "t"
+                    long: "to"
+                    description: "Output format"
+                    type: "choice"
+                    choices: ["tusk", "json", "yaml", "env"]
+                    required: true
+                }
+                
+                output: {
+                    short: "o"
+                    long: "output"
+                    description: "Output file (default: stdout)"
+                    type: "string"
+                }
+                
+                pretty: {
+                    short: "p"
+                    long: "pretty"
+                    description: "Pretty print output"
+                    type: "boolean"
+                    default: true
+                }
+            }
+            
+            handler: @commands.convert
+        }
+        
+        # Interactive REPL
+        repl: {
+            description: "Start interactive TuskLang REPL"
+            
+            options: {
+                history: {
+                    long: "history"
+                    description: "History file"
+                    type: "string"
+                    default: "~/.tusk_history"
+                }
+                
+                preload: {
+                    long: "preload"
+                    description: "Files to preload"
+                    type: "array"
+                    default: []
+                }
+            }
+            
+            handler: @commands.repl
+        }
+        
+        # Query configuration
+        get: {
+            description: "Get configuration value"
+            
+            arguments: {
+                path: {
+                    description: "Configuration path (e.g., server.port)"
+                    type: "string"
+                    required: true
+                }
+            }
+            
+            options: {
+                default: {
+                    short: "d"
+                    long: "default"
+                    description: "Default value if not found"
+                    type: "string"
+                }
+            }
+            
+            handler: @commands.get
+        }
+        
+        # Set configuration
+        set: {
+            description: "Set configuration value"
+            
+            arguments: {
+                path: {
+                    description: "Configuration path"
+                    type: "string"
+                    required: true
+                }
+                
+                value: {
+                    description: "Value to set"
+                    type: "string"
+                    required: true
+                }
+            }
+            
+            options: {
+                type: {
+                    short: "t"
+                    long: "type"
+                    description: "Value type"
+                    type: "choice"
+                    choices: ["string", "number", "boolean", "array", "object"]
+                    default: "auto"
+                }
+            }
+            
+            handler: @commands.set
+        }
+        
+        # Run scripts
+        run: {
+            description: "Run TuskLang scripts"
+            
+            arguments: {
+                script: {
+                    description: "Script name or file"
+                    type: "string"
+                    required: true
+                }
+                
+                args: {
+                    description: "Script arguments"
+                    type: "array"
+                    variadic: true
+                }
+            }
+            
+            options: {
+                watch: {
+                    short: "w"
+                    long: "watch"
+                    description: "Watch for file changes"
+                    type: "boolean"
+                    default: false
+                }
+                
+                env: {
+                    short: "e"
+                    long: "env"
+                    description: "Environment variables"
+                    type: "object"
+                    multiple: true
+                }
+            }
+            
+            handler: @commands.run
+        }
+    }
+    
+    # Interactive prompts
+    prompts: {
+        # Confirmation prompt
+        confirm: {
+            message: "Are you sure?"
+            default: false
+            
+            format: {
+                yes: ["y", "yes"]
+                no: ["n", "no"]
+            }
+        }
+        
+        # Input prompt
+        input: {
+            message: "Enter value:"
+            validate: @validate.required
+            filter: @trim
+        }
+        
+        # Password prompt
+        password: {
+            message: "Enter password:"
+            mask: "*"
+            validate: @validate.password
+        }
+        
+        # Select prompt
+        select: {
+            message: "Select option:"
+            choices: []
+            default: 0
+            pageSize: 10
+        }
+        
+        # Multi-select prompt
+        multiselect: {
+            message: "Select options:"
+            choices: []
+            default: []
+            required: true
+        }
+    }
+    
+    # Output formatting
+    output: {
+        # Table formatting
+        table: {
+            border: "single"
+            header_style: "bold"
+            
+            columns: {
+                padding: 2
+                alignment: "left"
+                max_width: 50
+            }
+        }
+        
+        # Progress indicators
+        progress: {
+            bar: {
+                width: 40
+                complete: "="
+                incomplete: "-"
+                head: ">"
+            }
+            
+            spinner: {
+                frames: ["⠋", "⠙", "⠹", "⠸", "⠼", "⠴", "⠦", "⠧", "⠇", "⠏"]
+                interval: 80
+            }
+        }
+        
+        # Colors and styles
+        colors: {
+            error: "red"
+            warning: "yellow"
+            success: "green"
+            info: "blue"
+            muted: "gray"
+        }
+        
+        styles: {
+            error: ["red", "bold"]
+            warning: ["yellow"]
+            success: ["green"]
+            info: ["blue"]
+            heading: ["bold", "underline"]
+        }
+    }
+}
+
+# Scripts
+scripts {
+    # Pre-defined scripts
+    test: {
+        description: "Run tests"
+        command: "bash ./test.sh"
+        env: { NODE_ENV: "test" }
+    }
+    
+    build: {
+        description: "Build project"
+        command: @chain([
+            "tusk validate src/**/*.tsk",
+            "tusk convert -f tusk -t json -o dist/config.json",
+            "bash ./build.sh"
+        ])
+    }
+    
+    deploy: {
+        description: "Deploy application"
+        
+        steps: [
+            { name: "validate", command: "tusk validate" },
+            { name: "test", command: "tusk run test" },
+            { name: "build", command: "tusk run build" },
+            { name: "upload", command: "rsync -avz dist/ server:/app/" },
+            { name: "restart", command: "ssh server 'systemctl restart app'" }
+        ]
+        
+        rollback: @chain([
+            "ssh server 'cd /app && git checkout HEAD~1'",
+            "ssh server 'systemctl restart app'"
+        ])
+    }
+}
+</pre>
+
+<h3>Bash CLI Implementation</h3>
+<pre>
+#!/bin/bash
+
+# TuskLang CLI Framework
+
+# CLI configuration
+declare -A CLI_OPTIONS
+declare -A CLI_COMMANDS
+declare -A CLI_ARGS
+SCRIPT_NAME="${0##*/}"
+
+# ANSI color codes
+declare -A COLORS=(
+    [black]=30
+    [red]=31
+    [green]=32
+    [yellow]=33
+    [blue]=34
+    [magenta]=35
+    [cyan]=36
+    [white]=37
+    [gray]=90
+)
+
+declare -A STYLES=(
+    [reset]=0
+    [bold]=1
+    [dim]=2
+    [italic]=3
+    [underline]=4
+    [blink]=5
+    [reverse]=7
+    [strikethrough]=9
+)
+
+# Initialize CLI
+tusk_cli_init() {
+    # Set up color support
+    if [[ -t 1 ]] && [[ "${TERM}" != "dumb" ]]; then
+        COLORS_ENABLED=1
+    else
+        COLORS_ENABLED=0
+    fi
+    
+    # Parse global options first
+    tusk_cli_parse_global_options "$@"
+}
+
+# Color output
+tusk_color() {
+    local text="$1"
+    shift
+    
+    [ $COLORS_ENABLED -eq 0 ] && { echo -n "$text"; return; }
+    
+    local codes=""
+    for style in "$@"; do
+        if [ -n "${COLORS[$style]}" ]; then
+            codes="${codes}${COLORS[$style]};"
+        elif [ -n "${STYLES[$style]}" ]; then
+            codes="${codes}${STYLES[$style]};"
+        fi
+    done
+    
+    codes="${codes%;}}"
+    echo -en "\033[${codes}m${text}\033[0m"
+}
+
+# Print styled output
+tusk_print() {
+    local style="$1"
+    shift
+    local message="$*"
+    
+    case "$style" in
+        error)
+            tusk_color "✗ $message" red bold >&2
+            echo >&2
+            ;;
+        warning)
+            tusk_color "⚠ $message" yellow >&2
+            echo >&2
+            ;;
+        success)
+            tusk_color "✓ $message" green
+            echo
+            ;;
+        info)
+            tusk_color "ℹ $message" blue
+            echo
+            ;;
+        heading)
+            tusk_color "$message" bold underline
+            echo
+            ;;
+        *)
+            echo "$message"
+            ;;
+    esac
+}
+
+# Usage/help display
+tusk_cli_usage() {
+    local command="${1:-}"
+    
+    if [ -z "$command" ]; then
+        # Main usage
+        cat << EOF
+$(tusk_color "$SCRIPT_NAME" bold) - $(tusk_color "TuskLang CLI" cyan)
+
+$(tusk_color "USAGE:" yellow)
+    $SCRIPT_NAME [OPTIONS] COMMAND [ARGS]
+
+$(tusk_color "OPTIONS:" yellow)
+    -v, --verbose          Enable verbose output
+    -c, --config FILE      Configuration file path
+    -o, --output FORMAT    Output format (json|yaml|table|plain)
+    --color WHEN          Color output (auto|always|never)
+    -h, --help            Show this help message
+
+$(tusk_color "COMMANDS:" yellow)
+EOF
+        
+        # List commands
+        for cmd in "${!CLI_COMMANDS[@]}"; do
+            printf "    %-15s %s\n" \
+                "$(tusk_color "$cmd" green)" \
+                "${CLI_COMMANDS[$cmd]}"
+        done
+        
+        echo
+        echo "Run '$SCRIPT_NAME COMMAND --help' for more information on a command."
+    else
+        # Command-specific help
+        case "$command" in
+            init)
+                cat << EOF
+$(tusk_color "tusk init" bold) - Initialize a new TuskLang project
+
+$(tusk_color "USAGE:" yellow)
+    $SCRIPT_NAME init [OPTIONS]
+
+$(tusk_color "OPTIONS:" yellow)
+    -t, --template TYPE    Project template (basic|web|api|library)
+    -f, --force           Overwrite existing files
+    -h, --help            Show this help message
+EOF
+                ;;
+            # Add more command help...
+        esac
+    fi
+}
+
+# Argument parsing
+tusk_cli_parse_args() {
+    local command="$1"
+    shift
+    
+    CLI_ARGS=()
+    
+    while [[ $# -gt 0 ]]; do
+        case "$1" in
+            -h|--help)
+                tusk_cli_usage "$command"
+                exit 0
+                ;;
+            -*)
+                # Parse command options
+                tusk_cli_parse_option "$command" "$1" "$2"
+                shift
+                ;;
+            *)
+                # Positional argument
+                CLI_ARGS+=("$1")
+                ;;
+        esac
+        shift
+    done
+}
+
+# Interactive prompts
+tusk_prompt_confirm() {
+    local message="${1:-Are you sure?}"
+    local default="${2:-n}"
+    
+    local prompt
+    if [ "$default" = "y" ]; then
+        prompt="$message [Y/n] "
+    else
+        prompt="$message [y/N] "
+    fi
+    
+    while true; do
+        read -p "$(tusk_color "$prompt" yellow)" -n 1 -r
+        echo
+        
+        if [[ -z "$REPLY" ]]; then
+            [ "$default" = "y" ] && return 0 || return 1
+        fi
+        
+        case "$REPLY" in
+            [Yy]) return 0 ;;
+            [Nn]) return 1 ;;
+            *) tusk_print error "Please answer y or n" ;;
+        esac
+    done
+}
+
+tusk_prompt_input() {
+    local message="${1:-Enter value:}"
+    local default="$2"
+    local validate="$3"
+    
+    local prompt="$message"
+    [ -n "$default" ] && prompt="$prompt [$default]"
+    prompt="$prompt "
+    
+    while true; do
+        read -p "$(tusk_color "$prompt" yellow)" value
+        
+        # Use default if empty
+        [ -z "$value" ] && [ -n "$default" ] && value="$default"
+        
+        # Validate if function provided
+        if [ -n "$validate" ] && ! $validate "$value" 2>/dev/null; then
+            tusk_print error "Invalid input"
+            continue
+        fi
+        
+        echo "$value"
+        return 0
+    done
+}
+
+tusk_prompt_password() {
+    local message="${1:-Enter password:}"
+    local validate="$2"
+    
+    while true; do
+        read -s -p "$(tusk_color "$message " yellow)" password
+        echo
+        
+        # Validate if function provided
+        if [ -n "$validate" ] && ! $validate "$password" 2>/dev/null; then
+            tusk_print error "Invalid password"
+            continue
+        fi
+        
+        echo "$password"
+        return 0
+    done
+}
+
+tusk_prompt_select() {
+    local message="${1:-Select option:}"
+    shift
+    local choices=("$@")
+    
+    echo "$(tusk_color "$message" yellow)"
+    
+    local i=1
+    for choice in "${choices[@]}"; do
+        echo "  $i) $choice"
+        ((i++))
+    done
+    
+    while true; do
+        read -p "$(tusk_color "Choice [1-${#choices[@]}]: " yellow)" -n 1 selection
+        echo
+        
+        if [[ "$selection" =~ ^[0-9]+$ ]] && [ "$selection" -ge 1 ] && [ "$selection" -le "${#choices[@]}" ]; then
+            echo "${choices[$((selection-1))]}"
+            return 0
+        else
+            tusk_print error "Invalid selection"
+        fi
+    done
+}
+
+# Progress indicators
+tusk_progress_bar() {
+    local current="$1"
+    local total="$2"
+    local width="${3:-40}"
+    
+    local percent=$((current * 100 / total))
+    local filled=$((width * current / total))
+    
+    printf "\r["
+    printf "%${filled}s" | tr ' ' '='
+    printf ">"
+    printf "%$((width - filled))s" | tr ' ' '-'
+    printf "] %3d%%" "$percent"
+    
+    [ "$current" -eq "$total" ] && echo
+}
+
+tusk_spinner() {
+    local pid="$1"
+    local message="${2:-Processing...}"
+    local frames=("⠋" "⠙" "⠹" "⠸" "⠼" "⠴" "⠦" "⠧" "⠇" "⠏")
+    local i=0
+    
+    while kill -0 "$pid" 2>/dev/null; do
+        printf "\r%s %s" "${frames[$i]}" "$message"
+        i=$(( (i + 1) % ${#frames[@]} ))
+        sleep 0.1
+    done
+    
+    printf "\r%s\n" "$(tusk_color "✓ $message" green)"
+}
+
+# Table output
+tusk_table() {
+    local -n headers=$1
+    local -n rows=$2
+    
+    # Calculate column widths
+    local -a widths=()
+    for i in "${!headers[@]}"; do
+        widths[$i]=${#headers[$i]}
+    done
+    
+    for row in "${rows[@]}"; do
+        IFS='|' read -ra cols <<< "$row"
+        for i in "${!cols[@]}"; do
+            [ ${#cols[$i]} -gt ${widths[$i]:-0} ] && widths[$i]=${#cols[$i]}
+        done
+    done
+    
+    # Print header
+    local separator="+"
+    for w in "${widths[@]}"; do
+        separator="$separator$(printf '%-*s+' $((w+2)) '' | tr ' ' '-')"
+    done
+    
+    echo "$separator"
+    printf "|"
+    for i in "${!headers[@]}"; do
+        printf " $(tusk_color "%-*s" bold) |" "${widths[$i]}" "${headers[$i]}"
+    done
+    echo
+    echo "$separator"
+    
+    # Print rows
+    for row in "${rows[@]}"; do
+        IFS='|' read -ra cols <<< "$row"
+        printf "|"
+        for i in "${!cols[@]}"; do
+            printf " %-*s |" "${widths[$i]}" "${cols[$i]}"
+        done
+        echo
+    done
+    echo "$separator"
+}
+
+# Command implementations
+cmd_init() {
+    local template="${CLI_OPTIONS[template]:-basic}"
+    local force="${CLI_OPTIONS[force]:-false}"
+    
+    tusk_print heading "Initializing TuskLang project"
+    
+    # Check if already initialized
+    if [ -f "tusk.config.tsk" ] && [ "$force" != "true" ]; then
+        if ! tusk_prompt_confirm "Project already initialized. Overwrite?"; then
+            tusk_print warning "Initialization cancelled"
+            return 1
+        fi
+    fi
+    
+    # Create project structure
+    tusk_print info "Creating project structure..."
+    
+    mkdir -p {src,config,scripts,tests}
+    
+    # Create main config
+    cat > tusk.config.tsk << EOF
+# TuskLang Configuration
+project {
+    name: "$(basename "$PWD")"
+    version: "0.1.0"
+    description: "A TuskLang project"
+    
+    type: "$template"
+}
+
+# Dependencies
+dependencies {
+    tusklang: "^1.0.0"
+}
+
+# Scripts
+scripts {
+    test: "tusk run tests/*.tsk"
+    build: "tusk validate src/**/*.tsk"
+    start: "tusk run src/main.tsk"
+}
+EOF
+    
+    # Create template-specific files
+    case "$template" in
+        web)
+            cat > src/server.tsk << 'EOF'
+#!web
+
+server {
+    port: env("PORT", 3000)
+    
+    routes {
+        "/": {
+            method: "GET"
+            handler: @json({ message: "Hello, TuskLang!" })
+        }
+    }
+}
+EOF
+            ;;
+        api)
+            cat > src/api.tsk << 'EOF'
+#!api
+
+api {
+    version: "v1"
+    base_path: "/api"
+    
+    endpoints {
+        health: {
+            path: "/health"
+            method: "GET"
+            handler: @json({ status: "ok" })
+        }
+    }
+}
+EOF
+            ;;
+    esac
+    
+    tusk_print success "Project initialized successfully!"
+    
+    # Show next steps
+    echo
+    tusk_print heading "Next steps:"
+    echo "  1. Edit tusk.config.tsk to configure your project"
+    echo "  2. Run 'tusk validate' to check your configuration"
+    echo "  3. Run 'tusk run start' to start your application"
+}
+
+cmd_validate() {
+    local files=("${CLI_ARGS[@]}")
+    local strict="${CLI_OPTIONS[strict]:-false}"
+    
+    tusk_print heading "Validating TuskLang files"
+    
+    # Default to all .tsk files
+    [ ${#files[@]} -eq 0 ] && files=($(find . -name "*.tsk"))
+    
+    local errors=0
+    local warnings=0
+    
+    for file in "${files[@]}"; do
+        echo -n "Checking $file... "
+        
+        # Validate file (simplified)
+        if [ -f "$file" ]; then
+            # Check syntax
+            if grep -qE '^\s*[a-zA-Z_][a-zA-Z0-9_]*\s*[:=]' "$file"; then
+                tusk_color "✓" green
+                echo
+            else
+                tusk_color "✗" red
+                echo " - Invalid syntax"
+                ((errors++))
+            fi
+        else
+            tusk_color "✗" red
+            echo " - File not found"
+            ((errors++))
+        fi
+    done
+    
+    echo
+    if [ $errors -eq 0 ]; then
+        tusk_print success "All files valid!"
+    else
+        tusk_print error "Found $errors errors"
+        return 1
+    fi
+}
+
+cmd_convert() {
+    local input="${CLI_ARGS[0]}"
+    local from="${CLI_OPTIONS[from]:-auto}"
+    local to="${CLI_OPTIONS[to]}"
+    local output="${CLI_OPTIONS[output]:-}"
+    
+    [ -z "$input" ] && { tusk_print error "Input file required"; return 1; }
+    [ -z "$to" ] && { tusk_print error "Output format required"; return 1; }
+    
+    tusk_print heading "Converting configuration"
+    
+    # Auto-detect format
+    if [ "$from" = "auto" ]; then
+        case "${input##*.}" in
+            tsk) from="tusk" ;;
+            json) from="json" ;;
+            yaml|yml) from="yaml" ;;
+            env) from="env" ;;
+            *) tusk_print error "Cannot detect input format"; return 1 ;;
+        esac
+    fi
+    
+    tusk_print info "Converting from $from to $to..."
+    
+    # Perform conversion (simplified)
+    local content=$(cat "$input")
+    local converted=""
+    
+    case "$to" in
+        json)
+            converted='{"example":"converted to JSON"}'
+            ;;
+        yaml)
+            converted="example: converted to YAML"
+            ;;
+        *)
+            converted="# Converted content"
+            ;;
+    esac
+    
+    # Output result
+    if [ -n "$output" ]; then
+        echo "$converted" > "$output"
+        tusk_print success "Written to $output"
+    else
+        echo "$converted"
+    fi
+}
+
+# REPL implementation
+cmd_repl() {
+    tusk_print heading "TuskLang Interactive REPL"
+    echo "Type 'help' for commands, 'exit' to quit"
+    echo
+    
+    local history_file="${CLI_OPTIONS[history]:-$HOME/.tusk_history}"
+    history -r "$history_file"
+    
+    while true; do
+        # Read input with readline support
+        read -e -p "$(tusk_color "tusk> " cyan)" input
+        
+        [ -z "$input" ] && continue
+        
+        # Add to history
+        history -s "$input"
+        
+        case "$input" in
+            exit|quit)
+                break
+                ;;
+            help)
+                cat << EOF
+Available commands:
+  help          Show this help
+  exit/quit     Exit REPL
+  clear         Clear screen
+  .load FILE    Load TuskLang file
+  .save FILE    Save current context
+EOF
+                ;;
+            clear)
+                clear
+                ;;
+            .load*)
+                file="${input#.load }"
+                if [ -f "$file" ]; then
+                    tusk_print success "Loaded $file"
+                else
+                    tusk_print error "File not found: $file"
+                fi
+                ;;
+            *)
+                # Evaluate expression
+                echo "=> evaluated: $input"
+                ;;
+        esac
+    done
+    
+    # Save history
+    history -w "$history_file"
+    
+    echo
+    tusk_print info "Goodbye!"
+}
+
+# Main command dispatcher
+tusk_cli_main() {
+    # Register commands
+    CLI_COMMANDS=(
+        [init]="Initialize a new TuskLang project"
+        [validate]="Validate TuskLang files"
+        [convert]="Convert between formats"
+        [repl]="Start interactive REPL"
+        [get]="Get configuration value"
+        [set]="Set configuration value"
+        [run]="Run TuskLang scripts"
+    )
+    
+    # Parse arguments
+    if [ $# -eq 0 ]; then
+        tusk_cli_usage
+        exit 0
+    fi
+    
+    local command="$1"
+    shift
+    
+    # Check for help
+    if [ "$command" = "-h" ] || [ "$command" = "--help" ]; then
+        tusk_cli_usage
+        exit 0
+    fi
+    
+    # Check if command exists
+    if [ -z "${CLI_COMMANDS[$command]}" ]; then
+        tusk_print error "Unknown command: $command"
+        tusk_cli_usage
+        exit 1
+    fi
+    
+    # Parse command arguments
+    tusk_cli_parse_args "$command" "$@"
+    
+    # Execute command
+    "cmd_$command"
+}
+</pre>
+
+<h3>Usage Example</h3>
+<pre>
+#!/bin/bash
+
+# Load CLI library
+source /usr/local/lib/tusklang-cli.sh
+
+# Create example CLI application
+cat > mycli << 'EOF'
+#!/bin/bash
+
+source /usr/local/lib/tusklang-cli.sh
+
+# Custom command: deploy
+cmd_deploy() {
+    tusk_print heading "Deployment Process"
+    
+    # Confirmation
+    if ! tusk_prompt_confirm "Deploy to production?"; then
+        tusk_print warning "Deployment cancelled"
+        return 1
+    fi
+    
+    # Get deployment details
+    environment=$(tusk_prompt_select "Select environment:" "staging" "production")
+    version=$(tusk_prompt_input "Version tag:" "latest")
+    
+    # Show deployment plan
+    tusk_print info "Deployment plan:"
+    echo "  Environment: $environment"
+    echo "  Version: $version"
+    echo
+    
+    # Execute deployment steps
+    local steps=("Validate" "Test" "Build" "Upload" "Restart")
+    local total=${#steps[@]}
+    
+    for i in "${!steps[@]}"; do
+        tusk_progress_bar $((i+1)) $total
+        sleep 1  # Simulate work
+    done
+    
+    tusk_print success "Deployment complete!"
+}
+
+# Custom command: status
+cmd_status() {
+    tusk_print heading "System Status"
+    
+    # Create status table
+    local headers=("Service" "Status" "Uptime")
+    local rows=(
+        "Web Server|Running|2d 14h"
+        "Database|Running|5d 3h"
+        "Cache|Running|1d 8h"
+        "Queue|Stopped|--"
+    )
+    
+    tusk_table headers rows
+    
+    # Show metrics
+    echo
+    tusk_print heading "Metrics"
+    
+    # Simulate loading with spinner
+    (sleep 2) &
+    tusk_spinner $! "Loading metrics"
+    
+    echo "  CPU Usage: 45%"
+    echo "  Memory: 2.1GB / 4GB"
+    echo "  Disk: 28GB / 50GB"
+}
+
+# Register additional commands
+CLI_COMMANDS[deploy]="Deploy application"
+CLI_COMMANDS[status]="Show system status"
+
+# Run CLI
+tusk_cli_main "$@"
+EOF
+
+chmod +x mycli
+
+echo "=== CLI Application Demo ==="
+
+# 1. Show help
+echo -e "\n1. Help Display:"
+./mycli --help
+
+# 2. Initialize project
+echo -e "\n2. Initialize Project:"
+mkdir -p test-project
+cd test-project
+../mycli init --template web
+
+# Show created files
+echo -e "\nCreated files:"
+find . -name "*.tsk" -type f | while read -r file; do
+    echo "  $file:"
+    head -5 "$file" | sed 's/^/    /'
+done
+
+# 3. Validate files
+echo -e "\n3. Validate Configuration:"
+../mycli validate
+
+# 4. Interactive prompts demo
+echo -e "\n4. Interactive Features Demo:"
+
+# Create demo script
+cat > demo.sh << 'DEMO'
+#!/bin/bash
+source /usr/local/lib/tusklang-cli.sh
+
+# Demonstrate various prompts
+echo "=== Interactive Prompts Demo ==="
+
+# Input prompt
+name=$(tusk_prompt_input "What's your name?" "$USER")
+tusk_print info "Hello, $name!"
+
+# Password prompt
+password=$(tusk_prompt_password "Create a password:")
+tusk_print success "Password set (${#password} characters)"
+
+# Select prompt
+color=$(tusk_prompt_select "Favorite color:" "Red" "Green" "Blue" "Yellow")
+tusk_print info "You selected: $color"
+
+# Confirm prompt
+if tusk_prompt_confirm "Save settings?"; then
+    tusk_print success "Settings saved!"
+else
+    tusk_print warning "Settings not saved"
+fi
+
+# Progress bar demo
+echo -e "\n=== Progress Demo ==="
+for i in {1..20}; do
+    tusk_progress_bar $i 20 30
+    sleep 0.1
+done
+
+# Spinner demo
+echo -e "\n=== Spinner Demo ==="
+(sleep 3) &
+tusk_spinner $! "Processing data"
+
+# Table demo
+echo -e "\n=== Table Demo ==="
+headers=("ID" "Name" "Status")
+rows=(
+    "1|Alice|Active"
+    "2|Bob|Inactive"
+    "3|Charlie|Active"
+)
+tusk_table headers rows
+
+# Colored output demo
+echo -e "\n=== Styled Output ==="
+tusk_print error "This is an error message"
+tusk_print warning "This is a warning"
+tusk_print success "This is a success message"
+tusk_print info "This is an info message"
+tusk_print heading "This is a heading"
+
+echo
+echo "Various colors:"
+for color in red green yellow blue magenta cyan; do
+    tusk_color "  ■ $color text" $color
+    echo
+done
+
+echo
+echo "Various styles:"
+for style in bold dim italic underline; do
+    tusk_color "  $style text" white $style
+    echo
+done
+DEMO
+
+chmod +x demo.sh
+
+# 5. Advanced CLI features
+echo -e "\n5. Advanced CLI Features:"
+
+# Create advanced example
+cat > advanced.tsk << 'EOF'
+#!cli
+
+cli {
+    name: "advanced"
+    version: "1.0.0"
+    
+    # Global middleware
+    middleware: [
+        @logger({ format: "combined" }),
+        @timer(),
+        @errorHandler()
+    ]
+    
+    # Command aliases
+    aliases: {
+        "ls": "list",
+        "rm": "remove",
+        "mv": "move"
+    }
+    
+    # Hooks
+    hooks: {
+        before_command: @validateEnvironment,
+        after_command: @cleanupTemp,
+        on_error: @reportError
+    }
+    
+    # Auto-completion
+    completion: {
+        enabled: true
+        
+        dynamic: {
+            file: @listFiles,
+            project: @listProjects,
+            environment: ["dev", "staging", "prod"]
+        }
+    }
+}
+
+# Plugin system
+plugins {
+    search_paths: [
+        "~/.tusk/plugins",
+        "./plugins"
+    ]
+    
+    autoload: [
+        "git-integration",
+        "docker-commands",
+        "kubernetes-tools"
+    ]
+}
+EOF
+
+echo "Advanced CLI configuration created"
+
+# 6. Real-world example
+echo -e "\n6. Real-world CLI Example:"
+
+# Status command
+echo "Running status command:"
+cd ..
+./mycli status
+
+# Cleanup
+rm -rf test-project mycli demo.sh
+
+echo -e "\n=== CLI demonstration complete ==="
+</pre>
+
+<p>TuskLang CLI framework in bash provides a complete toolkit for building professional command-line applications with rich interactivity, beautiful output, and powerful features.</p>

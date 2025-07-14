@@ -1,0 +1,811 @@
+<h1>Advanced Features</h1>
+
+<h2>Advanced TuskLang Features for JavaScript</h2>
+<p>Explore advanced features including reactive systems, state management, plugins, and metaprogramming capabilities.</p>
+
+<h3>advanced.tsk</h3>
+<pre>
+# Reactive system configuration
+reactive {
+    # Observable values
+    observables: {
+        user: @observable({
+            id: null,
+            name: "",
+            email: "",
+            preferences: {}
+        })
+        
+        settings: @observable({
+            theme: "light",
+            language: "en",
+            notifications: true
+        })
+        
+        cart: @observable([])
+    }
+    
+    # Computed values
+    computed: {
+        isLoggedIn: @computed(() => @var.reactive.observables.user.id !== null)
+        cartTotal: @computed(() => 
+            @var.reactive.observables.cart.reduce((sum, item) => 
+                sum + (item.price * item.quantity), 0
+            )
+        )
+        cartCount: @computed(() => @var.reactive.observables.cart.length)
+        
+        userDisplay: @computed(() => {
+            const user = @var.reactive.observables.user
+            return user.name || user.email || "Guest"
+        })
+    }
+    
+    # Watchers
+    watchers: {
+        theme: @watch(@var.reactive.observables.settings.theme, (newTheme) => {
+            document.body.className = `theme-${newTheme}`
+            @localStorage.set("theme", newTheme)
+        })
+        
+        cart: @watch(@var.reactive.observables.cart, (newCart) => {
+            @localStorage.set("cart", @json(newCart))
+            @analytics.track("cart_updated", { items: newCart.length })
+        }, { deep: true })
+        
+        user: @watch(@var.reactive.observables.user.id, (userId) => {
+            if (userId) {
+                @loadUserData(userId)
+            } else {
+                @clearUserData()
+            }
+        })
+    }
+    
+    # Actions
+    actions: {
+        login: @action(async (credentials) => {
+            const user = await @api.login(credentials)
+            @var.reactive.observables.user = user
+            return user
+        })
+        
+        addToCart: @action((product) => {
+            const cart = @var.reactive.observables.cart
+            const existing = cart.find(item => item.id === product.id)
+            
+            if (existing) {
+                existing.quantity++
+            } else {
+                cart.push({ ...product, quantity: 1 })
+            }
+        })
+        
+        updateSettings: @action((updates) => {
+            Object.assign(@var.reactive.observables.settings, updates)
+        })
+    }
+}
+
+# State management
+state {
+    # Store definition
+    store: @createStore({
+        # State
+        state: {
+            app: {
+                loading: false,
+                error: null,
+                version: @var.version
+            },
+            
+            data: {
+                users: [],
+                posts: [],
+                comments: []
+            },
+            
+            ui: {
+                sidebar: true,
+                modal: null,
+                theme: "light"
+            }
+        },
+        
+        # Getters
+        getters: {
+            isLoading: (state) => state.app.loading,
+            hasError: (state) => state.app.error !== null,
+            
+            userById: (state) => (id) => 
+                state.data.users.find(user => user.id === id),
+                
+            postsByUser: (state) => (userId) =>
+                state.data.posts.filter(post => post.userId === userId),
+                
+            totalUsers: (state) => state.data.users.length
+        },
+        
+        # Mutations
+        mutations: {
+            SET_LOADING: (state, loading) => {
+                state.app.loading = loading
+            },
+            
+            SET_ERROR: (state, error) => {
+                state.app.error = error
+            },
+            
+            ADD_USER: (state, user) => {
+                state.data.users.push(user)
+            },
+            
+            UPDATE_USER: (state, { id, updates }) => {
+                const user = state.data.users.find(u => u.id === id)
+                if (user) Object.assign(user, updates)
+            },
+            
+            TOGGLE_SIDEBAR: (state) => {
+                state.ui.sidebar = !state.ui.sidebar
+            }
+        },
+        
+        # Actions
+        actions: {
+            async fetchUsers({ commit, state }) {
+                commit("SET_LOADING", true)
+                try {
+                    const users = await @api.getUsers()
+                    users.forEach(user => commit("ADD_USER", user))
+                } catch (error) {
+                    commit("SET_ERROR", error.message)
+                } finally {
+                    commit("SET_LOADING", false)
+                }
+            },
+            
+            async updateUser({ commit }, { id, updates }) {
+                const user = await @api.updateUser(id, updates)
+                commit("UPDATE_USER", { id, updates: user })
+                return user
+            }
+        },
+        
+        # Modules
+        modules: {
+            auth: @import("./store/auth.tsk"),
+            products: @import("./store/products.tsk")
+        }
+    })
+}
+
+# Plugin system
+plugins {
+    # Plugin registry
+    registry: @createPluginRegistry({
+        hooks: [
+            "beforeParse",
+            "afterParse",
+            "beforeRender",
+            "afterRender",
+            "onError"
+        ]
+    })
+    
+    # Built-in plugins
+    builtin: {
+        # Logging plugin
+        logger: {
+            install: (tusk) => {
+                tusk.log = @createLogger({
+                    level: @env.LOG_LEVEL|"info",
+                    transport: @env.NODE_ENV === "production" ? "file" : "console"
+                })
+                
+                tusk.hook("onError", (error) => {
+                    tusk.log.error("Error occurred:", error)
+                })
+            }
+        },
+        
+        # Analytics plugin
+        analytics: {
+            install: (tusk) => {
+                tusk.analytics = {
+                    track: @debounce((event, data) => {
+                        @sendAnalytics(event, {
+                            ...data,
+                            timestamp: Date.now(),
+                            session: @session.id
+                        })
+                    }, 1000),
+                    
+                    page: (path) => {
+                        @sendAnalytics("page_view", { path })
+                    }
+                }
+            }
+        },
+        
+        # Validation plugin
+        validator: {
+            install: (tusk) => {
+                tusk.validate = (value, schema) => {
+                    return @validateSchema(value, schema)
+                }
+                
+                tusk.rules = {
+                    required: (val) => val != null && val !== "",
+                    email: (val) => /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(val),
+                    min: (len) => (val) => val.length >= len,
+                    max: (len) => (val) => val.length <= len
+                }
+            }
+        }
+    }
+}
+
+# Metaprogramming
+meta {
+    # Code generation
+    generators: {
+        # Model generator
+        model: @generator({
+            template: &lt;&lt;&lt;JS
+            class {{name}} extends Model {
+                static fields = {{json(fields)}}
+                static validators = {{json(validators)}}
+                
+                constructor(data = {}) {
+                    super()
+                    Object.assign(this, data)
+                }
+                
+                validate() {
+                    return validateModel(this, this.constructor.validators)
+                }
+            }
+            JS,
+            
+            transform: (config) => {
+                return {
+                    name: @capitalize(config.name),
+                    fields: config.schema,
+                    validators: @extractValidators(config.schema)
+                }
+            }
+        })
+        
+        # API client generator
+        apiClient: @generator({
+            template: &lt;&lt;&lt;JS
+            const {{name}}API = {
+                {{#each endpoints}}
+                {{method}}: async ({{params}}) => {
+                    return await fetch('{{url}}', {
+                        method: '{{httpMethod}}',
+                        {{#if hasBody}}
+                        body: JSON.stringify({{body}}),
+                        {{/if}}
+                        headers: {
+                            'Content-Type': 'application/json',
+                            ...getAuthHeaders()
+                        }
+                    }).then(r => r.json())
+                },
+                {{/each}}
+            }
+            JS
+        })
+    }
+    
+    # Macros
+    macros: {
+        # Define custom operators
+        @defoperator "??" (left, right) => left != null ? left : right
+        @defoperator "?." (obj, prop) => obj?.[prop]
+        @defoperator "|>" (value, fn) => fn(value)
+        
+        # Define custom functions
+        @defmacro with(obj, block) {
+            return Object.entries(obj).reduce((acc, [key, value]) => {
+                acc[key] = block(value, key)
+                return acc
+            }, {})
+        }
+        
+        @defmacro pipeline(...fns) {
+            return (value) => fns.reduce((v, f) => f(v), value)
+        }
+    }
+    
+    # Proxies and decorators
+    proxies: {
+        # Auto-save proxy
+        autosave: @proxy({
+            set: (target, prop, value) => {
+                target[prop] = value
+                @debounce(() => @save(target), 1000)()
+                return true
+            }
+        })
+        
+        # Validation proxy
+        validated: @proxy({
+            set: (target, prop, value) => {
+                const schema = target.constructor.schema[prop]
+                if (schema && !@validate(value, schema)) {
+                    throw new Error(`Invalid value for ${prop}`)
+                }
+                target[prop] = value
+                return true
+            }
+        })
+    }
+}
+
+# Event system
+events {
+    # Event emitter
+    emitter: @createEmitter({
+        wildcard: true,
+        maxListeners: 100
+    })
+    
+    # Event handlers
+    handlers: {
+        "app:ready": [
+            @initializePlugins,
+            @loadConfiguration,
+            @setupRoutes
+        ],
+        
+        "user:login": [
+            @loadUserPreferences,
+            @syncUserData,
+            @trackLogin
+        ],
+        
+        "data:*": @logDataEvent,
+        
+        "error:*": [
+            @logError,
+            @notifyDevelopers,
+            @showUserMessage
+        ]
+    }
+    
+    # Event middleware
+    middleware: {
+        before: {
+            "*": @validateEvent,
+            "api:*": @checkRateLimit,
+            "user:*": @requireAuth
+        },
+        
+        after: {
+            "*": @logEvent,
+            "api:*": @updateMetrics
+        }
+    }
+}
+
+# Async flow control
+async {
+    # Async utilities
+    utils: {
+        # Parallel execution with limit
+        parallel: @parallelLimit(5)
+        
+        # Series execution
+        series: @series()
+        
+        # Waterfall execution
+        waterfall: @waterfall()
+        
+        # Retry with backoff
+        retry: @retry({
+            times: 3,
+            interval: @exponentialBackoff(1000)
+        })
+        
+        # Timeout wrapper
+        timeout: @timeout(30000)
+    }
+    
+    # Async generators
+    generators: {
+        # Paginated data fetcher
+        fetchPages: @async(function* (endpoint) {
+            let page = 1
+            let hasMore = true
+            
+            while (hasMore) {
+                const data = await @fetch(`${endpoint}?page=${page}`)
+                yield data.items
+                
+                hasMore = data.hasMore
+                page++
+            }
+        })
+        
+        # Stream processor
+        processStream: @async(function* (stream) {
+            for await (const chunk of stream) {
+                const processed = await @processChunk(chunk)
+                yield processed
+            }
+        })
+    }
+}
+</pre>
+
+<h3>JavaScript Advanced Implementation</h3>
+<pre>
+// Reactive system implementation
+class ReactiveSystem {
+    constructor() {
+        this.observables = new Map();
+        this.computeds = new Map();
+        this.watchers = new Map();
+        this.dependencies = new WeakMap();
+        this.currentComputed = null;
+    }
+    
+    observable(initialValue) {
+        const key = Symbol('observable');
+        let value = initialValue;
+        
+        const observable = new Proxy({}, {
+            get: (target, prop) => {
+                if (prop === Symbol.toPrimitive || prop === 'valueOf') {
+                    return () => value;
+                }
+                
+                // Track dependency
+                if (this.currentComputed) {
+                    this.trackDependency(key, this.currentComputed);
+                }
+                
+                if (typeof value === 'object' && value !== null) {
+                    return this.observable(value[prop]);
+                }
+                
+                return value[prop];
+            },
+            
+            set: (target, prop, newValue) => {
+                if (typeof value === 'object' && value !== null) {
+                    value[prop] = newValue;
+                } else {
+                    value = newValue;
+                }
+                
+                this.notify(key);
+                return true;
+            }
+        });
+        
+        this.observables.set(key, observable);
+        return observable;
+    }
+    
+    computed(getter) {
+        const key = Symbol('computed');
+        let cache;
+        let dirty = true;
+        
+        const computed = () => {
+            if (dirty) {
+                this.currentComputed = key;
+                cache = getter();
+                this.currentComputed = null;
+                dirty = false;
+            }
+            return cache;
+        };
+        
+        // Mark as dirty when dependencies change
+        this.computeds.set(key, () => { dirty = true; });
+        
+        return computed;
+    }
+    
+    watch(target, callback, options = {}) {
+        const key = Symbol('watcher');
+        let oldValue = this.getValue(target);
+        
+        const watcher = () => {
+            const newValue = this.getValue(target);
+            if (options.deep ? !this.deepEqual(oldValue, newValue) : oldValue !== newValue) {
+                callback(newValue, oldValue);
+                oldValue = newValue;
+            }
+        };
+        
+        this.watchers.set(key, watcher);
+        return () => this.watchers.delete(key);
+    }
+    
+    action(fn) {
+        return async (...args) => {
+            const prevNotify = this.notify;
+            const notifications = new Set();
+            
+            // Batch notifications
+            this.notify = (key) => notifications.add(key);
+            
+            try {
+                const result = await fn(...args);
+                
+                // Flush notifications
+                this.notify = prevNotify;
+                notifications.forEach(key => this.notify(key));
+                
+                return result;
+            } catch (error) {
+                this.notify = prevNotify;
+                throw error;
+            }
+        };
+    }
+    
+    trackDependency(observable, computed) {
+        if (!this.dependencies.has(observable)) {
+            this.dependencies.set(observable, new Set());
+        }
+        this.dependencies.get(observable).add(computed);
+    }
+    
+    notify(key) {
+        // Notify computed properties
+        const deps = this.dependencies.get(key);
+        if (deps) {
+            deps.forEach(computed => {
+                const invalidate = this.computeds.get(computed);
+                if (invalidate) invalidate();
+            });
+        }
+        
+        // Notify watchers
+        this.watchers.forEach(watcher => watcher());
+    }
+    
+    getValue(target) {
+        if (typeof target === 'function') {
+            return target();
+        }
+        return target;
+    }
+    
+    deepEqual(a, b) {
+        if (a === b) return true;
+        if (typeof a !== typeof b) return false;
+        if (typeof a !== 'object' || a === null || b === null) return false;
+        
+        const keysA = Object.keys(a);
+        const keysB = Object.keys(b);
+        
+        if (keysA.length !== keysB.length) return false;
+        
+        return keysA.every(key => this.deepEqual(a[key], b[key]));
+    }
+}
+
+// State management implementation
+class Store {
+    constructor(config) {
+        this.state = this.reactive(config.state);
+        this.getters = this.setupGetters(config.getters);
+        this.mutations = config.mutations;
+        this.actions = config.actions;
+        this.modules = config.modules || {};
+        
+        this.subscribers = [];
+        this.actionSubscribers = [];
+    }
+    
+    reactive(obj) {
+        const reactive = new ReactiveSystem();
+        return reactive.observable(obj);
+    }
+    
+    setupGetters(getters) {
+        const reactive = new ReactiveSystem();
+        const computedGetters = {};
+        
+        Object.entries(getters).forEach(([name, getter]) => {
+            computedGetters[name] = reactive.computed(() => 
+                getter(this.state)
+            );
+        });
+        
+        return computedGetters;
+    }
+    
+    commit(type, payload) {
+        const mutation = this.mutations[type];
+        
+        if (!mutation) {
+            throw new Error(`Unknown mutation type: ${type}`);
+        }
+        
+        const prevState = JSON.parse(JSON.stringify(this.state));
+        mutation(this.state, payload);
+        
+        this.subscribers.forEach(subscriber => 
+            subscriber({ type, payload }, this.state, prevState)
+        );
+    }
+    
+    async dispatch(type, payload) {
+        const action = this.actions[type];
+        
+        if (!action) {
+            throw new Error(`Unknown action type: ${type}`);
+        }
+        
+        this.actionSubscribers
+            .filter(sub => sub.before)
+            .forEach(sub => sub.before({ type, payload }, this.state));
+        
+        try {
+            const result = await action({
+                state: this.state,
+                getters: this.getters,
+                commit: this.commit.bind(this),
+                dispatch: this.dispatch.bind(this)
+            }, payload);
+            
+            this.actionSubscribers
+                .filter(sub => sub.after)
+                .forEach(sub => sub.after({ type, payload }, this.state));
+            
+            return result;
+        } catch (error) {
+            this.actionSubscribers
+                .filter(sub => sub.error)
+                .forEach(sub => sub.error({ type, payload }, this.state, error));
+            
+            throw error;
+        }
+    }
+    
+    subscribe(fn) {
+        this.subscribers.push(fn);
+        return () => {
+            const index = this.subscribers.indexOf(fn);
+            if (index > -1) this.subscribers.splice(index, 1);
+        };
+    }
+    
+    subscribeAction(fn) {
+        const subscriber = typeof fn === 'function' ? { before: fn } : fn;
+        this.actionSubscribers.push(subscriber);
+        
+        return () => {
+            const index = this.actionSubscribers.indexOf(subscriber);
+            if (index > -1) this.actionSubscribers.splice(index, 1);
+        };
+    }
+}
+
+// Plugin system implementation
+class PluginRegistry {
+    constructor(config) {
+        this.plugins = new Map();
+        this.hooks = new Map();
+        
+        config.hooks.forEach(hook => {
+            this.hooks.set(hook, []);
+        });
+    }
+    
+    register(name, plugin) {
+        if (this.plugins.has(name)) {
+            throw new Error(`Plugin ${name} already registered`);
+        }
+        
+        this.plugins.set(name, plugin);
+        
+        // Install plugin
+        if (plugin.install) {
+            plugin.install(this.createContext());
+        }
+    }
+    
+    hook(name, handler) {
+        if (!this.hooks.has(name)) {
+            throw new Error(`Unknown hook: ${name}`);
+        }
+        
+        this.hooks.get(name).push(handler);
+        
+        return () => {
+            const handlers = this.hooks.get(name);
+            const index = handlers.indexOf(handler);
+            if (index > -1) handlers.splice(index, 1);
+        };
+    }
+    
+    async run(name, ...args) {
+        const handlers = this.hooks.get(name) || [];
+        let result = args[0];
+        
+        for (const handler of handlers) {
+            result = await handler(result, ...args.slice(1));
+        }
+        
+        return result;
+    }
+    
+    createContext() {
+        return {
+            hook: this.hook.bind(this),
+            run: this.run.bind(this)
+        };
+    }
+}
+
+// Event emitter with wildcard support
+class WildcardEmitter extends EventEmitter {
+    constructor(config) {
+        super();
+        this.wildcard = config.wildcard || false;
+        this.setMaxListeners(config.maxListeners || 10);
+    }
+    
+    emit(event, ...args) {
+        // Normal emission
+        super.emit(event, ...args);
+        
+        // Wildcard emission
+        if (this.wildcard) {
+            const parts = event.split(':');
+            for (let i = parts.length - 1; i > 0; i--) {
+                const wildcardEvent = parts.slice(0, i).join(':') + ':*';
+                super.emit(wildcardEvent, event, ...args);
+            }
+            super.emit('*', event, ...args);
+        }
+    }
+}
+
+// Usage example
+const config = TuskLang.parse(fs.readFileSync('advanced.tsk', 'utf8'));
+
+// Reactive system
+const reactive = new ReactiveSystem();
+const user = reactive.observable({ name: 'John', age: 30 });
+const displayName = reactive.computed(() => `${user.name} (${user.age})`);
+
+reactive.watch(user, (newUser, oldUser) => {
+    console.log('User changed:', newUser);
+});
+
+// State management
+const store = new Store(config.state.store);
+
+store.subscribe((mutation, state) => {
+    console.log('State changed:', mutation.type);
+});
+
+await store.dispatch('fetchUsers');
+
+// Plugin system
+const plugins = new PluginRegistry(config.plugins.registry);
+
+plugins.register('logger', config.plugins.builtin.logger);
+plugins.register('analytics', config.plugins.builtin.analytics);
+
+// Event system
+const emitter = new WildcardEmitter(config.events.emitter);
+
+Object.entries(config.events.handlers).forEach(([event, handlers]) => {
+    handlers.forEach(handler => emitter.on(event, handler));
+});
+
+emitter.emit('app:ready');
+</pre>
+
+<p>TuskLang's advanced features enable building sophisticated JavaScript applications with reactive programming, state management, plugins, and powerful metaprogramming capabilities.</p>

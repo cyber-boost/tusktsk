@@ -1,0 +1,90 @@
+# 🐘 Hello from TuskLang!
+# This .tsk file should be executable directly
+
+# Configuration
+app_name = "Hello TuskLang"
+version = "1.0.0"
+message = "Hello from a .tsk file!"
+
+# Dynamic content
+current_time = php(date('Y-m-d H:i:s'))
+php_version = php(PHP_VERSION)
+random_number = php(rand(1, 100))
+
+# Output HTML
+output = php(<<<'HTML'
+<!DOCTYPE html>
+<html>
+<head>
+    <title><?= $config['app_name'] ?></title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+            text-align: center;
+            max-width: 500px;
+        }
+        h1 {
+            color: #333;
+            margin: 0 0 20px 0;
+        }
+        .elephant {
+            font-size: 72px;
+            margin: 20px 0;
+        }
+        .info {
+            background: #f5f5f5;
+            padding: 20px;
+            border-radius: 5px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .info div {
+            margin: 10px 0;
+        }
+        .label {
+            font-weight: bold;
+            color: #666;
+        }
+        .value {
+            color: #333;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="elephant">🐘</div>
+        <h1><?= $config['message'] ?></h1>
+        <p>This page is rendered directly from a .tsk file!</p>
+        
+        <div class="info">
+            <div><span class="label">App Name:</span> <span class="value"><?= $config['app_name'] ?></span></div>
+            <div><span class="label">Version:</span> <span class="value"><?= $config['version'] ?></span></div>
+            <div><span class="label">Current Time:</span> <span class="value"><?= $config['current_time'] ?></span></div>
+            <div><span class="label">PHP Version:</span> <span class="value"><?= $config['php_version'] ?></span></div>
+            <div><span class="label">Random Number:</span> <span class="value"><?= $config['random_number'] ?></span></div>
+        </div>
+        
+        <p style="margin-top: 30px; color: #666;">
+            TuskLang files can be executed directly by PHP!<br>
+            <small>File: /test/hello.tsk</small>
+        </p>
+    </div>
+</body>
+</html>
+HTML
+)
+
+# Execute the output
+php(echo $config['output'])

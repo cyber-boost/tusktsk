@@ -1,0 +1,436 @@
+<h1>Advanced String Operations in TuskLang for Ruby</h1>
+
+<h2>String Processing and Interpolation</h2>
+<p>Advanced string handling in TuskLang with Ruby-specific features including interpolation, heredocs, and string manipulation.</p>
+
+<h3>strings.tsk</h3>
+<pre>
+# Basic String Types
+simple_string: hello_world
+quoted_string: "Hello, World!"
+single_quoted: 'Single quote string'
+empty_string: ""
+
+# String Interpolation (Ruby-style)
+app_name: "My Ruby App"
+version: "2.0.0"
+welcome_message: "Welcome to #{app_name} v#{version}!"
+server_info: "Server running on #{env('HOST', 'localhost')}:#{env('PORT', 3000)}"
+
+# Multi-line Strings
+description: "This is a very long description that spans multiple lines and contains detailed information about the application"
+
+sql_query: "
+  SELECT users.*, profiles.bio, profiles.avatar_url
+  FROM users
+  LEFT JOIN profiles ON users.id = profiles.user_id
+  WHERE users.active = true
+  ORDER BY users.created_at DESC
+  LIMIT 100
+"
+
+# Ruby Heredoc Style
+email_template: <<~EMAIL
+  Dear #{user_name},
+  
+  Welcome to #{app_name}! Your account has been created successfully.
+  
+  Account Details:
+  - Username: #{username}
+  - Email: #{email}
+  - Registration Date: #{registration_date}
+  
+  Best regards,
+  The #{app_name} Team
+EMAIL
+
+log_format: <<~LOG
+  [#{timestamp}] #{level.upcase}: #{message}
+  Request: #{request_method} #{request_path}
+  User: #{user_id || 'anonymous'}
+  Duration: #{duration}ms
+LOG
+
+# String with Environment Variables
+database_url: "postgresql://#{env('DB_USER')}:#{env('DB_PASS')}@#{env('DB_HOST')}:#{env('DB_PORT', 5432)}/#{env('DB_NAME')}"
+redis_url: "redis://#{env('REDIS_HOST', 'localhost')}:#{env('REDIS_PORT', 6379)}/#{env('REDIS_DB', 0)}"
+
+# Template Strings
+api_endpoint: "/api/v#{api_version}/#{resource_name}"
+asset_path: "/assets/#{app_name.downcase}/#{version}/#{filename}"
+log_file: "/var/log/#{app_name.downcase}/#{env('RAILS_ENV', 'development')}.log"
+
+# String Arrays with Interpolation
+error_messages: [
+  "User #{user_id} not found",
+  "Invalid credentials for #{username}",
+  "Rate limit exceeded for #{ip_address}",
+  "Service #{service_name} is unavailable"
+]
+
+# Complex String Operations
+routes: {
+  users: {
+    index: "GET /api/v#{api_version}/users",
+    show: "GET /api/v#{api_version}/users/#{user_id}",
+    create: "POST /api/v#{api_version}/users",
+    update: "PUT /api/v#{api_version}/users/#{user_id}",
+    delete: "DELETE /api/v#{api_version}/users/#{user_id}"
+  }
+}
+
+# Configuration Templates
+nginx_config: <<~NGINX
+  server {
+    listen #{port};
+    server_name #{domain};
+    
+    location / {
+      proxy_pass http://#{upstream_host}:#{upstream_port};
+      proxy_set_header Host $host;
+      proxy_set_header X-Real-IP $remote_addr;
+    }
+    
+    location /assets/ {
+      root #{static_files_path};
+      expires 1y;
+    }
+  }
+NGINX
+
+docker_compose: <<~DOCKER
+  version: '3.8'
+  services:
+    app:
+      image: #{app_image}:#{app_version}
+      ports:
+        - "#{host_port}:#{container_port}"
+      environment:
+        - DATABASE_URL=#{database_url}
+        - REDIS_URL=#{redis_url}
+        - SECRET_KEY_BASE=#{secret_key}
+      volumes:
+        - ./data:#{data_volume_path}
+DOCKER
+
+# String Processing Functions
+processed_strings: {
+  uppercase_name: "#{app_name.upcase}",
+  lowercase_env: "#{env('RAILS_ENV').downcase}",
+  slug: "#{app_name.downcase.gsub(' ', '-')}",
+  clean_url: "#{base_url.strip.chomp('/')}#{api_path}"
+}
+
+# Conditional Strings
+debug_suffix: "#{env('DEBUG') == 'true' ? '-debug' : ''}"
+ssl_protocol: "#{env('SSL_ENABLED', 'true') == 'true' ? 'https' : 'http'}"
+log_level_desc: "#{log_level.upcase} - #{log_level == 'debug' ? 'Detailed debugging information' : 'Standard logging'}"
+
+# String Formatting
+currency_format: "#{currency_symbol}#{amount.to_f.round(2)}"
+percentage_format: "#{(ratio * 100).round(1)}%"
+file_size_format: "#{file_size} #{file_size_unit}"
+
+# Localization Strings
+messages: {
+  en: {
+    welcome: "Welcome to #{app_name}",
+    goodbye: "Thank you for using #{app_name}",
+    error: "An error occurred in #{app_name}"
+  },
+  es: {
+    welcome: "Bienvenido a #{app_name}",
+    goodbye: "Gracias por usar #{app_name}",
+    error: "Ocurrió un error en #{app_name}"
+  },
+  fr: {
+    welcome: "Bienvenue à #{app_name}",
+    goodbye: "Merci d'utiliser #{app_name}",
+    error: "Une erreur s'est produite dans #{app_name}"
+  }
+}
+</pre>
+
+<h3>Ruby String Handler</h3>
+<pre>
+#!/usr/bin/env ruby
+
+require 'ostruct'
+require 'erb'
+
+class TuskLangStringHandler
+  attr_reader :variables
+
+  def initialize(variables = {})
+    @variables = variables
+    @erb_cache = {}
+  end
+
+  def process_string(value, context = {})
+    return value unless value.is_a?(String)
+    
+    # Merge context with instance variables
+    full_context = @variables.merge(context)
+    
+    case value
+    when /^<<~(\w+)$(.*?)^\1$/m
+      # Heredoc style
+      process_heredoc($2, full_context)
+    when /#{.*}/
+      # Ruby-style interpolation
+      process_interpolation(value, full_context)
+    else
+      # Regular string
+      value
+    end
+  end
+
+  def process_interpolation(string, context)
+    # Handle #{variable} interpolation
+    string.gsub(/#{([^}]+)}/) do |match|
+      expression = $1
+      evaluate_expression(expression, context)
+    end
+  end
+
+  def process_heredoc(content, context)
+    # Remove common leading whitespace (like Ruby's <<~)
+    lines = content.split("\n")
+    return content if lines.empty?
+    
+    # Find minimum indentation (excluding empty lines)
+    min_indent = lines
+      .reject(&:empty?)
+      .map { |line| line.match(/^(\s*)/)[1].length }
+      .min || 0
+    
+    # Remove common indentation and process interpolation
+    processed = lines.map do |line|
+      line.empty? ? line : line[min_indent..-1] || ""
+    end.join("\n")
+    
+    process_interpolation(processed, context)
+  end
+
+  def evaluate_expression(expression, context)
+    # Simple expression evaluator for common patterns
+    expression = expression.strip
+    
+    case expression
+    when /^env\(['"]([^'"]+)['"](?:,\s*['"]([^'"]*)['"])?\)$/
+      # env('VAR', 'default')
+      env_var, default = $1, $2 || ""
+      ENV[env_var] || default
+    when /^(\w+)\.(\w+)$/
+      # variable.method
+      var_name, method_name = $1, $2
+      if context[var_name.to_sym]
+        value = context[var_name.to_sym]
+        call_string_method(value, method_name)
+      else
+        expression
+      end
+    when /^(\w+)\.(\w+)\(['"]([^'"]*)['"]\)$/
+      # variable.method('arg')
+      var_name, method_name, arg = $1, $2, $3
+      if context[var_name.to_sym]
+        value = context[var_name.to_sym]
+        call_string_method(value, method_name, arg)
+      else
+        expression
+      end
+    when /^(\w+)$/
+      # Simple variable
+      context[$1.to_sym] || context[$1] || expression
+    else
+      # Try to evaluate as Ruby expression in safe context
+      safe_eval(expression, context)
+    end
+  end
+
+  def call_string_method(value, method_name, *args)
+    case method_name
+    when 'upcase'
+      value.to_s.upcase
+    when 'downcase'
+      value.to_s.downcase
+    when 'capitalize'
+      value.to_s.capitalize
+    when 'strip'
+      value.to_s.strip
+    when 'chomp'
+      value.to_s.chomp(*args)
+    when 'gsub'
+      # Handle gsub with two arguments
+      if args.length >= 2
+        value.to_s.gsub(args[0], args[1])
+      else
+        value.to_s
+      end
+    when 'length', 'size'
+      value.to_s.length
+    when 'reverse'
+      value.to_s.reverse
+    else
+      value.to_s
+    end
+  end
+
+  def safe_eval(expression, context)
+    # Create a safe binding with only the context variables
+    safe_binding = create_safe_binding(context)
+    
+    begin
+      eval(expression, safe_binding)
+    rescue => e
+      # If evaluation fails, return the original expression
+      expression
+    end
+  end
+
+  def create_safe_binding(context)
+    # Create a clean binding with only safe variables
+    context.each do |key, value|
+      instance_variable_set("@#{key}", value)
+    end
+    
+    binding
+  end
+
+  def set_variable(name, value)
+    @variables[name.to_sym] = value
+  end
+
+  def get_variable(name)
+    @variables[name.to_sym]
+  end
+end
+
+class TuskLangStringTemplateEngine
+  def initialize
+    @string_handler = TuskLangStringHandler.new
+    @global_variables = {}
+  end
+
+  def render(template, variables = {})
+    context = @global_variables.merge(variables)
+    @string_handler.process_string(template, context)
+  end
+
+  def set_globals(variables)
+    @global_variables.merge!(variables)
+  end
+
+  def render_config(config, variables = {})
+    context = @global_variables.merge(variables)
+    process_config_recursively(config, context)
+  end
+
+  private
+
+  def process_config_recursively(obj, context)
+    case obj
+    when String
+      @string_handler.process_string(obj, context)
+    when Array
+      obj.map { |item| process_config_recursively(item, context) }
+    when Hash
+      obj.transform_values { |value| process_config_recursively(value, context) }
+    when OpenStruct
+      new_struct = OpenStruct.new
+      obj.each_pair do |key, value|
+        new_struct.send("#{key}=", process_config_recursively(value, context))
+      end
+      new_struct
+    else
+      obj
+    end
+  end
+end
+
+# Template helpers
+module TuskLangStringHelpers
+  def self.format_currency(amount, currency = 'USD')
+    symbol = case currency
+             when 'USD' then '$'
+             when 'EUR' then '€'
+             when 'GBP' then '£'
+             else currency
+             end
+    "#{symbol}#{sprintf('%.2f', amount.to_f)}"
+  end
+
+  def self.format_percentage(ratio)
+    "#{(ratio.to_f * 100).round(1)}%"
+  end
+
+  def self.format_file_size(bytes)
+    units = ['B', 'KB', 'MB', 'GB', 'TB']
+    size = bytes.to_f
+    unit_index = 0
+    
+    while size >= 1024 && unit_index < units.length - 1
+      size /= 1024
+      unit_index += 1
+    end
+    
+    "#{size.round(1)} #{units[unit_index]}"
+  end
+
+  def self.slugify(text)
+    text.to_s.downcase.gsub(/[^a-z0-9\-_]/, '-').squeeze('-').chomp('-')
+  end
+
+  def self.truncate(text, length = 50, omission = '...')
+    return text unless text.length > length
+    text[0...(length - omission.length)] + omission
+  end
+end
+
+# Usage example
+if __FILE__ == $0
+  # Setup template engine
+  engine = TuskLangStringTemplateEngine.new
+  
+  # Set global variables
+  engine.set_globals({
+    app_name: 'Ruby TuskLang Demo',
+    version: '2.0.0',
+    api_version: 'v1',
+    environment: 'development'
+  })
+
+  # Test simple interpolation
+  template = "Welcome to #{app_name} v#{version}!"
+  puts "Simple: #{engine.render(template)}"
+  
+  # Test with local variables
+  user_template = "Hello #{user_name}, you are using #{app_name}"
+  puts "With vars: #{engine.render(user_template, {user_name: 'Alice'})}"
+  
+  # Test heredoc
+  heredoc_template = <<~TEMPLATE
+    Application: #{app_name}
+    Version: #{version}
+    Environment: #{environment}
+    
+    API Endpoint: /api/#{api_version}/users
+  TEMPLATE
+  
+  puts "\nHeredoc result:"
+  puts engine.render(heredoc_template)
+  
+  # Test string methods
+  method_template = "App slug: #{app_name.downcase.gsub(' ', '-')}"
+  puts "\nWith methods: #{engine.render(method_template)}"
+  
+  # Test currency formatting
+  puts "\nHelpers:"
+  puts "Currency: #{TuskLangStringHelpers.format_currency(1234.56)}"
+  puts "Percentage: #{TuskLangStringHelpers.format_percentage(0.756)}"
+  puts "File size: #{TuskLangStringHelpers.format_file_size(1048576)}"
+  puts "Slug: #{TuskLangStringHelpers.slugify('My Awesome App Name!')}"
+end
+</pre>
+
+<p>TuskLang's advanced string features provide powerful text processing capabilities with Ruby-style interpolation and template rendering.</p>

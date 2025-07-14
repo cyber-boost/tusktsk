@@ -1,0 +1,470 @@
+<h1>Hash Directives with TuskLang in Go</h1>
+
+<h2>Processing Directives</h2>
+<p>TuskLang hash directives provide metadata and processing instructions for configuration files in Go applications.</p>
+
+<h3>directives.tsk</h3>
+<pre>
+#!api
+# API endpoint directive - marks this file as a web endpoint
+
+#version 1.2
+# Version directive for compatibility checking
+
+#require golang >= 1.19
+# Minimum Go version requirement
+
+#include "common.tsk"
+# Include external configuration files
+
+#env production
+# Environment-specific configuration
+
+#cache 300
+# Default cache TTL in seconds
+
+#debug off
+# Debug mode control
+
+#compress gzip
+# Response compression
+
+#auth required
+# Authentication requirement
+
+#rate_limit 100/minute
+# Rate limiting configuration
+
+#cors origin="https://example.com"
+# CORS configuration
+
+#timeout 30s
+# Request timeout
+
+# Main configuration follows directives
+app_name: "DirectiveApp"
+version: "1.2.0"
+
+# API configuration
+api {
+    base_path: "/api/v1"
+    timeout: 30
+    compression: true
+    
+    endpoints: [
+        {
+            path: "/users"
+            methods: ["GET", "POST"]
+            auth_required: true
+            rate_limit: "50/minute"
+        },
+        {
+            path: "/public"
+            methods: ["GET"]
+            auth_required: false
+            rate_limit: "200/minute"
+        }
+    ]
+}
+
+# Database with environment-specific values
+database {
+    driver: "postgres"
+    host: env("DB_HOST", "localhost")
+    port: env("DB_PORT", 5432)
+    name: env("DB_NAME", "app_production")
+}
+</pre>
+
+<h3>Go Directive Processing</h3>
+<pre>
+package main
+
+import (
+    "bufio"
+    "fmt"
+    "os"
+    "regexp"
+    "strconv"
+    "strings"
+    "time"
+)
+
+type DirectiveProcessor struct {
+    Directives map[string]string
+    Metadata   map[string]interface{}
+}
+
+type ProcessedConfig struct {
+    Directives map[string]string
+    Metadata   map[string]interface{}
+    Config     map[string]interface{}
+}
+
+func NewDirectiveProcessor() *DirectiveProcessor {
+    return &DirectiveProcessor{
+        Directives: make(map[string]string),
+        Metadata:   make(map[string]interface{}),
+    }
+}
+
+func (dp *DirectiveProcessor) ProcessFile(filename string) (*ProcessedConfig, error) {
+    file, err := os.Open(filename)
+    if err != nil {
+        return nil, err
+    }
+    defer file.Close()
+    
+    scanner := bufio.NewScanner(file)
+    var contentLines []string
+    
+    // First pass: extract directives
+    for scanner.Scan() {
+        line := scanner.Text()
+        
+        if strings.HasPrefix(line, "#!") || strings.HasPrefix(line, "#") {
+            if err := dp.processDirective(line); err != nil {
+                return nil, err
+            }
+        } else {
+            contentLines = append(contentLines, line)
+        }
+    }
+    
+    // Second pass: process configuration content
+    config := dp.parseConfiguration(strings.Join(contentLines, "\n"))
+    
+    return &ProcessedConfig{
+        Directives: dp.Directives,
+        Metadata:   dp.Metadata,
+        Config:     config,
+    }, nil
+}
+
+func (dp *DirectiveProcessor) processDirective(line string) error {
+    line = strings.TrimSpace(line)
+    
+    // Handle shebang-style directives (#!api, #!cli)
+    if strings.HasPrefix(line, "#!") {
+        directive := strings.TrimSpace(line[2:])
+        dp.Directives["type"] = directive
+        dp.Metadata["is_executable"] = true
+        return nil
+    }
+    
+    // Handle regular directives (#version, #require, etc.)
+    if strings.HasPrefix(line, "#") && !strings.HasPrefix(line, "# ") {
+        directive := strings.TrimSpace(line[1:])
+        
+        // Parse directive with value
+        if spaceIndex := strings.Index(directive, " "); spaceIndex != -1 {
+            key := directive[:spaceIndex]
+            value := strings.TrimSpace(directive[spaceIndex+1:])
+            
+            switch key {
+            case "version":
+                dp.Directives["version"] = value
+                dp.Metadata["config_version"] = value
+                
+            case "require":
+                return dp.processRequirement(value)
+                
+            case "include":
+                return dp.processInclude(value)
+                
+            case "env":
+                dp.Directives["environment"] = value
+                dp.Metadata["target_env"] = value
+                
+            case "cache":
+                if seconds, err := strconv.Atoi(value); err == nil {
+                    dp.Directives["cache_ttl"] = value
+                    dp.Metadata["default_cache_seconds"] = seconds
+                }
+                
+            case "debug":
+                dp.Directives["debug"] = value
+                dp.Metadata["debug_enabled"] = value == "on" || value == "true"
+                
+            case "compress":
+                dp.Directives["compression"] = value
+                dp.Metadata["compression_type"] = value
+                
+            case "auth":
+                dp.Directives["auth"] = value
+                dp.Metadata["auth_required"] = value == "required"
+                
+            case "rate_limit":
+                dp.Directives["rate_limit"] = value
+                dp.Metadata["rate_limit"] = dp.parseRateLimit(value)
+                
+            case "cors":
+                dp.Directives["cors"] = value
+                dp.Metadata["cors_config"] = dp.parseCORS(value)
+                
+            case "timeout":
+                dp.Directives["timeout"] = value
+                if duration, err := time.ParseDuration(value); err == nil {
+                    dp.Metadata["timeout_duration"] = duration
+                }
+                
+            default:
+                dp.Directives[key] = value
+            }
+        } else {
+            // Directive without value
+            dp.Directives[directive] = "true"
+        }
+    }
+    
+    return nil
+}
+
+func (dp *DirectiveProcessor) processRequirement(requirement string) error {
+    // Parse requirements like "golang >= 1.19" or "memory >= 1GB"
+    parts := strings.Fields(requirement)
+    if len(parts) < 3 {
+        return fmt.Errorf("invalid requirement format: %s", requirement)
+    }
+    
+    resource := parts[0]
+    operator := parts[1]
+    version := parts[2]
+    
+    dp.Metadata["requirements"] = append(
+        dp.getRequirements(),
+        map[string]string{
+            "resource": resource,
+            "operator": operator,
+            "version":  version,
+        },
+    )
+    
+    // Validate Go version requirement
+    if resource == "golang" {
+        return dp.validateGoVersion(operator, version)
+    }
+    
+    return nil
+}
+
+func (dp *DirectiveProcessor) processInclude(includePath string) error {
+    // Remove quotes if present
+    includePath = strings.Trim(includePath, `"`)
+    
+    // Add to includes list
+    includes := dp.getIncludes()
+    includes = append(includes, includePath)
+    dp.Metadata["includes"] = includes
+    
+    // In a real implementation, you would load and merge the included file
+    fmt.Printf("Would include file: %s\n", includePath)
+    
+    return nil
+}
+
+func (dp *DirectiveProcessor) parseRateLimit(rateLimitStr string) map[string]interface{} {
+    // Parse "100/minute" or "50/hour" format
+    re := regexp.MustCompile(`(\d+)/(\w+)`)
+    matches := re.FindStringSubmatch(rateLimitStr)
+    
+    if len(matches) == 3 {
+        limit, _ := strconv.Atoi(matches[1])
+        period := matches[2]
+        
+        return map[string]interface{}{
+            "limit":  limit,
+            "period": period,
+        }
+    }
+    
+    return map[string]interface{}{
+        "limit":  100,
+        "period": "minute",
+    }
+}
+
+func (dp *DirectiveProcessor) parseCORS(corsStr string) map[string]interface{} {
+    cors := make(map[string]interface{})
+    
+    // Parse key=value pairs
+    pairs := strings.Split(corsStr, " ")
+    for _, pair := range pairs {
+        if strings.Contains(pair, "=") {
+            parts := strings.SplitN(pair, "=", 2)
+            key := parts[0]
+            value := strings.Trim(parts[1], `"`)
+            cors[key] = value
+        }
+    }
+    
+    return cors
+}
+
+func (dp *DirectiveProcessor) validateGoVersion(operator, requiredVersion string) error {
+    // Simplified Go version validation
+    // In real implementation, you'd compare with runtime version
+    fmt.Printf("Validating Go version: %s %s\n", operator, requiredVersion)
+    return nil
+}
+
+func (dp *DirectiveProcessor) getRequirements() []map[string]string {
+    if reqs, ok := dp.Metadata["requirements"].([]map[string]string); ok {
+        return reqs
+    }
+    return []map[string]string{}
+}
+
+func (dp *DirectiveProcessor) getIncludes() []string {
+    if includes, ok := dp.Metadata["includes"].([]string); ok {
+        return includes
+    }
+    return []string{}
+}
+
+func (dp *DirectiveProcessor) parseConfiguration(content string) map[string]interface{} {
+    // Simplified configuration parsing
+    config := make(map[string]interface{})
+    lines := strings.Split(content, "\n")
+    
+    for _, line := range lines {
+        line = strings.TrimSpace(line)
+        if line == "" || strings.HasPrefix(line, "#") {
+            continue
+        }
+        
+        if strings.Contains(line, ":") {
+            parts := strings.SplitN(line, ":", 2)
+            key := strings.TrimSpace(parts[0])
+            value := strings.TrimSpace(parts[1])
+            
+            // Remove quotes and process value
+            if strings.HasPrefix(value, `"`) && strings.HasSuffix(value, `"`) {
+                value = value[1 : len(value)-1]
+            }
+            
+            config[key] = value
+        }
+    }
+    
+    return config
+}
+
+// Example HTTP middleware using directives
+type DirectiveMiddleware struct {
+    processor *DirectiveProcessor
+    config    *ProcessedConfig
+}
+
+func NewDirectiveMiddleware(configFile string) (*DirectiveMiddleware, error) {
+    processor := NewDirectiveProcessor()
+    config, err := processor.ProcessFile(configFile)
+    if err != nil {
+        return nil, err
+    }
+    
+    return &DirectiveMiddleware{
+        processor: processor,
+        config:    config,
+    }, nil
+}
+
+func (dm *DirectiveMiddleware) ValidateRequest(r *http.Request) error {
+    // Check authentication requirement
+    if authRequired, ok := dm.config.Metadata["auth_required"].(bool); ok && authRequired {
+        if r.Header.Get("Authorization") == "" {
+            return fmt.Errorf("authentication required")
+        }
+    }
+    
+    // Check rate limiting
+    if rateLimitConfig, ok := dm.config.Metadata["rate_limit"].(map[string]interface{}); ok {
+        limit := rateLimitConfig["limit"].(int)
+        period := rateLimitConfig["period"].(string)
+        
+        // In real implementation, check rate limit against storage
+        fmt.Printf("Rate limit: %d/%s\n", limit, period)
+    }
+    
+    // Check timeout
+    if timeoutDuration, ok := dm.config.Metadata["timeout_duration"].(time.Duration); ok {
+        // Set request timeout
+        fmt.Printf("Request timeout: %v\n", timeoutDuration)
+    }
+    
+    return nil
+}
+
+func (dm *DirectiveMiddleware) GetCORSHeaders() map[string]string {
+    headers := make(map[string]string)
+    
+    if corsConfig, ok := dm.config.Metadata["cors_config"].(map[string]interface{}); ok {
+        if origin, ok := corsConfig["origin"].(string); ok {
+            headers["Access-Control-Allow-Origin"] = origin
+        }
+        if methods, ok := corsConfig["methods"].(string); ok {
+            headers["Access-Control-Allow-Methods"] = methods
+        }
+    }
+    
+    return headers
+}
+
+func (dm *DirectiveMiddleware) ShouldCompress() bool {
+    return dm.config.Directives["compression"] != ""
+}
+
+func (dm *DirectiveMiddleware) IsDebugEnabled() bool {
+    if debugEnabled, ok := dm.config.Metadata["debug_enabled"].(bool); ok {
+        return debugEnabled
+    }
+    return false
+}
+
+// Example usage
+func main() {
+    // Process configuration file with directives
+    processor := NewDirectiveProcessor()
+    config, err := processor.ProcessFile("directives.tsk")
+    if err != nil {
+        fmt.Printf("Error: %v\n", err)
+        return
+    }
+    
+    // Print processed directives
+    fmt.Println("Directives:")
+    for key, value := range config.Directives {
+        fmt.Printf("  %s: %s\n", key, value)
+    }
+    
+    fmt.Println("\nMetadata:")
+    for key, value := range config.Metadata {
+        fmt.Printf("  %s: %v\n", key, value)
+    }
+    
+    fmt.Println("\nConfiguration:")
+    for key, value := range config.Config {
+        fmt.Printf("  %s: %v\n", key, value)
+    }
+    
+    // Use middleware
+    middleware, err := NewDirectiveMiddleware("directives.tsk")
+    if err != nil {
+        fmt.Printf("Middleware error: %v\n", err)
+        return
+    }
+    
+    fmt.Printf("\nDebug enabled: %v\n", middleware.IsDebugEnabled())
+    fmt.Printf("Should compress: %v\n", middleware.ShouldCompress())
+    
+    corsHeaders := middleware.GetCORSHeaders()
+    if len(corsHeaders) > 0 {
+        fmt.Println("CORS headers:")
+        for key, value := range corsHeaders {
+            fmt.Printf("  %s: %s\n", key, value)
+        }
+    }
+}
+</pre>
+
+<p>TuskLang hash directives provide powerful metadata and processing instructions for Go applications, enabling configuration-driven behavior and validation.</p>

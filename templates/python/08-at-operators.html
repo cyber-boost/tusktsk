@@ -1,0 +1,568 @@
+<h1>@ Operator System with TuskLang in Python</h1>
+
+<h2>Dynamic Configuration with @ Operators</h2>
+<p>The @ operator system provides runtime evaluation and dynamic behavior in TuskLang configurations for Python applications.</p>
+
+<h3>operators.tsk</h3>
+<pre>
+# Variable references
+app_name: "PyTuskApp"
+version: "2.0"
+full_title: "@var.app_name v@var.version"
+
+# Variable with fallback
+port: @var.PORT|8000
+debug: @var.DEBUG_MODE|false
+workers: @var.WORKERS|4
+
+# Request handling (web context)
+current_user: @request.user.id
+http_method: @request.method
+query_param: @request.query.search
+post_data: @request.post.username
+user_agent: @request.headers.User-Agent
+client_ip: @request.remote_addr
+
+# Session and cookies
+session_id: @session.id
+user_preference: @cookie.theme|"light"
+cart_items: @session.cart|[]
+last_visit: @cookie.last_visit
+
+# Environment and server variables
+database_url: @env.DATABASE_URL|"postgresql://localhost/app"
+redis_url: @env.REDIS_URL|"redis://localhost:6379/0"
+secret_key: @env.SECRET_KEY|@generate_secret(64)
+server_name: @server.SERVER_NAME
+http_host: @http.host
+
+# Cache operations
+expensive_data: @cache("10m", @Query("Analytics").calculate())
+user_count: @cache("1h", @Query("Users").count())
+popular_posts: @cache("30m", @Query("Posts").where("likes", ">", 100).orderBy("created_at").limit(10))
+
+# Metrics and monitoring
+api_calls: @metrics("api_requests", 1)
+response_time: @metrics("response_ms", @var.elapsed_time)
+error_count: @metrics("errors", 1)
+user_signups: @metrics("signups", @request.is_signup)
+
+# Learning and optimization
+batch_size: @optimize("batch_size", 100)
+cache_ttl: @learn("optimal_cache_ttl", 300)
+worker_count: @optimize("worker_count", 4)
+timeout_duration: @learn("request_timeout", 30)
+
+# JSON responses
+api_response: @json({
+    status: "success",
+    data: @var.result,
+    timestamp: @time(),
+    request_id: @uuid()
+})
+
+error_response: @json({
+    status: "error",
+    message: @var.error_message,
+    code: @var.error_code,
+    timestamp: @time()
+})
+
+# Database queries with @ operators
+user_profile: @cache("5m", @Query("Users").where("id", @request.user_id).first())
+recent_posts: @Query("Posts").where("created_at", ">", @days_ago(7)).orderBy("created_at", "desc").limit(20)
+user_permissions: @cache("1h", @Query("UserRoles").join("Permissions").where("user_id", @request.user_id).pluck("permission"))
+
+# File operations
+config_content: @file("/etc/myapp/config.json")
+template_content: @file("templates/email.html")
+ssl_cert: @file("/etc/ssl/certs/app.pem")
+
+# Time and date operations
+current_timestamp: @time()
+today_date: @date("Y-m-d")
+week_start: @date("Y-m-d", @week_start())
+month_end: @date("Y-m-d", @month_end())
+
+# Mathematical operations
+random_number: @random(1, 100)
+hash_value: @hash(@concat(@request.user_id, @time()))
+encoded_data: @base64_encode(@var.sensitive_data)
+
+# Advanced chaining
+user_dashboard_data: @cache("5m", @json({
+    user: @Query("Users").where("id", @request.user_id).first(),
+    recent_activity: @Query("Activities").where("user_id", @request.user_id).limit(10),
+    notifications: @Query("Notifications").where("user_id", @request.user_id).where("read", false),
+    statistics: {
+        total_posts: @Query("Posts").where("author_id", @request.user_id).count(),
+        total_comments: @Query("Comments").where("author_id", @request.user_id).count(),
+        karma_points: @Query("Users").where("id", @request.user_id).value("karma")
+    }
+}))
+
+# Conditional @ operators
+production_config: @if(@env.ENVIRONMENT == "production", 
+    @json({
+        debug: false,
+        log_level: "INFO",
+        cache_ttl: 3600
+    }),
+    @json({
+        debug: true,
+        log_level: "DEBUG", 
+        cache_ttl: 60
+    })
+)
+
+# Dynamic API endpoints
+api_endpoint: @concat(@env.API_BASE_URL|"https://api.example.com", "/v1/users/", @request.user_id)
+webhook_url: @concat(@env.WEBHOOK_BASE|"https://hooks.example.com", "/", @env.WEBHOOK_TOKEN)
+
+# Machine learning integration
+user_recommendations: @ml_predict("user_preferences", {
+    user_id: @request.user_id,
+    browsing_history: @session.browsing_history,
+    current_page: @request.path
+})
+
+# A/B testing
+feature_variant: @ab_test("new_ui_feature", @request.user_id, {
+    control: "classic_ui",
+    treatment: "modern_ui"
+})
+
+# Geolocation
+user_location: @geoip(@request.remote_addr)
+timezone: @timezone(@geoip(@request.remote_addr).country)
+localized_time: @time(@timezone(@request.remote_addr))
+</pre>
+
+<h3>Python @ Operator Implementation</h3>
+<pre>
+import os
+import json
+import time
+import uuid
+import hashlib
+import base64
+import random
+import redis
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Optional, Union, Callable
+from functools import wraps
+import logging
+
+class AtOperatorRegistry:
+    """Registry for @ operator implementations."""
+    
+    def __init__(self):
+        self.operators = {}
+        self.cache_backend = None
+        self.metrics_backend = None
+        self.ml_backend = None
+        
+    def register(self, name: str, func: Callable):
+        """Register an @ operator function."""
+        self.operators[name] = func
+        return func
+    
+    def get(self, name: str) -> Optional[Callable]:
+        """Get an @ operator function."""
+        return self.operators.get(name)
+
+# Global registry
+at_registry = AtOperatorRegistry()
+
+class AtOperatorContext:
+    """Context for @ operator evaluation."""
+    
+    def __init__(self, request=None, session=None, variables=None):
+        self.request = request
+        self.session = session or {}
+        self.variables = variables or {}
+        self.cache = {}
+        self.metrics = {}
+        
+        # Initialize backends
+        self.redis_client = self._init_redis()
+        self.logger = logging.getLogger(__name__)
+    
+    def _init_redis(self):
+        """Initialize Redis client for caching."""
+        redis_url = os.getenv('REDIS_URL', 'redis://localhost:6379/0')
+        try:
+            return redis.from_url(redis_url)
+        except Exception:
+            return None
+
+class AtOperatorProcessor:
+    """Process @ operator expressions."""
+    
+    def __init__(self, context: AtOperatorContext):
+        self.context = context
+        self.registry = at_registry
+        
+    def process(self, expression: str) -> Any:
+        """Process an @ operator expression."""
+        if not expression.startswith('@'):
+            return expression
+        
+        # Parse the operator and arguments
+        operator_name, args = self._parse_expression(expression[1:])
+        
+        # Get the operator function
+        operator_func = self.registry.get(operator_name)
+        if not operator_func:
+            self.context.logger.warning(f"Unknown @ operator: {operator_name}")
+            return expression
+        
+        try:
+            return operator_func(self.context, *args)
+        except Exception as e:
+            self.context.logger.error(f"Error in @ operator {operator_name}: {e}")
+            return expression
+    
+    def _parse_expression(self, expr: str) -> tuple[str, List[Any]]:
+        """Parse operator expression into name and arguments."""
+        if '(' not in expr:
+            # Simple operator like @time
+            return expr, []
+        
+        # Complex operator like @cache("5m", value)
+        op_name = expr[:expr.index('(')]
+        args_str = expr[expr.index('(') + 1:expr.rindex(')')]
+        
+        args = self._parse_arguments(args_str) if args_str else []
+        return op_name, args
+    
+    def _parse_arguments(self, args_str: str) -> List[Any]:
+        """Parse function arguments."""
+        args = []
+        current_arg = ""
+        in_quotes = False
+        quote_char = None
+        paren_depth = 0
+        
+        for char in args_str:
+            if char in ('"', "'") and (not current_arg or current_arg[-1] != '\\'):
+                if not in_quotes:
+                    in_quotes = True
+                    quote_char = char
+                elif char == quote_char:
+                    in_quotes = False
+                    quote_char = None
+                current_arg += char
+            elif char == '(' and not in_quotes:
+                paren_depth += 1
+                current_arg += char
+            elif char == ')' and not in_quotes:
+                paren_depth -= 1
+                current_arg += char
+            elif char == ',' and not in_quotes and paren_depth == 0:
+                args.append(self._convert_argument(current_arg.strip()))
+                current_arg = ""
+            else:
+                current_arg += char
+        
+        if current_arg.strip():
+            args.append(self._convert_argument(current_arg.strip()))
+        
+        return args
+    
+    def _convert_argument(self, arg: str) -> Any:
+        """Convert argument string to appropriate type."""
+        arg = arg.strip()
+        
+        # Handle quoted strings
+        if (arg.startswith('"') and arg.endswith('"')) or \
+           (arg.startswith("'") and arg.endswith("'")):
+            return arg[1:-1]
+        
+        # Handle nested @ operators
+        if arg.startswith('@'):
+            return self.process(arg)
+        
+        # Handle numbers
+        try:
+            if '.' in arg:
+                return float(arg)
+            else:
+                return int(arg)
+        except ValueError:
+            pass
+        
+        # Handle booleans
+        if arg.lower() == 'true':
+            return True
+        elif arg.lower() == 'false':
+            return False
+        elif arg.lower() == 'null':
+            return None
+        
+        return arg
+
+# Core @ Operator Implementations
+
+@at_registry.register('var')
+def var_operator(context: AtOperatorContext, path: str, default=None) -> Any:
+    """Get variable with optional default."""
+    parts = path.split('.')
+    value = context.variables
+    
+    for part in parts:
+        if isinstance(value, dict) and part in value:
+            value = value[part]
+        else:
+            # Try environment variable
+            env_value = os.getenv(part.upper())
+            return env_value if env_value is not None else default
+    
+    return value if value is not None else default
+
+@at_registry.register('env')
+def env_operator(context: AtOperatorContext, var_name: str, default=None) -> str:
+    """Get environment variable."""
+    return os.getenv(var_name, default)
+
+@at_registry.register('request')
+def request_operator(context: AtOperatorContext, path: str) -> Any:
+    """Get request data."""
+    if not context.request:
+        return None
+    
+    parts = path.split('.')
+    value = context.request
+    
+    for part in parts:
+        if hasattr(value, part):
+            value = getattr(value, part)
+        elif isinstance(value, dict) and part in value:
+            value = value[part]
+        else:
+            return None
+    
+    return value
+
+@at_registry.register('session')
+def session_operator(context: AtOperatorContext, key: str, default=None) -> Any:
+    """Get session data."""
+    return context.session.get(key, default)
+
+@at_registry.register('cookie')
+def cookie_operator(context: AtOperatorContext, name: str, default=None) -> str:
+    """Get cookie value."""
+    if context.request and hasattr(context.request, 'cookies'):
+        return context.request.cookies.get(name, default)
+    return default
+
+@at_registry.register('cache')
+def cache_operator(context: AtOperatorContext, ttl: str, value: Any) -> Any:
+    """Cache operation with TTL."""
+    if not context.redis_client:
+        return value
+    
+    # Generate cache key
+    cache_key = f"tusk_cache:{hashlib.md5(str(value).encode()).hexdigest()}"
+    
+    try:
+        # Try to get cached value
+        cached = context.redis_client.get(cache_key)
+        if cached:
+            return json.loads(cached)
+        
+        # Compute and cache the value
+        computed_value = value
+        ttl_seconds = parse_duration(ttl)
+        
+        context.redis_client.setex(
+            cache_key,
+            ttl_seconds,
+            json.dumps(computed_value, default=str)
+        )
+        
+        return computed_value
+    except Exception as e:
+        context.logger.error(f"Cache error: {e}")
+        return value
+
+@at_registry.register('metrics')
+def metrics_operator(context: AtOperatorContext, name: str, value: Any) -> Any:
+    """Record metric."""
+    if name not in context.metrics:
+        context.metrics[name] = 0
+    
+    if isinstance(value, (int, float)):
+        context.metrics[name] += value
+    else:
+        context.metrics[name] += 1
+    
+    # Log to external metrics system if available
+    context.logger.info(f"Metric {name}: {context.metrics[name]}")
+    
+    return value
+
+@at_registry.register('json')
+def json_operator(context: AtOperatorContext, data: Any) -> str:
+    """Convert to JSON string."""
+    try:
+        return json.dumps(data, default=str)
+    except Exception:
+        return str(data)
+
+@at_registry.register('time')
+def time_operator(context: AtOperatorContext, format_str: str = None) -> Union[int, str]:
+    """Get current time."""
+    now = datetime.now()
+    
+    if format_str:
+        return now.strftime(format_str)
+    else:
+        return int(now.timestamp())
+
+@at_registry.register('date')
+def date_operator(context: AtOperatorContext, format_str: str = '%Y-%m-%d') -> str:
+    """Get current date."""
+    return datetime.now().strftime(format_str)
+
+@at_registry.register('uuid')
+def uuid_operator(context: AtOperatorContext) -> str:
+    """Generate UUID."""
+    return str(uuid.uuid4())
+
+@at_registry.register('hash')
+def hash_operator(context: AtOperatorContext, data: str, algorithm: str = 'sha256') -> str:
+    """Hash data."""
+    data_bytes = str(data).encode('utf-8')
+    
+    if algorithm.lower() == 'md5':
+        return hashlib.md5(data_bytes).hexdigest()
+    elif algorithm.lower() == 'sha1':
+        return hashlib.sha1(data_bytes).hexdigest()
+    elif algorithm.lower() == 'sha256':
+        return hashlib.sha256(data_bytes).hexdigest()
+    else:
+        return hashlib.sha256(data_bytes).hexdigest()
+
+@at_registry.register('random')
+def random_operator(context: AtOperatorContext, min_val: int = 0, max_val: int = 100) -> int:
+    """Generate random number."""
+    return random.randint(min_val, max_val)
+
+@at_registry.register('base64_encode')
+def base64_encode_operator(context: AtOperatorContext, data: str) -> str:
+    """Base64 encode data."""
+    return base64.b64encode(str(data).encode('utf-8')).decode('utf-8')
+
+@at_registry.register('concat')
+def concat_operator(context: AtOperatorContext, *args) -> str:
+    """Concatenate strings."""
+    return ''.join(str(arg) for arg in args)
+
+@at_registry.register('generate_secret')
+def generate_secret_operator(context: AtOperatorContext, length: int = 32) -> str:
+    """Generate random secret."""
+    return os.urandom(length).hex()
+
+def parse_duration(duration_str: str) -> int:
+    """Parse duration string to seconds."""
+    if not duration_str:
+        return 300  # 5 minutes default
+    
+    unit = duration_str[-1].lower()
+    try:
+        value = int(duration_str[:-1])
+    except ValueError:
+        return 300
+    
+    multipliers = {
+        's': 1,
+        'm': 60,
+        'h': 3600,
+        'd': 86400
+    }
+    
+    return value * multipliers.get(unit, 60)
+
+# Example Flask integration
+def create_flask_integration():
+    """Example Flask integration with @ operators."""
+    from flask import Flask, request, session
+    
+    app = Flask(__name__)
+    
+    @app.before_request
+    def setup_at_context():
+        """Setup @ operator context for each request."""
+        context = AtOperatorContext(
+            request=request,
+            session=session,
+            variables={'app_name': 'Flask TuskLang App'}
+        )
+        
+        # Store context in Flask's g object
+        from flask import g
+        g.at_context = context
+    
+    @app.route('/api/config')
+    def get_config():
+        """Example endpoint using @ operators."""
+        from flask import g
+        
+        processor = AtOperatorProcessor(g.at_context)
+        
+        config = {
+            'user_id': processor.process('@request.user_id'),
+            'session_id': processor.process('@session.id'),
+            'timestamp': processor.process('@time()'),
+            'cache_data': processor.process('@cache("5m", "expensive_computation")')
+        }
+        
+        return processor.process('@json(' + str(config) + ')')
+    
+    return app
+
+# Example usage
+def demonstrate_at_operators():
+    """Demonstrate @ operator system."""
+    
+    # Create context
+    class MockRequest:
+        def __init__(self):
+            self.user_id = 12345
+            self.method = 'GET'
+            self.remote_addr = '192.168.1.1'
+    
+    context = AtOperatorContext(
+        request=MockRequest(),
+        session={'id': 'session123', 'cart': ['item1', 'item2']},
+        variables={'app_name': 'Demo App', 'version': '1.0'}
+    )
+    
+    processor = AtOperatorProcessor(context)
+    
+    # Test various operators
+    tests = [
+        '@var.app_name',
+        '@request.user_id',
+        '@session.id',
+        '@time()',
+        '@uuid()',
+        '@hash("test data")',
+        '@random(1, 100)',
+        '@concat("Hello", " ", "World")',
+        '@json({"status": "success"})'
+    ]
+    
+    print("@ Operator Test Results:")
+    print("=" * 40)
+    
+    for test in tests:
+        result = processor.process(test)
+        print(f"{test}: {result}")
+
+if __name__ == "__main__":
+    demonstrate_at_operators()
+</pre>
+
+<p>The @ operator system makes TuskLang configurations dynamic and context-aware, perfect for Python web applications, APIs, and microservices with intelligent runtime behavior.</p>

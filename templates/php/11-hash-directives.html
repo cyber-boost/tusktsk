@@ -1,0 +1,392 @@
+<h1>Hash Directives</h1>
+
+<h2>TuskLang Hash Directives in PHP</h2>
+<p>Hash directives provide metadata and special instructions for TuskLang parsing and execution behavior.</p>
+
+<h3>Basic Hash Directives</h3>
+<pre>
+#!/usr/bin/env tusklang
+# Shebang for executable .tsk files
+
+#!strict
+# Enable strict parsing mode
+name: "TuskLang App"
+version: "1.0.0"
+
+#!encoding utf-8
+# Specify file encoding
+description: "Configuration with émojis 🐘"
+
+#!include "common.tsk"
+# Include another configuration file
+</pre>
+
+<h3>API Directives</h3>
+<pre>
+#!api
+# Mark this file as an API endpoint
+method: "GET"
+path: "/api/users"
+
+response {
+    users: @query("SELECT * FROM users")
+    total: @query("SELECT COUNT(*) FROM users")
+    status: "success"
+}
+
+#!cors
+# Enable CORS for this endpoint
+headers {
+    "Access-Control-Allow-Origin": "*"
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE"
+}
+</pre>
+
+<h3>Cache Directives</h3>
+<pre>
+#!cache 5m
+# Cache this entire configuration for 5 minutes
+expensive_data: @query("SELECT * FROM analytics")
+
+#!no-cache
+# Disable caching for sensitive data
+secret_key: env("SECRET_KEY")
+api_token: @generate_token()
+
+#!cache-key "user_config_{user_id}"
+# Custom cache key template
+user_preferences: @query("SELECT * FROM preferences WHERE user_id = ?", [user_id])
+</pre>
+
+<h3>Validation Directives</h3>
+<pre>
+#!validate
+# Enable validation for this configuration
+
+#!required name, version, port
+# Mark fields as required
+name: env("APP_NAME")
+version: "1.0.0"
+port: int(env("PORT", 8080))
+
+#!type port=integer,debug=boolean
+# Enforce types
+debug: bool(env("DEBUG", false))
+
+#!range port=1..65535
+# Value range validation
+workers: int(env("WORKERS", 4))  # Must be between 1-65535
+</pre>
+
+<h3>PHP Implementation</h3>
+<pre>
+&lt;?php
+namespace TuskLang\Directives;
+
+class HashDirectiveProcessor {
+    private array $directives = [];
+    private bool $strictMode = false;
+    
+    public function processDirectives(string $content): array {
+        $lines = explode("\n", $content);
+        $processedContent = [];
+        
+        foreach ($lines as $line) {
+            $line = trim($line);
+            
+            if ($this->isDirective($line)) {
+                $this->parseDirective($line);
+            } else {
+                $processedContent[] = $line;
+            }
+        }
+        
+        return [
+            'content' => implode("\n", $processedContent),
+            'directives' => $this->directives
+        ];
+    }
+    
+    private function isDirective(string $line): bool {
+        return strpos($line, '#!') === 0;
+    }
+    
+    private function parseDirective(string $line): void {
+        $directive = substr($line, 2); // Remove #!
+        $parts = explode(' ', $directive, 2);
+        $command = $parts[0];
+        $args = $parts[1] ?? '';
+        
+        switch ($command) {
+            case 'strict':
+                $this->strictMode = true;
+                $this->directives['strict'] = true;
+                break;
+                
+            case 'encoding':
+                $this->directives['encoding'] = $args;
+                break;
+                
+            case 'include':
+                $this->directives['includes'][] = trim($args, '"\' ');
+                break;
+                
+            case 'api':
+                $this->directives['api'] = true;
+                break;
+                
+            case 'cors':
+                $this->directives['cors'] = true;
+                break;
+                
+            case 'cache':
+                $this->directives['cache'] = $this->parseTTL($args);
+                break;
+                
+            case 'no-cache':
+                $this->directives['cache'] = false;
+                break;
+                
+            case 'cache-key':
+                $this->directives['cache_key'] = trim($args, '"\' ');
+                break;
+                
+            case 'validate':
+                $this->directives['validate'] = true;
+                break;
+                
+            case 'required':
+                $fields = array_map('trim', explode(',', $args));
+                $this->directives['required'] = $fields;
+                break;
+                
+            case 'type':
+                $this->directives['types'] = $this->parseTypeDirective($args);
+                break;
+                
+            case 'range':
+                $this->directives['ranges'] = $this->parseRangeDirective($args);
+                break;
+        }
+    }
+    
+    private function parseTTL(string $ttl): int {
+        if (preg_match('/(\d+)([smhd])/', $ttl, $matches)) {
+            $value = (int)$matches[1];
+            $unit = $matches[2];
+            
+            return match($unit) {
+                's' => $value,
+                'm' => $value * 60,
+                'h' => $value * 3600,
+                'd' => $value * 86400,
+                default => $value
+            };
+        }
+        
+        return (int)$ttl;
+    }
+    
+    private function parseTypeDirective(string $args): array {
+        $types = [];
+        $pairs = explode(',', $args);
+        
+        foreach ($pairs as $pair) {
+            if (strpos($pair, '=') !== false) {
+                [$field, $type] = explode('=', $pair, 2);
+                $types[trim($field)] = trim($type);
+            }
+        }
+        
+        return $types;
+    }
+    
+    private function parseRangeDirective(string $args): array {
+        $ranges = [];
+        $pairs = explode(',', $args);
+        
+        foreach ($pairs as $pair) {
+            if (strpos($pair, '=') !== false) {
+                [$field, $range] = explode('=', $pair, 2);
+                $ranges[trim($field)] = $this->parseRange(trim($range));
+            }
+        }
+        
+        return $ranges;
+    }
+    
+    private function parseRange(string $range): array {
+        if (strpos($range, '..') !== false) {
+            [$min, $max] = explode('..', $range, 2);
+            return ['min' => (int)$min, 'max' => (int)$max];
+        }
+        
+        return ['value' => $range];
+    }
+}
+</pre>
+
+<h3>Environment Directives</h3>
+<pre>
+#!env production
+# Target specific environment
+
+#!if env("APP_ENV") == "production"
+# Conditional configuration blocks
+ssl_enabled: true
+debug: false
+log_level: "error"
+#!endif
+
+#!if env("APP_ENV") == "development"
+debug: true
+log_level: "debug"
+hot_reload: true
+#!endif
+
+#!unless env("DISABLE_FEATURES")
+# Include unless condition is true
+features {
+    analytics: true
+    social_login: true
+}
+#!endunless
+</pre>
+
+<h3>Security Directives</h3>
+<pre>
+#!secure
+# Enable security mode
+
+#!encrypt secret_key, api_token
+# Encrypt specific fields
+secret_key: env("SECRET_KEY")
+api_token: env("API_TOKEN")
+
+#!hash password_salt
+# Hash specific fields
+password_salt: env("PASSWORD_SALT")
+
+#!readonly
+# Mark configuration as read-only
+system_config: file("/etc/app/system.tsk")
+</pre>
+
+<h3>Performance Directives</h3>
+<pre>
+#!optimize
+# Enable optimization
+
+#!lazy expensive_queries
+# Lazy load expensive operations
+expensive_queries: @query("SELECT * FROM huge_table")
+
+#!preload essential_config
+# Preload critical configuration
+essential_config: file("essential.tsk")
+
+#!compress
+# Compress configuration in memory
+large_dataset: file("large_config.tsk")
+</pre>
+
+<h3>Laravel Integration</h3>
+<pre>
+&lt;?php
+// Laravel service provider for hash directives
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use TuskLang\Directives\HashDirectiveProcessor;
+
+class TuskLangDirectiveServiceProvider extends ServiceProvider {
+    public function register(): void {
+        $this->app->singleton(HashDirectiveProcessor::class);
+    }
+    
+    public function boot(): void {
+        // Register custom directives
+        $processor = $this->app->make(HashDirectiveProcessor::class);
+        
+        // Custom Laravel directive
+        $processor->addDirective('route', function($args) {
+            return route($args);
+        });
+        
+        // Custom config directive
+        $processor->addDirective('config', function($args) {
+            return config($args);
+        });
+    }
+}
+
+// Usage in middleware
+class TuskLangDirectiveMiddleware {
+    public function handle($request, $next) {
+        $processor = app(HashDirectiveProcessor::class);
+        
+        // Process configuration with directives
+        $config = $processor->processFile('web.tsk');
+        
+        // Apply directives
+        if ($config['directives']['cors'] ?? false) {
+            $this->applyCors($request);
+        }
+        
+        if ($cache = $config['directives']['cache'] ?? null) {
+            return $this->cacheResponse($request, $next, $cache);
+        }
+        
+        return $next($request);
+    }
+}
+</pre>
+
+<h3>Custom Directives</h3>
+<pre>
+&lt;?php
+// Define custom hash directives
+class CustomDirectives {
+    public static function register(HashDirectiveProcessor $processor): void {
+        // Database migration directive
+        $processor->addDirective('migrate', function($args) {
+            $migration = trim($args, '"\' ');
+            // Run database migration
+            return ['migration' => $migration];
+        });
+        
+        // Feature flag directive
+        $processor->addDirective('feature', function($args) {
+            [$feature, $enabled] = explode('=', $args, 2);
+            return [
+                'feature_flags' => [
+                    trim($feature) => trim($enabled) === 'true'
+                ]
+            ];
+        });
+        
+        // Webhook directive
+        $processor->addDirective('webhook', function($args) {
+            return ['webhook_url' => trim($args, '"\' ')];
+        });
+    }
+}
+
+// Usage
+#!migrate "create_users_table"
+#!feature new_ui=true
+#!webhook "https://hooks.example.com/notify"
+
+users_table: @query("SELECT * FROM users")
+</pre>
+
+<h3>Best Practices</h3>
+<ul>
+    <li>Use directives sparingly - prefer explicit configuration</li>
+    <li>Document custom directives thoroughly</li>
+    <li>Validate directive arguments for security</li>
+    <li>Use environment-specific directives for deployment</li>
+    <li>Consider performance impact of directives</li>
+    <li>Test directive behavior in all environments</li>
+    <li>Use strict mode in production for better error handling</li>
+</ul>

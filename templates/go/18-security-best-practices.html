@@ -1,0 +1,1276 @@
+<h1>Security Best Practices with TuskLang in Go</h1>
+
+<h2>Secure Configuration Management</h2>
+<p>TuskLang provides comprehensive security features for protecting sensitive configuration data, implementing secure defaults, and following security best practices in Go applications.</p>
+
+<h3>security.tsk</h3>
+<pre>
+# Security configuration
+security: {
+    # Encryption settings
+    encryption: {
+        # Encryption at rest
+        at_rest: {
+            algorithm: "AES-256-GCM"
+            key_derivation: "PBKDF2"
+            iterations: 100000
+            salt_length: 32
+            
+            # Key management
+            key_rotation: {
+                enabled: true
+                interval: "30d"
+                backup_count: 3
+            }
+        }
+        
+        # Encryption in transit
+        in_transit: {
+            tls_version: "1.3"
+            cipher_suites: [
+                "TLS_AES_256_GCM_SHA384",
+                "TLS_CHACHA20_POLY1305_SHA256"
+            ]
+            
+            # Certificate management
+            certificates: {
+                ca_file: env("TLS_CA_FILE", "/etc/ssl/ca.pem")
+                cert_file: env("TLS_CERT_FILE", "/etc/ssl/cert.pem")
+                key_file: env("TLS_KEY_FILE", "/etc/ssl/key.pem")
+                verify_client: true
+                auto_renewal: true
+                renewal_threshold: "30d"
+            }
+        }
+    }
+    
+    # Secrets management
+    secrets: {
+        provider: env("SECRETS_PROVIDER", "vault")
+        
+        # HashiCorp Vault integration
+        vault: {
+            address: env("VAULT_ADDR", "https://vault.company.com")
+            auth_method: env("VAULT_AUTH_METHOD", "kubernetes")
+            role: env("VAULT_ROLE", "tusklang-app")
+            token_ttl: "1h"
+            
+            # KV secrets
+            kv_secrets: {
+                mount: "secret"
+                path: "tusklang/"
+                version: 2
+            }
+            
+            # Dynamic secrets
+            database: {
+                mount: "database"
+                role: "readonly"
+                ttl: "1h"
+                max_ttl: "24h"
+            }
+            
+            # PKI secrets
+            pki: {
+                mount: "pki"
+                role: "web-server"
+                common_name: env("SERVICE_NAME", "tusklang-service")
+                ttl: "720h"
+            }
+        }
+        
+        # AWS Secrets Manager
+        aws_secrets: {
+            region: env("AWS_REGION", "us-west-2")
+            prefix: "tusklang/"
+            auto_rotate: true
+            rotation_interval: "30d"
+        }
+        
+        # Kubernetes Secrets
+        k8s_secrets: {
+            namespace: env("K8S_NAMESPACE", "default")
+            mount_path: "/var/secrets"
+            auto_reload: true
+        }
+    }
+    
+    # Authentication & Authorization
+    auth: {
+        # JWT configuration
+        jwt: {
+            algorithm: "RS256"
+            issuer: env("JWT_ISSUER", "tusklang-auth")
+            audience: env("JWT_AUDIENCE", "tusklang-api")
+            expiry: "1h"
+            refresh_expiry: "24h"
+            
+            # Key management
+            public_key: vault("pki/cert/jwt-public")
+            private_key: vault("pki/cert/jwt-private")
+            key_rotation: true
+        }
+        
+        # OAuth2 integration
+        oauth2: {
+            providers: [
+                {
+                    name: "google"
+                    client_id: vault("secret/oauth/google/client_id")
+                    client_secret: vault("secret/oauth/google/client_secret")
+                    scopes: ["openid", "email", "profile"]
+                    endpoints: {
+                        auth: "https://accounts.google.com/o/oauth2/auth"
+                        token: "https://oauth2.googleapis.com/token"
+                        userinfo: "https://openidconnect.googleapis.com/v1/userinfo"
+                    }
+                }
+            ]
+        }
+        
+        # RBAC (Role-Based Access Control)
+        rbac: {
+            enabled: true
+            default_role: "user"
+            
+            roles: {
+                admin: {
+                    permissions: ["*"]
+                    description: "Full system access"
+                }
+                
+                user: {
+                    permissions: [
+                        "read:profile",
+                        "update:profile",
+                        "read:data"
+                    ]
+                    description: "Standard user access"
+                }
+                
+                readonly: {
+                    permissions: ["read:*"]
+                    description: "Read-only access"
+                }
+            }
+            
+            # Permission matrix
+            resources: {
+                "/api/users": {
+                    GET: ["admin", "user"]
+                    POST: ["admin"]
+                    PUT: ["admin", "user"]
+                    DELETE: ["admin"]
+                }
+                
+                "/api/data": {
+                    GET: ["admin", "user", "readonly"]
+                    POST: ["admin", "user"]
+                    PUT: ["admin", "user"]
+                    DELETE: ["admin"]
+                }
+            }
+        }
+    }
+    
+    # Input validation and sanitization
+    validation: {
+        # XSS protection
+        xss_protection: {
+            enabled: true
+            sanitize_html: true
+            allowed_tags: ["b", "i", "u", "strong", "em"]
+            remove_scripts: true
+        }
+        
+        # SQL injection protection
+        sql_injection: {
+            enabled: true
+            use_prepared_statements: true
+            escape_special_chars: true
+            validate_queries: true
+        }
+        
+        # Input validation rules
+        input_rules: {
+            email: {
+                pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+                max_length: 254
+                required: true
+            }
+            
+            password: {
+                min_length: 12
+                max_length: 128
+                require_uppercase: true
+                require_lowercase: true
+                require_numbers: true
+                require_special: true
+                forbidden_patterns: ["password", "123456", "qwerty"]
+            }
+            
+            username: {
+                pattern: "^[a-zA-Z0-9_-]+$"
+                min_length: 3
+                max_length: 30
+                reserved_words: ["admin", "root", "system"]
+            }
+        }
+    }
+    
+    # Security headers
+    headers: {
+        # Content Security Policy
+        csp: {
+            enabled: true
+            directives: {
+                default_src: ["'self'"]
+                script_src: ["'self'", "'unsafe-inline'"]
+                style_src: ["'self'", "'unsafe-inline'"]
+                img_src: ["'self'", "data:", "https:"]
+                connect_src: ["'self'"]
+                font_src: ["'self'"]
+                frame_ancestors: ["'none'"]
+                base_uri: ["'self'"]
+                form_action: ["'self'"]
+            }
+            report_uri: "/csp-report"
+            report_only: env("CSP_REPORT_ONLY", false)
+        }
+        
+        # Other security headers
+        hsts: {
+            enabled: true
+            max_age: 31536000  # 1 year
+            include_subdomains: true
+            preload: true
+        }
+        
+        frame_options: "DENY"
+        content_type_options: "nosniff"
+        xss_protection: "1; mode=block"
+        referrer_policy: "strict-origin-when-cross-origin"
+    }
+    
+    # Rate limiting and DDoS protection
+    rate_limiting: {
+        enabled: true
+        
+        # Global rate limits
+        global: {
+            requests_per_second: 1000
+            burst_size: 100
+            window: "1m"
+        }
+        
+        # Per-endpoint rate limits
+        endpoints: {
+            "/api/auth/login": {
+                requests_per_minute: 5
+                burst_size: 2
+                block_duration: "15m"
+            }
+            
+            "/api/auth/register": {
+                requests_per_hour: 10
+                burst_size: 3
+                block_duration: "1h"
+            }
+            
+            "/api/data": {
+                requests_per_second: 10
+                burst_size: 20
+                window: "1m"
+            }
+        }
+        
+        # IP-based rate limiting
+        ip_based: {
+            enabled: true
+            whitelist: ["127.0.0.1", "10.0.0.0/8"]
+            blacklist: []
+            max_requests_per_hour: 10000
+        }
+    }
+    
+    # Audit logging
+    audit: {
+        enabled: true
+        level: env("AUDIT_LEVEL", "INFO")
+        
+        # Events to audit
+        events: [
+            "user.login",
+            "user.logout", 
+            "user.failed_login",
+            "user.password_change",
+            "admin.user_created",
+            "admin.user_deleted",
+            "data.access",
+            "data.modification",
+            "config.change",
+            "security.violation"
+        ]
+        
+        # Log format
+        format: {
+            timestamp: true
+            user_id: true
+            ip_address: true
+            user_agent: true
+            request_id: true
+            action: true
+            resource: true
+            result: true
+            details: true
+        }
+        
+        # Log destinations
+        destinations: [
+            {
+                type: "file"
+                path: "/var/log/audit.log"
+                rotation: "daily"
+                retention: "90d"
+            },
+            {
+                type: "syslog"
+                facility: "local0"
+                severity: "info"
+            },
+            {
+                type: "elasticsearch"
+                endpoint: env("ELASTIC_ENDPOINT", "elasticsearch:9200")
+                index: "security-audit"
+            }
+        ]
+    }
+    
+    # Security monitoring
+    monitoring: {
+        enabled: true
+        
+        # Intrusion detection
+        intrusion_detection: {
+            enabled: true
+            suspicious_patterns: [
+                "(?i)(union|select|insert|delete|drop|exec|script)",
+                "(?i)(<script|javascript:|vbscript:)",
+                "(?i)(\.\.\/|\.\.\\\\)",
+                "(?i)(passwd|shadow|hosts)"
+            ]
+            
+            # Response actions
+            actions: {
+                log: true
+                block_ip: true
+                block_duration: "1h"
+                alert_admin: true
+            }
+        }
+        
+        # Anomaly detection
+        anomaly_detection: {
+            enabled: true
+            baseline_period: "7d"
+            sensitivity: "medium"
+            
+            metrics: [
+                "requests_per_minute",
+                "error_rate",
+                "response_time",
+                "unique_ips",
+                "failed_logins"
+            ]
+        }
+        
+        # Security alerts
+        alerts: {
+            email: {
+                enabled: true
+                recipients: [env("SECURITY_EMAIL", "security@company.com")]
+                templates: {
+                    intrusion: "/templates/intrusion_alert.html"
+                    anomaly: "/templates/anomaly_alert.html"
+                    breach: "/templates/breach_alert.html"
+                }
+            }
+            
+            slack: {
+                enabled: env("SLACK_ALERTS_ENABLED", false)
+                webhook: vault("secret/slack/security_webhook")
+                channel: "#security-alerts"
+            }
+        }
+    }
+}
+
+# Environment-specific security overrides
+security_overrides: @switch(env("ENVIRONMENT"), {
+    "development": {
+        tls_version: "1.2"
+        csp_report_only: true
+        rate_limiting_enabled: false
+        audit_level: "DEBUG"
+    },
+    
+    "staging": {
+        tls_version: "1.3"
+        csp_report_only: true
+        rate_limiting_enabled: true
+        audit_level: "INFO"
+    },
+    
+    "production": {
+        tls_version: "1.3"
+        csp_report_only: false
+        rate_limiting_enabled: true
+        audit_level: "WARN"
+        additional_monitoring: true
+    }
+}, {})
+</pre>
+
+<h3>Go Security Implementation</h3>
+<pre>
+package main
+
+import (
+    "context"
+    "crypto/aes"
+    "crypto/cipher"
+    "crypto/rand"
+    "crypto/sha256"
+    "crypto/tls"
+    "encoding/base64"
+    "fmt"
+    "net/http"
+    "regexp"
+    "strings"
+    "sync"
+    "time"
+    
+    "github.com/golang-jwt/jwt/v5"
+    "github.com/hashicorp/vault/api"
+    "golang.org/x/crypto/pbkdf2"
+    "golang.org/x/time/rate"
+)
+
+type SecurityManager struct {
+    config          *SecurityConfig
+    encryptionMgr   *EncryptionManager
+    secretsMgr      *SecretsManager
+    authMgr         *AuthManager
+    validationMgr   *ValidationManager
+    rateLimitMgr    *RateLimitManager
+    auditLogger     *AuditLogger
+    monitoringMgr   *SecurityMonitoring
+}
+
+func NewSecurityManager(config *SecurityConfig) *SecurityManager {
+    sm := &SecurityManager{
+        config:        config,
+        encryptionMgr: NewEncryptionManager(config.Encryption),
+        secretsMgr:    NewSecretsManager(config.Secrets),
+        authMgr:       NewAuthManager(config.Auth),
+        validationMgr: NewValidationManager(config.Validation),
+        rateLimitMgr:  NewRateLimitManager(config.RateLimiting),
+        auditLogger:   NewAuditLogger(config.Audit),
+        monitoringMgr: NewSecurityMonitoring(config.Monitoring),
+    }
+    
+    return sm
+}
+
+// Encryption Manager
+type EncryptionManager struct {
+    config    EncryptionConfig
+    masterKey []byte
+    gcm       cipher.AEAD
+}
+
+type EncryptionConfig struct {
+    AtRest    AtRestConfig    `tusk:"at_rest"`
+    InTransit InTransitConfig `tusk:"in_transit"`
+}
+
+type AtRestConfig struct {
+    Algorithm      string            `tusk:"algorithm"`
+    KeyDerivation  string            `tusk:"key_derivation"`
+    Iterations     int               `tusk:"iterations"`
+    SaltLength     int               `tusk:"salt_length"`
+    KeyRotation    KeyRotationConfig `tusk:"key_rotation"`
+}
+
+type KeyRotationConfig struct {
+    Enabled     bool   `tusk:"enabled"`
+    Interval    string `tusk:"interval"`
+    BackupCount int    `tusk:"backup_count"`
+}
+
+func NewEncryptionManager(config EncryptionConfig) *EncryptionManager {
+    em := &EncryptionManager{
+        config: config,
+    }
+    
+    em.initializeMasterKey()
+    return em
+}
+
+func (em *EncryptionManager) initializeMasterKey() error {
+    // Derive master key from password or load from secure storage
+    password := "master-password" // In real implementation, load securely
+    salt := make([]byte, em.config.AtRest.SaltLength)
+    rand.Read(salt)
+    
+    em.masterKey = pbkdf2.Key([]byte(password), salt, em.config.AtRest.Iterations, 32, sha256.New)
+    
+    // Create AES-GCM cipher
+    block, err := aes.NewCipher(em.masterKey)
+    if err != nil {
+        return err
+    }
+    
+    em.gcm, err = cipher.NewGCM(block)
+    return err
+}
+
+func (em *EncryptionManager) Encrypt(plaintext []byte) ([]byte, error) {
+    nonce := make([]byte, em.gcm.NonceSize())
+    if _, err := rand.Read(nonce); err != nil {
+        return nil, err
+    }
+    
+    ciphertext := em.gcm.Seal(nonce, nonce, plaintext, nil)
+    return ciphertext, nil
+}
+
+func (em *EncryptionManager) Decrypt(ciphertext []byte) ([]byte, error) {
+    nonceSize := em.gcm.NonceSize()
+    if len(ciphertext) < nonceSize {
+        return nil, fmt.Errorf("ciphertext too short")
+    }
+    
+    nonce, ciphertext := ciphertext[:nonceSize], ciphertext[nonceSize:]
+    return em.gcm.Open(nil, nonce, ciphertext, nil)
+}
+
+func (em *EncryptionManager) EncryptString(plaintext string) (string, error) {
+    encrypted, err := em.Encrypt([]byte(plaintext))
+    if err != nil {
+        return "", err
+    }
+    return base64.StdEncoding.EncodeToString(encrypted), nil
+}
+
+func (em *EncryptionManager) DecryptString(ciphertext string) (string, error) {
+    decoded, err := base64.StdEncoding.DecodeString(ciphertext)
+    if err != nil {
+        return "", err
+    }
+    
+    decrypted, err := em.Decrypt(decoded)
+    if err != nil {
+        return "", err
+    }
+    
+    return string(decrypted), nil
+}
+
+// Secrets Manager
+type SecretsManager struct {
+    config      SecretsConfig
+    vaultClient *api.Client
+    cache       map[string]*SecretCacheEntry
+    cacheMutex  sync.RWMutex
+}
+
+type SecretCacheEntry struct {
+    Value     string
+    ExpiresAt time.Time
+}
+
+func NewSecretsManager(config SecretsConfig) *SecretsManager {
+    sm := &SecretsManager{
+        config: config,
+        cache:  make(map[string]*SecretCacheEntry),
+    }
+    
+    if config.Provider == "vault" {
+        sm.initializeVault()
+    }
+    
+    return sm
+}
+
+func (sm *SecretsManager) initializeVault() error {
+    client, err := api.NewClient(api.DefaultConfig())
+    if err != nil {
+        return err
+    }
+    
+    client.SetAddress(sm.config.Vault.Address)
+    sm.vaultClient = client
+    
+    return nil
+}
+
+func (sm *SecretsManager) GetSecret(path string) (string, error) {
+    // Check cache first
+    sm.cacheMutex.RLock()
+    if entry, exists := sm.cache[path]; exists && time.Now().Before(entry.ExpiresAt) {
+        sm.cacheMutex.RUnlock()
+        return entry.Value, nil
+    }
+    sm.cacheMutex.RUnlock()
+    
+    // Fetch from vault
+    secret, err := sm.vaultClient.Logical().Read(path)
+    if err != nil {
+        return "", err
+    }
+    
+    if secret == nil || secret.Data == nil {
+        return "", fmt.Errorf("secret not found: %s", path)
+    }
+    
+    value, ok := secret.Data["value"].(string)
+    if !ok {
+        return "", fmt.Errorf("invalid secret format")
+    }
+    
+    // Cache the secret
+    sm.cacheMutex.Lock()
+    sm.cache[path] = &SecretCacheEntry{
+        Value:     value,
+        ExpiresAt: time.Now().Add(time.Hour),
+    }
+    sm.cacheMutex.Unlock()
+    
+    return value, nil
+}
+
+func (sm *SecretsManager) GetDatabaseCredentials(role string) (*DatabaseCredentials, error) {
+    path := fmt.Sprintf("%s/creds/%s", sm.config.Vault.Database.Mount, role)
+    
+    secret, err := sm.vaultClient.Logical().Read(path)
+    if err != nil {
+        return nil, err
+    }
+    
+    if secret == nil || secret.Data == nil {
+        return nil, fmt.Errorf("credentials not found")
+    }
+    
+    return &DatabaseCredentials{
+        Username: secret.Data["username"].(string),
+        Password: secret.Data["password"].(string),
+        TTL:      time.Duration(secret.LeaseDuration) * time.Second,
+    }, nil
+}
+
+type DatabaseCredentials struct {
+    Username string
+    Password string
+    TTL      time.Duration
+}
+
+// Authentication Manager
+type AuthManager struct {
+    config    AuthConfig
+    jwtSecret []byte
+}
+
+func NewAuthManager(config AuthConfig) *AuthManager {
+    return &AuthManager{
+        config:    config,
+        jwtSecret: []byte("jwt-secret"), // Load securely in real implementation
+    }
+}
+
+func (am *AuthManager) ValidateJWT(tokenString string) (*jwt.MapClaims, error) {
+    token, err := jwt.Parse(tokenString, func(token *jwt.Token) (interface{}, error) {
+        if _, ok := token.Method.(*jwt.SigningMethodHMAC); !ok {
+            return nil, fmt.Errorf("unexpected signing method")
+        }
+        return am.jwtSecret, nil
+    })
+    
+    if err != nil {
+        return nil, err
+    }
+    
+    if claims, ok := token.Claims.(jwt.MapClaims); ok && token.Valid {
+        return &claims, nil
+    }
+    
+    return nil, fmt.Errorf("invalid token")
+}
+
+func (am *AuthManager) GenerateJWT(userID string, roles []string) (string, error) {
+    claims := jwt.MapClaims{
+        "user_id": userID,
+        "roles":   roles,
+        "iss":     am.config.JWT.Issuer,
+        "aud":     am.config.JWT.Audience,
+        "exp":     time.Now().Add(time.Hour).Unix(),
+        "iat":     time.Now().Unix(),
+    }
+    
+    token := jwt.NewWithClaims(jwt.SigningMethodHS256, claims)
+    return token.SignedString(am.jwtSecret)
+}
+
+func (am *AuthManager) CheckPermission(userRoles []string, resource, action string) bool {
+    for _, role := range userRoles {
+        if roleConfig, exists := am.config.RBAC.Roles[role]; exists {
+            for _, permission := range roleConfig.Permissions {
+                if permission == "*" || strings.HasPrefix(permission, action+":") {
+                    return true
+                }
+            }
+        }
+    }
+    
+    // Check resource-specific permissions
+    if resourceConfig, exists := am.config.RBAC.Resources[resource]; exists {
+        if allowedRoles, exists := resourceConfig[action]; exists {
+            for _, role := range userRoles {
+                for _, allowedRole := range allowedRoles {
+                    if role == allowedRole {
+                        return true
+                    }
+                }
+            }
+        }
+    }
+    
+    return false
+}
+
+// Validation Manager
+type ValidationManager struct {
+    config            ValidationConfig
+    xssPatterns       []*regexp.Regexp
+    sqlInjectionPttrns []*regexp.Regexp
+}
+
+func NewValidationManager(config ValidationConfig) *ValidationManager {
+    vm := &ValidationManager{
+        config: config,
+    }
+    
+    vm.initializePatterns()
+    return vm
+}
+
+func (vm *ValidationManager) initializePatterns() {
+    // XSS patterns
+    xssPatterns := []string{
+        `(?i)<script[^>]*>.*?</script>`,
+        `(?i)javascript:`,
+        `(?i)vbscript:`,
+        `(?i)on\w+\s*=`,
+        `(?i)<iframe`,
+        `(?i)<object`,
+        `(?i)<embed`,
+    }
+    
+    for _, pattern := range xssPatterns {
+        if regex, err := regexp.Compile(pattern); err == nil {
+            vm.xssPatterns = append(vm.xssPatterns, regex)
+        }
+    }
+    
+    // SQL injection patterns
+    sqlPatterns := []string{
+        `(?i)(union|select|insert|delete|drop|exec|execute)\s+`,
+        `(?i)(or|and)\s+\w+\s*=\s*\w+`,
+        `(?i)'.*?(or|and).*?'`,
+        `(?i);\s*(drop|delete|insert)`,
+        `(?i)--.*`,
+        `(?i)/\*.*?\*/`,
+    }
+    
+    for _, pattern := range sqlPatterns {
+        if regex, err := regexp.Compile(pattern); err == nil {
+            vm.sqlInjectionPttrns = append(vm.sqlInjectionPttrns, regex)
+        }
+    }
+}
+
+func (vm *ValidationManager) ValidateInput(field, value string) error {
+    rule, exists := vm.config.InputRules[field]
+    if !exists {
+        return nil // No validation rule for this field
+    }
+    
+    // Check required
+    if rule.Required && value == "" {
+        return fmt.Errorf("field %s is required", field)
+    }
+    
+    // Check length constraints
+    if rule.MinLength > 0 && len(value) < rule.MinLength {
+        return fmt.Errorf("field %s must be at least %d characters", field, rule.MinLength)
+    }
+    
+    if rule.MaxLength > 0 && len(value) > rule.MaxLength {
+        return fmt.Errorf("field %s must be at most %d characters", field, rule.MaxLength)
+    }
+    
+    // Check pattern
+    if rule.Pattern != "" {
+        if matched, _ := regexp.MatchString(rule.Pattern, value); !matched {
+            return fmt.Errorf("field %s has invalid format", field)
+        }
+    }
+    
+    // Check forbidden patterns
+    for _, forbidden := range rule.ForbiddenPatterns {
+        if strings.Contains(strings.ToLower(value), forbidden) {
+            return fmt.Errorf("field %s contains forbidden content", field)
+        }
+    }
+    
+    return nil
+}
+
+func (vm *ValidationManager) SanitizeInput(input string) string {
+    if !vm.config.XSSProtection.Enabled {
+        return input
+    }
+    
+    // Remove scripts if configured
+    if vm.config.XSSProtection.RemoveScripts {
+        for _, pattern := range vm.xssPatterns {
+            input = pattern.ReplaceAllString(input, "")
+        }
+    }
+    
+    // Additional sanitization would go here
+    return input
+}
+
+func (vm *ValidationManager) DetectSQLInjection(query string) bool {
+    if !vm.config.SQLInjection.Enabled {
+        return false
+    }
+    
+    for _, pattern := range vm.sqlInjectionPttrns {
+        if pattern.MatchString(query) {
+            return true
+        }
+    }
+    
+    return false
+}
+
+// Rate Limit Manager
+type RateLimitManager struct {
+    config   RateLimitingConfig
+    limiters map[string]*rate.Limiter
+    mutex    sync.RWMutex
+}
+
+func NewRateLimitManager(config RateLimitingConfig) *RateLimitManager {
+    return &RateLimitManager{
+        config:   config,
+        limiters: make(map[string]*rate.Limiter),
+    }
+}
+
+func (rlm *RateLimitManager) CheckLimit(key string, endpoint string) bool {
+    if !rlm.config.Enabled {
+        return true
+    }
+    
+    rlm.mutex.Lock()
+    defer rlm.mutex.Unlock()
+    
+    limiter, exists := rlm.limiters[key]
+    if !exists {
+        // Create new limiter based on endpoint config
+        var rps rate.Limit = rate.Limit(rlm.config.Global.RequestsPerSecond)
+        var burst int = rlm.config.Global.BurstSize
+        
+        if endpointConfig, exists := rlm.config.Endpoints[endpoint]; exists {
+            if endpointConfig.RequestsPerSecond > 0 {
+                rps = rate.Limit(endpointConfig.RequestsPerSecond)
+            }
+            if endpointConfig.BurstSize > 0 {
+                burst = endpointConfig.BurstSize
+            }
+        }
+        
+        limiter = rate.NewLimiter(rps, burst)
+        rlm.limiters[key] = limiter
+    }
+    
+    return limiter.Allow()
+}
+
+// Security Middleware
+func (sm *SecurityManager) SecurityMiddleware(next http.Handler) http.Handler {
+    return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+        ctx := r.Context()
+        
+        // Set security headers
+        sm.setSecurityHeaders(w)
+        
+        // Rate limiting
+        clientIP := sm.getClientIP(r)
+        if !sm.rateLimitMgr.CheckLimit(clientIP, r.URL.Path) {
+            sm.auditLogger.LogEvent("security.rate_limit_exceeded", map[string]interface{}{
+                "ip":       clientIP,
+                "endpoint": r.URL.Path,
+                "method":   r.Method,
+            })
+            http.Error(w, "Rate limit exceeded", http.StatusTooManyRequests)
+            return
+        }
+        
+        // Input validation
+        if err := sm.validateRequest(r); err != nil {
+            sm.auditLogger.LogEvent("security.validation_failed", map[string]interface{}{
+                "ip":     clientIP,
+                "error":  err.Error(),
+                "method": r.Method,
+                "path":   r.URL.Path,
+            })
+            http.Error(w, "Invalid input", http.StatusBadRequest)
+            return
+        }
+        
+        // Authentication check
+        if sm.requiresAuth(r.URL.Path) {
+            userContext, err := sm.authenticateRequest(r)
+            if err != nil {
+                sm.auditLogger.LogEvent("security.auth_failed", map[string]interface{}{
+                    "ip":    clientIP,
+                    "error": err.Error(),
+                    "path":  r.URL.Path,
+                })
+                http.Error(w, "Authentication required", http.StatusUnauthorized)
+                return
+            }
+            
+            ctx = context.WithValue(ctx, "user", userContext)
+        }
+        
+        // Security monitoring
+        sm.monitoringMgr.RecordRequest(r, clientIP)
+        
+        next.ServeHTTP(w, r.WithContext(ctx))
+    })
+}
+
+func (sm *SecurityManager) setSecurityHeaders(w http.ResponseWriter) {
+    // HSTS
+    if sm.config.Headers.HSTS.Enabled {
+        hstsValue := fmt.Sprintf("max-age=%d", sm.config.Headers.HSTS.MaxAge)
+        if sm.config.Headers.HSTS.IncludeSubdomains {
+            hstsValue += "; includeSubDomains"
+        }
+        if sm.config.Headers.HSTS.Preload {
+            hstsValue += "; preload"
+        }
+        w.Header().Set("Strict-Transport-Security", hstsValue)
+    }
+    
+    // CSP
+    if sm.config.Headers.CSP.Enabled {
+        cspValue := sm.buildCSPHeader()
+        if sm.config.Headers.CSP.ReportOnly {
+            w.Header().Set("Content-Security-Policy-Report-Only", cspValue)
+        } else {
+            w.Header().Set("Content-Security-Policy", cspValue)
+        }
+    }
+    
+    // Other security headers
+    w.Header().Set("X-Frame-Options", sm.config.Headers.FrameOptions)
+    w.Header().Set("X-Content-Type-Options", sm.config.Headers.ContentTypeOptions)
+    w.Header().Set("X-XSS-Protection", sm.config.Headers.XSSProtection)
+    w.Header().Set("Referrer-Policy", sm.config.Headers.ReferrerPolicy)
+}
+
+func (sm *SecurityManager) buildCSPHeader() string {
+    var directives []string
+    
+    for directive, sources := range sm.config.Headers.CSP.Directives {
+        value := fmt.Sprintf("%s %s", directive, strings.Join(sources, " "))
+        directives = append(directives, value)
+    }
+    
+    return strings.Join(directives, "; ")
+}
+
+func (sm *SecurityManager) getClientIP(r *http.Request) string {
+    // Check X-Forwarded-For header first
+    if xff := r.Header.Get("X-Forwarded-For"); xff != "" {
+        ips := strings.Split(xff, ",")
+        return strings.TrimSpace(ips[0])
+    }
+    
+    // Check X-Real-IP header
+    if xri := r.Header.Get("X-Real-IP"); xri != "" {
+        return xri
+    }
+    
+    // Fall back to RemoteAddr
+    return strings.Split(r.RemoteAddr, ":")[0]
+}
+
+func (sm *SecurityManager) validateRequest(r *http.Request) error {
+    // Validate query parameters
+    for key, values := range r.URL.Query() {
+        for _, value := range values {
+            if err := sm.validationMgr.ValidateInput(key, value); err != nil {
+                return err
+            }
+            
+            // Check for XSS
+            if sm.containsXSS(value) {
+                return fmt.Errorf("XSS detected in parameter: %s", key)
+            }
+            
+            // Check for SQL injection
+            if sm.validationMgr.DetectSQLInjection(value) {
+                return fmt.Errorf("SQL injection detected in parameter: %s", key)
+            }
+        }
+    }
+    
+    return nil
+}
+
+func (sm *SecurityManager) containsXSS(input string) bool {
+    // Use validation manager's XSS detection
+    return strings.Contains(input, "<script") || strings.Contains(input, "javascript:")
+}
+
+func (sm *SecurityManager) requiresAuth(path string) bool {
+    // Check if path requires authentication
+    publicPaths := []string{"/health", "/metrics", "/login", "/register"}
+    
+    for _, publicPath := range publicPaths {
+        if strings.HasPrefix(path, publicPath) {
+            return false
+        }
+    }
+    
+    return true
+}
+
+func (sm *SecurityManager) authenticateRequest(r *http.Request) (interface{}, error) {
+    authHeader := r.Header.Get("Authorization")
+    if authHeader == "" {
+        return nil, fmt.Errorf("missing authorization header")
+    }
+    
+    if !strings.HasPrefix(authHeader, "Bearer ") {
+        return nil, fmt.Errorf("invalid authorization format")
+    }
+    
+    token := strings.TrimPrefix(authHeader, "Bearer ")
+    claims, err := sm.authMgr.ValidateJWT(token)
+    if err != nil {
+        return nil, err
+    }
+    
+    return claims, nil
+}
+
+// Required types for compilation
+type SecurityConfig struct {
+    Encryption   EncryptionConfig   `tusk:"encryption"`
+    Secrets      SecretsConfig      `tusk:"secrets"`
+    Auth         AuthConfig         `tusk:"auth"`
+    Validation   ValidationConfig   `tusk:"validation"`
+    Headers      HeadersConfig      `tusk:"headers"`
+    RateLimiting RateLimitingConfig `tusk:"rate_limiting"`
+    Audit        AuditConfig        `tusk:"audit"`
+    Monitoring   MonitoringConfig   `tusk:"monitoring"`
+}
+
+type SecretsConfig struct {
+    Provider string      `tusk:"provider"`
+    Vault    VaultConfig `tusk:"vault"`
+}
+
+type VaultConfig struct {
+    Address    string               `tusk:"address"`
+    AuthMethod string               `tusk:"auth_method"`
+    Role       string               `tusk:"role"`
+    Database   VaultDatabaseConfig  `tusk:"database"`
+}
+
+type VaultDatabaseConfig struct {
+    Mount string `tusk:"mount"`
+}
+
+type AuthConfig struct {
+    JWT  JWTConfig  `tusk:"jwt"`
+    RBAC RBACConfig `tusk:"rbac"`
+}
+
+type JWTConfig struct {
+    Algorithm string `tusk:"algorithm"`
+    Issuer    string `tusk:"issuer"`
+    Audience  string `tusk:"audience"`
+}
+
+type RBACConfig struct {
+    Roles     map[string]RoleConfig     `tusk:"roles"`
+    Resources map[string]ResourceConfig `tusk:"resources"`
+}
+
+type RoleConfig struct {
+    Permissions []string `tusk:"permissions"`
+}
+
+type ResourceConfig map[string][]string
+
+type ValidationConfig struct {
+    XSSProtection  XSSProtectionConfig        `tusk:"xss_protection"`
+    SQLInjection   SQLInjectionConfig         `tusk:"sql_injection"`
+    InputRules     map[string]InputRuleConfig `tusk:"input_rules"`
+}
+
+type XSSProtectionConfig struct {
+    Enabled       bool `tusk:"enabled"`
+    RemoveScripts bool `tusk:"remove_scripts"`
+}
+
+type SQLInjectionConfig struct {
+    Enabled bool `tusk:"enabled"`
+}
+
+type InputRuleConfig struct {
+    Pattern           string   `tusk:"pattern"`
+    MinLength         int      `tusk:"min_length"`
+    MaxLength         int      `tusk:"max_length"`
+    Required          bool     `tusk:"required"`
+    ForbiddenPatterns []string `tusk:"forbidden_patterns"`
+}
+
+type HeadersConfig struct {
+    CSP                CSPConfig `tusk:"csp"`
+    HSTS               HSTSConfig `tusk:"hsts"`
+    FrameOptions       string    `tusk:"frame_options"`
+    ContentTypeOptions string    `tusk:"content_type_options"`
+    XSSProtection      string    `tusk:"xss_protection"`
+    ReferrerPolicy     string    `tusk:"referrer_policy"`
+}
+
+type CSPConfig struct {
+    Enabled    bool                        `tusk:"enabled"`
+    Directives map[string][]string         `tusk:"directives"`
+    ReportOnly bool                        `tusk:"report_only"`
+}
+
+type HSTSConfig struct {
+    Enabled           bool `tusk:"enabled"`
+    MaxAge            int  `tusk:"max_age"`
+    IncludeSubdomains bool `tusk:"include_subdomains"`
+    Preload           bool `tusk:"preload"`
+}
+
+type RateLimitingConfig struct {
+    Enabled   bool                              `tusk:"enabled"`
+    Global    GlobalRateLimitConfig             `tusk:"global"`
+    Endpoints map[string]EndpointRateLimitConfig `tusk:"endpoints"`
+}
+
+type GlobalRateLimitConfig struct {
+    RequestsPerSecond int `tusk:"requests_per_second"`
+    BurstSize         int `tusk:"burst_size"`
+}
+
+type EndpointRateLimitConfig struct {
+    RequestsPerSecond int `tusk:"requests_per_second"`
+    BurstSize         int `tusk:"burst_size"`
+}
+
+type AuditConfig struct {
+    Enabled bool `tusk:"enabled"`
+}
+
+type MonitoringConfig struct {
+    Enabled bool `tusk:"enabled"`
+}
+
+type InTransitConfig struct{}
+type AuditLogger struct{}
+type SecurityMonitoring struct{}
+
+func NewAuditLogger(config AuditConfig) *AuditLogger {
+    return &AuditLogger{}
+}
+
+func (al *AuditLogger) LogEvent(eventType string, data map[string]interface{}) {
+    fmt.Printf("AUDIT [%s]: %v\n", eventType, data)
+}
+
+func NewSecurityMonitoring(config MonitoringConfig) *SecurityMonitoring {
+    return &SecurityMonitoring{}
+}
+
+func (sm *SecurityMonitoring) RecordRequest(r *http.Request, clientIP string) {
+    // Record security metrics
+}
+
+func main() {
+    config := &SecurityConfig{
+        Auth: AuthConfig{
+            JWT: JWTConfig{
+                Algorithm: "HS256",
+                Issuer:    "tusklang-auth",
+                Audience:  "tusklang-api",
+            },
+        },
+        RateLimiting: RateLimitingConfig{
+            Enabled: true,
+            Global: GlobalRateLimitConfig{
+                RequestsPerSecond: 1000,
+                BurstSize:         100,
+            },
+        },
+        Headers: HeadersConfig{
+            HSTS: HSTSConfig{
+                Enabled:           true,
+                MaxAge:            31536000,
+                IncludeSubdomains: true,
+                Preload:           true,
+            },
+        },
+    }
+    
+    securityManager := NewSecurityManager(config)
+    
+    mux := http.NewServeMux()
+    mux.HandleFunc("/api/secure", func(w http.ResponseWriter, r *http.Request) {
+        w.Write([]byte("Secure endpoint"))
+    })
+    
+    handler := securityManager.SecurityMiddleware(mux)
+    
+    server := &http.Server{
+        Addr:    ":8443",
+        Handler: handler,
+        TLSConfig: &tls.Config{
+            MinVersion: tls.VersionTLS13,
+            CipherSuites: []uint16{
+                tls.TLS_AES_256_GCM_SHA384,
+                tls.TLS_CHACHA20_POLY1305_SHA256,
+            },
+        },
+    }
+    
+    fmt.Println("Starting secure server on :8443")
+    server.ListenAndServeTLS("cert.pem", "key.pem")
+}
+</pre>
+
+<p>TuskLang security best practices provide comprehensive protection including encryption, secrets management, authentication, input validation, rate limiting, security headers, and audit logging for secure Go applications.</p>

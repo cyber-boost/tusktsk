@@ -1,0 +1,17 @@
+# 🐘 Trunk Default Configuration - TuskLang Format
+max_payload_size = 1048576
+default_timeout = 30
+max_retry_attempts = 3
+compression_threshold = 1024
+encryption_enabled = true
+logging_enabled = true
+
+[channels]
+default.active = true
+default.persistent = false
+alerts.active = true
+alerts.persistent = true
+system.active = true
+system.persistent = true
+user.active = true
+user.persistent = false

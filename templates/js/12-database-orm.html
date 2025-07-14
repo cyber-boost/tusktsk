@@ -1,0 +1,601 @@
+<h1>Database & ORM</h1>
+
+<h2>Database Integration with TuskLang</h2>
+<p>TuskLang provides a clean, declarative approach to database operations inspired by Parse/Firebase.</p>
+
+<h3>database-config.tsk</h3>
+<pre>
+# Database configuration
+database {
+    # Connection settings
+    default: "postgres"
+    
+    connections {
+        postgres: {
+            client: "pg",
+            host: env("DB_HOST", "localhost"),
+            port: env("DB_PORT", 5432),
+            database: env("DB_NAME", "myapp"),
+            user: env("DB_USER", "postgres"),
+            password: env("DB_PASSWORD", ""),
+            pool: {
+                min: 2,
+                max: 10
+            }
+        },
+        
+        mongodb: {
+            url: env("MONGO_URL", "mongodb://localhost:27017/myapp"),
+            options: {
+                useNewUrlParser: true,
+                useUnifiedTopology: true
+            }
+        },
+        
+        redis: {
+            host: env("REDIS_HOST", "localhost"),
+            port: env("REDIS_PORT", 6379),
+            password: env("REDIS_PASSWORD"),
+            db: 0
+        }
+    }
+}
+
+# Model definitions
+models {
+    User: {
+        collection: "users",
+        schema: {
+            name: { type: "string", required: true },
+            email: { type: "string", required: true, unique: true },
+            password: { type: "string", required: true, hidden: true },
+            role: { type: "string", enum: ["user", "admin"], default: "user" },
+            active: { type: "boolean", default: true },
+            profile: { type: "object", schema: {
+                avatar: { type: "string" },
+                bio: { type: "string", maxLength: 500 },
+                location: { type: "string" }
+            }},
+            createdAt: { type: "date", default: "@now" },
+            updatedAt: { type: "date", default: "@now", updateOnSave: true }
+        },
+        
+        indexes: [
+            { fields: ["email"], unique: true },
+            { fields: ["createdAt"], sparse: true },
+            { fields: ["role", "active"] }
+        ],
+        
+        hooks: {
+            beforeSave: "@hashPassword",
+            afterCreate: "@sendWelcomeEmail",
+            beforeDelete: "@archiveUser"
+        },
+        
+        methods: {
+            comparePassword: "@bcrypt.compare",
+            generateToken: "@jwt.sign",
+            toJSON: "@excludeHidden"
+        }
+    },
+    
+    Post: {
+        collection: "posts",
+        schema: {
+            title: { type: "string", required: true },
+            content: { type: "string", required: true },
+            authorId: { type: "objectId", ref: "User", required: true },
+            tags: { type: "array", items: "string" },
+            status: { type: "string", enum: ["draft", "published"], default: "draft" },
+            views: { type: "number", default: 0 },
+            likes: { type: "array", items: "objectId", ref: "User" }
+        },
+        
+        virtuals: {
+            likeCount: "@this.likes.length",
+            isPublished: "@this.status === 'published'"
+        }
+    }
+}
+
+# Query examples
+queries {
+    # Basic queries
+    allUsers: @Query("User").find()
+    activeUsers: @Query("User").where("active", true).find()
+    userByEmail: @Query("User").where("email", @var.email).first()
+    
+    # Complex queries
+    recentPosts: @Query("Post")
+        .where("status", "published")
+        .where("createdAt", ">", @date.subtract(7, "days"))
+        .populate("authorId")
+        .sort("-createdAt")
+        .limit(10)
+        .find()
+    
+    # Aggregations
+    postStats: @Query("Post").aggregate([
+        { $match: { status: "published" } },
+        { $group: {
+            _id: "$authorId",
+            postCount: { $sum: 1 },
+            totalViews: { $sum: "$views" },
+            avgViews: { $avg: "$views" }
+        }},
+        { $sort: { totalViews: -1 } }
+    ])
+    
+    # Transactions
+    createPostWithTags: @transaction(async (session) => {
+        const post = await @Query("Post").create({
+            title: @var.title,
+            content: @var.content,
+            authorId: @var.userId,
+            tags: @var.tags
+        }, { session })
+        
+        await @Query("Tag").updateMany(
+            { name: { $in: @var.tags } },
+            { $inc: { count: 1 } },
+            { session, upsert: true }
+        )
+        
+        return post
+    })
+}
+
+# Database migrations
+migrations {
+    createUsersTable: {
+        up: @sql("
+            CREATE TABLE users (
+                id SERIAL PRIMARY KEY,
+                name VARCHAR(255) NOT NULL,
+                email VARCHAR(255) UNIQUE NOT NULL,
+                password VARCHAR(255) NOT NULL,
+                role VARCHAR(50) DEFAULT 'user',
+                active BOOLEAN DEFAULT true,
+                profile JSONB,
+                created_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
+                updated_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP
+            )
+        "),
+        
+        down: @sql("DROP TABLE users")
+    }
+}
+</pre>
+
+<h3>JavaScript ORM Implementation</h3>
+<pre>
+// TuskLang ORM
+class TuskORM {
+    constructor(config) {
+        this.config = config;
+        this.connections = new Map();
+        this.models = new Map();
+        
+        this.initializeConnections();
+        this.initializeModels();
+    }
+    
+    initializeConnections() {
+        Object.entries(this.config.database.connections).forEach(([name, config]) => {
+            const connection = this.createConnection(name, config);
+            this.connections.set(name, connection);
+        });
+        
+        // Set default connection
+        this.defaultConnection = this.connections.get(this.config.database.default);
+    }
+    
+    createConnection(name, config) {
+        switch (config.client || name) {
+            case 'pg':
+            case 'postgres':
+                return this.createPostgresConnection(config);
+                
+            case 'mongodb':
+                return this.createMongoConnection(config);
+                
+            case 'redis':
+                return this.createRedisConnection(config);
+                
+            default:
+                throw new Error(`Unknown database client: ${config.client || name}`);
+        }
+    }
+    
+    createPostgresConnection(config) {
+        const { Pool } = require('pg');
+        return new Pool({
+            host: config.host,
+            port: config.port,
+            database: config.database,
+            user: config.user,
+            password: config.password,
+            ...config.pool
+        });
+    }
+    
+    createMongoConnection(config) {
+        const { MongoClient } = require('mongodb');
+        const client = new MongoClient(config.url, config.options);
+        client.connect();
+        return client.db();
+    }
+    
+    createRedisConnection(config) {
+        const Redis = require('ioredis');
+        return new Redis({
+            host: config.host,
+            port: config.port,
+            password: config.password,
+            db: config.db
+        });
+    }
+    
+    initializeModels() {
+        Object.entries(this.config.models).forEach(([name, definition]) => {
+            const Model = this.createModel(name, definition);
+            this.models.set(name, Model);
+        });
+    }
+    
+    createModel(name, definition) {
+        const model = new TuskModel(name, definition, this);
+        
+        // Add static methods
+        model.find = (query = {}) => new TuskQuery(model, 'find').where(query);
+        model.findOne = (query = {}) => new TuskQuery(model, 'findOne').where(query);
+        model.findById = (id) => new TuskQuery(model, 'findOne').where({ _id: id });
+        model.create = (data) => new TuskQuery(model, 'create').data(data);
+        model.updateOne = (query, update) => new TuskQuery(model, 'updateOne').where(query).data(update);
+        model.updateMany = (query, update) => new TuskQuery(model, 'updateMany').where(query).data(update);
+        model.deleteOne = (query) => new TuskQuery(model, 'deleteOne').where(query);
+        model.deleteMany = (query) => new TuskQuery(model, 'deleteMany').where(query);
+        model.aggregate = (pipeline) => new TuskQuery(model, 'aggregate').pipeline(pipeline);
+        
+        return model;
+    }
+    
+    Query(modelName) {
+        const model = this.models.get(modelName);
+        if (!model) {
+            throw new Error(`Model not found: ${modelName}`);
+        }
+        return new TuskQuery(model);
+    }
+}
+
+// Model class
+class TuskModel {
+    constructor(name, definition, orm) {
+        this.name = name;
+        this.definition = definition;
+        this.orm = orm;
+        this.collection = definition.collection || name.toLowerCase() + 's';
+        this.schema = definition.schema;
+        this.hooks = definition.hooks || {};
+        this.methods = definition.methods || {};
+        this.virtuals = definition.virtuals || {};
+        this.indexes = definition.indexes || [];
+    }
+    
+    async validate(data) {
+        const errors = {};
+        
+        for (const [field, rules] of Object.entries(this.schema)) {
+            const value = data[field];
+            
+            // Required validation
+            if (rules.required && (value === undefined || value === null || value === '')) {
+                errors[field] = `${field} is required`;
+                continue;
+            }
+            
+            // Type validation
+            if (value !== undefined && value !== null) {
+                if (!this.validateType(value, rules.type)) {
+                    errors[field] = `${field} must be of type ${rules.type}`;
+                }
+                
+                // Additional validations
+                if (rules.minLength && value.length < rules.minLength) {
+                    errors[field] = `${field} must be at least ${rules.minLength} characters`;
+                }
+                
+                if (rules.maxLength && value.length > rules.maxLength) {
+                    errors[field] = `${field} must not exceed ${rules.maxLength} characters`;
+                }
+                
+                if (rules.enum && !rules.enum.includes(value)) {
+                    errors[field] = `${field} must be one of: ${rules.enum.join(', ')}`;
+                }
+            }
+        }
+        
+        if (Object.keys(errors).length > 0) {
+            throw new ValidationError(errors);
+        }
+        
+        return true;
+    }
+    
+    validateType(value, type) {
+        switch (type) {
+            case 'string': return typeof value === 'string';
+            case 'number': return typeof value === 'number';
+            case 'boolean': return typeof value === 'boolean';
+            case 'date': return value instanceof Date || !isNaN(Date.parse(value));
+            case 'array': return Array.isArray(value);
+            case 'object': return typeof value === 'object' && !Array.isArray(value);
+            case 'objectId': return /^[0-9a-fA-F]{24}$/.test(value);
+            default: return true;
+        }
+    }
+    
+    applyDefaults(data) {
+        const result = { ...data };
+        
+        for (const [field, rules] of Object.entries(this.schema)) {
+            if (result[field] === undefined && rules.default !== undefined) {
+                if (rules.default === '@now') {
+                    result[field] = new Date();
+                } else if (typeof rules.default === 'function') {
+                    result[field] = rules.default();
+                } else {
+                    result[field] = rules.default;
+                }
+            }
+        }
+        
+        return result;
+    }
+    
+    async runHook(hookName, data) {
+        const hook = this.hooks[hookName];
+        if (hook && typeof hook === 'function') {
+            return await hook(data);
+        }
+        return data;
+    }
+    
+    toJSON(doc) {
+        const result = { ...doc };
+        
+        // Remove hidden fields
+        for (const [field, rules] of Object.entries(this.schema)) {
+            if (rules.hidden && result[field] !== undefined) {
+                delete result[field];
+            }
+        }
+        
+        // Apply virtuals
+        for (const [name, getter] of Object.entries(this.virtuals)) {
+            if (typeof getter === 'function') {
+                result[name] = getter.call(doc);
+            }
+        }
+        
+        return result;
+    }
+}
+
+// Query builder
+class TuskQuery {
+    constructor(model, operation = 'find') {
+        this.model = model;
+        this.operation = operation;
+        this.criteria = {};
+        this.options = {};
+        this._pipeline = [];
+        this._data = null;
+    }
+    
+    where(field, operator, value) {
+        if (typeof field === 'object') {
+            Object.assign(this.criteria, field);
+        } else if (value === undefined) {
+            this.criteria[field] = operator;
+        } else {
+            this.criteria[field] = { [`$${operator}`]: value };
+        }
+        return this;
+    }
+    
+    populate(field) {
+        this.options.populate = this.options.populate || [];
+        this.options.populate.push(field);
+        return this;
+    }
+    
+    sort(field) {
+        this.options.sort = field;
+        return this;
+    }
+    
+    limit(count) {
+        this.options.limit = count;
+        return this;
+    }
+    
+    skip(count) {
+        this.options.skip = count;
+        return this;
+    }
+    
+    select(fields) {
+        this.options.select = fields;
+        return this;
+    }
+    
+    data(data) {
+        this._data = data;
+        return this;
+    }
+    
+    pipeline(stages) {
+        this._pipeline = stages;
+        return this;
+    }
+    
+    async exec() {
+        switch (this.operation) {
+            case 'find':
+                return this.execFind();
+            case 'findOne':
+                return this.execFindOne();
+            case 'create':
+                return this.execCreate();
+            case 'updateOne':
+            case 'updateMany':
+                return this.execUpdate();
+            case 'deleteOne':
+            case 'deleteMany':
+                return this.execDelete();
+            case 'aggregate':
+                return this.execAggregate();
+            default:
+                throw new Error(`Unknown operation: ${this.operation}`);
+        }
+    }
+    
+    // Aliases
+    find() { return this.exec(); }
+    first() { this.operation = 'findOne'; return this.exec(); }
+    get() { return this.exec(); }
+    save() { return this.exec(); }
+    delete() { return this.exec(); }
+    
+    async execFind() {
+        // This would execute the actual database query
+        console.log('Finding:', this.model.collection, this.criteria, this.options);
+        
+        // Mock implementation
+        return [
+            { id: 1, name: 'Item 1' },
+            { id: 2, name: 'Item 2' }
+        ];
+    }
+    
+    async execFindOne() {
+        const results = await this.execFind();
+        return results[0] || null;
+    }
+    
+    async execCreate() {
+        // Validate data
+        await this.model.validate(this._data);
+        
+        // Apply defaults
+        const data = this.model.applyDefaults(this._data);
+        
+        // Run beforeSave hook
+        const processed = await this.model.runHook('beforeSave', data);
+        
+        // Insert into database
+        console.log('Creating:', this.model.collection, processed);
+        
+        // Mock implementation
+        const created = { id: Date.now(), ...processed };
+        
+        // Run afterCreate hook
+        await this.model.runHook('afterCreate', created);
+        
+        return created;
+    }
+    
+    async execUpdate() {
+        console.log('Updating:', this.model.collection, this.criteria, this._data);
+        
+        // Mock implementation
+        return { modifiedCount: 1 };
+    }
+    
+    async execDelete() {
+        // Run beforeDelete hook
+        await this.model.runHook('beforeDelete', this.criteria);
+        
+        console.log('Deleting:', this.model.collection, this.criteria);
+        
+        // Mock implementation
+        return { deletedCount: 1 };
+    }
+    
+    async execAggregate() {
+        console.log('Aggregating:', this.model.collection, this._pipeline);
+        
+        // Mock implementation
+        return [];
+    }
+}
+
+// Transaction support
+class Transaction {
+    constructor(orm) {
+        this.orm = orm;
+        this.operations = [];
+    }
+    
+    add(operation) {
+        this.operations.push(operation);
+        return this;
+    }
+    
+    async commit() {
+        // Execute all operations in transaction
+        const results = [];
+        
+        try {
+            for (const op of this.operations) {
+                results.push(await op.exec());
+            }
+            return results;
+        } catch (error) {
+            // Rollback logic would go here
+            throw error;
+        }
+    }
+}
+
+// Usage example
+const config = TuskLang.parse(fs.readFileSync('database-config.tsk', 'utf8'));
+const orm = new TuskORM(config);
+
+// Get models
+const User = orm.models.get('User');
+const Post = orm.models.get('Post');
+
+// Create a user
+const newUser = await User.create({
+    name: 'John Doe',
+    email: 'john@example.com',
+    password: 'hashedpassword'
+});
+
+// Find users
+const users = await User.find({ active: true })
+    .sort('-createdAt')
+    .limit(10)
+    .exec();
+
+// Complex query
+const posts = await Post.find()
+    .where('status', 'published')
+    .where('createdAt', 'gte', new Date('2024-01-01'))
+    .populate('authorId')
+    .sort('-views')
+    .limit(20)
+    .exec();
+
+// Using Query function
+const query = orm.Query('User')
+    .where('email', 'john@example.com')
+    .first();
+
+console.log(await query);
+</pre>
+
+<p>TuskLang's database integration provides a clean, intuitive API for database operations with support for multiple databases, validation, hooks, and complex queries.</p>

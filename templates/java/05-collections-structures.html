@@ -1,0 +1,466 @@
+<h1>Collections and Structures for Java</h1>
+
+<h2>Lists and Arrays</h2>
+<pre>
+# Simple lists
+server_names: ["web1", "web2", "web3"]
+port_numbers: [8080, 8081, 8082]
+feature_flags: [true, false, true, false]
+
+# Mixed type arrays (become List&lt;Object&gt;)
+mixed_config: ["string", 42, true, null]
+
+# Nested arrays
+matrix_data: [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+
+# Array of objects
+database_connections: [
+    {
+        name: "primary"
+        host: "db1.example.com"
+        port: 5432
+        pool_size: 10
+    },
+    {
+        name: "secondary"
+        host: "db2.example.com"
+        port: 5432
+        pool_size: 5
+    }
+]
+</pre>
+
+<h2>Java List Implementation</h2>
+<pre>
+// ListConfig.java
+@ConfigurationProperties
+@Component
+public class ListConfig {
+    private List&lt;String&gt; serverNames = new ArrayList&lt;&gt;();
+    private List&lt;Integer&gt; portNumbers = new ArrayList&lt;&gt;();
+    private List&lt;Boolean&gt; featureFlags = new ArrayList&lt;&gt;();
+    private List&lt;Object&gt; mixedConfig = new ArrayList&lt;&gt;();
+    private List&lt;List&lt;Integer&gt;&gt; matrixData = new ArrayList&lt;&gt;();
+    private List&lt;DatabaseConnection&gt; databaseConnections = new ArrayList&lt;&gt;();
+    
+    // Getters and setters
+    public List&lt;String&gt; getServerNames() { return serverNames; }
+    public void setServerNames(List&lt;String&gt; serverNames) { 
+        this.serverNames = serverNames; 
+    }
+    
+    public List&lt;Integer&gt; getPortNumbers() { return portNumbers; }
+    public void setPortNumbers(List&lt;Integer&gt; portNumbers) { 
+        this.portNumbers = portNumbers; 
+    }
+    
+    public List&lt;DatabaseConnection&gt; getDatabaseConnections() { 
+        return databaseConnections; 
+    }
+    public void setDatabaseConnections(List&lt;DatabaseConnection&gt; databaseConnections) { 
+        this.databaseConnections = databaseConnections; 
+    }
+    
+    // Inner class for complex objects
+    public static class DatabaseConnection {
+        private String name;
+        private String host;
+        private int port;
+        private int poolSize;
+        
+        // Constructors
+        public DatabaseConnection() {}
+        
+        public DatabaseConnection(String name, String host, int port, int poolSize) {
+            this.name = name;
+            this.host = host;
+            this.port = port;
+            this.poolSize = poolSize;
+        }
+        
+        // Getters and setters
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        
+        public String getHost() { return host; }
+        public void setHost(String host) { this.host = host; }
+        
+        public int getPort() { return port; }
+        public void setPort(int port) { this.port = port; }
+        
+        public int getPoolSize() { return poolSize; }
+        public void setPoolSize(int poolSize) { this.poolSize = poolSize; }
+    }
+}
+</pre>
+
+<h2>Sets and Unique Collections</h2>
+<pre>
+# Unique values (converted to Set in Java)
+allowed_roles: ["ADMIN", "USER", "GUEST"]
+supported_formats: ["JSON", "XML", "YAML"]
+security_protocols: ["TLS", "SSL", "HTTPS"]
+
+# Using Java expressions for Set creation
+unique_servers: java("java.util.Set.of(\"server1\", \"server2\", \"server3\")")
+</pre>
+
+<h2>Java Set Implementation</h2>
+<pre>
+// SetConfig.java
+@ConfigurationProperties
+@Component
+public class SetConfig {
+    private Set&lt;String&gt; allowedRoles = new HashSet&lt;&gt;();
+    private Set&lt;String&gt; supportedFormats = new LinkedHashSet&lt;&gt;(); // Maintains order
+    private Set&lt;String&gt; securityProtocols = new TreeSet&lt;&gt;(); // Sorted
+    
+    // Convert List to Set automatically
+    public void setAllowedRoles(List&lt;String&gt; allowedRoles) {
+        this.allowedRoles = new HashSet&lt;&gt;(allowedRoles);
+    }
+    
+    public Set&lt;String&gt; getAllowedRoles() { return allowedRoles; }
+    
+    public void setSupportedFormats(List&lt;String&gt; supportedFormats) {
+        this.supportedFormats = new LinkedHashSet&lt;&gt;(supportedFormats);
+    }
+    
+    public Set&lt;String&gt; getSupportedFormats() { return supportedFormats; }
+    
+    public void setSecurityProtocols(List&lt;String&gt; securityProtocols) {
+        this.securityProtocols = new TreeSet&lt;&gt;(securityProtocols);
+    }
+    
+    public Set&lt;String&gt; getSecurityProtocols() { return securityProtocols; }
+}
+</pre>
+
+<h2>Maps and Dictionaries</h2>
+<pre>
+# Object notation becomes Map&lt;String, Object&gt;
+database_configs: {
+    "development": {
+        host: "localhost"
+        port: 5432
+        name: "myapp_dev"
+    },
+    "production": {
+        host: "prod-db.example.com"
+        port: 5432
+        name: "myapp_prod"
+    }
+}
+
+# Environment-specific configurations
+environments: {
+    "dev": {
+        debug: true
+        log_level: "DEBUG"
+        cache_enabled: false
+    },
+    "prod": {
+        debug: false
+        log_level: "INFO"
+        cache_enabled: true
+    }
+}
+
+# Simple key-value maps
+error_messages: {
+    "404": "Not Found"
+    "500": "Internal Server Error"
+    "403": "Forbidden"
+}
+
+# Numeric keys (as strings in TuskLang)
+http_status_codes: {
+    "200": "OK"
+    "201": "Created"
+    "400": "Bad Request"
+    "401": "Unauthorized"
+}
+</pre>
+
+<h2>Java Map Implementation</h2>
+<pre>
+// MapConfig.java
+@ConfigurationProperties
+@Component
+public class MapConfig {
+    private Map&lt;String, DatabaseConfig&gt; databaseConfigs = new HashMap&lt;&gt;();
+    private Map&lt;String, EnvironmentConfig&gt; environments = new HashMap&lt;&gt;();
+    private Map&lt;String, String&gt; errorMessages = new HashMap&lt;&gt;();
+    private Map&lt;Integer, String&gt; httpStatusCodes = new HashMap&lt;&gt;();
+    
+    // Getters and setters
+    public Map&lt;String, DatabaseConfig&gt; getDatabaseConfigs() { 
+        return databaseConfigs; 
+    }
+    public void setDatabaseConfigs(Map&lt;String, DatabaseConfig&gt; databaseConfigs) { 
+        this.databaseConfigs = databaseConfigs; 
+    }
+    
+    public Map&lt;String, EnvironmentConfig&gt; getEnvironments() { 
+        return environments; 
+    }
+    public void setEnvironments(Map&lt;String, EnvironmentConfig&gt; environments) { 
+        this.environments = environments; 
+    }
+    
+    public Map&lt;String, String&gt; getErrorMessages() { return errorMessages; }
+    public void setErrorMessages(Map&lt;String, String&gt; errorMessages) { 
+        this.errorMessages = errorMessages; 
+    }
+    
+    // Convert string keys to integers for HTTP status codes
+    public void setHttpStatusCodes(Map&lt;String, String&gt; httpStatusCodes) {
+        this.httpStatusCodes = new HashMap&lt;&gt;();
+        for (Map.Entry&lt;String, String&gt; entry : httpStatusCodes.entrySet()) {
+            this.httpStatusCodes.put(Integer.parseInt(entry.getKey()), entry.getValue());
+        }
+    }
+    
+    public Map&lt;Integer, String&gt; getHttpStatusCodes() { return httpStatusCodes; }
+    
+    // Inner classes
+    public static class DatabaseConfig {
+        private String host;
+        private int port;
+        private String name;
+        
+        // Getters and setters
+        public String getHost() { return host; }
+        public void setHost(String host) { this.host = host; }
+        
+        public int getPort() { return port; }
+        public void setPort(int port) { this.port = port; }
+        
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+    }
+    
+    public static class EnvironmentConfig {
+        private boolean debug;
+        private String logLevel;
+        private boolean cacheEnabled;
+        
+        // Getters and setters
+        public boolean isDebug() { return debug; }
+        public void setDebug(boolean debug) { this.debug = debug; }
+        
+        public String getLogLevel() { return logLevel; }
+        public void setLogLevel(String logLevel) { this.logLevel = logLevel; }
+        
+        public boolean isCacheEnabled() { return cacheEnabled; }
+        public void setCacheEnabled(boolean cacheEnabled) { 
+            this.cacheEnabled = cacheEnabled; 
+        }
+    }
+}
+</pre>
+
+<h2>Complex Nested Structures</h2>
+<pre>
+# Multi-level nested configuration
+application: {
+    name: "MyJavaApp"
+    modules: {
+        security: {
+            enabled: true
+            providers: ["jwt", "oauth2"]
+            settings: {
+                jwt: {
+                    secret: env("JWT_SECRET")
+                    expiration: 3600
+                },
+                oauth2: {
+                    client_id: env("OAUTH2_CLIENT_ID")
+                    client_secret: env("OAUTH2_CLIENT_SECRET")
+                    scopes: ["read", "write"]
+                }
+            }
+        },
+        caching: {
+            enabled: true
+            provider: "redis"
+            settings: {
+                host: env("REDIS_HOST", "localhost")
+                port: 6379
+                timeout: 5000
+            }
+        }
+    }
+}
+
+# Array of complex objects
+microservices: [
+    {
+        name: "user-service"
+        instances: 3
+        config: {
+            database: {
+                type: "postgresql"
+                connection_pool: 10
+            }
+            cache: {
+                type: "redis"
+                ttl: 300
+            }
+        }
+        endpoints: [
+            {path: "/users", methods: ["GET", "POST"]},
+            {path: "/users/{id}", methods: ["GET", "PUT", "DELETE"]}
+        ]
+    },
+    {
+        name: "order-service"
+        instances: 2
+        config: {
+            database: {
+                type: "mongodb"
+                connection_pool: 5
+            }
+            queue: {
+                type: "rabbitmq"
+                exchange: "orders"
+            }
+        }
+        endpoints: [
+            {path: "/orders", methods: ["GET", "POST"]},
+            {path: "/orders/{id}", methods: ["GET", "PUT"]}
+        ]
+    }
+]
+</pre>
+
+<h2>Java Complex Structure Implementation</h2>
+<pre>
+// ComplexStructureConfig.java
+@ConfigurationProperties
+@Component
+public class ComplexStructureConfig {
+    private Application application;
+    private List&lt;Microservice&gt; microservices = new ArrayList&lt;&gt;();
+    
+    // Getters and setters
+    public Application getApplication() { return application; }
+    public void setApplication(Application application) { this.application = application; }
+    
+    public List&lt;Microservice&gt; getMicroservices() { return microservices; }
+    public void setMicroservices(List&lt;Microservice&gt; microservices) { 
+        this.microservices = microservices; 
+    }
+    
+    // Nested classes
+    public static class Application {
+        private String name;
+        private Map&lt;String, Module&gt; modules = new HashMap&lt;&gt;();
+        
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        
+        public Map&lt;String, Module&gt; getModules() { return modules; }
+        public void setModules(Map&lt;String, Module&gt; modules) { this.modules = modules; }
+        
+        public static class Module {
+            private boolean enabled;
+            private List&lt;String&gt; providers = new ArrayList&lt;&gt;();
+            private Map&lt;String, Object&gt; settings = new HashMap&lt;&gt;();
+            
+            public boolean isEnabled() { return enabled; }
+            public void setEnabled(boolean enabled) { this.enabled = enabled; }
+            
+            public List&lt;String&gt; getProviders() { return providers; }
+            public void setProviders(List&lt;String&gt; providers) { this.providers = providers; }
+            
+            public Map&lt;String, Object&gt; getSettings() { return settings; }
+            public void setSettings(Map&lt;String, Object&gt; settings) { this.settings = settings; }
+        }
+    }
+    
+    public static class Microservice {
+        private String name;
+        private int instances;
+        private ServiceConfig config;
+        private List&lt;Endpoint&gt; endpoints = new ArrayList&lt;&gt;();
+        
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        
+        public int getInstances() { return instances; }
+        public void setInstances(int instances) { this.instances = instances; }
+        
+        public ServiceConfig getConfig() { return config; }
+        public void setConfig(ServiceConfig config) { this.config = config; }
+        
+        public List&lt;Endpoint&gt; getEndpoints() { return endpoints; }
+        public void setEndpoints(List&lt;Endpoint&gt; endpoints) { this.endpoints = endpoints; }
+        
+        public static class ServiceConfig {
+            private Map&lt;String, Object&gt; database = new HashMap&lt;&gt;();
+            private Map&lt;String, Object&gt; cache = new HashMap&lt;&gt;();
+            private Map&lt;String, Object&gt; queue = new HashMap&lt;&gt;();
+            
+            public Map&lt;String, Object&gt; getDatabase() { return database; }
+            public void setDatabase(Map&lt;String, Object&gt; database) { this.database = database; }
+            
+            public Map&lt;String, Object&gt; getCache() { return cache; }
+            public void setCache(Map&lt;String, Object&gt; cache) { this.cache = cache; }
+            
+            public Map&lt;String, Object&gt; getQueue() { return queue; }
+            public void setQueue(Map&lt;String, Object&gt; queue) { this.queue = queue; }
+        }
+        
+        public static class Endpoint {
+            private String path;
+            private List&lt;String&gt; methods = new ArrayList&lt;&gt;();
+            
+            public String getPath() { return path; }
+            public void setPath(String path) { this.path = path; }
+            
+            public List&lt;String&gt; getMethods() { return methods; }
+            public void setMethods(List&lt;String&gt; methods) { this.methods = methods; }
+        }
+    }
+}
+</pre>
+
+<h2>Collection Utilities and Helpers</h2>
+<pre>
+// CollectionUtils.java
+@Component
+public class CollectionUtils {
+    
+    // Convert TuskLang array to specific Java collection types
+    public &lt;T&gt; Set&lt;T&gt; listToSet(List&lt;T&gt; list) {
+        return list != null ? new HashSet&lt;&gt;(list) : new HashSet&lt;&gt;();
+    }
+    
+    public &lt;T&gt; LinkedHashSet&lt;T&gt; listToLinkedSet(List&lt;T&gt; list) {
+        return list != null ? new LinkedHashSet&lt;&gt;(list) : new LinkedHashSet&lt;&gt;();
+    }
+    
+    // Safe collection access
+    public &lt;T&gt; List&lt;T&gt; safeList(List&lt;T&gt; list) {
+        return list != null ? list : new ArrayList&lt;&gt;();
+    }
+    
+    public &lt;K, V&gt; Map&lt;K, V&gt; safeMap(Map&lt;K, V&gt; map) {
+        return map != null ? map : new HashMap&lt;&gt;();
+    }
+    
+    // Collection validation
+    public boolean isNotEmpty(Collection&lt;?&gt; collection) {
+        return collection != null && !collection.isEmpty();
+    }
+    
+    public boolean isNotEmpty(Map&lt;?, ?&gt; map) {
+        return map != null && !map.isEmpty();
+    }
+}
+</pre>

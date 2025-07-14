@@ -1,0 +1,26 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>Java Method</title>
+  <desc>Java method/function representation with parameters and return type</desc>
+  
+  <!-- Background -->
+  <rect x="8" y="8" width="48" height="48" rx="4" fill="#2A2A3E" stroke="#F89820" stroke-width="2"/>
+  
+  <!-- Method container -->
+  <rect x="12" y="16" width="40" height="32" rx="3" fill="#F89820" opacity="0.1" stroke="#F89820" stroke-width="2"/>
+  
+  <!-- Method signature -->
+  <text x="32" y="26" font-family="Courier New" font-size="8" text-anchor="middle" fill="#F89820" font-weight="bold">public</text>
+  
+  <!-- Method name -->
+  <text x="32" y="36" font-family="Courier New" font-size="10" text-anchor="middle" fill="#ED8B00" font-weight="bold">calculate</text>
+  
+  <!-- Parameters -->
+  <text x="32" y="44" font-family="Courier New" font-size="6" text-anchor="middle" fill="#007396">(int a, int b)</text>
+  
+  <!-- Return type -->
+  <text x="32" y="52" font-family="Courier New" font-size="6" text-anchor="middle" fill="#ED8B00">→ int</text>
+  
+  <!-- Method indicators -->
+  <circle cx="16" cy="32" r="1.5" fill="#F89820"/>
+  <circle cx="48" cy="32" r="1.5" fill="#F89820"/>
+</svg> 

@@ -1,0 +1,569 @@
+<h1>Variables and References for Java</h1>
+
+<h2>Variable Declaration and References</h2>
+<pre>
+# Basic variable definitions
+app_name: "MyJavaApp"
+version: "1.0.0"
+debug_mode: true
+port: 8080
+
+# Variable references within configuration
+server_url: "http://localhost:" + port
+app_title: app_name + " v" + version
+debug_message: "Debug mode is " + (debug_mode ? "enabled" : "disabled")
+
+# Environment variable references
+database_host: env("DB_HOST", "localhost")
+database_port: env("DB_PORT", "5432")
+database_name: env("DB_NAME", app_name + "_db")
+database_url: "jdbc:postgresql://" + database_host + ":" + database_port + "/" + database_name
+</pre>
+
+<h2>Java Variable Configuration</h2>
+<pre>
+// VariableConfig.java
+@ConfigurationProperties
+@Component
+public class VariableConfig {
+    private String appName;
+    private String version;
+    private boolean debugMode;
+    private int port;
+    private String serverUrl;
+    private String appTitle;
+    private String debugMessage;
+    private String databaseHost;
+    private String databasePort;
+    private String databaseName;
+    private String databaseUrl;
+    
+    // Computed properties
+    @PostConstruct
+    public void computeProperties() {
+        if (serverUrl == null && port &gt; 0) {
+            serverUrl = "http://localhost:" + port;
+        }
+        
+        if (appTitle == null && appName != null && version != null) {
+            appTitle = appName + " v" + version;
+        }
+        
+        if (debugMessage == null) {
+            debugMessage = "Debug mode is " + (debugMode ? "enabled" : "disabled");
+        }
+        
+        if (databaseUrl == null && databaseHost != null && databasePort != null && databaseName != null) {
+            databaseUrl = String.format("jdbc:postgresql://%s:%s/%s", 
+                databaseHost, databasePort, databaseName);
+        }
+    }
+    
+    // Getters and setters
+    public String getAppName() { return appName; }
+    public void setAppName(String appName) { 
+        this.appName = appName;
+        computeProperties(); // Recompute when dependencies change
+    }
+    
+    public String getVersion() { return version; }
+    public void setVersion(String version) { 
+        this.version = version;
+        computeProperties();
+    }
+    
+    public boolean isDebugMode() { return debugMode; }
+    public void setDebugMode(boolean debugMode) { 
+        this.debugMode = debugMode;
+        computeProperties();
+    }
+    
+    public int getPort() { return port; }
+    public void setPort(int port) { 
+        this.port = port;
+        computeProperties();
+    }
+    
+    // Computed getters
+    public String getServerUrl() { return serverUrl; }
+    public String getAppTitle() { return appTitle; }
+    public String getDebugMessage() { return debugMessage; }
+    public String getDatabaseUrl() { return databaseUrl; }
+    
+    // Environment variable setters
+    public void setDatabaseHost(String databaseHost) { 
+        this.databaseHost = databaseHost;
+        computeProperties();
+    }
+    
+    public void setDatabasePort(String databasePort) { 
+        this.databasePort = databasePort;
+        computeProperties();
+    }
+    
+    public void setDatabaseName(String databaseName) { 
+        this.databaseName = databaseName;
+        computeProperties();
+    }
+}
+</pre>
+
+<h2>Nested Variable References</h2>
+<pre>
+# Nested configuration with cross-references
+database: {
+    type: "postgresql"
+    host: env("DB_HOST", "localhost")
+    port: env("DB_PORT", "5432")
+    name: env("DB_NAME", app_name + "_" + env("ENVIRONMENT", "dev"))
+    username: env("DB_USER", "postgres")
+    password: env("DB_PASS", "password")
+    
+    # Computed connection string
+    url: "jdbc:" + database.type + "://" + database.host + ":" + database.port + "/" + database.name
+    
+    # Pool configuration referencing other values
+    pool: {
+        min_size: 5
+        max_size: database.type == "postgresql" ? 20 : 15
+        timeout: debug_mode ? 60000 : 30000
+    }
+}
+
+# Application configuration referencing database
+application: {
+    name: app_name
+    version: version
+    environment: env("ENVIRONMENT", "development")
+    
+    # Features based on environment and database
+    features: {
+        caching: application.environment != "development"
+        metrics: application.environment == "production"
+        debug_sql: debug_mode && database.type == "postgresql"
+    }
+}
+
+# Logging configuration based on other variables
+logging: {
+    level: debug_mode ? "DEBUG" : "INFO"
+    file: "/var/log/" + app_name + "/" + application.environment + ".log"
+    max_size: application.environment == "production" ? "100MB" : "10MB"
+    
+    # Loggers configuration
+    loggers: {
+        "com.myapp": logging.level
+        "org.springframework": application.environment == "development" ? "DEBUG" : "WARN"
+        "org.hibernate.SQL": application.features.debug_sql ? "DEBUG" : "WARN"
+    }
+}
+</pre>
+
+<h2>Java Nested Reference Handler</h2>
+<pre>
+// NestedReferenceConfig.java
+@ConfigurationProperties
+@Component
+public class NestedReferenceConfig {
+    private DatabaseConfig database;
+    private ApplicationConfig application;
+    private LoggingConfig logging;
+    
+    // Reference to root variables
+    @Value("${app_name}")
+    private String appName;
+    
+    @Value("${version}")
+    private String version;
+    
+    @Value("${debug_mode}")
+    private boolean debugMode;
+    
+    @PostConstruct
+    public void resolveReferences() {
+        // Resolve database references
+        if (database != null) {
+            database.resolveReferences(appName, debugMode);
+        }
+        
+        // Resolve application references
+        if (application != null) {
+            application.resolveReferences(appName, version, debugMode, database);
+        }
+        
+        // Resolve logging references
+        if (logging != null) {
+            logging.resolveReferences(appName, debugMode, application);
+        }
+    }
+    
+    // Getters and setters
+    public DatabaseConfig getDatabase() { return database; }
+    public void setDatabase(DatabaseConfig database) { this.database = database; }
+    
+    public ApplicationConfig getApplication() { return application; }
+    public void setApplication(ApplicationConfig application) { this.application = application; }
+    
+    public LoggingConfig getLogging() { return logging; }
+    public void setLogging(LoggingConfig logging) { this.logging = logging; }
+    
+    // Nested classes with reference resolution
+    public static class DatabaseConfig {
+        private String type;
+        private String host;
+        private String port;
+        private String name;
+        private String username;
+        private String password;
+        private String url;
+        private PoolConfig pool;
+        
+        public void resolveReferences(String appName, boolean debugMode) {
+            // Resolve computed URL
+            if (url == null && type != null && host != null && port != null && name != null) {
+                url = String.format("jdbc:%s://%s:%s/%s", type, host, port, name);
+            }
+            
+            // Resolve pool configuration
+            if (pool != null) {
+                pool.resolveReferences(type, debugMode);
+            }
+        }
+        
+        // Getters and setters
+        public String getType() { return type; }
+        public void setType(String type) { this.type = type; }
+        
+        public String getHost() { return host; }
+        public void setHost(String host) { this.host = host; }
+        
+        public String getPort() { return port; }
+        public void setPort(String port) { this.port = port; }
+        
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        
+        public String getUrl() { return url; }
+        public PoolConfig getPool() { return pool; }
+        public void setPool(PoolConfig pool) { this.pool = pool; }
+        
+        public static class PoolConfig {
+            private int minSize;
+            private int maxSize;
+            private int timeout;
+            
+            public void resolveReferences(String databaseType, boolean debugMode) {
+                // Adjust max size based on database type
+                if (maxSize == 0) {
+                    maxSize = "postgresql".equals(databaseType) ? 20 : 15;
+                }
+                
+                // Adjust timeout based on debug mode
+                if (timeout == 0) {
+                    timeout = debugMode ? 60000 : 30000;
+                }
+            }
+            
+            // Getters and setters
+            public int getMinSize() { return minSize; }
+            public void setMinSize(int minSize) { this.minSize = minSize; }
+            
+            public int getMaxSize() { return maxSize; }
+            public void setMaxSize(int maxSize) { this.maxSize = maxSize; }
+            
+            public int getTimeout() { return timeout; }
+            public void setTimeout(int timeout) { this.timeout = timeout; }
+        }
+    }
+    
+    public static class ApplicationConfig {
+        private String name;
+        private String version;
+        private String environment;
+        private FeaturesConfig features;
+        
+        public void resolveReferences(String appName, String version, boolean debugMode, DatabaseConfig database) {
+            // Set references from root variables
+            if (name == null) name = appName;
+            if (this.version == null) this.version = version;
+            
+            // Resolve features
+            if (features != null) {
+                features.resolveReferences(environment, debugMode, database);
+            }
+        }
+        
+        // Getters and setters
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        
+        public String getVersion() { return version; }
+        public void setVersion(String version) { this.version = version; }
+        
+        public String getEnvironment() { return environment; }
+        public void setEnvironment(String environment) { this.environment = environment; }
+        
+        public FeaturesConfig getFeatures() { return features; }
+        public void setFeatures(FeaturesConfig features) { this.features = features; }
+        
+        public static class FeaturesConfig {
+            private boolean caching;
+            private boolean metrics;
+            private boolean debugSql;
+            
+            public void resolveReferences(String environment, boolean debugMode, DatabaseConfig database) {
+                // Enable caching for non-development environments
+                caching = !"development".equals(environment);
+                
+                // Enable metrics only in production
+                metrics = "production".equals(environment);
+                
+                // Enable SQL debugging in debug mode with PostgreSQL
+                debugSql = debugMode && database != null && "postgresql".equals(database.getType());
+            }
+            
+            // Getters and setters
+            public boolean isCaching() { return caching; }
+            public void setCaching(boolean caching) { this.caching = caching; }
+            
+            public boolean isMetrics() { return metrics; }
+            public void setMetrics(boolean metrics) { this.metrics = metrics; }
+            
+            public boolean isDebugSql() { return debugSql; }
+            public void setDebugSql(boolean debugSql) { this.debugSql = debugSql; }
+        }
+    }
+    
+    public static class LoggingConfig {
+        private String level;
+        private String file;
+        private String maxSize;
+        private Map&lt;String, String&gt; loggers = new HashMap&lt;&gt;();
+        
+        public void resolveReferences(String appName, boolean debugMode, ApplicationConfig application) {
+            // Set log level based on debug mode
+            if (level == null) {
+                level = debugMode ? "DEBUG" : "INFO";
+            }
+            
+            // Set log file path
+            if (file == null && appName != null && application != null) {
+                file = String.format("/var/log/%s/%s.log", appName, application.getEnvironment());
+            }
+            
+            // Set max size based on environment
+            if (maxSize == null && application != null) {
+                maxSize = "production".equals(application.getEnvironment()) ? "100MB" : "10MB";
+            }
+            
+            // Configure logger levels
+            loggers.put("com.myapp", level);
+            loggers.put("org.springframework", 
+                "development".equals(application.getEnvironment()) ? "DEBUG" : "WARN");
+            loggers.put("org.hibernate.SQL", 
+                application.getFeatures().isDebugSql() ? "DEBUG" : "WARN");
+        }
+        
+        // Getters and setters
+        public String getLevel() { return level; }
+        public void setLevel(String level) { this.level = level; }
+        
+        public String getFile() { return file; }
+        public void setFile(String file) { this.file = file; }
+        
+        public String getMaxSize() { return maxSize; }
+        public void setMaxSize(String maxSize) { this.maxSize = maxSize; }
+        
+        public Map&lt;String, String&gt; getLoggers() { return loggers; }
+        public void setLoggers(Map&lt;String, String&gt; loggers) { this.loggers = loggers; }
+    }
+}
+</pre>
+
+<h2>Dynamic Variable Resolution</h2>
+<pre>
+# Dynamic configuration with conditional references
+runtime: {
+    memory_gb: java("Runtime.getRuntime().maxMemory() / (1024 * 1024 * 1024)")
+    cpu_cores: java("Runtime.getRuntime().availableProcessors()")
+    
+    # Dynamic pool sizing based on system resources
+    thread_pool_size: runtime.cpu_cores * 2
+    connection_pool_size: runtime.memory_gb > 4 ? 20 : 10
+}
+
+# Performance tuning based on system capabilities
+performance: {
+    batch_size: runtime.memory_gb > 8 ? 1000 : 500
+    cache_size: runtime.memory_gb * 100 + "MB"
+    gc_settings: runtime.memory_gb > 16 ? "-XX:+UseG1GC" : "-XX:+UseParallelGC"
+}
+
+# Feature flags based on environment and resources
+features: {
+    async_processing: runtime.cpu_cores > 4
+    distributed_cache: env("CLUSTER_MODE", "false") == "true"
+    monitoring: application.environment == "production"
+    
+    # Conditional feature enabling
+    advanced_analytics: features.monitoring && runtime.memory_gb > 8
+    machine_learning: features.advanced_analytics && runtime.cpu_cores > 8
+}
+</pre>
+
+<h2>Java Dynamic Resolution Service</h2>
+<pre>
+// DynamicConfigResolver.java
+@Service
+public class DynamicConfigResolver {
+    
+    private final RuntimeConfig runtime;
+    private final PerformanceConfig performance;
+    private final FeaturesConfig features;
+    
+    public DynamicConfigResolver() {
+        this.runtime = new RuntimeConfig();
+        this.performance = new PerformanceConfig();
+        this.features = new FeaturesConfig();
+        
+        // Resolve all configurations
+        resolveRuntimeConfig();
+        resolvePerformanceConfig();
+        resolveFeaturesConfig();
+    }
+    
+    private void resolveRuntimeConfig() {
+        Runtime jvmRuntime = Runtime.getRuntime();
+        runtime.setMemoryGb((int) (jvmRuntime.maxMemory() / (1024 * 1024 * 1024)));
+        runtime.setCpuCores(jvmRuntime.availableProcessors());
+        runtime.setThreadPoolSize(runtime.getCpuCores() * 2);
+        runtime.setConnectionPoolSize(runtime.getMemoryGb() > 4 ? 20 : 10);
+    }
+    
+    private void resolvePerformanceConfig() {
+        performance.setBatchSize(runtime.getMemoryGb() > 8 ? 1000 : 500);
+        performance.setCacheSize(runtime.getMemoryGb() * 100 + "MB");
+        performance.setGcSettings(runtime.getMemoryGb() > 16 ? "-XX:+UseG1GC" : "-XX:+UseParallelGC");
+    }
+    
+    private void resolveFeaturesConfig() {
+        features.setAsyncProcessing(runtime.getCpuCores() > 4);
+        features.setDistributedCache("true".equals(System.getenv("CLUSTER_MODE")));
+        features.setMonitoring("production".equals(System.getenv("ENVIRONMENT")));
+        
+        // Conditional features
+        features.setAdvancedAnalytics(features.isMonitoring() && runtime.getMemoryGb() > 8);
+        features.setMachineLearning(features.isAdvancedAnalytics() && runtime.getCpuCores() > 8);
+    }
+    
+    // Configuration classes
+    public static class RuntimeConfig {
+        private int memoryGb;
+        private int cpuCores;
+        private int threadPoolSize;
+        private int connectionPoolSize;
+        
+        // Getters and setters
+        public int getMemoryGb() { return memoryGb; }
+        public void setMemoryGb(int memoryGb) { this.memoryGb = memoryGb; }
+        
+        public int getCpuCores() { return cpuCores; }
+        public void setCpuCores(int cpuCores) { this.cpuCores = cpuCores; }
+        
+        public int getThreadPoolSize() { return threadPoolSize; }
+        public void setThreadPoolSize(int threadPoolSize) { this.threadPoolSize = threadPoolSize; }
+        
+        public int getConnectionPoolSize() { return connectionPoolSize; }
+        public void setConnectionPoolSize(int connectionPoolSize) { 
+            this.connectionPoolSize = connectionPoolSize; 
+        }
+    }
+    
+    public static class PerformanceConfig {
+        private int batchSize;
+        private String cacheSize;
+        private String gcSettings;
+        
+        // Getters and setters
+        public int getBatchSize() { return batchSize; }
+        public void setBatchSize(int batchSize) { this.batchSize = batchSize; }
+        
+        public String getCacheSize() { return cacheSize; }
+        public void setCacheSize(String cacheSize) { this.cacheSize = cacheSize; }
+        
+        public String getGcSettings() { return gcSettings; }
+        public void setGcSettings(String gcSettings) { this.gcSettings = gcSettings; }
+    }
+    
+    public static class FeaturesConfig {
+        private boolean asyncProcessing;
+        private boolean distributedCache;
+        private boolean monitoring;
+        private boolean advancedAnalytics;
+        private boolean machineLearning;
+        
+        // Getters and setters
+        public boolean isAsyncProcessing() { return asyncProcessing; }
+        public void setAsyncProcessing(boolean asyncProcessing) { 
+            this.asyncProcessing = asyncProcessing; 
+        }
+        
+        public boolean isDistributedCache() { return distributedCache; }
+        public void setDistributedCache(boolean distributedCache) { 
+            this.distributedCache = distributedCache; 
+        }
+        
+        public boolean isMonitoring() { return monitoring; }
+        public void setMonitoring(boolean monitoring) { this.monitoring = monitoring; }
+        
+        public boolean isAdvancedAnalytics() { return advancedAnalytics; }
+        public void setAdvancedAnalytics(boolean advancedAnalytics) { 
+            this.advancedAnalytics = advancedAnalytics; 
+        }
+        
+        public boolean isMachineLearning() { return machineLearning; }
+        public void setMachineLearning(boolean machineLearning) { 
+            this.machineLearning = machineLearning; 
+        }
+    }
+    
+    // Getters for configuration objects
+    public RuntimeConfig getRuntime() { return runtime; }
+    public PerformanceConfig getPerformance() { return performance; }
+    public FeaturesConfig getFeatures() { return features; }
+}
+</pre>
+
+<h2>Variable Validation and Type Safety</h2>
+<pre>
+// VariableValidator.java
+@Component
+public class VariableValidator {
+    
+    @EventListener
+    public void validateVariables(ApplicationReadyEvent event) {
+        validateReferenceIntegrity();
+        validateTypeConsistency();
+        validateCircularReferences();
+    }
+    
+    private void validateReferenceIntegrity() {
+        // Check that all variable references are valid
+        // Implementation depends on your configuration structure
+    }
+    
+    private void validateTypeConsistency() {
+        // Validate that variable types are consistent across references
+    }
+    
+    private void validateCircularReferences() {
+        // Detect and report circular reference dependencies
+    }
+    
+    @EventListener
+    public void onConfigurationChange(ConfigurationChangeEvent event) {
+        // Re-validate when configuration changes at runtime
+        validateVariables(null);
+    }
+}
+</pre>

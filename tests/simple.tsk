@@ -1,0 +1,18 @@
+# Simple TuskLang Test
+title = "TuskLang Works!"
+message = "🐘 .tsk files are now executable!"
+
+# Server info
+server_time = php(date('Y-m-d H:i:s'))
+
+# Simple HTML output
+output = php("
+<html>
+<body style='font-family: Arial; text-align: center; padding: 50px;'>
+    <h1 style='color: #333;'>{$title}</h1>
+    <p style='font-size: 24px;'>{$message}</p>
+    <p>Server Time: {$server_time}</p>
+    <div style='font-size: 72px;'>🐘</div>
+</body>
+</html>
+")

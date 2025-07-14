@@ -1,0 +1,690 @@
+<h1>Database & ORM</h1>
+
+<h2>Database Integration with TuskLang in Bash</h2>
+<p>TuskLang provides a Parse/Firebase-inspired ORM for database operations in bash scripts.</p>
+
+<h3>database.tsk</h3>
+<pre>
+# Database configuration
+database {
+    # Connection settings
+    driver: env("DB_DRIVER", "sqlite")
+    
+    sqlite: {
+        path: env("DB_PATH", "./data/app.db")
+        journal_mode: "WAL"
+        foreign_keys: true
+    }
+    
+    postgres: {
+        host: env("DB_HOST", "localhost")
+        port: env("DB_PORT", 5432)
+        name: env("DB_NAME", "myapp")
+        user: env("DB_USER", "postgres")
+        password: env("DB_PASSWORD")
+        ssl_mode: "prefer"
+    }
+    
+    mysql: {
+        host: env("DB_HOST", "localhost")
+        port: env("DB_PORT", 3306)
+        name: env("DB_NAME", "myapp")
+        user: env("DB_USER", "root")
+        password: env("DB_PASSWORD")
+        charset: "utf8mb4"
+    }
+}
+
+# Model definitions
+models {
+    User: {
+        fields: {
+            id: { type: "string", primary: true, default: @uuid() }
+            username: { type: "string", unique: true, required: true }
+            email: { type: "string", unique: true, required: true }
+            password: { type: "string", required: true }
+            role: { type: "string", default: "user", enum: ["user", "admin", "moderator"] }
+            active: { type: "boolean", default: true }
+            created_at: { type: "datetime", default: @now() }
+            updated_at: { type: "datetime", auto_update: true }
+        }
+        
+        indexes: [
+            { fields: ["email"], unique: true },
+            { fields: ["username"], unique: true },
+            { fields: ["created_at"] }
+        ]
+        
+        relations: {
+            posts: { type: "hasMany", model: "Post", foreign: "author_id" }
+            profile: { type: "hasOne", model: "Profile", foreign: "user_id" }
+        }
+    }
+    
+    Post: {
+        fields: {
+            id: { type: "string", primary: true, default: @uuid() }
+            title: { type: "string", required: true }
+            content: { type: "text" }
+            author_id: { type: "string", required: true }
+            status: { type: "string", default: "draft", enum: ["draft", "published", "archived"] }
+            published_at: { type: "datetime", nullable: true }
+            tags: { type: "array", default: [] }
+            meta: { type: "json", default: {} }
+            created_at: { type: "datetime", default: @now() }
+        }
+        
+        relations: {
+            author: { type: "belongsTo", model: "User", foreign: "author_id" }
+            comments: { type: "hasMany", model: "Comment", foreign: "post_id" }
+        }
+    }
+}
+
+# Query examples
+queries {
+    # Basic queries
+    all_users: @Query("User").find()
+    active_users: @Query("User").where("active", true).find()
+    
+    # Complex queries
+    recent_posts: @Query("Post")
+        .where("status", "published")
+        .where("published_at", ">", @date("-7 days"))
+        .orderBy("published_at", "desc")
+        .limit(10)
+        .include("author")
+        .find()
+    
+    # Aggregations
+    user_stats: @Query("User")
+        .aggregate({
+            total: @count(),
+            active: @count("active", true),
+            by_role: @groupBy("role", @count())
+        })
+}
+
+# Migrations
+migrations {
+    create_users_table: {
+        up: @sql("
+            CREATE TABLE users (
+                id TEXT PRIMARY KEY,
+                username TEXT UNIQUE NOT NULL,
+                email TEXT UNIQUE NOT NULL,
+                password TEXT NOT NULL,
+                role TEXT DEFAULT 'user',
+                active BOOLEAN DEFAULT 1,
+                created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+                updated_at DATETIME
+            )
+        ")
+        
+        down: @sql("DROP TABLE users")
+    }
+}
+</pre>
+
+<h3>Bash Database Implementation</h3>
+<pre>
+#!/bin/bash
+
+# TuskLang Database ORM for Bash
+
+# Database configuration
+declare -A DB_CONFIG
+declare -A DB_MODELS
+declare -A DB_CONNECTIONS
+
+# Initialize database system
+tusk_db_init() {
+    # Default SQLite configuration
+    DB_CONFIG[driver]="${DB_DRIVER:-sqlite}"
+    DB_CONFIG[sqlite_path]="${DB_PATH:-./data/app.db}"
+    
+    # Create data directory if needed
+    [ "${DB_CONFIG[driver]}" = "sqlite" ] && mkdir -p "$(dirname "${DB_CONFIG[sqlite_path]}")"
+}
+
+# Database connection
+tusk_db_connect() {
+    local driver="${1:-${DB_CONFIG[driver]}}"
+    
+    case "$driver" in
+        "sqlite")
+            # Test SQLite connection
+            sqlite3 "${DB_CONFIG[sqlite_path]}" "SELECT 1" >/dev/null 2>&1 || {
+                echo "Failed to connect to SQLite database" >&2
+                return 1
+            }
+            DB_CONNECTIONS[current]="sqlite3 ${DB_CONFIG[sqlite_path]}"
+            ;;
+        "postgres")
+            # PostgreSQL connection string
+            DB_CONNECTIONS[current]="psql -h ${DB_CONFIG[pg_host]} -p ${DB_CONFIG[pg_port]} -U ${DB_CONFIG[pg_user]} -d ${DB_CONFIG[pg_name]}"
+            ;;
+        "mysql")
+            # MySQL connection string
+            DB_CONNECTIONS[current]="mysql -h ${DB_CONFIG[mysql_host]} -P ${DB_CONFIG[mysql_port]} -u ${DB_CONFIG[mysql_user]} -p${DB_CONFIG[mysql_password]} ${DB_CONFIG[mysql_name]}"
+            ;;
+    esac
+}
+
+# Execute SQL query
+tusk_db_exec() {
+    local query="$1"
+    local format="${2:-list}"
+    
+    case "${DB_CONFIG[driver]}" in
+        "sqlite")
+            case "$format" in
+                "json")
+                    sqlite3 -json "${DB_CONFIG[sqlite_path]}" "$query" 2>/dev/null
+                    ;;
+                "csv")
+                    sqlite3 -csv "${DB_CONFIG[sqlite_path]}" "$query" 2>/dev/null
+                    ;;
+                "list")
+                    sqlite3 -list "${DB_CONFIG[sqlite_path]}" "$query" 2>/dev/null
+                    ;;
+            esac
+            ;;
+        "postgres")
+            case "$format" in
+                "json")
+                    psql -t -A -c "$query" --set=tuples_only=on -o /dev/stdout 2>/dev/null | \
+                    jq -R -s -c 'split("\n")[:-1] | map(split("|") | {(.[0]): .[1]})'
+                    ;;
+                *)
+                    psql -t -A -c "$query" 2>/dev/null
+                    ;;
+            esac
+            ;;
+    esac
+}
+
+# Query builder
+tusk_query() {
+    local model="$1"
+    
+    # Return query builder object
+    cat << EOF
+{
+    "model": "$model",
+    "type": "select",
+    "conditions": [],
+    "includes": [],
+    "order": [],
+    "limit": null,
+    "offset": 0
+}
+EOF
+}
+
+# Query builder methods
+tusk_query_where() {
+    local query="$1"
+    local field="$2"
+    local operator="$3"
+    local value="$4"
+    
+    # If only 3 args, assume operator is "="
+    if [ -z "$value" ]; then
+        value="$operator"
+        operator="="
+    fi
+    
+    # Add condition to query
+    echo "$query" | jq --arg field "$field" --arg op "$operator" --arg val "$value" \
+        '.conditions += [{"field": $field, "operator": $op, "value": $val}]'
+}
+
+tusk_query_orderBy() {
+    local query="$1"
+    local field="$2"
+    local direction="${3:-asc}"
+    
+    echo "$query" | jq --arg field "$field" --arg dir "$direction" \
+        '.order += [{"field": $field, "direction": $dir}]'
+}
+
+tusk_query_limit() {
+    local query="$1"
+    local limit="$2"
+    
+    echo "$query" | jq --arg limit "$limit" '.limit = ($limit | tonumber)'
+}
+
+tusk_query_offset() {
+    local query="$1"
+    local offset="$2"
+    
+    echo "$query" | jq --arg offset "$offset" '.offset = ($offset | tonumber)'
+}
+
+tusk_query_include() {
+    local query="$1"
+    local relation="$2"
+    
+    echo "$query" | jq --arg rel "$relation" '.includes += [$rel]'
+}
+
+# Execute query
+tusk_query_find() {
+    local query="$1"
+    
+    # Build SQL from query object
+    local model=$(echo "$query" | jq -r '.model')
+    local table=$(echo "$model" | tr '[:upper:]' '[:lower:]')s  # Simple pluralization
+    
+    # Start building SQL
+    local sql="SELECT * FROM $table"
+    
+    # Add WHERE conditions
+    local conditions=$(echo "$query" | jq -r '.conditions | length')
+    if [ "$conditions" -gt 0 ]; then
+        sql="$sql WHERE "
+        local first=1
+        
+        while read -r condition; do
+            [ $first -eq 0 ] && sql="$sql AND "
+            first=0
+            
+            local field=$(echo "$condition" | jq -r '.field')
+            local op=$(echo "$condition" | jq -r '.operator')
+            local value=$(echo "$condition" | jq -r '.value')
+            
+            # Quote string values
+            if [[ "$value" =~ ^[0-9]+$ ]] || [ "$value" = "true" ] || [ "$value" = "false" ]; then
+                sql="$sql $field $op $value"
+            else
+                sql="$sql $field $op '$value'"
+            fi
+        done < <(echo "$query" | jq -c '.conditions[]')
+    fi
+    
+    # Add ORDER BY
+    local orders=$(echo "$query" | jq -r '.order | length')
+    if [ "$orders" -gt 0 ]; then
+        sql="$sql ORDER BY "
+        local first=1
+        
+        while read -r order; do
+            [ $first -eq 0 ] && sql="$sql, "
+            first=0
+            
+            local field=$(echo "$order" | jq -r '.field')
+            local dir=$(echo "$order" | jq -r '.direction')
+            sql="$sql $field $dir"
+        done < <(echo "$query" | jq -c '.order[]')
+    fi
+    
+    # Add LIMIT and OFFSET
+    local limit=$(echo "$query" | jq -r '.limit // empty')
+    [ -n "$limit" ] && sql="$sql LIMIT $limit"
+    
+    local offset=$(echo "$query" | jq -r '.offset // empty')
+    [ -n "$offset" ] && [ "$offset" != "0" ] && sql="$sql OFFSET $offset"
+    
+    # Execute query
+    tusk_db_exec "$sql" "json"
+}
+
+# Model operations
+tusk_model_create() {
+    local model="$1"
+    local data="$2"
+    
+    local table=$(echo "$model" | tr '[:upper:]' '[:lower:]')s
+    
+    # Extract fields and values
+    local fields=()
+    local values=()
+    
+    while read -r key; do
+        fields+=("$key")
+        local value=$(echo "$data" | jq -r --arg k "$key" '.[$k]')
+        
+        # Quote string values
+        if [[ "$value" =~ ^[0-9]+$ ]] || [ "$value" = "true" ] || [ "$value" = "false" ] || [ "$value" = "null" ]; then
+            values+=("$value")
+        else
+            values+=("'$value'")
+        fi
+    done < <(echo "$data" | jq -r 'keys[]')
+    
+    # Build INSERT query
+    local sql="INSERT INTO $table ($(IFS=,; echo "${fields[*]}")) VALUES ($(IFS=,; echo "${values[*]}"))"
+    
+    # Execute and return inserted ID
+    tusk_db_exec "$sql"
+    
+    # For SQLite, get last insert ID
+    if [ "${DB_CONFIG[driver]}" = "sqlite" ]; then
+        tusk_db_exec "SELECT last_insert_rowid()"
+    fi
+}
+
+tusk_model_update() {
+    local model="$1"
+    local id="$2"
+    local data="$3"
+    
+    local table=$(echo "$model" | tr '[:upper:]' '[:lower:]')s
+    
+    # Build UPDATE query
+    local sql="UPDATE $table SET "
+    local first=1
+    
+    while read -r key; do
+        [ $first -eq 0 ] && sql="$sql, "
+        first=0
+        
+        local value=$(echo "$data" | jq -r --arg k "$key" '.[$k]')
+        
+        # Quote string values
+        if [[ "$value" =~ ^[0-9]+$ ]] || [ "$value" = "true" ] || [ "$value" = "false" ] || [ "$value" = "null" ]; then
+            sql="$sql $key = $value"
+        else
+            sql="$sql $key = '$value'"
+        fi
+    done < <(echo "$data" | jq -r 'keys[]')
+    
+    sql="$sql WHERE id = '$id'"
+    
+    tusk_db_exec "$sql"
+}
+
+tusk_model_delete() {
+    local model="$1"
+    local id="$2"
+    
+    local table=$(echo "$model" | tr '[:upper:]' '[:lower:]')s
+    local sql="DELETE FROM $table WHERE id = '$id'"
+    
+    tusk_db_exec "$sql"
+}
+
+# Aggregation functions
+tusk_query_count() {
+    local query="$1"
+    local field="${2:-*}"
+    
+    # Modify query to count
+    local count_query=$(echo "$query" | jq --arg field "$field" '.type = "count" | .select = $field')
+    
+    local model=$(echo "$count_query" | jq -r '.model')
+    local table=$(echo "$model" | tr '[:upper:]' '[:lower:]')s
+    
+    local sql="SELECT COUNT($field) as count FROM $table"
+    
+    # Add WHERE conditions (same as find)
+    # ... (reuse WHERE building logic from tusk_query_find)
+    
+    tusk_db_exec "$sql" "json" | jq -r '.[0].count // 0'
+}
+
+# Migration runner
+tusk_migrate() {
+    local direction="${1:-up}"
+    local migration_file="${2:-./migrations.tsk}"
+    
+    # Create migrations table if not exists
+    tusk_db_exec "CREATE TABLE IF NOT EXISTS tusk_migrations (
+        id INTEGER PRIMARY KEY,
+        name TEXT UNIQUE NOT NULL,
+        applied_at DATETIME DEFAULT CURRENT_TIMESTAMP
+    )"
+    
+    # Process migrations
+    # ... (parse migration file and execute)
+}
+
+# Transaction support
+tusk_transaction() {
+    local callback="$1"
+    
+    tusk_db_exec "BEGIN TRANSACTION"
+    
+    # Execute callback
+    if $callback; then
+        tusk_db_exec "COMMIT"
+        return 0
+    else
+        tusk_db_exec "ROLLBACK"
+        return 1
+    fi
+}
+
+# Backup and restore
+tusk_db_backup() {
+    local backup_file="${1:-backup_$(date +%Y%m%d_%H%M%S).sql}"
+    
+    case "${DB_CONFIG[driver]}" in
+        "sqlite")
+            sqlite3 "${DB_CONFIG[sqlite_path]}" ".backup '$backup_file'"
+            ;;
+        "postgres")
+            pg_dump -h "${DB_CONFIG[pg_host]}" -U "${DB_CONFIG[pg_user]}" \
+                    -d "${DB_CONFIG[pg_name]}" > "$backup_file"
+            ;;
+        "mysql")
+            mysqldump -h "${DB_CONFIG[mysql_host]}" -u "${DB_CONFIG[mysql_user]}" \
+                      -p"${DB_CONFIG[mysql_password]}" "${DB_CONFIG[mysql_name]}" > "$backup_file"
+            ;;
+    esac
+    
+    echo "Database backed up to: $backup_file"
+}
+</pre>
+
+<h3>Usage Example</h3>
+<pre>
+#!/bin/bash
+
+# Load database library
+source /usr/local/lib/tusklang-database.sh
+
+# Initialize database
+tusk_db_init
+tusk_db_connect
+
+echo "=== Database Setup ==="
+
+# Create tables
+tusk_db_exec "CREATE TABLE IF NOT EXISTS users (
+    id TEXT PRIMARY KEY,
+    username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE NOT NULL,
+    password TEXT NOT NULL,
+    role TEXT DEFAULT 'user',
+    active BOOLEAN DEFAULT 1,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP
+)"
+
+tusk_db_exec "CREATE TABLE IF NOT EXISTS posts (
+    id TEXT PRIMARY KEY,
+    title TEXT NOT NULL,
+    content TEXT,
+    author_id TEXT NOT NULL,
+    status TEXT DEFAULT 'draft',
+    published_at DATETIME,
+    created_at DATETIME DEFAULT CURRENT_TIMESTAMP,
+    FOREIGN KEY (author_id) REFERENCES users(id)
+)"
+
+echo "Tables created successfully"
+
+# Model operations
+echo -e "\n=== Creating Users ==="
+
+# Create users
+user1_data='{
+    "id": "user-1",
+    "username": "johndoe",
+    "email": "john@example.com",
+    "password": "hashed_password_123",
+    "role": "admin"
+}'
+
+tusk_model_create "User" "$user1_data"
+echo "Created admin user"
+
+user2_data='{
+    "id": "user-2",
+    "username": "janedoe",
+    "email": "jane@example.com",
+    "password": "hashed_password_456",
+    "role": "user"
+}'
+
+tusk_model_create "User" "$user2_data"
+echo "Created regular user"
+
+# Query examples
+echo -e "\n=== Query Examples ==="
+
+# Find all users
+echo "All users:"
+query=$(tusk_query "User")
+tusk_query_find "$query" | jq '.'
+
+# Find active users
+echo -e "\nActive users:"
+query=$(tusk_query "User")
+query=$(tusk_query_where "$query" "active" "=" "1")
+tusk_query_find "$query" | jq '.'
+
+# Find admin users
+echo -e "\nAdmin users:"
+query=$(tusk_query "User")
+query=$(tusk_query_where "$query" "role" "=" "admin")
+query=$(tusk_query_orderBy "$query" "created_at" "desc")
+tusk_query_find "$query" | jq '.'
+
+# Create posts
+echo -e "\n=== Creating Posts ==="
+
+post1_data='{
+    "id": "post-1",
+    "title": "Hello World",
+    "content": "This is my first post",
+    "author_id": "user-1",
+    "status": "published",
+    "published_at": "2024-01-15 10:00:00"
+}'
+
+tusk_model_create "Post" "$post1_data"
+
+post2_data='{
+    "id": "post-2",
+    "title": "Draft Post",
+    "content": "This is still a draft",
+    "author_id": "user-2",
+    "status": "draft"
+}'
+
+tusk_model_create "Post" "$post2_data"
+
+# Complex queries
+echo -e "\n=== Complex Queries ==="
+
+# Find published posts
+echo "Published posts:"
+query=$(tusk_query "Post")
+query=$(tusk_query_where "$query" "status" "=" "published")
+query=$(tusk_query_orderBy "$query" "published_at" "desc")
+query=$(tusk_query_limit "$query" "10")
+tusk_query_find "$query" | jq '.'
+
+# Count operations
+echo -e "\n=== Aggregations ==="
+
+# Count all users
+total_users=$(tusk_query_count "$(tusk_query 'User')")
+echo "Total users: $total_users"
+
+# Update example
+echo -e "\n=== Updates ==="
+
+update_data='{
+    "active": 0,
+    "role": "moderator"
+}'
+
+tusk_model_update "User" "user-2" "$update_data"
+echo "Updated user-2"
+
+# Verify update
+query=$(tusk_query "User")
+query=$(tusk_query_where "$query" "id" "=" "user-2")
+tusk_query_find "$query" | jq '.'
+
+# Transaction example
+echo -e "\n=== Transactions ==="
+
+transaction_test() {
+    # Start transaction implicitly
+    tusk_model_create "User" '{
+        "id": "user-3",
+        "username": "testuser",
+        "email": "test@example.com",
+        "password": "test123"
+    }'
+    
+    # Simulate error condition
+    if [ "$1" = "fail" ]; then
+        return 1
+    fi
+    
+    return 0
+}
+
+# Successful transaction
+tusk_transaction transaction_test
+echo "Transaction completed successfully"
+
+# Failed transaction (rollback)
+tusk_transaction "transaction_test fail" || echo "Transaction rolled back"
+
+# Backup example
+echo -e "\n=== Backup ==="
+
+backup_file="test_backup.sql"
+tusk_db_backup "$backup_file"
+
+# Advanced query with joins (manual)
+echo -e "\n=== Advanced Queries ==="
+
+# Get posts with author information
+sql="SELECT 
+    p.id,
+    p.title,
+    p.status,
+    u.username as author_name,
+    u.email as author_email
+FROM posts p
+JOIN users u ON p.author_id = u.id
+WHERE p.status = 'published'
+ORDER BY p.published_at DESC"
+
+echo "Posts with authors:"
+tusk_db_exec "$sql" "json" | jq '.'
+
+# Cleanup
+echo -e "\n=== Cleanup ==="
+
+# Delete test data
+tusk_model_delete "Post" "post-1"
+tusk_model_delete "Post" "post-2"
+tusk_model_delete "User" "user-1"
+tusk_model_delete "User" "user-2"
+
+# Remove backup
+rm -f "$backup_file"
+
+echo "Cleanup completed"
+</pre>
+
+<p>TuskLang's database integration in bash provides a clean ORM interface with support for multiple database backends, query building, migrations, and transactions.</p>

@@ -1,0 +1,646 @@
+<h1>Hash Directives in TuskLang for Ruby</h1>
+
+<h2>Directive-Based Configuration</h2>
+<p>TuskLang supports hash-based directives that provide special processing instructions for Ruby applications.</p>
+
+<h3>directives.tsk</h3>
+<pre>
+#!ruby
+# Ruby application directive
+
+# Environment Configuration
+#!env production
+debug_mode: false
+log_level: "error"
+
+#!env development  
+debug_mode: true
+log_level: "debug"
+
+#!env test
+debug_mode: false  
+log_level: "warn"
+
+# Conditional Loading
+#!if env("FEATURE_ANALYTICS") == "true"
+analytics: {
+    provider: "google_analytics"
+    tracking_id: env("GA_TRACKING_ID")
+    events_enabled: true
+}
+
+#!if env("FEATURE_REDIS") == "true"
+redis: {
+    host: env("REDIS_HOST", "localhost")
+    port: env("REDIS_PORT", 6379)
+    database: 0
+}
+
+# Include External Files
+#!include "config/database.tsk"
+#!include "config/secrets.tsk"
+#!include "config/#{env('RAILS_ENV')}.tsk"
+
+# Ruby-specific Directives
+#!gem "rails", ">= 6.0"
+#!gem "sidekiq"
+#!gem "redis"
+
+#!require "active_record"
+#!require "sidekiq"
+
+# Platform-specific Configuration
+#!platform linux
+deployment: {
+    type: "docker"
+    container_port: 3000
+    health_check: "/health"
+}
+
+#!platform darwin
+deployment: {
+    type: "native"
+    port: 3000
+    pid_file: "/tmp/app.pid"
+}
+
+# Version-based Configuration
+#!ruby_version ">= 2.7"
+features: {
+    pattern_matching: true
+    endless_methods: true
+    fiber_scheduler: true
+}
+
+#!rails_version ">= 7.0"
+features: {
+    hotwire: true
+    import_maps: true
+    css_bundling: true
+}
+
+# Validation Directives
+#!validate
+required_env_vars: [
+    "DATABASE_URL",
+    "SECRET_KEY_BASE",
+    "REDIS_URL"
+]
+
+#!schema
+database: {
+    type: "object",
+    properties: {
+        host: {type: "string", required: true},
+        port: {type: "integer", minimum: 1, maximum: 65535},
+        database: {type: "string", required: true}
+    }
+}
+
+# Processing Directives
+#!transform
+uppercase_keys: true
+snake_case: true
+symbolize_keys: true
+
+#!encrypt
+sensitive_data: [
+    "database.password",
+    "api_keys.secret",
+    "encryption.key"
+]
+
+# Deployment Directives
+#!deploy staging
+replicas: 2
+resources: {
+    cpu: "500m"
+    memory: "1Gi"
+}
+
+#!deploy production
+replicas: 5
+resources: {
+    cpu: "1000m"  
+    memory: "2Gi"
+}
+
+# Testing Directives
+#!test
+database: {
+    adapter: "sqlite3"
+    database: ":memory:"
+}
+
+mock_services: true
+disable_external_apis: true
+
+# Documentation Directives
+#!doc
+title: "Ruby Application Configuration"
+description: "TuskLang configuration for Ruby web application"
+version: "1.0.0"
+
+#!example
+sample_user: {
+    name: "John Doe"
+    email: "john@example.com"
+    role: "admin"
+}
+
+# Performance Directives
+#!cache
+ttl: 3600
+strategy: "write_through"
+invalidation: "time_based"
+
+#!lazy_load
+expensive_operations: [
+    "external_api_calls",
+    "large_dataset_processing",
+    "image_processing"
+]
+
+# Security Directives
+#!security
+csrf_protection: true
+sql_injection_prevention: true
+xss_protection: true
+
+#!audit
+log_level: "info"
+include_request_data: true
+exclude_sensitive_fields: ["password", "token"]
+
+# Monitoring Directives
+#!monitor
+metrics: {
+    enabled: true
+    endpoint: "/metrics"
+    include_system: true
+}
+
+#!alert
+error_threshold: 10
+response_time_threshold: 1000
+memory_threshold: "1.5GB"
+
+# Background Job Directives
+#!worker
+queue: "default"
+concurrency: 5
+retry_count: 3
+
+#!schedule
+cleanup_job: {
+    cron: "0 2 * * *"
+    class: "CleanupWorker"
+    queue: "maintenance"
+}
+
+# API Directives
+#!api
+version: "v1"
+base_path: "/api/v1"
+documentation: true
+
+#!cors
+allowed_origins: ["http://localhost:3000", "https://myapp.com"]
+allowed_methods: ["GET", "POST", "PUT", "DELETE"]
+allowed_headers: ["Content-Type", "Authorization"]
+
+# Database Migration Directives
+#!migrate
+auto_migrate: false
+migration_path: "db/migrate"
+schema_format: "ruby"
+
+#!seed
+data_files: [
+    "db/seeds/users.rb",
+    "db/seeds/categories.rb"
+]
+
+# Asset Pipeline Directives
+#!assets
+compile_on_demand: true
+digest: true
+gzip: true
+
+#!precompile
+assets: [
+    "application.css",
+    "application.js",
+    "admin.css"
+]
+</pre>
+
+<h3>Ruby Directive Processor</h3>
+<pre>
+#!/usr/bin/env ruby
+
+require 'ostruct'
+require 'yaml'
+
+class TuskLangDirectiveProcessor
+  attr_reader :config, :directives, :context
+
+  def initialize
+    @config = OpenStruct.new
+    @directives = {}
+    @context = {
+      environment: ENV['RAILS_ENV'] || 'development',
+      platform: RUBY_PLATFORM,
+      ruby_version: RUBY_VERSION,
+      rails_version: defined?(Rails) ? Rails::VERSION::STRING : nil
+    }
+  end
+
+  def process_file(file_path)
+    content = File.read(file_path)
+    process_content(content)
+  end
+
+  def process_content(content)
+    lines = content.split("\n")
+    current_config = @config
+    directive_stack = []
+
+    lines.each_with_index do |line, index|
+      line = line.strip
+      next if line.empty? || line.start_with?('#') && !line.start_with?('#!')
+
+      if line.start_with?('#!')
+        process_directive(line, current_config, directive_stack)
+      else
+        process_config_line(line, current_config)
+      end
+    end
+
+    @config
+  end
+
+  private
+
+  def process_directive(line, config, stack)
+    directive_content = line[2..-1].strip
+    parts = directive_content.split(' ', 2)
+    directive_name = parts[0]
+    directive_args = parts[1] || ''
+
+    case directive_name
+    when 'ruby'
+      handle_ruby_directive(directive_args, config)
+    when 'env'
+      handle_env_directive(directive_args, config, stack)
+    when 'if'
+      handle_if_directive(directive_args, config, stack)
+    when 'include'
+      handle_include_directive(directive_args, config)
+    when 'gem'
+      handle_gem_directive(directive_args, config)
+    when 'require'
+      handle_require_directive(directive_args, config)
+    when 'platform'
+      handle_platform_directive(directive_args, config, stack)
+    when 'ruby_version'
+      handle_version_directive(directive_args, 'ruby', config, stack)
+    when 'rails_version'
+      handle_version_directive(directive_args, 'rails', config, stack)
+    when 'validate'
+      handle_validate_directive(directive_args, config)
+    when 'schema'
+      handle_schema_directive(directive_args, config)
+    when 'transform'
+      handle_transform_directive(directive_args, config)
+    when 'encrypt'
+      handle_encrypt_directive(directive_args, config)
+    when 'deploy'
+      handle_deploy_directive(directive_args, config, stack)
+    when 'test'
+      handle_test_directive(directive_args, config, stack)
+    when 'cache'
+      handle_cache_directive(directive_args, config)
+    when 'security'
+      handle_security_directive(directive_args, config)
+    when 'monitor'
+      handle_monitor_directive(directive_args, config)
+    when 'api'
+      handle_api_directive(directive_args, config)
+    when 'cors'
+      handle_cors_directive(directive_args, config)
+    else
+      @directives[directive_name] = directive_args
+    end
+  end
+
+  def handle_ruby_directive(args, config)
+    @directives[:ruby_app] = true
+    config.app_type = 'ruby'
+  end
+
+  def handle_env_directive(env_name, config, stack)
+    if env_name == @context[:environment]
+      stack.push({type: :env, condition: true})
+    else
+      stack.push({type: :env, condition: false})
+    end
+  end
+
+  def handle_if_directive(condition, config, stack)
+    result = evaluate_condition(condition)
+    stack.push({type: :if, condition: result})
+  end
+
+  def handle_include_directive(file_path, config)
+    # Process included file
+    resolved_path = resolve_path(file_path)
+    if File.exist?(resolved_path)
+      included_processor = TuskLangDirectiveProcessor.new
+      included_config = included_processor.process_file(resolved_path)
+      merge_configs(config, included_config)
+    end
+  end
+
+  def handle_gem_directive(gem_spec, config)
+    config.dependencies ||= []
+    config.dependencies << parse_gem_spec(gem_spec)
+  end
+
+  def handle_require_directive(library, config)
+    config.required_libraries ||= []
+    config.required_libraries << library.strip.gsub(/^["']|["']$/, '')
+  end
+
+  def handle_platform_directive(platform, config, stack)
+    current_platform = detect_platform
+    condition = platform == current_platform
+    stack.push({type: :platform, condition: condition})
+  end
+
+  def handle_version_directive(version_spec, type, config, stack)
+    current_version = case type
+                     when 'ruby'
+                       RUBY_VERSION
+                     when 'rails'
+                       @context[:rails_version]
+                     end
+
+    condition = current_version ? version_matches?(current_version, version_spec) : false
+    stack.push({type: :version, condition: condition})
+  end
+
+  def handle_validate_directive(args, config)
+    config.validation ||= OpenStruct.new
+    config.validation.enabled = true
+  end
+
+  def handle_schema_directive(args, config)
+    config.schema_validation ||= OpenStruct.new
+    config.schema_validation.enabled = true
+  end
+
+  def handle_transform_directive(args, config)
+    config.transformation ||= OpenStruct.new
+    config.transformation.enabled = true
+  end
+
+  def handle_encrypt_directive(args, config)
+    config.encryption ||= OpenStruct.new
+    config.encryption.enabled = true
+  end
+
+  def handle_deploy_directive(environment, config, stack)
+    condition = environment == ENV['DEPLOY_ENV'] || environment == @context[:environment]
+    stack.push({type: :deploy, condition: condition})
+  end
+
+  def handle_test_directive(args, config, stack)
+    condition = @context[:environment] == 'test'
+    stack.push({type: :test, condition: condition})
+  end
+
+  def handle_cache_directive(args, config)
+    config.caching ||= OpenStruct.new
+    config.caching.enabled = true
+  end
+
+  def handle_security_directive(args, config)
+    config.security ||= OpenStruct.new
+    config.security.enhanced = true
+  end
+
+  def handle_monitor_directive(args, config)
+    config.monitoring ||= OpenStruct.new
+    config.monitoring.enabled = true
+  end
+
+  def handle_api_directive(args, config)
+    config.api ||= OpenStruct.new
+    config.api.enabled = true
+  end
+
+  def handle_cors_directive(args, config)
+    config.cors ||= OpenStruct.new
+    config.cors.enabled = true
+  end
+
+  def process_config_line(line, config)
+    # This would integrate with the main TuskLang parser
+    # For now, simple key-value parsing
+    if line.include?(':') || line.include?('=')
+      separator = line.include?(':') ? ':' : '='
+      key, value = line.split(separator, 2).map(&:strip)
+      
+      # Simple value parsing
+      parsed_value = case value
+                    when /^".*"$/
+                      value[1..-2]
+                    when /^\d+$/
+                      value.to_i
+                    when /^\d+\.\d+$/
+                      value.to_f
+                    when /^(true|false)$/i
+                      value.downcase == 'true'
+                    else
+                      value
+                    end
+      
+      config.send("#{sanitize_key(key)}=", parsed_value)
+    end
+  end
+
+  def evaluate_condition(condition)
+    # Simple condition evaluation
+    # Real implementation would be more sophisticated
+    condition.gsub!(/env\("([^"]+)"\)/) { ENV[$1] || '' }
+    
+    case condition
+    when /==\s*"true"/
+      condition.include?('"true"')
+    when /==\s*"false"/
+      condition.include?('"false"')
+    else
+      true
+    end
+  end
+
+  def resolve_path(path)
+    # Resolve relative paths and variable substitutions
+    path = path.gsub(/^["']|["']$/, '')
+    path = path.gsub(/#{([^}]+)}/) { |match| ENV[$1] || @context[$1.to_sym] || match }
+    
+    if path.start_with?('/')
+      path
+    else
+      File.join(Dir.pwd, path)
+    end
+  end
+
+  def parse_gem_spec(spec)
+    # Parse gem specifications like 'rails', '>= 6.0'
+    if spec.include?(',')
+      parts = spec.split(',').map(&:strip)
+      name = parts[0].gsub(/^["']|["']$/, '')
+      version = parts[1].gsub(/^["']|["']$/, '')
+      {name: name, version: version}
+    else
+      name = spec.gsub(/^["']|["']$/, '')
+      {name: name}
+    end
+  end
+
+  def detect_platform
+    case RUBY_PLATFORM
+    when /linux/
+      'linux'
+    when /darwin/
+      'darwin'
+    when /win/
+      'windows'
+    else
+      'unknown'
+    end
+  end
+
+  def version_matches?(current, spec)
+    # Simple version matching
+    # Real implementation would use Gem::Version
+    spec = spec.strip
+    
+    if spec.start_with?('>=')
+      required = spec[2..-1].strip
+      Gem::Version.new(current) >= Gem::Version.new(required)
+    elsif spec.start_with?('>')
+      required = spec[1..-1].strip
+      Gem::Version.new(current) > Gem::Version.new(required)
+    elsif spec.start_with?('<=')
+      required = spec[2..-1].strip
+      Gem::Version.new(current) <= Gem::Version.new(required)
+    elsif spec.start_with?('<')
+      required = spec[1..-1].strip
+      Gem::Version.new(current) < Gem::Version.new(required)
+    elsif spec.start_with?('=')
+      required = spec[1..-1].strip
+      Gem::Version.new(current) == Gem::Version.new(required)
+    else
+      true
+    end
+  rescue ArgumentError
+    false
+  end
+
+  def merge_configs(target, source)
+    source.each_pair do |key, value|
+      if target.respond_to?("#{key}=")
+        target.send("#{key}=", value)
+      end
+    end
+  end
+
+  def sanitize_key(key)
+    key.gsub(/[^a-zA-Z0-9_]/, '_')
+  end
+end
+
+# Directive validation
+class TuskLangDirectiveValidator
+  def self.validate_directives(config)
+    errors = []
+    
+    # Validate required environment variables
+    if config.validation&.enabled && config.required_env_vars
+      config.required_env_vars.each do |var|
+        unless ENV[var]
+          errors << "Missing required environment variable: #{var}"
+        end
+      end
+    end
+    
+    # Validate gem dependencies
+    if config.dependencies
+      config.dependencies.each do |dep|
+        unless gem_available?(dep[:name], dep[:version])
+          errors << "Missing gem dependency: #{dep[:name]} #{dep[:version]}"
+        end
+      end
+    end
+    
+    errors
+  end
+
+  def self.gem_available?(name, version = nil)
+    spec = Gem.loaded_specs[name]
+    return false unless spec
+    
+    if version
+      version_matches?(spec.version.to_s, version)
+    else
+      true
+    end
+  rescue
+    false
+  end
+
+  private
+
+  def self.version_matches?(current, required)
+    Gem::Version.new(current) >= Gem::Version.new(required.gsub(/^>=?\s*/, ''))
+  rescue
+    false
+  end
+end
+
+if __FILE__ == $0
+  # Example usage
+  processor = TuskLangDirectiveProcessor.new
+  
+  sample_config = <<~TSK
+    #!ruby
+    #!env development
+    debug: true
+    log_level: "debug"
+    
+    #!if env("FEATURE_REDIS") == "true"
+    redis:
+      host: "localhost"
+      port: 6379
+    
+    #!gem "rails", ">= 6.0"
+    #!require "active_record"
+    
+    app_name: "Demo App"
+  TSK
+  
+  config = processor.process_content(sample_config)
+  
+  puts "Processed configuration:"
+  puts "App name: #{config.app_name}"
+  puts "Debug: #{config.debug}"
+  puts "App type: #{config.app_type}"
+  puts "Dependencies: #{config.dependencies}"
+  puts "Required libraries: #{config.required_libraries}"
+end
+</pre>
+
+<p>TuskLang's directive system provides powerful configuration management and conditional processing for Ruby applications.</p>

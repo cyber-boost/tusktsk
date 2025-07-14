@@ -1,0 +1,136 @@
+<h1>Getting Started with TuskLang in JavaScript</h1>
+
+<h2>Basic TuskLang Configuration</h2>
+<p>TuskLang provides a clean alternative to JSON for JavaScript applications, with enhanced features and better readability.</p>
+
+<h3>config.tsk</h3>
+<pre>
+# Application configuration
+name: "My Node.js App"
+version: "1.0.0"
+port: 3000
+
+# Server settings
+server {
+    host: "localhost"
+    port: env("PORT", 3000)
+    ssl: false
+    
+    cors {
+        enabled: true
+        origins: ["http://localhost:3000", "https://myapp.com"]
+        credentials: true
+    }
+}
+
+# Database configuration
+database {
+    type: "postgres"
+    host: env("DB_HOST", "localhost")
+    port: env("DB_PORT", 5432)
+    name: env("DB_NAME", "myapp")
+    user: env("DB_USER", "postgres")
+    password: env("DB_PASSWORD", "")
+}
+</pre>
+
+<h3>JavaScript Usage</h3>
+<pre>
+// tusklang.js - Basic parser
+const fs = require('fs');
+
+class TuskLang {
+    static parse(content) {
+        const lines = content.split('\n');
+        const result = {};
+        let current = result;
+        const stack = [result];
+        
+        for (let line of lines) {
+            line = line.trim();
+            
+            // Skip comments and empty lines
+            if (!line || line.startsWith('#')) continue;
+            
+            // Handle nested objects
+            if (line.includes('{')) {
+                const key = line.split('{')[0].trim();
+                current[key] = {};
+                stack.push(current);
+                current = current[key];
+            } else if (line === '}') {
+                current = stack.pop();
+            } else if (line.includes(':') || line.includes('=')) {
+                // Parse key-value
+                const separator = line.includes(':') ? ':' : '=';
+                const [key, ...valueParts] = line.split(separator);
+                const value = valueParts.join(separator).trim();
+                current[key.trim()] = this.parseValue(value);
+            }
+        }
+        
+        return result;
+    }
+    
+    static parseValue(value) {
+        // Remove quotes
+        if ((value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'"))) {
+            return value.slice(1, -1);
+        }
+        
+        // Parse numbers
+        if (/^-?\d+(\.\d+)?$/.test(value)) {
+            return parseFloat(value);
+        }
+        
+        // Parse booleans
+        if (value.toLowerCase() === 'true') return true;
+        if (value.toLowerCase() === 'false') return false;
+        
+        // Parse null
+        if (value.toLowerCase() === 'null') return null;
+        
+        // Parse arrays
+        if (value.startsWith('[') && value.endsWith(']')) {
+            return JSON.parse(value);
+        }
+        
+        // Parse env function
+        if (value.startsWith('env(')) {
+            const match = value.match(/env\("([^"]+)"(?:,\s*(.+))?\)/);
+            if (match) {
+                const [, envVar, defaultValue] = match;
+                return process.env[envVar] || this.parseValue(defaultValue || 'null');
+            }
+        }
+        
+        return value;
+    }
+    
+    static load(filepath) {
+        const content = fs.readFileSync(filepath, 'utf8');
+        return this.parse(content);
+    }
+}
+
+// Usage
+const config = TuskLang.load('config.tsk');
+
+console.log(config.name);                    // "My Node.js App"
+console.log(config.server.port);             // 3000 or from PORT env
+console.log(config.database.host);           // "localhost" or from DB_HOST
+
+// Express.js integration
+const express = require('express');
+const app = express();
+
+app.listen(config.server.port, config.server.host, () => {
+    console.log(`Server running at http://${config.server.host}:${config.server.port}`);
+});
+
+// Export for use in other modules
+module.exports = config;
+</pre>
+
+<p>TuskLang simplifies configuration management in JavaScript applications, providing a more readable and powerful alternative to JSON.</p>

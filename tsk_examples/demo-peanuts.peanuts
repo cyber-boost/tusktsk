@@ -1,0 +1,57 @@
+# 🥜 Enhanced Peanuts Binary Demo
+# ===============================
+# Showcasing FUJSEN @ operators, binary compilation, and performance features
+
+[app]
+name = "TuskLang Peanuts Demo"
+version = "1.1.59-Elder"
+environment = "production"
+
+# FUJSEN @ Operators demonstration
+@Get(env="DATABASE_URL", default="sqlite://memory")
+@Set(debug_mode=false, log_level="INFO")
+
+[database]
+type = "postgresql"
+host = "localhost"
+port = 5432
+name = "tuskphp_${environment}"
+
+# Advanced FUJSEN operators
+@Query(table="users", where="active=1")
+@Cache(ttl=3600, key="database_config")
+@Optimize(level=9, compression=true)
+
+[performance]
+binary_enabled = true
+compression_level = 9
+jit_optimization = true
+
+# Include other configuration files
+@Include(file="common.peanuts")
+
+[peanuts_compilation]
+# Binary compilation directives
+@Binary(compress=true, optimize=9)
+shell_format = ".shell"
+binary_format = ".pntb"
+auto_compile = true
+
+[fujsen_operators]
+# All supported @ operators
+available_operators = ["Query", "Cache", "Optimize", "Include", "Set", "Get", "Env", "Shell", "Binary"]
+
+# Performance metrics
+@Shell(command="date", key="compilation_timestamp")
+
+[features]
+variable_syntax = ["$variable", "{{variable}}", "@variable"]
+fujsen_integration = true
+binary_serialization = true
+compression_support = ["gzip", "bzip2", "lz4"]
+
+[environment_settings]
+# Environment variable integration
+@Env(load=".env", override=false)
+runtime_mode = "${RUNTIME_MODE:-production}"
+debug_enabled = ${DEBUG_ENABLED:-false} 

@@ -1,0 +1,70 @@
+# Pure TuskLang File - No PHP needed!
+# This should work directly when transpiler is set up
+
+app_name = "Pure TuskLang Demo"
+title = "Hello from Pure TuskLang!"
+
+# Configuration
+config {
+    version: "1.0.0"
+    author: "TuskLang Team"
+    debug: true
+}
+
+# Dynamic content using TuskLang functions
+server {
+    time: php(date('H:i:s'))
+    date: php(date('Y-m-d'))
+    php_version: php(PHP_VERSION)
+}
+
+# HTML template using heredoc
+html_output = <<<HTML
+<!DOCTYPE html>
+<html>
+<head>
+    <title>{$app_name}</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background: #f0f0f0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            height: 100vh;
+            margin: 0;
+        }
+        .container {
+            background: white;
+            padding: 40px;
+            border-radius: 10px;
+            box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+            text-align: center;
+        }
+        .elephant { font-size: 72px; }
+        .info {
+            margin: 20px 0;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 5px;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="elephant">🐘</div>
+        <h1>{$title}</h1>
+        <div class="info">
+            <p>Version: {$config.version}</p>
+            <p>Server Time: {$server.time}</p>
+            <p>Date: {$server.date}</p>
+            <p>PHP: {$server.php_version}</p>
+        </div>
+        <p>This is pure TuskLang - no PHP tags needed!</p>
+    </div>
+</body>
+</html>
+HTML
+
+# Output the HTML
+@output(html_output)

@@ -1,0 +1,104 @@
+# 🥜 Child peanu.tsk - Demonstrates CSS-like Inheritance
+# ======================================================
+# This file shows how child configurations inherit from 
+# parents and can override specific values.
+#
+# Parent: demo-peanu.tsk (inherits all values)
+# Child: child-peanu.tsk (overrides specific values)
+
+# Override application name (child-specific)
+app_name: "TuskLang Child Demo"
+environment: "production"
+
+# Override database configuration (partial override)
+database:
+    type: "postgresql"  # Override type
+    host: @env("PROD_DB_HOST", "prod-db.example.com")  # Override host
+    ssl: true  # Override SSL
+    # pool_size, timeout, etc. inherited from parent
+
+# Override server configuration
+server:
+    host: @env("PROD_SERVER_HOST", "prod-server.example.com")  # Override host
+    port: 443  # Override port
+    workers: 8  # Override workers
+    # max_connections, keep_alive, gzip inherited from parent
+
+# Override cache settings
+cache:
+    ttl: 7200  # Override TTL to 2 hours
+    max_size: "500MB"  # Override max size
+    # enabled, compression inherited from parent
+
+# Override security settings
+security:
+    rate_limiting: true  # Keep rate limiting
+    max_requests_per_minute: 120  # Override to higher limit
+    allowed_origins: @env("ALLOWED_ORIGINS", ["prod.example.com", "www.example.com"])  # Override origins
+    # cors_enabled, csrf_protection inherited from parent
+
+# Override features for production
+features:
+    logging: true  # Keep logging
+    metrics: true  # Keep metrics
+    profiling: true  # Enable profiling (was false in parent)
+    debug: false  # Disable debug (was true in parent)
+    auto_backup: true  # Keep auto backup
+
+# Override performance settings
+performance:
+    jit_compilation: true  # Keep JIT
+    binary_caching: true  # Keep binary caching
+    minify_output: true  # Enable minification (was false in parent)
+    # Other settings inherited from parent
+
+# Override UI theme
+ui:
+    theme: "light"  # Override theme
+    colors:
+        primary: "#2980b9"  # Override primary color
+        background: "#ffffff"  # Override background
+        text: "#2c3e50"  # Override text color
+        # secondary, accent inherited from parent
+    # layout, animations inherited from parent
+
+# Add child-specific configuration
+child_specific:
+    deployment_environment: "production"
+    load_balancer: "nginx"
+    ssl_certificate: @env("SSL_CERT_PATH", "/etc/ssl/certs/prod.crt")
+    monitoring_enabled: true
+    backup_schedule: "0 2 * * *"  # Daily at 2 AM
+
+# Override plugins array (complete replacement)
+plugins: [
+    "authentication",
+    "authorization",
+    "logging",
+    "monitoring",
+    "backup",
+    "ssl",
+    "compression",
+    "load_balancing"
+]
+
+# Override welcome message with child-specific content
+welcome_message: "Welcome to $app_name (Child Config) v$version!"
+production_message: "Running in {{environment}} mode on {{server.host}}"
+
+# Production-specific overrides
+production_config:
+    error_reporting: "minimal"
+    log_level: "error"
+    cache_strategy: "aggressive"
+    performance_monitoring: true
+    uptime_checks: true
+
+# Meta information (child-specific)
+meta:
+    created_by: "TuskLang Child Configuration"
+    created_at: "2024-01-15"
+    version: "1.0.0"
+    parent_config: "demo-peanu.tsk"
+    description: "Child configuration demonstrating CSS-like inheritance"
+    environment: "production" 

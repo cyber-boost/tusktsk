@@ -1,0 +1,29 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>C# CLI</title>
+  <desc>C# command line interface and dotnet CLI representation</desc>
+  
+  <!-- Terminal window -->
+  <rect x="8" y="8" width="48" height="48" rx="4" fill="#2A2A3E" stroke="#239120" stroke-width="2"/>
+  
+  <!-- Terminal header -->
+  <rect x="8" y="8" width="48" height="12" rx="4" fill="#239120" opacity="0.3"/>
+  
+  <!-- Terminal buttons -->
+  <circle cx="16" cy="14" r="2" fill="#68217A"/>
+  <circle cx="22" cy="14" r="2" fill="#68217A"/>
+  <circle cx="28" cy="14" r="2" fill="#68217A"/>
+  
+  <!-- Command prompt -->
+  <text x="12" y="26" font-family="Courier New" font-size="8" fill="#239120">$</text>
+  <text x="16" y="26" font-family="Courier New" font-size="8" fill="#68217A">dotnet</text>
+  
+  <!-- Command output -->
+  <text x="12" y="36" font-family="Courier New" font-size="6" fill="#888">new webapi</text>
+  <text x="12" y="44" font-family="Courier New" font-size="6" fill="#888">build</text>
+  <text x="12" y="52" font-family="Courier New" font-size="6" fill="#888">run</text>
+  
+  <!-- Cursor -->
+  <rect x="16" y="24" width="1" height="2" fill="#239120">
+    <animate attributeName="opacity" values="1;0;1" dur="1s" repeatCount="indefinite"/>
+  </rect>
+</svg> 

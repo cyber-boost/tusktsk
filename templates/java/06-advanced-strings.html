@@ -1,0 +1,477 @@
+<h1>Advanced Strings for Java</h1>
+
+<h2>String Interpolation and Templating</h2>
+<pre>
+# Basic string interpolation
+app_name: "MyJavaApp"
+version: "1.0.0"
+welcome_message: "Welcome to " + app_name + " version " + version
+
+# Environment variable interpolation
+database_url: "jdbc:postgresql://" + env("DB_HOST", "localhost") + ":" + env("DB_PORT", "5432") + "/" + env("DB_NAME", "myapp")
+api_endpoint: "https://" + env("API_HOST") + "/api/v1"
+
+# Java expression interpolation
+timestamp: java("java.time.LocalDateTime.now().toString()")
+uuid: java("java.util.UUID.randomUUID().toString()")
+hostname: java("java.net.InetAddress.getLocalHost().getHostName()")
+user_home: java("System.getProperty(\"user.home\")")
+</pre>
+
+<h2>Java String Processing</h2>
+<pre>
+// StringConfig.java
+@ConfigurationProperties
+@Component
+public class StringConfig {
+    private String appName;
+    private String version;
+    private String welcomeMessage;
+    private String databaseUrl;
+    private String apiEndpoint;
+    private String timestamp;
+    private String uuid;
+    private String hostname;
+    private String userHome;
+    
+    // Process welcome message after properties are set
+    @PostConstruct
+    public void processStrings() {
+        if (welcomeMessage == null && appName != null && version != null) {
+            welcomeMessage = String.format("Welcome to %s version %s", appName, version);
+        }
+    }
+    
+    // String manipulation methods
+    public String getFormattedDatabaseUrl() {
+        return databaseUrl != null ? databaseUrl.toLowerCase() : null;
+    }
+    
+    public String getShortUuid() {
+        return uuid != null ? uuid.substring(0, 8) : null;
+    }
+    
+    // Getters and setters
+    public String getAppName() { return appName; }
+    public void setAppName(String appName) { this.appName = appName; }
+    
+    public String getVersion() { return version; }
+    public void setVersion(String version) { this.version = version; }
+    
+    public String getWelcomeMessage() { return welcomeMessage; }
+    public void setWelcomeMessage(String welcomeMessage) { this.welcomeMessage = welcomeMessage; }
+    
+    // Additional getters and setters...
+}
+</pre>
+
+<h2>Multiline Strings and Formatting</h2>
+<pre>
+# Multiline string configuration
+sql_query: """
+SELECT u.id, u.username, u.email, p.name as profile_name
+FROM users u
+LEFT JOIN profiles p ON u.id = p.user_id
+WHERE u.active = true
+AND u.created_at > ?
+ORDER BY u.created_at DESC
+LIMIT 100
+"""
+
+# Configuration templates
+email_template: """
+Dear {{username}},
+
+Welcome to {{app_name}}!
+
+Your account has been successfully created with the following details:
+- Username: {{username}}
+- Email: {{email}}
+- Registration Date: {{registration_date}}
+
+Please click the following link to verify your email address:
+{{verification_link}}
+
+Best regards,
+The {{app_name}} Team
+"""
+
+# Log format configuration
+log_format: """
+[{{timestamp}}] {{level}} {{logger}} - {{message}}
+{{#if exception}}
+Exception: {{exception.class}}
+Message: {{exception.message}}
+Stack Trace:
+{{exception.stackTrace}}
+{{/if}}
+"""
+
+# JSON template
+api_response_template: """
+{
+  "status": "{{status}}",
+  "message": "{{message}}",
+  "data": {{data}},
+  "timestamp": "{{timestamp}}",
+  "requestId": "{{requestId}}"
+}
+"""
+</pre>
+
+<h2>Java Template Processing</h2>
+<pre>
+// TemplateProcessor.java
+@Service
+public class TemplateProcessor {
+    
+    private final Map&lt;String, String&gt; templates = new HashMap&lt;&gt;();
+    
+    @Value("${email_template}")
+    public void setEmailTemplate(String emailTemplate) {
+        templates.put("email", emailTemplate);
+    }
+    
+    @Value("${log_format}")
+    public void setLogFormat(String logFormat) {
+        templates.put("log", logFormat);
+    }
+    
+    @Value("${api_response_template}")
+    public void setApiResponseTemplate(String apiResponseTemplate) {
+        templates.put("api_response", apiResponseTemplate);
+    }
+    
+    // Simple template processing with placeholder replacement
+    public String processTemplate(String templateName, Map&lt;String, Object&gt; variables) {
+        String template = templates.get(templateName);
+        if (template == null) {
+            throw new IllegalArgumentException("Template not found: " + templateName);
+        }
+        
+        String result = template;
+        for (Map.Entry&lt;String, Object&gt; entry : variables.entrySet()) {
+            String placeholder = "{{" + entry.getKey() + "}}";
+            String value = entry.getValue() != null ? entry.getValue().toString() : "";
+            result = result.replace(placeholder, value);
+        }
+        
+        return result;
+    }
+    
+    // Process email template
+    public String processEmailTemplate(String username, String email, String appName) {
+        Map&lt;String, Object&gt; variables = new HashMap&lt;&gt;();
+        variables.put("username", username);
+        variables.put("email", email);
+        variables.put("app_name", appName);
+        variables.put("registration_date", LocalDateTime.now().format(DateTimeFormatter.ISO_LOCAL_DATE));
+        variables.put("verification_link", generateVerificationLink(email));
+        
+        return processTemplate("email", variables);
+    }
+    
+    private String generateVerificationLink(String email) {
+        String token = Base64.getEncoder().encodeToString(email.getBytes());
+        return "https://myapp.com/verify?token=" + token;
+    }
+}
+</pre>
+
+<h2>Regular Expressions and Pattern Matching</h2>
+<pre>
+# Regular expression patterns
+email_pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+phone_pattern: "^\\+?1?[0-9]{10,14}$"
+password_pattern: "^(?=.*[a-z])(?=.*[A-Z])(?=.*\\d)(?=.*[@$!%*?&])[A-Za-z\\d@$!%*?&]{8,}$"
+url_pattern: "^https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$"
+
+# Pattern configurations for validation
+validation_patterns: {
+    "username": "^[a-zA-Z0-9_]{3,20}$"
+    "credit_card": "^(?:4[0-9]{12}(?:[0-9]{3})?|5[1-5][0-9]{14}|3[47][0-9]{13}|3[0-9]{13})$"
+    "ip_address": "^(?:(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)\\.){3}(?:25[0-5]|2[0-4][0-9]|[01]?[0-9][0-9]?)$"
+    "date_iso": "^\\d{4}-\\d{2}-\\d{2}$"
+}
+
+# Replacement patterns for text processing
+text_replacements: {
+    "remove_html": "&lt;[^&gt;]*&gt;"
+    "extract_numbers": "\\d+"
+    "normalize_whitespace": "\\s+"
+}
+</pre>
+
+<h2>Java Pattern Validation Service</h2>
+<pre>
+// PatternValidationService.java
+@Service
+public class PatternValidationService {
+    
+    private final Map&lt;String, Pattern&gt; compiledPatterns = new HashMap&lt;&gt;();
+    
+    @Value("#{${validation_patterns}}")
+    public void setValidationPatterns(Map&lt;String, String&gt; patterns) {
+        for (Map.Entry&lt;String, String&gt; entry : patterns.entrySet()) {
+            compiledPatterns.put(entry.getKey(), Pattern.compile(entry.getValue()));
+        }
+    }
+    
+    @Value("${email_pattern}")
+    private String emailPattern;
+    
+    @Value("${phone_pattern}")
+    private String phonePattern;
+    
+    @PostConstruct
+    public void initializePatterns() {
+        compiledPatterns.put("email", Pattern.compile(emailPattern));
+        compiledPatterns.put("phone", Pattern.compile(phonePattern));
+    }
+    
+    public boolean validate(String patternName, String input) {
+        Pattern pattern = compiledPatterns.get(patternName);
+        if (pattern == null) {
+            throw new IllegalArgumentException("Pattern not found: " + patternName);
+        }
+        return pattern.matcher(input).matches();
+    }
+    
+    public boolean isValidEmail(String email) {
+        return validate("email", email);
+    }
+    
+    public boolean isValidPhone(String phone) {
+        return validate("phone", phone);
+    }
+    
+    public boolean isValidUsername(String username) {
+        return validate("username", username);
+    }
+    
+    public List&lt;String&gt; extractMatches(String patternName, String input) {
+        Pattern pattern = compiledPatterns.get(patternName);
+        if (pattern == null) {
+            throw new IllegalArgumentException("Pattern not found: " + patternName);
+        }
+        
+        List&lt;String&gt; matches = new ArrayList&lt;&gt;();
+        Matcher matcher = pattern.matcher(input);
+        while (matcher.find()) {
+            matches.add(matcher.group());
+        }
+        return matches;
+    }
+}
+</pre>
+
+<h2>String Formatting and Localization</h2>
+<pre>
+# Message formats for different locales
+messages: {
+    "en": {
+        "welcome": "Welcome, {0}!"
+        "error.validation": "Validation failed for field: {0}"
+        "info.record_count": "Found {0} records in {1} ms"
+        "date.format": "MMM dd, yyyy"
+    },
+    "es": {
+        "welcome": "¡Bienvenido, {0}!"
+        "error.validation": "Falló la validación para el campo: {0}"
+        "info.record_count": "Se encontraron {0} registros en {1} ms"
+        "date.format": "dd MMM yyyy"
+    },
+    "fr": {
+        "welcome": "Bienvenue, {0}!"
+        "error.validation": "Échec de validation pour le champ: {0}"
+        "info.record_count": "Trouvé {0} enregistrements en {1} ms"
+        "date.format": "dd MMM yyyy"
+    }
+}
+
+# Number and currency formatting
+number_formats: {
+    "en": {
+        "decimal_separator": "."
+        "thousand_separator": ","
+        "currency_symbol": "$"
+        "currency_format": "${0}"
+    },
+    "de": {
+        "decimal_separator": ","
+        "thousand_separator": "."
+        "currency_symbol": "€"
+        "currency_format": "{0} €"
+    }
+}
+</pre>
+
+<h2>Java Localization Service</h2>
+<pre>
+// LocalizationService.java
+@Service
+public class LocalizationService {
+    
+    private Map&lt;String, Map&lt;String, String&gt;&gt; messages = new HashMap&lt;&gt;();
+    private Map&lt;String, Map&lt;String, String&gt;&gt; numberFormats = new HashMap&lt;&gt;();
+    
+    @Value("#{${messages}}")
+    public void setMessages(Map&lt;String, Map&lt;String, String&gt;&gt; messages) {
+        this.messages = messages;
+    }
+    
+    @Value("#{${number_formats}}")
+    public void setNumberFormats(Map&lt;String, Map&lt;String, String&gt;&gt; numberFormats) {
+        this.numberFormats = numberFormats;
+    }
+    
+    public String getMessage(String locale, String key, Object... args) {
+        Map&lt;String, String&gt; localeMessages = messages.get(locale);
+        if (localeMessages == null) {
+            localeMessages = messages.get("en"); // Fallback to English
+        }
+        
+        String template = localeMessages.get(key);
+        if (template == null) {
+            return key; // Return key if message not found
+        }
+        
+        return MessageFormat.format(template, args);
+    }
+    
+    public String formatCurrency(String locale, double amount) {
+        Map&lt;String, String&gt; formats = numberFormats.get(locale);
+        if (formats == null) {
+            formats = numberFormats.get("en");
+        }
+        
+        String currencyFormat = formats.get("currency_format");
+        String decimalSeparator = formats.get("decimal_separator");
+        String thousandSeparator = formats.get("thousand_separator");
+        
+        // Custom formatting logic
+        DecimalFormatSymbols symbols = new DecimalFormatSymbols();
+        symbols.setDecimalSeparator(decimalSeparator.charAt(0));
+        symbols.setGroupingSeparator(thousandSeparator.charAt(0));
+        
+        DecimalFormat df = new DecimalFormat("#,##0.00", symbols);
+        String formattedAmount = df.format(amount);
+        
+        return currencyFormat.replace("{0}", formattedAmount);
+    }
+    
+    public String formatDate(String locale, LocalDate date) {
+        Map&lt;String, String&gt; localeMessages = messages.get(locale);
+        if (localeMessages == null) {
+            localeMessages = messages.get("en");
+        }
+        
+        String pattern = localeMessages.get("date.format");
+        DateTimeFormatter formatter = DateTimeFormatter.ofPattern(pattern);
+        return date.format(formatter);
+    }
+}
+</pre>
+
+<h2>String Encoding and Security</h2>
+<pre>
+# Encoding configurations
+encoding: {
+    default_charset: "UTF-8"
+    url_encoding: "UTF-8"
+    base64_line_length: 76
+}
+
+# Security string configurations
+security: {
+    # Password hashing
+    password_salt: env("PASSWORD_SALT", "default_salt_change_in_production")
+    
+    # JWT secrets
+    jwt_secret: env("JWT_SECRET")
+    jwt_algorithm: "HS256"
+    
+    # Encryption keys
+    aes_key: env("AES_ENCRYPTION_KEY")
+    
+    # SQL injection prevention patterns
+    sql_injection_patterns: [
+        "('|(\\||'|\\,|\\\\|'|;|%|\\*)",
+        "(union|select|insert|delete|update|drop|create|alter|exec|execute)",
+        "(script|javascript|vbscript|iframe|object|embed|form)"
+    ]
+}
+</pre>
+
+<h2>Java Security String Handler</h2>
+<pre>
+// SecurityStringHandler.java
+@Service
+public class SecurityStringHandler {
+    
+    @Value("${security.password_salt}")
+    private String passwordSalt;
+    
+    @Value("${security.jwt_secret}")
+    private String jwtSecret;
+    
+    @Value("${security.aes_key}")
+    private String aesKey;
+    
+    @Value("#{${security.sql_injection_patterns}}")
+    private List&lt;String&gt; sqlInjectionPatterns;
+    
+    private List&lt;Pattern&gt; compiledSqlPatterns;
+    
+    @PostConstruct
+    public void initializeSecurityPatterns() {
+        compiledSqlPatterns = sqlInjectionPatterns.stream()
+            .map(pattern -&gt; Pattern.compile(pattern, Pattern.CASE_INSENSITIVE))
+            .collect(Collectors.toList());
+    }
+    
+    public String hashPassword(String password) {
+        return BCrypt.hashpw(password, passwordSalt);
+    }
+    
+    public boolean verifyPassword(String password, String hash) {
+        return BCrypt.checkpw(password, hash);
+    }
+    
+    public String encryptString(String plaintext) throws Exception {
+        SecretKeySpec keySpec = new SecretKeySpec(aesKey.getBytes(), "AES");
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.ENCRYPT_MODE, keySpec);
+        byte[] encrypted = cipher.doFinal(plaintext.getBytes());
+        return Base64.getEncoder().encodeToString(encrypted);
+    }
+    
+    public String decryptString(String encrypted) throws Exception {
+        SecretKeySpec keySpec = new SecretKeySpec(aesKey.getBytes(), "AES");
+        Cipher cipher = Cipher.getInstance("AES");
+        cipher.init(Cipher.DECRYPT_MODE, keySpec);
+        byte[] decrypted = cipher.doFinal(Base64.getDecoder().decode(encrypted));
+        return new String(decrypted);
+    }
+    
+    public boolean containsSqlInjection(String input) {
+        if (input == null) return false;
+        
+        return compiledSqlPatterns.stream()
+            .anyMatch(pattern -&gt; pattern.matcher(input).find());
+    }
+    
+    public String sanitizeInput(String input) {
+        if (input == null) return null;
+        
+        // Remove potential SQL injection patterns
+        String sanitized = input;
+        for (Pattern pattern : compiledSqlPatterns) {
+            sanitized = pattern.matcher(sanitized).replaceAll("");
+        }
+        
+        // HTML escape
+        return StringEscapeUtils.escapeHtml4(sanitized);
+    }
+}
+</pre>

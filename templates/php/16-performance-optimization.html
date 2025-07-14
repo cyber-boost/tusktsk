@@ -1,0 +1,527 @@
+<h1>Performance Optimization</h1>
+
+<h2>Optimizing TuskLang Performance in PHP</h2>
+<p>Learn how to optimize TuskLang parsing, caching, and runtime performance for production PHP applications.</p>
+
+<h3>Parser Optimization</h3>
+<pre>
+&lt;?php
+namespace TuskLang\Performance;
+
+class OptimizedParser {
+    private array $parseCache = [];
+    private array $fileHashes = [];
+    
+    public function parseFileWithCache(string $filePath): array {
+        $currentHash = hash_file('md5', $filePath);
+        
+        // Check if file has changed
+        if (isset($this->fileHashes[$filePath]) && 
+            $this->fileHashes[$filePath] === $currentHash &&
+            isset($this->parseCache[$filePath])) {
+            return $this->parseCache[$filePath];
+        }
+        
+        // Parse file and cache result
+        $parser = new \TuskLang\TuskLangEnhanced();
+        $result = $parser->parseFile($filePath);
+        
+        $this->parseCache[$filePath] = $result;
+        $this->fileHashes[$filePath] = $currentHash;
+        
+        return $result;
+    }
+    
+    public function precompileConfig(string $filePath, string $outputPath): void {
+        $config = $this->parseFileWithCache($filePath);
+        $serialized = serialize($config);
+        
+        // Write precompiled config
+        file_put_contents($outputPath, '<?php return unserialize(' . var_export($serialized, true) . ');');
+    }
+    
+    public function loadPrecompiled(string $precompiledPath): array {
+        if (file_exists($precompiledPath)) {
+            return require $precompiledPath;
+        }
+        
+        throw new \Exception("Precompiled config not found: $precompiledPath");
+    }
+}
+
+// Usage
+$optimizer = new OptimizedParser();
+
+// Development: Parse with cache
+$config = $optimizer->parseFileWithCache('config.tsk');
+
+// Production: Use precompiled config
+$optimizer->precompileConfig('config.tsk', 'cache/config.php');
+$config = $optimizer->loadPrecompiled('cache/config.php');
+</pre>
+
+<h3>Database Query Optimization</h3>
+<pre>
+# Efficient database configuration
+optimized_queries {
+    # Use prepared statements cache
+    user_lookup: @prepare("user_by_email", "SELECT * FROM users WHERE email = ?")
+    
+    # Batch queries to reduce round trips
+    user_stats: @batch([
+        ["total_users", "SELECT COUNT(*) FROM users"],
+        ["active_users", "SELECT COUNT(*) FROM users WHERE active = 1"],
+        ["recent_signups", "SELECT COUNT(*) FROM users WHERE created_at > DATE_SUB(NOW(), INTERVAL 7 DAY)"]
+    ])
+    
+    # Use query result cache
+    expensive_analytics: @cache("analytics_data", "1h", @query("
+        SELECT 
+            DATE(created_at) as date,
+            COUNT(*) as orders,
+            SUM(total) as revenue
+        FROM orders 
+        WHERE created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)
+        GROUP BY DATE(created_at)
+        ORDER BY date
+    "))
+    
+    # Optimized pagination
+    recent_orders: @query("
+        SELECT * FROM orders 
+        WHERE id > ? 
+        ORDER BY id 
+        LIMIT 100
+    ", [last_order_id])
+}
+
+# Connection pooling configuration
+database_pool {
+    min_connections: 2
+    max_connections: 20
+    idle_timeout: 300
+    max_lifetime: 3600
+    
+    # Read/write splitting
+    write_host: env("DB_WRITE_HOST", "localhost")
+    read_hosts: [env("DB_READ_HOST_1", "localhost"), env("DB_READ_HOST_2", "localhost")]
+}
+</pre>
+
+<h3>Caching Strategies</h3>
+<pre>
+&lt;?php
+namespace TuskLang\Cache;
+
+use Redis;
+use Memcached;
+
+class CacheManager {
+    private $redis;
+    private $memcached;
+    private array $localCache = [];
+    
+    public function __construct() {
+        $this->redis = new Redis();
+        $this->redis->connect('localhost', 6379);
+        
+        $this->memcached = new Memcached();
+        $this->memcached->addServer('localhost', 11211);
+    }
+    
+    public function remember(string $key, int $ttl, callable $callback) {
+        // L1: Local memory cache
+        if (isset($this->localCache[$key])) {
+            return $this->localCache[$key];
+        }
+        
+        // L2: Redis cache
+        $cached = $this->redis->get($key);
+        if ($cached !== false) {
+            $value = unserialize($cached);
+            $this->localCache[$key] = $value;
+            return $value;
+        }
+        
+        // L3: Generate value
+        $value = $callback();
+        
+        // Store in all cache levels
+        $this->localCache[$key] = $value;
+        $this->redis->setex($key, $ttl, serialize($value));
+        
+        return $value;
+    }
+    
+    public function invalidate(string $key): void {
+        unset($this->localCache[$key]);
+        $this->redis->del($key);
+        $this->memcached->delete($key);
+    }
+    
+    public function flush(): void {
+        $this->localCache = [];
+        $this->redis->flushAll();
+        $this->memcached->flush();
+    }
+}
+
+// Cache configuration
+caching {
+    default_ttl: 3600
+    
+    strategies {
+        # Frequently accessed data
+        hot: {
+            ttl: 300,
+            storage: "redis",
+            preload: true
+        }
+        
+        # Rarely changed data
+        cold: {
+            ttl: 86400,
+            storage: "file",
+            compress: true
+        }
+        
+        # User-specific data
+        session: {
+            ttl: 1800,
+            storage: "redis",
+            namespace: "user_"
+        }
+    }
+}
+</pre>
+
+<h3>Memory Optimization</h3>
+<pre>
+&lt;?php
+class MemoryOptimizedParser {
+    private \SplFixedArray $tokenBuffer;
+    private int $bufferSize = 1000;
+    
+    public function __construct() {
+        // Use fixed-size arrays for better memory efficiency
+        $this->tokenBuffer = new \SplFixedArray($this->bufferSize);
+    }
+    
+    public function parseStream(string $filePath): \Generator {
+        $handle = fopen($filePath, 'r');
+        
+        if (!$handle) {
+            throw new \Exception("Cannot open file: $filePath");
+        }
+        
+        try {
+            while (($line = fgets($handle)) !== false) {
+                if ($parsed = $this->parseLine($line)) {
+                    yield $parsed;
+                }
+            }
+        } finally {
+            fclose($handle);
+        }
+    }
+    
+    public function parseWithMemoryLimit(string $content, int $memoryLimit): array {
+        $startMemory = memory_get_usage(true);
+        $result = [];
+        
+        $lines = explode("\n", $content);
+        
+        foreach ($lines as $line) {
+            $currentMemory = memory_get_usage(true);
+            
+            if ($currentMemory - $startMemory > $memoryLimit) {
+                // Trigger garbage collection
+                gc_collect_cycles();
+                
+                // Check again after GC
+                if (memory_get_usage(true) - $startMemory > $memoryLimit) {
+                    throw new \Exception("Memory limit exceeded");
+                }
+            }
+            
+            if ($parsed = $this->parseLine($line)) {
+                $result[] = $parsed;
+            }
+        }
+        
+        return $result;
+    }
+    
+    private function parseLine(string $line): ?array {
+        $line = trim($line);
+        
+        if (empty($line) || $line[0] === '#') {
+            return null;
+        }
+        
+        // Optimized parsing logic
+        if (strpos($line, ':') !== false) {
+            [$key, $value] = explode(':', $line, 2);
+            return [trim($key) => trim($value)];
+        }
+        
+        return null;
+    }
+}
+</pre>
+
+<h3>Lazy Loading</h3>
+<pre>
+# Lazy loading configuration
+lazy_config {
+    # Load heavy data only when accessed
+    large_dataset: @lazy(@query("SELECT * FROM massive_table"))
+    
+    # Conditional loading
+    analytics_data: @lazy_if(environment == "production", @query("SELECT * FROM analytics"))
+    
+    # Paginated loading
+    user_list: @lazy_paginate("users", 100)
+}
+
+&lt;?php
+class LazyConfigValue {
+    private $loader;
+    private $loaded = false;
+    private $value;
+    
+    public function __construct(callable $loader) {
+        $this->loader = $loader;
+    }
+    
+    public function getValue() {
+        if (!$this->loaded) {
+            $this->value = call_user_func($this->loader);
+            $this->loaded = true;
+        }
+        
+        return $this->value;
+    }
+    
+    public function isLoaded(): bool {
+        return $this->loaded;
+    }
+}
+
+// Usage
+$config = [
+    'heavy_data' => new LazyConfigValue(function() {
+        return expensive_database_query();
+    })
+];
+
+// Data is only loaded when accessed
+$data = $config['heavy_data']->getValue();
+</pre>
+
+<h3>Production Optimizations</h3>
+<pre>
+# Production configuration optimization
+production {
+    # Precompiled configurations
+    use_precompiled: true
+    precompiled_path: "/var/cache/app/config.php"
+    
+    # Disable debug features
+    debug_mode: false
+    log_level: "error"
+    
+    # Optimized caching
+    cache {
+        driver: "redis"
+        connection: "persistent"
+        serializer: "igbinary"  # Faster than standard serializer
+        compression: true
+    }
+    
+    # Database optimizations
+    database {
+        connection_pool: true
+        prepared_statements: true
+        query_cache: true
+        persistent_connections: true
+    }
+    
+    # OPcache settings
+    opcache {
+        enable: true
+        memory_consumption: 256
+        max_accelerated_files: 10000
+        validate_timestamps: false  # Production only
+    }
+}
+
+# Build-time optimizations
+build {
+    # Minify configuration
+    minify: true
+    
+    # Remove comments and debug info
+    strip_debug: true
+    
+    # Combine multiple config files
+    concatenate: [
+        "config/app.tsk",
+        "config/database.tsk",
+        "config/cache.tsk"
+    ]
+    
+    # Generate static config
+    output: "dist/config.min.tsk"
+}
+</pre>
+
+<h3>Benchmarking and Profiling</h3>
+<pre>
+&lt;?php
+class TuskLangProfiler {
+    private array $timers = [];
+    private array $memoryUsage = [];
+    
+    public function start(string $name): void {
+        $this->timers[$name] = microtime(true);
+        $this->memoryUsage[$name] = memory_get_usage(true);
+    }
+    
+    public function end(string $name): array {
+        $endTime = microtime(true);
+        $endMemory = memory_get_usage(true);
+        
+        return [
+            'duration' => $endTime - ($this->timers[$name] ?? $endTime),
+            'memory_used' => $endMemory - ($this->memoryUsage[$name] ?? $endMemory),
+            'peak_memory' => memory_get_peak_usage(true)
+        ];
+    }
+    
+    public function benchmark(callable $operation, int $iterations = 1000): array {
+        $times = [];
+        
+        for ($i = 0; $i < $iterations; $i++) {
+            $start = microtime(true);
+            $operation();
+            $times[] = microtime(true) - $start;
+        }
+        
+        return [
+            'min' => min($times),
+            'max' => max($times),
+            'avg' => array_sum($times) / count($times),
+            'median' => $this->median($times),
+            'total' => array_sum($times)
+        ];
+    }
+    
+    private function median(array $values): float {
+        sort($values);
+        $count = count($values);
+        $middle = floor($count / 2);
+        
+        if ($count % 2 === 0) {
+            return ($values[$middle - 1] + $values[$middle]) / 2;
+        }
+        
+        return $values[$middle];
+    }
+}
+
+// Benchmark different parsing strategies
+$profiler = new TuskLangProfiler();
+
+$results = $profiler->benchmark(function() {
+    $parser = new TuskLangEnhanced();
+    $parser->parseFile('large-config.tsk');
+}, 100);
+
+echo "Average parse time: {$results['avg']}ms\n";
+echo "Memory usage: " . memory_get_peak_usage(true) / 1024 / 1024 . "MB\n";
+</pre>
+
+<h3>Auto-Scaling Configuration</h3>
+<pre>
+# Dynamic configuration based on load
+scaling {
+    # Monitor system metrics
+    cpu_usage: @metrics("system.cpu.percent")
+    memory_usage: @metrics("system.memory.percent")
+    request_rate: @metrics("http.requests.per_second")
+    
+    # Auto-scale cache based on load
+    cache_ttl: cpu_usage > 80 ? "30s" : "5m"
+    cache_size: memory_usage < 70 ? "1GB" : "512MB"
+    
+    # Adjust database connections
+    db_pool_size: request_rate > 1000 ? 50 : 20
+    
+    # Enable/disable features based on load
+    analytics_enabled: cpu_usage < 60
+    detailed_logging: cpu_usage < 40
+    
+    # Circuit breaker configuration
+    circuit_breaker {
+        failure_threshold: 5
+        timeout: 30
+        recovery_time: cpu_usage > 80 ? 300 : 60
+    }
+}
+</pre>
+
+<h3>Performance Monitoring</h3>
+<pre>
+# Performance metrics collection
+metrics {
+    # Parser performance
+    parse_time: @timer("config_parse")
+    parse_memory: @memory("config_parse")
+    
+    # Database performance
+    query_time: @timer("database_queries")
+    query_count: @counter("database_queries")
+    
+    # Cache performance
+    cache_hits: @counter("cache_hits")
+    cache_misses: @counter("cache_misses")
+    cache_hit_ratio: cache_hits / (cache_hits + cache_misses) * 100
+    
+    # Application performance
+    response_time: @histogram("http_request_duration")
+    throughput: @gauge("requests_per_second")
+    error_rate: @gauge("error_percentage")
+}
+
+# APM integration
+apm {
+    provider: env("APM_PROVIDER", "newrelic")
+    
+    # New Relic
+    newrelic {
+        app_name: env("NEW_RELIC_APP_NAME")
+        license_key: env("NEW_RELIC_LICENSE_KEY")
+    }
+    
+    # Datadog
+    datadog {
+        api_key: env("DATADOG_API_KEY")
+        app_key: env("DATADOG_APP_KEY")
+    }
+}
+</pre>
+
+<h3>Best Practices</h3>
+<ul>
+    <li>Use precompiled configurations in production</li>
+    <li>Implement multi-level caching strategies</li>
+    <li>Enable OPcache and tune for your workload</li>
+    <li>Use lazy loading for expensive operations</li>
+    <li>Monitor memory usage and implement limits</li>
+    <li>Profile parsing performance regularly</li>
+    <li>Use connection pooling for database queries</li>
+    <li>Implement circuit breakers for external dependencies</li>
+    <li>Cache @ operator results appropriately</li>
+    <li>Use APM tools to monitor production performance</li>
+</ul>

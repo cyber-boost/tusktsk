@@ -1,0 +1,974 @@
+<h1>CLI and Development Tools for Java</h1>
+
+<h2>Maven Integration</h2>
+<pre>
+# Maven configuration for TuskLang
+maven: {
+    project: {
+        group_id: "com.mycompany"
+        artifact_id: "myapp"
+        version: env("PROJECT_VERSION", "1.0.0-SNAPSHOT")
+        packaging: "jar"
+        
+        # Project metadata
+        name: "My Java Application"
+        description: "A Java application using TuskLang configuration"
+        url: "https://github.com/mycompany/myapp"
+    }
+    
+    # Java version configuration
+    java: {
+        source: env("JAVA_VERSION", "17")
+        target: env("JAVA_VERSION", "17")
+        encoding: "UTF-8"
+    }
+    
+    # Dependencies with version management
+    dependencies: {
+        spring_boot_version: "3.1.5"
+        junit_version: "5.9.3"
+        
+        # Spring Boot dependencies
+        spring_boot_starter_web: "org.springframework.boot:spring-boot-starter-web:" + maven.dependencies.spring_boot_version
+        spring_boot_starter_data_jpa: "org.springframework.boot:spring-boot-starter-data-jpa:" + maven.dependencies.spring_boot_version
+        spring_boot_starter_security: "org.springframework.boot:spring-boot-starter-security:" + maven.dependencies.spring_boot_version
+        
+        # Database drivers
+        postgresql: "org.postgresql:postgresql:42.6.0"
+        h2: "com.h2database:h2:2.2.224"
+        
+        # Testing dependencies
+        junit_jupiter: "org.junit.jupiter:junit-jupiter:" + maven.dependencies.junit_version
+        mockito: "org.mockito:mockito-core:5.5.0"
+        testcontainers: "org.testcontainers:junit-jupiter:1.19.1"
+        
+        # TuskLang integration
+        tusklang_core: "com.tuskphp:tusklang-java:1.0.0"
+        tusklang_spring: "com.tuskphp:tusklang-spring-boot-starter:1.0.0"
+    }
+    
+    # Plugin configuration
+    plugins: {
+        compiler: {
+            version: "3.11.0"
+            source: maven.java.source
+            target: maven.java.target
+            encoding: maven.java.encoding
+        }
+        
+        surefire: {
+            version: "3.1.2"
+            include_tags: env("TEST_TAGS", "")
+            exclude_tags: env("EXCLUDE_TEST_TAGS", "")
+        }
+        
+        spring_boot: {
+            version: maven.dependencies.spring_boot_version
+            main_class: "com.mycompany.myapp.Application"
+            profiles: env("SPRING_PROFILES_ACTIVE", "development")
+        }
+        
+        jacoco: {
+            version: "0.8.10"
+            enabled: env("ENABLE_COVERAGE", "true") == "true"
+            threshold: 80
+        }
+        
+        checkstyle: {
+            version: "3.3.0"
+            enabled: env("ENABLE_CHECKSTYLE", "true") == "true"
+            config_location: "checkstyle.xml"
+        }
+    }
+    
+    # Build profiles
+    profiles: {
+        development: {
+            properties: {
+                "spring.profiles.active": "development"
+                "logging.level.com.mycompany": "DEBUG"
+            }
+        }
+        
+        testing: {
+            properties: {
+                "spring.profiles.active": "test"
+                "spring.jpa.hibernate.ddl-auto": "create-drop"
+            }
+        }
+        
+        production: {
+            properties: {
+                "spring.profiles.active": "production"
+                "logging.level.root": "INFO"
+            }
+        }
+    }
+}
+</pre>
+
+<h2>Java Maven Plugin Integration</h2>
+<pre>
+// MavenConfigurationGenerator.java
+@Component
+public class MavenConfigurationGenerator {
+    
+    private final TuskLangParser tuskLangParser;
+    private final Environment environment;
+    
+    public MavenConfigurationGenerator(TuskLangParser tuskLangParser, Environment environment) {
+        this.tuskLangParser = tuskLangParser;
+        this.environment = environment;
+    }
+    
+    public void generatePomXml(String outputPath) {
+        Map&lt;String, Object&gt; mavenConfig = loadMavenConfiguration();
+        String pomXml = buildPomXml(mavenConfig);
+        
+        try {
+            Files.writeString(Paths.get(outputPath), pomXml, StandardCharsets.UTF_8);
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to write pom.xml", e);
+        }
+    }
+    
+    private Map&lt;String, Object&gt; loadMavenConfiguration() {
+        // Load maven configuration from TuskLang file
+        try {
+            return tuskLangParser.parse("maven.tsk");
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to load Maven configuration", e);
+        }
+    }
+    
+    private String buildPomXml(Map&lt;String, Object&gt; config) {
+        StringBuilder pom = new StringBuilder();
+        
+        // XML declaration and project start
+        pom.append("&lt;?xml version=\"1.0\" encoding=\"UTF-8\"?&gt;\n");
+        pom.append("&lt;project xmlns=\"http://maven.apache.org/POM/4.0.0\"\n");
+        pom.append("         xmlns:xsi=\"http://www.w3.org/2001/XMLSchema-instance\"\n");
+        pom.append("         xsi:schemaLocation=\"http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd\"&gt;\n");
+        pom.append("    &lt;modelVersion&gt;4.0.0&lt;/modelVersion&gt;\n\n");
+        
+        // Project information
+        Map&lt;String, Object&gt; project = (Map&lt;String, Object&gt;) config.get("project");
+        if (project != null) {
+            appendProjectInfo(pom, project);
+        }
+        
+        // Properties
+        Map&lt;String, Object&gt; javaConfig = (Map&lt;String, Object&gt;) config.get("java");
+        if (javaConfig != null) {
+            appendProperties(pom, javaConfig);
+        }
+        
+        // Dependencies
+        Map&lt;String, Object&gt; dependencies = (Map&lt;String, Object&gt;) config.get("dependencies");
+        if (dependencies != null) {
+            appendDependencies(pom, dependencies);
+        }
+        
+        // Plugins
+        Map&lt;String, Object&gt; plugins = (Map&lt;String, Object&gt;) config.get("plugins");
+        if (plugins != null) {
+            appendPlugins(pom, plugins);
+        }
+        
+        // Profiles
+        Map&lt;String, Object&gt; profiles = (Map&lt;String, Object&gt;) config.get("profiles");
+        if (profiles != null) {
+            appendProfiles(pom, profiles);
+        }
+        
+        pom.append("&lt;/project&gt;\n");
+        return pom.toString();
+    }
+    
+    private void appendProjectInfo(StringBuilder pom, Map&lt;String, Object&gt; project) {
+        pom.append("    &lt;groupId&gt;").append(project.get("group_id")).append("&lt;/groupId&gt;\n");
+        pom.append("    &lt;artifactId&gt;").append(project.get("artifact_id")).append("&lt;/artifactId&gt;\n");
+        pom.append("    &lt;version&gt;").append(project.get("version")).append("&lt;/version&gt;\n");
+        pom.append("    &lt;packaging&gt;").append(project.get("packaging")).append("&lt;/packaging&gt;\n\n");
+        
+        if (project.containsKey("name")) {
+            pom.append("    &lt;name&gt;").append(project.get("name")).append("&lt;/name&gt;\n");
+        }
+        if (project.containsKey("description")) {
+            pom.append("    &lt;description&gt;").append(project.get("description")).append("&lt;/description&gt;\n");
+        }
+        if (project.containsKey("url")) {
+            pom.append("    &lt;url&gt;").append(project.get("url")).append("&lt;/url&gt;\n");
+        }
+        pom.append("\n");
+    }
+    
+    private void appendProperties(StringBuilder pom, Map&lt;String, Object&gt; javaConfig) {
+        pom.append("    &lt;properties&gt;\n");
+        pom.append("        &lt;maven.compiler.source&gt;").append(javaConfig.get("source")).append("&lt;/maven.compiler.source&gt;\n");
+        pom.append("        &lt;maven.compiler.target&gt;").append(javaConfig.get("target")).append("&lt;/maven.compiler.target&gt;\n");
+        pom.append("        &lt;project.build.sourceEncoding&gt;").append(javaConfig.get("encoding")).append("&lt;/project.build.sourceEncoding&gt;\n");
+        pom.append("    &lt;/properties&gt;\n\n");
+    }
+    
+    private void appendDependencies(StringBuilder pom, Map&lt;String, Object&gt; dependencies) {
+        pom.append("    &lt;dependencies&gt;\n");
+        
+        // Filter out version properties and add actual dependencies
+        dependencies.entrySet().stream()
+            .filter(entry -&gt; !entry.getKey().endsWith("_version"))
+            .forEach(entry -&gt; {
+                String dependency = (String) entry.getValue();
+                if (dependency.contains(":")) {
+                    String[] parts = dependency.split(":");
+                    if (parts.length >= 3) {
+                        pom.append("        &lt;dependency&gt;\n");
+                        pom.append("            &lt;groupId&gt;").append(parts[0]).append("&lt;/groupId&gt;\n");
+                        pom.append("            &lt;artifactId&gt;").append(parts[1]).append("&lt;/artifactId&gt;\n");
+                        pom.append("            &lt;version&gt;").append(parts[2]).append("&lt;/version&gt;\n");
+                        
+                        // Add scope for test dependencies
+                        if (entry.getKey().contains("test") || entry.getKey().contains("junit") || 
+                            entry.getKey().contains("mockito")) {
+                            pom.append("            &lt;scope&gt;test&lt;/scope&gt;\n");
+                        }
+                        
+                        pom.append("        &lt;/dependency&gt;\n");
+                    }
+                }
+            });
+        
+        pom.append("    &lt;/dependencies&gt;\n\n");
+    }
+    
+    private void appendPlugins(StringBuilder pom, Map&lt;String, Object&gt; plugins) {
+        pom.append("    &lt;build&gt;\n");
+        pom.append("        &lt;plugins&gt;\n");
+        
+        // Maven Compiler Plugin
+        Map&lt;String, Object&gt; compiler = (Map&lt;String, Object&gt;) plugins.get("compiler");
+        if (compiler != null) {
+            pom.append("            &lt;plugin&gt;\n");
+            pom.append("                &lt;groupId&gt;org.apache.maven.plugins&lt;/groupId&gt;\n");
+            pom.append("                &lt;artifactId&gt;maven-compiler-plugin&lt;/artifactId&gt;\n");
+            pom.append("                &lt;version&gt;").append(compiler.get("version")).append("&lt;/version&gt;\n");
+            pom.append("                &lt;configuration&gt;\n");
+            pom.append("                    &lt;source&gt;").append(compiler.get("source")).append("&lt;/source&gt;\n");
+            pom.append("                    &lt;target&gt;").append(compiler.get("target")).append("&lt;/target&gt;\n");
+            pom.append("                    &lt;encoding&gt;").append(compiler.get("encoding")).append("&lt;/encoding&gt;\n");
+            pom.append("                &lt;/configuration&gt;\n");
+            pom.append("            &lt;/plugin&gt;\n");
+        }
+        
+        // Spring Boot Plugin
+        Map&lt;String, Object&gt; springBoot = (Map&lt;String, Object&gt;) plugins.get("spring_boot");
+        if (springBoot != null) {
+            pom.append("            &lt;plugin&gt;\n");
+            pom.append("                &lt;groupId&gt;org.springframework.boot&lt;/groupId&gt;\n");
+            pom.append("                &lt;artifactId&gt;spring-boot-maven-plugin&lt;/artifactId&gt;\n");
+            pom.append("                &lt;version&gt;").append(springBoot.get("version")).append("&lt;/version&gt;\n");
+            pom.append("                &lt;configuration&gt;\n");
+            pom.append("                    &lt;mainClass&gt;").append(springBoot.get("main_class")).append("&lt;/mainClass&gt;\n");
+            pom.append("                &lt;/configuration&gt;\n");
+            pom.append("            &lt;/plugin&gt;\n");
+        }
+        
+        pom.append("        &lt;/plugins&gt;\n");
+        pom.append("    &lt;/build&gt;\n\n");
+    }
+    
+    private void appendProfiles(StringBuilder pom, Map&lt;String, Object&gt; profiles) {
+        pom.append("    &lt;profiles&gt;\n");
+        
+        profiles.forEach((profileName, profileConfig) -&gt; {
+            Map&lt;String, Object&gt; profile = (Map&lt;String, Object&gt;) profileConfig;
+            pom.append("        &lt;profile&gt;\n");
+            pom.append("            &lt;id&gt;").append(profileName).append("&lt;/id&gt;\n");
+            
+            Map&lt;String, Object&gt; properties = (Map&lt;String, Object&gt;) profile.get("properties");
+            if (properties != null) {
+                pom.append("            &lt;properties&gt;\n");
+                properties.forEach((key, value) -&gt; {
+                    pom.append("                &lt;").append(key).append("&gt;")
+                       .append(value).append("&lt;/").append(key).append("&gt;\n");
+                });
+                pom.append("            &lt;/properties&gt;\n");
+            }
+            
+            pom.append("        &lt;/profile&gt;\n");
+        });
+        
+        pom.append("    &lt;/profiles&gt;\n");
+    }
+}
+</pre>
+
+<h2>Gradle Integration</h2>
+<pre>
+# Gradle configuration for TuskLang
+gradle: {
+    # Project configuration
+    project: {
+        group: "com.mycompany"
+        version: env("PROJECT_VERSION", "1.0.0-SNAPSHOT")
+        description: "A Java application using TuskLang configuration"
+        
+        # Source compatibility
+        source_compatibility: env("JAVA_VERSION", "17")
+        target_compatibility: env("JAVA_VERSION", "17")
+    }
+    
+    # Plugin versions
+    plugins: {
+        spring_boot: "3.1.5"
+        spring_dependency_management: "1.1.3"
+        jacoco: "0.8.10"
+        checkstyle: "10.12.3"
+    }
+    
+    # Repository configuration
+    repositories: [
+        "mavenCentral()",
+        "gradlePluginPortal()"
+    ]
+    
+    # Dependency versions
+    versions: {
+        spring_boot: gradle.plugins.spring_boot
+        junit: "5.9.3"
+        mockito: "5.5.0"
+        testcontainers: "1.19.1"
+        postgresql: "42.6.0"
+        h2: "2.2.224"
+    }
+    
+    # Dependencies configuration
+    dependencies: {
+        implementation: [
+            "org.springframework.boot:spring-boot-starter-web",
+            "org.springframework.boot:spring-boot-starter-data-jpa",
+            "org.springframework.boot:spring-boot-starter-security",
+            "org.postgresql:postgresql:" + gradle.versions.postgresql
+        ]
+        
+        runtime_only: [
+            "com.h2database:h2:" + gradle.versions.h2
+        ]
+        
+        test_implementation: [
+            "org.springframework.boot:spring-boot-starter-test",
+            "org.junit.jupiter:junit-jupiter:" + gradle.versions.junit,
+            "org.mockito:mockito-core:" + gradle.versions.mockito,
+            "org.testcontainers:junit-jupiter:" + gradle.versions.testcontainers
+        ]
+        
+        annotation_processor: [
+            "org.springframework.boot:spring-boot-configuration-processor"
+        ]
+    }
+    
+    # Task configuration
+    tasks: {
+        test: {
+            use_junit_platform: true
+            system_properties: {
+                "spring.profiles.active": "test"
+            }
+            jvm_args: ["-Xmx1g"]
+        }
+        
+        jar: {
+            enabled: false  # Disable plain jar when using Spring Boot
+        }
+        
+        boot_jar: {
+            enabled: true
+            archive_file_name: gradle.project.group + "-" + gradle.project.version + ".jar"
+            main_class: "com.mycompany.myapp.Application"
+        }
+        
+        jacoco_test_report: {
+            enabled: env("ENABLE_COVERAGE", "true") == "true"
+            reports: {
+                xml: true
+                html: true
+            }
+        }
+        
+        checkstyle: {
+            enabled: env("ENABLE_CHECKSTYLE", "true") == "true"
+            config_file: "config/checkstyle/checkstyle.xml"
+            tool_version: gradle.plugins.checkstyle
+        }
+    }
+}
+</pre>
+
+<h2>Command Line Tools Integration</h2>
+<pre>
+# CLI tools configuration
+cli: {
+    # Application runner configuration
+    runner: {
+        main_class: "com.mycompany.myapp.cli.CliApplication"
+        default_profile: "cli"
+        
+        # Command line argument mapping
+        arguments: {
+            config: {
+                flag: "--config"
+                description: "Path to TuskLang configuration file"
+                required: false
+                default: "application.tsk"
+            }
+            environment: {
+                flag: "--env"
+                description: "Environment to run in"
+                required: false
+                default: "development"
+                choices: ["development", "staging", "production"]
+            }
+            log_level: {
+                flag: "--log-level"
+                description: "Logging level"
+                required: false
+                default: "INFO"
+                choices: ["DEBUG", "INFO", "WARN", "ERROR"]
+            }
+            help: {
+                flag: "--help"
+                description: "Show help message"
+                required: false
+            }
+        }
+    }
+    
+    # Development server configuration
+    dev_server: {
+        port: env("DEV_PORT", "8080")
+        auto_reload: env("AUTO_RELOAD", "true") == "true"
+        debug: env("DEBUG", "true") == "true"
+        
+        # Hot reload configuration
+        hot_reload: {
+            enabled: cli.dev_server.auto_reload
+            watch_directories: [
+                "src/main/java",
+                "src/main/resources"
+            ]
+            watch_extensions: [".java", ".tsk", ".properties", ".yaml"]
+            restart_delay: "2s"
+        }
+    }
+    
+    # Database CLI tools
+    database: {
+        migration: {
+            command: "migrate"
+            description: "Run database migrations"
+            options: {
+                url: {
+                    flag: "--url"
+                    description: "Database URL"
+                    required: false
+                    default: env("DATABASE_URL")
+                }
+                username: {
+                    flag: "--username"
+                    description: "Database username"
+                    required: false
+                    default: env("DB_USER")
+                }
+                password: {
+                    flag: "--password"
+                    description: "Database password"
+                    required: false
+                    default: env("DB_PASS")
+                }
+                scripts_location: {
+                    flag: "--scripts"
+                    description: "Migration scripts location"
+                    required: false
+                    default: "classpath:db/migration"
+                }
+            }
+        }
+        
+        seed: {
+            command: "seed"
+            description: "Seed database with initial data"
+            options: {
+                environment: {
+                    flag: "--env"
+                    description: "Environment to seed for"
+                    required: false
+                    default: "development"
+                }
+                file: {
+                    flag: "--file"
+                    description: "Specific seed file to run"
+                    required: false
+                }
+            }
+        }
+    }
+    
+    # Code generation tools
+    generators: {
+        entity: {
+            command: "generate:entity"
+            description: "Generate JPA entity class"
+            options: {
+                name: {
+                    flag: "--name"
+                    description: "Entity class name"
+                    required: true
+                }
+                table: {
+                    flag: "--table"
+                    description: "Database table name"
+                    required: false
+                }
+                package: {
+                    flag: "--package"
+                    description: "Java package name"
+                    required: false
+                    default: "com.mycompany.myapp.entity"
+                }
+            }
+        }
+        
+        controller: {
+            command: "generate:controller"
+            description: "Generate REST controller"
+            options: {
+                name: {
+                    flag: "--name"
+                    description: "Controller class name"
+                    required: true
+                }
+                path: {
+                    flag: "--path"
+                    description: "Base URL path"
+                    required: false
+                }
+                entity: {
+                    flag: "--entity"
+                    description: "Associated entity class"
+                    required: false
+                }
+            }
+        }
+    }
+}
+</pre>
+
+<h2>Java CLI Application Framework</h2>
+<pre>
+// CliApplication.java
+@SpringBootApplication
+public class CliApplication implements CommandLineRunner {
+    
+    private final TuskLangCliProcessor cliProcessor;
+    private final Environment environment;
+    
+    public CliApplication(TuskLangCliProcessor cliProcessor, Environment environment) {
+        this.cliProcessor = cliProcessor;
+        this.environment = environment;
+    }
+    
+    public static void main(String[] args) {
+        System.exit(SpringApplication.exit(SpringApplication.run(CliApplication.class, args)));
+    }
+    
+    @Override
+    public void run(String... args) throws Exception {
+        try {
+            cliProcessor.processCommand(args);
+        } catch (Exception e) {
+            System.err.println("Error: " + e.getMessage());
+            System.exit(1);
+        }
+    }
+}
+
+// TuskLangCliProcessor.java
+@Component
+public class TuskLangCliProcessor {
+    
+    private final Map&lt;String, CliCommand&gt; commands = new HashMap&lt;&gt;();
+    private final TuskLangParser tuskLangParser;
+    
+    public TuskLangCliProcessor(TuskLangParser tuskLangParser) {
+        this.tuskLangParser = tuskLangParser;
+        registerCommands();
+    }
+    
+    private void registerCommands() {
+        commands.put("migrate", new DatabaseMigrationCommand());
+        commands.put("seed", new DatabaseSeedCommand());
+        commands.put("generate:entity", new EntityGeneratorCommand());
+        commands.put("generate:controller", new ControllerGeneratorCommand());
+        commands.put("serve", new DevServerCommand());
+        commands.put("help", new HelpCommand(commands));
+    }
+    
+    public void processCommand(String[] args) throws Exception {
+        if (args.length == 0) {
+            showHelp();
+            return;
+        }
+        
+        String commandName = args[0];
+        CliCommand command = commands.get(commandName);
+        
+        if (command == null) {
+            throw new IllegalArgumentException("Unknown command: " + commandName);
+        }
+        
+        // Parse command line arguments
+        Map&lt;String, String&gt; options = parseOptions(Arrays.copyOfRange(args, 1, args.length));
+        
+        // Execute command
+        command.execute(options);
+    }
+    
+    private Map&lt;String, String&gt; parseOptions(String[] args) {
+        Map&lt;String, String&gt; options = new HashMap&lt;&gt;();
+        
+        for (int i = 0; i &lt; args.length; i++) {
+            if (args[i].startsWith("--")) {
+                String key = args[i].substring(2);
+                String value = null;
+                
+                if (i + 1 &lt; args.length && !args[i + 1].startsWith("--")) {
+                    value = args[i + 1];
+                    i++; // Skip next argument as it's the value
+                } else {
+                    value = "true"; // Flag without value
+                }
+                
+                options.put(key, value);
+            }
+        }
+        
+        return options;
+    }
+    
+    private void showHelp() {
+        System.out.println("TuskLang CLI Tools");
+        System.out.println("Available commands:");
+        
+        commands.forEach((name, command) -&gt; {
+            System.out.println("  " + name + " - " + command.getDescription());
+        });
+    }
+}
+
+// CliCommand interface
+public interface CliCommand {
+    void execute(Map&lt;String, String&gt; options) throws Exception;
+    String getDescription();
+    Map&lt;String, CliOption&gt; getOptions();
+}
+
+// CliOption class
+public class CliOption {
+    private final String flag;
+    private final String description;
+    private final boolean required;
+    private final String defaultValue;
+    private final List&lt;String&gt; choices;
+    
+    public CliOption(String flag, String description, boolean required, 
+                     String defaultValue, List&lt;String&gt; choices) {
+        this.flag = flag;
+        this.description = description;
+        this.required = required;
+        this.defaultValue = defaultValue;
+        this.choices = choices;
+    }
+    
+    // Getters
+    public String getFlag() { return flag; }
+    public String getDescription() { return description; }
+    public boolean isRequired() { return required; }
+    public String getDefaultValue() { return defaultValue; }
+    public List&lt;String&gt; getChoices() { return choices; }
+}
+
+// DatabaseMigrationCommand.java
+@Component
+public class DatabaseMigrationCommand implements CliCommand {
+    
+    private final FlywayService flywayService;
+    
+    public DatabaseMigrationCommand(FlywayService flywayService) {
+        this.flywayService = flywayService;
+    }
+    
+    @Override
+    public void execute(Map&lt;String, String&gt; options) throws Exception {
+        String url = options.getOrDefault("url", System.getenv("DATABASE_URL"));
+        String username = options.getOrDefault("username", System.getenv("DB_USER"));
+        String password = options.getOrDefault("password", System.getenv("DB_PASS"));
+        String scriptsLocation = options.getOrDefault("scripts", "classpath:db/migration");
+        
+        if (url == null) {
+            throw new IllegalArgumentException("Database URL is required");
+        }
+        
+        System.out.println("Running database migrations...");
+        System.out.println("URL: " + url);
+        System.out.println("Scripts: " + scriptsLocation);
+        
+        int migrationsApplied = flywayService.migrate(url, username, password, scriptsLocation);
+        
+        System.out.println("Applied " + migrationsApplied + " migrations successfully.");
+    }
+    
+    @Override
+    public String getDescription() {
+        return "Run database migrations using Flyway";
+    }
+    
+    @Override
+    public Map&lt;String, CliOption&gt; getOptions() {
+        Map&lt;String, CliOption&gt; options = new HashMap&lt;&gt;();
+        options.put("url", new CliOption("--url", "Database URL", false, null, null));
+        options.put("username", new CliOption("--username", "Database username", false, null, null));
+        options.put("password", new CliOption("--password", "Database password", false, null, null));
+        options.put("scripts", new CliOption("--scripts", "Migration scripts location", false, 
+                   "classpath:db/migration", null));
+        return options;
+    }
+}
+
+// EntityGeneratorCommand.java
+@Component
+public class EntityGeneratorCommand implements CliCommand {
+    
+    private final CodeGenerator codeGenerator;
+    
+    public EntityGeneratorCommand(CodeGenerator codeGenerator) {
+        this.codeGenerator = codeGenerator;
+    }
+    
+    @Override
+    public void execute(Map&lt;String, String&gt; options) throws Exception {
+        String entityName = options.get("name");
+        if (entityName == null) {
+            throw new IllegalArgumentException("Entity name is required");
+        }
+        
+        String tableName = options.getOrDefault("table", entityName.toLowerCase() + "s");
+        String packageName = options.getOrDefault("package", "com.mycompany.myapp.entity");
+        
+        System.out.println("Generating entity: " + entityName);
+        System.out.println("Table: " + tableName);
+        System.out.println("Package: " + packageName);
+        
+        String entityCode = codeGenerator.generateEntity(entityName, tableName, packageName);
+        String fileName = entityName + ".java";
+        
+        // Write to file
+        Path outputPath = Paths.get("src/main/java", packageName.replace(".", "/"), fileName);
+        Files.createDirectories(outputPath.getParent());
+        Files.writeString(outputPath, entityCode, StandardCharsets.UTF_8);
+        
+        System.out.println("Generated: " + outputPath);
+    }
+    
+    @Override
+    public String getDescription() {
+        return "Generate JPA entity class";
+    }
+    
+    @Override
+    public Map&lt;String, CliOption&gt; getOptions() {
+        Map&lt;String, CliOption&gt; options = new HashMap&lt;&gt;();
+        options.put("name", new CliOption("--name", "Entity class name", true, null, null));
+        options.put("table", new CliOption("--table", "Database table name", false, null, null));
+        options.put("package", new CliOption("--package", "Java package name", false, 
+                   "com.mycompany.myapp.entity", null));
+        return options;
+    }
+}
+</pre>
+
+<h2>Development Server with Hot Reload</h2>
+<pre>
+# Development server configuration
+dev_server: {
+    enabled: env("DEV_MODE", "false") == "true"
+    port: env("DEV_PORT", "8080")
+    context_path: env("CONTEXT_PATH", "/")
+    
+    # Hot reload settings
+    hot_reload: {
+        enabled: dev_server.enabled
+        poll_interval: "1s"
+        restart_delay: "2s"
+        
+        # Directories to watch
+        watch_paths: [
+            "src/main/java/**/*.java",
+            "src/main/resources/**/*.tsk",
+            "src/main/resources/**/*.properties",
+            "src/main/resources/**/*.yaml",
+            "src/main/resources/**/*.yml"
+        ]
+        
+        # Files to ignore
+        ignore_patterns: [
+            "**/*.class",
+            "**/target/**",
+            "**/.git/**",
+            "**/.idea/**"
+        ]
+    }
+    
+    # Live reload for web assets
+    live_reload: {
+        enabled: dev_server.enabled
+        port: 35729
+        
+        # Web asset paths
+        watch_paths: [
+            "src/main/resources/static/**/*.js",
+            "src/main/resources/static/**/*.css",
+            "src/main/resources/static/**/*.html",
+            "src/main/resources/templates/**/*.html"
+        ]
+    }
+    
+    # Debug configuration
+    debug: {
+        enabled: env("DEBUG", "false") == "true"
+        port: env("DEBUG_PORT", "5005")
+        suspend: env("DEBUG_SUSPEND", "false") == "true"
+        
+        # JVM debug arguments
+        jvm_args: [
+            "-agentlib:jdwp=transport=dt_socket,server=y,suspend=" + 
+            (dev_server.debug.suspend ? "y" : "n") + 
+            ",address=*:" + dev_server.debug.port
+        ]
+    }
+    
+    # Profiling configuration
+    profiling: {
+        enabled: env("PROFILING", "false") == "true"
+        agent: env("PROFILING_AGENT", "jfr")  # jfr, async-profiler
+        
+        # JFR settings
+        jfr: {
+            settings: "profile"
+            filename: "dev-profile.jfr"
+            duration: "30m"
+        }
+    }
+}
+
+// DevServerCommand.java
+@Component
+public class DevServerCommand implements CliCommand {
+    
+    private final SpringApplication springApplication;
+    private final FileWatcherService fileWatcher;
+    
+    public DevServerCommand(SpringApplication springApplication, FileWatcherService fileWatcher) {
+        this.springApplication = springApplication;
+        this.fileWatcher = fileWatcher;
+    }
+    
+    @Override
+    public void execute(Map&lt;String, String&gt; options) throws Exception {
+        String port = options.getOrDefault("port", "8080");
+        String profile = options.getOrDefault("profile", "development");
+        boolean hotReload = Boolean.parseBoolean(options.getOrDefault("hot-reload", "true"));
+        boolean debug = Boolean.parseBoolean(options.getOrDefault("debug", "false"));
+        
+        System.setProperty("server.port", port);
+        System.setProperty("spring.profiles.active", profile);
+        
+        if (debug) {
+            enableDebugMode(options);
+        }
+        
+        if (hotReload) {
+            startFileWatcher();
+        }
+        
+        System.out.println("Starting development server...");
+        System.out.println("Port: " + port);
+        System.out.println("Profile: " + profile);
+        System.out.println("Hot Reload: " + hotReload);
+        System.out.println("Debug: " + debug);
+        
+        // Start Spring Boot application
+        springApplication.run();
+    }
+    
+    private void enableDebugMode(Map&lt;String, String&gt; options) {
+        String debugPort = options.getOrDefault("debug-port", "5005");
+        boolean suspend = Boolean.parseBoolean(options.getOrDefault("debug-suspend", "false"));
+        
+        String debugArgs = String.format("-agentlib:jdwp=transport=dt_socket,server=y,suspend=%s,address=*:%s",
+            suspend ? "y" : "n", debugPort);
+        
+        System.setProperty("java.tool.options", debugArgs);
+        System.out.println("Debug mode enabled on port " + debugPort);
+    }
+    
+    private void startFileWatcher() {
+        List&lt;String&gt; watchPaths = Arrays.asList(
+            "src/main/java",
+            "src/main/resources"
+        );
+        
+        fileWatcher.watch(watchPaths, this::onFileChange);
+        System.out.println("File watcher started for hot reload");
+    }
+    
+    private void onFileChange(Path changedFile) {
+        System.out.println("File changed: " + changedFile);
+        
+        if (changedFile.toString().endsWith(".java")) {
+            // Trigger recompilation and restart
+            restartApplication();
+        } else if (changedFile.toString().endsWith(".tsk") || 
+                   changedFile.toString().endsWith(".properties")) {
+            // Reload configuration
+            reloadConfiguration();
+        }
+    }
+    
+    private void restartApplication() {
+        System.out.println("Restarting application due to Java file changes...");
+        // Implementation would restart the Spring context
+    }
+    
+    private void reloadConfiguration() {
+        System.out.println("Reloading configuration...");
+        // Implementation would refresh configuration beans
+    }
+    
+    @Override
+    public String getDescription() {
+        return "Start development server with hot reload";
+    }
+    
+    @Override
+    public Map&lt;String, CliOption&gt; getOptions() {
+        Map&lt;String, CliOption&gt; options = new HashMap&lt;&gt;();
+        options.put("port", new CliOption("--port", "Server port", false, "8080", null));
+        options.put("profile", new CliOption("--profile", "Spring profile", false, "development", 
+                   Arrays.asList("development", "staging", "production")));
+        options.put("hot-reload", new CliOption("--hot-reload", "Enable hot reload", false, "true", null));
+        options.put("debug", new CliOption("--debug", "Enable debug mode", false, "false", null));
+        options.put("debug-port", new CliOption("--debug-port", "Debug port", false, "5005", null));
+        return options;
+    }
+}
+</pre>

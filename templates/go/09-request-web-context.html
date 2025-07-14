@@ -1,0 +1,480 @@
+<h1>Request and Web Context with TuskLang in Go</h1>
+
+<h2>HTTP Request Handling</h2>
+<p>TuskLang provides seamless integration with Go web applications through request context and HTTP-specific operators.</p>
+
+<h3>web.tsk</h3>
+<pre>
+#!api
+# API endpoint configuration
+
+# Request metadata
+method: @request.method
+path: @request.path
+user_agent: @request.headers.User-Agent
+content_type: @request.headers.Content-Type
+remote_addr: @request.remote_addr
+
+# Query parameters
+search_query: @request.query.q
+page: @request.query.page|1
+limit: @request.query.limit|10
+sort_by: @request.query.sort|"created_at"
+
+# POST data
+username: @request.post.username
+email: @request.post.email
+password: @request.post.password
+
+# JSON body parsing
+user_data: @request.json.user
+settings: @request.json.settings
+
+# File uploads
+uploaded_file: @request.files.avatar
+file_size: @request.files.avatar.size
+file_type: @request.files.avatar.type
+
+# Session and authentication
+session_id: @session.id
+user_id: @session.user_id
+is_authenticated: @session.authenticated|false
+csrf_token: @session.csrf_token
+
+# Cookies
+theme: @cookie.theme|"light"
+language: @cookie.lang|"en"
+remember_token: @cookie.remember_token
+
+# Server environment
+server_name: @server.SERVER_NAME
+protocol: @server.HTTPS ? "https" : "http"
+base_url: @var.protocol + "://" + @server.HTTP_HOST
+
+# Response configuration
+response_headers: {
+    "Content-Type": "application/json"
+    "Cache-Control": "no-cache"
+    "X-API-Version": "v1"
+}
+
+# Conditional responses
+api_response: @request.method == "GET" ? @json({
+    data: @Query("Users").findAll(),
+    pagination: {
+        page: @var.page,
+        limit: @var.limit,
+        total: @Query("Users").count()
+    }
+}) : @json({
+    message: "Method not allowed",
+    allowed: ["GET"]
+})
+</pre>
+
+<h3>Go Web Handler Implementation</h3>
+<pre>
+package main
+
+import (
+    "encoding/json"
+    "fmt"
+    "io"
+    "net/http"
+    "net/url"
+    "strconv"
+    "strings"
+)
+
+type WebContext struct {
+    Request    *http.Request
+    Writer     http.ResponseWriter
+    Session    *Session
+    Variables  map[string]interface{}
+}
+
+type Session struct {
+    ID           string
+    UserID       string
+    Authenticated bool
+    CSRFToken    string
+    Data         map[string]interface{}
+}
+
+type FileUpload struct {
+    Filename    string
+    Size        int64
+    ContentType string
+    Data        []byte
+}
+
+func NewWebContext(w http.ResponseWriter, r *http.Request) *WebContext {
+    return &WebContext{
+        Request:   r,
+        Writer:    w,
+        Session:   loadSession(r),
+        Variables: make(map[string]interface{}),
+    }
+}
+
+func (ctx *WebContext) ProcessWebOperator(operator string) interface{} {
+    if !strings.HasPrefix(operator, "@") {
+        return operator
+    }
+    
+    parts := strings.SplitN(operator[1:], ".", 2)
+    command := parts[0]
+    
+    switch command {
+    case "request":
+        if len(parts) > 1 {
+            return ctx.handleRequest(parts[1])
+        }
+        return nil
+        
+    case "session":
+        if len(parts) > 1 {
+            return ctx.handleSession(parts[1])
+        }
+        return nil
+        
+    case "cookie":
+        if len(parts) > 1 {
+            return ctx.handleCookie(parts[1])
+        }
+        return nil
+        
+    case "server":
+        if len(parts) > 1 {
+            return ctx.handleServer(parts[1])
+        }
+        return nil
+        
+    case "json":
+        return ctx.handleJSONResponse(operator)
+        
+    default:
+        return operator
+    }
+}
+
+func (ctx *WebContext) handleRequest(requestPath string) interface{} {
+    parts := strings.Split(requestPath, ".")
+    
+    switch parts[0] {
+    case "method":
+        return ctx.Request.Method
+        
+    case "path":
+        return ctx.Request.URL.Path
+        
+    case "remote_addr":
+        return ctx.Request.RemoteAddr
+        
+    case "headers":
+        if len(parts) > 1 {
+            return ctx.Request.Header.Get(parts[1])
+        }
+        return ctx.getAllHeaders()
+        
+    case "query":
+        if len(parts) > 1 {
+            return ctx.handleQueryParam(parts[1])
+        }
+        return ctx.Request.URL.RawQuery
+        
+    case "post":
+        if len(parts) > 1 {
+            return ctx.handlePostData(parts[1])
+        }
+        return nil
+        
+    case "json":
+        if len(parts) > 1 {
+            return ctx.handleJSONBody(parts[1])
+        }
+        return ctx.parseJSONBody()
+        
+    case "files":
+        if len(parts) > 1 {
+            return ctx.handleFileUpload(parts[1])
+        }
+        return nil
+    }
+    
+    return ""
+}
+
+func (ctx *WebContext) handleQueryParam(param string) interface{} {
+    // Handle fallback syntax: query.param|default
+    if strings.Contains(param, "|") {
+        parts := strings.Split(param, "|")
+        paramName := parts[0]
+        defaultValue := parts[1]
+        
+        value := ctx.Request.URL.Query().Get(paramName)
+        if value == "" {
+            return defaultValue
+        }
+        
+        // Try to parse as number
+        if num, err := strconv.Atoi(value); err == nil {
+            return num
+        }
+        
+        return value
+    }
+    
+    return ctx.Request.URL.Query().Get(param)
+}
+
+func (ctx *WebContext) handlePostData(field string) interface{} {
+    if ctx.Request.Method != "POST" {
+        return ""
+    }
+    
+    ctx.Request.ParseForm()
+    return ctx.Request.PostForm.Get(field)
+}
+
+func (ctx *WebContext) parseJSONBody() map[string]interface{} {
+    if ctx.Request.Header.Get("Content-Type") != "application/json" {
+        return nil
+    }
+    
+    body, err := io.ReadAll(ctx.Request.Body)
+    if err != nil {
+        return nil
+    }
+    
+    var data map[string]interface{}
+    if err := json.Unmarshal(body, &data); err != nil {
+        return nil
+    }
+    
+    return data
+}
+
+func (ctx *WebContext) handleJSONBody(field string) interface{} {
+    data := ctx.parseJSONBody()
+    if data == nil {
+        return nil
+    }
+    
+    return data[field]
+}
+
+func (ctx *WebContext) handleFileUpload(field string) interface{} {
+    ctx.Request.ParseMultipartForm(10 << 20) // 10 MB max
+    
+    file, header, err := ctx.Request.FormFile(field)
+    if err != nil {
+        return nil
+    }
+    defer file.Close()
+    
+    data, err := io.ReadAll(file)
+    if err != nil {
+        return nil
+    }
+    
+    upload := FileUpload{
+        Filename:    header.Filename,
+        Size:        header.Size,
+        ContentType: header.Header.Get("Content-Type"),
+        Data:        data,
+    }
+    
+    return upload
+}
+
+func (ctx *WebContext) handleSession(sessionPath string) interface{} {
+    if ctx.Session == nil {
+        return ""
+    }
+    
+    // Handle fallback syntax
+    if strings.Contains(sessionPath, "|") {
+        parts := strings.Split(sessionPath, "|")
+        sessionKey := parts[0]
+        defaultValue := parts[1]
+        
+        value := ctx.getSessionValue(sessionKey)
+        if value == nil {
+            return defaultValue
+        }
+        return value
+    }
+    
+    return ctx.getSessionValue(sessionPath)
+}
+
+func (ctx *WebContext) getSessionValue(key string) interface{} {
+    switch key {
+    case "id":
+        return ctx.Session.ID
+    case "user_id":
+        return ctx.Session.UserID
+    case "authenticated":
+        return ctx.Session.Authenticated
+    case "csrf_token":
+        return ctx.Session.CSRFToken
+    default:
+        if ctx.Session.Data != nil {
+            return ctx.Session.Data[key]
+        }
+        return nil
+    }
+}
+
+func (ctx *WebContext) handleCookie(cookiePath string) interface{} {
+    // Handle fallback syntax
+    if strings.Contains(cookiePath, "|") {
+        parts := strings.Split(cookiePath, "|")
+        cookieName := parts[0]
+        defaultValue := parts[1]
+        
+        cookie, err := ctx.Request.Cookie(cookieName)
+        if err != nil {
+            return strings.Trim(defaultValue, `"`)
+        }
+        return cookie.Value
+    }
+    
+    cookie, err := ctx.Request.Cookie(cookiePath)
+    if err != nil {
+        return ""
+    }
+    return cookie.Value
+}
+
+func (ctx *WebContext) handleServer(serverPath string) interface{} {
+    switch serverPath {
+    case "SERVER_NAME":
+        return ctx.Request.Host
+    case "HTTP_HOST":
+        return ctx.Request.Host
+    case "HTTPS":
+        return ctx.Request.TLS != nil
+    case "REQUEST_URI":
+        return ctx.Request.RequestURI
+    case "QUERY_STRING":
+        return ctx.Request.URL.RawQuery
+    default:
+        return ""
+    }
+}
+
+func (ctx *WebContext) handleJSONResponse(operator string) interface{} {
+    // Simplified JSON response handling
+    return map[string]interface{}{
+        "status": "success",
+        "data":   "response data here",
+    }
+}
+
+func (ctx *WebContext) getAllHeaders() map[string]string {
+    headers := make(map[string]string)
+    for name, values := range ctx.Request.Header {
+        if len(values) > 0 {
+            headers[name] = values[0]
+        }
+    }
+    return headers
+}
+
+func loadSession(r *http.Request) *Session {
+    // Placeholder session loading
+    sessionCookie, err := r.Cookie("session_id")
+    if err != nil {
+        return &Session{
+            ID:           generateSessionID(),
+            Authenticated: false,
+            Data:         make(map[string]interface{}),
+        }
+    }
+    
+    // In real implementation, load from store
+    return &Session{
+        ID:           sessionCookie.Value,
+        UserID:       "user123",
+        Authenticated: true,
+        CSRFToken:    "csrf-token-123",
+        Data:         make(map[string]interface{}),
+    }
+}
+
+func generateSessionID() string {
+    return fmt.Sprintf("sess_%d", time.Now().UnixNano())
+}
+
+// HTTP handler with TuskLang web context
+func APIHandler(w http.ResponseWriter, r *http.Request) {
+    ctx := NewWebContext(w, r)
+    
+    // Sample TuskLang content
+    content := `
+method: @request.method
+user_id: @session.user_id
+search: @request.query.q|""
+page: @request.query.page|1
+response: @json({
+    method: @var.method,
+    user: @var.user_id,
+    search: @var.search,
+    page: @var.page
+})
+`
+    
+    // Process configuration
+    config := ctx.ProcessTuskLangContent(content)
+    
+    // Set response headers
+    w.Header().Set("Content-Type", "application/json")
+    
+    // Send response
+    if response, ok := config["response"]; ok {
+        json.NewEncoder(w).Encode(response)
+    } else {
+        json.NewEncoder(w).Encode(config)
+    }
+}
+
+func (ctx *WebContext) ProcessTuskLangContent(content string) map[string]interface{} {
+    config := make(map[string]interface{})
+    lines := strings.Split(content, "\n")
+    
+    for _, line := range lines {
+        line = strings.TrimSpace(line)
+        if line == "" || strings.HasPrefix(line, "#") {
+            continue
+        }
+        
+        if strings.Contains(line, ":") {
+            parts := strings.SplitN(line, ":", 2)
+            key := strings.TrimSpace(parts[0])
+            value := strings.TrimSpace(parts[1])
+            
+            // Process operators
+            if strings.HasPrefix(value, "@") {
+                processed := ctx.ProcessWebOperator(value)
+                config[key] = processed
+                ctx.Variables[key] = processed
+            } else {
+                config[key] = value
+                ctx.Variables[key] = value
+            }
+        }
+    }
+    
+    return config
+}
+
+func main() {
+    http.HandleFunc("/api", APIHandler)
+    fmt.Println("Server starting on :8080")
+    http.ListenAndServe(":8080", nil)
+}
+</pre>
+
+<p>TuskLang's web context operators provide seamless integration with Go HTTP handlers, enabling dynamic configuration based on request data, sessions, and server environment.</p>

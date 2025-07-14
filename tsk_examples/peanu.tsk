@@ -1,0 +1,146 @@
+# 🥜 Plugin Configuration: database-optimizer
+# ============================================
+# Inherits from project peanu.tsk configuration
+# Plugin-specific overrides and additions
+
+# Plugin Information
+plugin:
+    name: "database-optimizer"
+    version: "1.2.0"
+    author: "TuskLang Team"
+    description: "Advanced database optimization and monitoring plugin"
+    installed_at: "2025-01-15 14:30:00"
+
+# Inherited Database Configuration
+# (Automatically inherited from project peanu.tsk)
+database:
+    type: "sqlite"
+    host: "localhost"
+    port: 5432
+    name: "tusklang_demo"
+    pool_size: 10
+    timeout: 30
+    ssl: false
+
+# Inherited Server Configuration
+# (Automatically inherited from project peanu.tsk)
+server:
+    host: "0.0.0.0"
+    port: 3574
+    workers: 4
+    max_connections: 100
+    keep_alive: 30
+    gzip: true
+
+# Plugin-Specific Configuration
+plugin_config:
+    enabled: true
+    auto_load: true
+    cache_enabled: true
+    debug_mode: false
+    optimization_level: "aggressive"
+    monitoring_interval: 300
+    auto_optimize: true
+    backup_before_optimize: true
+
+# Plugin Features
+features:
+    query_optimization: true
+    index_analysis: true
+    performance_monitoring: true
+    automatic_maintenance: true
+    slow_query_detection: true
+    connection_pooling: true
+    query_caching: true
+    deadlock_detection: true
+
+# Plugin Dependencies
+dependencies:
+    tusk-core: ">=1.0.0"
+    fujsen-operators: ">=1.2.0"
+    cache-manager: ">=1.1.0"
+
+# Plugin-Specific Overrides
+overrides:
+    # Override project settings for this plugin
+    cache_ttl: 1800  # 30 minutes for plugin cache
+    log_level: "info"  # Plugin-specific logging
+    max_connections: 50  # Plugin connection limit
+    query_timeout: 120  # Longer timeout for optimization queries
+    memory_limit: "512M"  # Higher memory for optimization tasks
+
+# Integration Configuration
+integration:
+    inherit_security: true
+    inherit_database: true
+    inherit_cache: true
+    inherit_logging: true
+    custom_routes: true
+    api_endpoints: true
+    webhook_support: true
+    real_time_monitoring: true
+
+# Performance Configuration
+performance:
+    binary_compilation: true
+    cache_warming: true
+    lazy_loading: true
+    memory_optimization: true
+    parallel_processing: true
+    jit_optimization: true
+
+# Database Optimization Settings
+optimization:
+    auto_vacuum: true
+    analyze_tables: true
+    optimize_indexes: true
+    clean_logs: true
+    compress_data: true
+    partition_tables: false
+    archive_old_data: true
+    retention_days: 90
+
+# Monitoring Configuration
+monitoring:
+    enabled: true
+    metrics_collection: true
+    alert_thresholds:
+        slow_query_time: 5.0
+        high_memory_usage: 80
+        connection_limit: 90
+        error_rate: 5.0
+    notification_channels:
+        - "email"
+        - "webhook"
+        - "log"
+
+# API Endpoints
+api:
+    base_path: "/api/optimizer"
+    version: "v1"
+    authentication: true
+    rate_limiting: true
+    endpoints:
+        - "GET /status"
+        - "POST /optimize"
+        - "GET /metrics"
+        - "POST /analyze"
+        - "GET /reports"
+
+# Security Settings
+security:
+    api_key_required: true
+    ip_whitelist: []
+    request_signing: true
+    audit_logging: true
+    sensitive_data_masking: true
+
+# Meta Information
+meta:
+    config_type: "plugin"
+    parent_config: "project peanu.tsk"
+    inheritance_chain: ["project", "plugin"]
+    compiled_at: "2025-01-15 14:30:00"
+    tusk_version: "1.0.0"
+    plugin_category: "database"
+    plugin_tags: ["optimization", "monitoring", "performance"] 

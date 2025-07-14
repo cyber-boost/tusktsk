@@ -1,0 +1,1512 @@
+<h1>Functions & Methods</h1>
+
+<h2>Functions and Methods with TuskLang in C#</h2>
+<p>Learn how to implement and use TuskLang functions, built-in methods, custom functions, and function libraries in C# applications.</p>
+
+<h3>functions.tsk</h3>
+<pre>
+# TuskLang Functions and Methods Configuration
+
+# 1. Built-in Functions
+built_in_functions {
+    # Environment functions
+    environment {
+        app_name: env("APP_NAME", "MyApp")
+        debug_mode: env("DEBUG", false)
+        port: env("PORT", 8080)
+        database_url: env("DATABASE_URL", "Server=localhost;Database=MyApp;Trusted_Connection=true;")
+        
+        # Advanced environment functions
+        required_env: env_required("API_KEY")  # Throws error if not set
+        env_list: env_list("CORS_ORIGINS", ",", ["http://localhost:3000"])
+        env_bool: env_bool("ENABLE_CACHE", true)
+        env_int: env_int("MAX_CONNECTIONS", 100)
+        env_float: env_float("TIMEOUT_SECONDS", 30.5)
+    }
+    
+    # String functions
+    string_operations {
+        # Basic string operations
+        greeting: concat("Hello, ", env("USER_NAME", "World"), "!")
+        upper_case: upper("hello world")
+        lower_case: lower("HELLO WORLD")
+        trimmed: trim("  hello world  ")
+        
+        # String manipulation
+        replaced: replace("Hello World", "World", "TuskLang")
+        substring: substr("Hello World", 6, 5)  # "World"
+        length: length("Hello World")
+        
+        # String formatting
+        formatted: format("User {0} has {1} items", "John", 5)
+        padded_left: pad_left("42", 5, "0")  # "00042"
+        padded_right: pad_right("42", 5, "0")  # "42000"
+        
+        # String validation
+        is_email: is_email("user@example.com")
+        is_url: is_url("https://example.com")
+        is_uuid: is_uuid("550e8400-e29b-41d4-a716-446655440000")
+        
+        # Encoding/Decoding
+        base64_encoded: base64_encode("Hello World")
+        base64_decoded: base64_decode("SGVsbG8gV29ybGQ=")
+        url_encoded: url_encode("hello world")
+        url_decoded: url_decode("hello%20world")
+        
+        # Regular expressions
+        regex_match: regex_match("\\d{4}-\\d{2}-\\d{2}", "2023-12-25")
+        regex_replace: regex_replace("\\d+", "Age: 25", "XX")
+        regex_extract: regex_extract("(\\d{4})-(\\d{2})-(\\d{2})", "2023-12-25", 1)  # "2023"
+    }
+    
+    # Numeric functions
+    numeric_operations {
+        # Math functions
+        addition: add(10, 5)
+        subtraction: subtract(10, 5)
+        multiplication: multiply(10, 5)
+        division: divide(10, 5)
+        modulo: mod(10, 3)
+        power: pow(2, 8)
+        square_root: sqrt(16)
+        
+        # Rounding functions
+        rounded: round(3.14159, 2)  # 3.14
+        ceiling: ceil(3.14)  # 4
+        floor: floor(3.14)  # 3
+        
+        # Min/Max functions
+        minimum: min(10, 5, 8, 3)  # 3
+        maximum: max(10, 5, 8, 3)  # 10
+        absolute: abs(-42)  # 42
+        
+        # Random functions
+        random_number: random()
+        random_int: random_int(1, 100)
+        random_float: random_float(0.0, 1.0)
+        
+        # Conversion functions
+        string_to_int: to_int("42")
+        string_to_float: to_float("3.14")
+        int_to_string: to_string(42)
+        
+        # Validation functions
+        is_number: is_number("42")
+        is_integer: is_integer("42")
+        is_float: is_float("3.14")
+        in_range: in_range(25, 18, 65)  # Check if 25 is between 18 and 65
+    }
+    
+    # Date/Time functions
+    datetime_operations {
+        # Current date/time
+        now: now()
+        utc_now: utc_now()
+        today: today()
+        
+        # Date parsing
+        parsed_date: parse_date("2023-12-25")
+        parsed_datetime: parse_datetime("2023-12-25T10:30:00Z")
+        timestamp_to_date: from_timestamp(1640995200)
+        
+        # Date formatting
+        formatted_date: format_date(now(), "yyyy-MM-dd")
+        formatted_datetime: format_datetime(now(), "yyyy-MM-dd HH:mm:ss")
+        iso_date: to_iso_date(now())
+        
+        # Date arithmetic
+        add_days: add_days(today(), 30)
+        add_hours: add_hours(now(), 24)
+        add_minutes: add_minutes(now(), 30)
+        subtract_days: subtract_days(today(), 7)
+        
+        # Date comparison
+        is_before: is_before(today(), add_days(today(), 1))
+        is_after: is_after(add_days(today(), 1), today())
+        days_between: days_between("2023-01-01", "2023-12-31")
+        
+        # Date extraction
+        year: year(now())
+        month: month(now())
+        day: day(now())
+        hour: hour(now())
+        minute: minute(now())
+        second: second(now())
+        day_of_week: day_of_week(today())
+    }
+    
+    # Collection functions
+    collection_operations {
+        # Array functions
+        sample_array: [1, 2, 3, 4, 5]
+        
+        array_length: length(@sample_array)
+        first_item: first(@sample_array)
+        last_item: last(@sample_array)
+        nth_item: nth(@sample_array, 2)  # Third item (0-based)
+        
+        # Array manipulation
+        reversed_array: reverse(@sample_array)
+        sorted_array: sort([5, 2, 8, 1, 9])
+        unique_array: unique([1, 2, 2, 3, 3, 4])
+        
+        # Array filtering and mapping
+        filtered_array: filter(@sample_array, "> 2")
+        mapped_array: map(@sample_array, "* 2")
+        
+        # Array aggregation
+        sum_array: sum(@sample_array)
+        average_array: avg(@sample_array)
+        min_array: min(@sample_array)
+        max_array: max(@sample_array)
+        
+        # Array joining
+        joined_string: join(@sample_array, ", ")
+        split_string: split("apple,banana,cherry", ",")
+        
+        # Array slicing
+        slice_array: slice(@sample_array, 1, 3)  # Items from index 1 to 3
+        take_items: take(@sample_array, 3)  # First 3 items
+        skip_items: skip(@sample_array, 2)  # Skip first 2 items
+        
+        # Array search
+        contains_item: contains(@sample_array, 3)
+        index_of: index_of(@sample_array, 3)
+        any_match: any(@sample_array, "> 3")
+        all_match: all(@sample_array, "> 0")
+    }
+    
+    # File and Path functions
+    file_operations {
+        # Path functions
+        file_path: path_join("config", "app.json")
+        directory_name: path_dirname("/config/app.json")  # "/config"
+        file_name: path_filename("/config/app.json")  # "app.json"
+        file_extension: path_extension("/config/app.json")  # ".json"
+        absolute_path: path_absolute("./config/app.json")
+        
+        # File existence and properties
+        file_exists: file_exists("config/app.json")
+        directory_exists: dir_exists("config")
+        file_size: file_size("config/app.json")
+        file_modified: file_modified("config/app.json")
+        
+        # File content operations
+        file_content: file("config/app.json")
+        file_lines: file_lines("config/app.json")
+        write_file: write_file("output.txt", "Hello World")
+        
+        # Directory operations
+        list_files: list_files("config", "*.json")
+        list_directories: list_dirs(".")
+        create_directory: create_dir("output")
+    }
+    
+    # JSON and Data functions
+    data_operations {
+        # JSON functions
+        json_parse: json_parse('{"name": "John", "age": 30}')
+        json_stringify: json_stringify({name: "John", age: 30})
+        json_pretty: json_pretty({name: "John", age: 30})
+        
+        # Data validation
+        is_json: is_json('{"valid": true}')
+        is_array: is_array([1, 2, 3])
+        is_object: is_object({key: "value"})
+        is_null: is_null(null)
+        is_empty: is_empty("")
+        
+        # Data transformation
+        to_array: to_array("1,2,3", ",")
+        from_array: from_array([1, 2, 3], ",")
+        keys: keys({a: 1, b: 2, c: 3})
+        values: values({a: 1, b: 2, c: 3})
+        
+        # Data merging
+        merge_objects: merge({a: 1}, {b: 2}, {c: 3})
+        deep_merge: deep_merge({user: {name: "John"}}, {user: {age: 30}})
+    }
+    
+    # Hash and Crypto functions
+    crypto_operations {
+        # Hashing functions
+        md5_hash: md5("Hello World")
+        sha1_hash: sha1("Hello World")
+        sha256_hash: sha256("Hello World")
+        sha512_hash: sha512("Hello World")
+        
+        # UUID generation
+        uuid_v4: uuid()
+        guid: guid()
+        
+        # Random generation
+        random_string: random_string(16)
+        random_bytes: random_bytes(32)
+        random_hex: random_hex(16)
+        
+        # Encryption (if available)
+        encrypted: encrypt("secret data", env("ENCRYPTION_KEY"))
+        decrypted: decrypt(@encrypted, env("ENCRYPTION_KEY"))
+    }
+}
+
+# 2. Custom Functions
+custom_functions {
+    # Define custom functions
+    calculate_tax: @function(amount, rate) {
+        return @multiply(@amount, @divide(@rate, 100))
+    }
+    
+    format_currency: @function(amount, currency_code) {
+        return @concat(@currency_code, " ", @round(@amount, 2))
+    }
+    
+    validate_email: @function(email) {
+        return @regex_match("^[\\w\\.-]+@[\\w\\.-]+\\.[a-zA-Z]{2,}$", @email)
+    }
+    
+    calculate_age: @function(birth_date) {
+        return @floor(@divide(@days_between(@birth_date, @today()), 365.25))
+    }
+    
+    slugify: @function(text) {
+        let cleaned = @lower(@trim(@text))
+        let no_special = @regex_replace("[^a-z0-9\\s-]", @cleaned, "")
+        let dashes = @regex_replace("\\s+", @no_special, "-")
+        return @regex_replace("-+", @dashes, "-")
+    }
+    
+    # Function with default parameters
+    create_user_name: @function(first_name, last_name, separator = ".") {
+        return @lower(@concat(@first_name, @separator, @last_name))
+    }
+    
+    # Function with validation
+    safe_divide: @function(dividend, divisor) {
+        if (@divisor == 0) {
+            throw "Division by zero is not allowed"
+        }
+        return @divide(@dividend, @divisor)
+    }
+    
+    # Recursive function
+    factorial: @function(n) {
+        if (@n <= 1) {
+            return 1
+        }
+        return @multiply(@n, @factorial(@subtract(@n, 1)))
+    }
+}
+
+# 3. Function Libraries
+function_libraries {
+    # Math library
+    math {
+        # Constants
+        PI: 3.14159265359
+        E: 2.71828182846
+        
+        # Advanced math functions
+        sin: @function(x) { return @sin(@x) }
+        cos: @function(x) { return @cos(@x) }
+        tan: @function(x) { return @tan(@x) }
+        
+        degrees_to_radians: @function(degrees) {
+            return @multiply(@degrees, @divide(@math.PI, 180))
+        }
+        
+        radians_to_degrees: @function(radians) {
+            return @multiply(@radians, @divide(180, @math.PI))
+        }
+        
+        distance: @function(x1, y1, x2, y2) {
+            let dx = @subtract(@x2, @x1)
+            let dy = @subtract(@y2, @y1)
+            return @sqrt(@add(@multiply(@dx, @dx), @multiply(@dy, @dy)))
+        }
+        
+        clamp: @function(value, min_val, max_val) {
+            return @min(@max(@value, @min_val), @max_val)
+        }
+        
+        lerp: @function(start, end, t) {
+            return @add(@start, @multiply(@subtract(@end, @start), @t))
+        }
+    }
+    
+    # String utility library
+    string_utils {
+        capitalize: @function(text) {
+            return @concat(@upper(@substr(@text, 0, 1)), @lower(@substr(@text, 1)))
+        }
+        
+        title_case: @function(text) {
+            let words = @split(@text, " ")
+            let capitalized = @map(@words, "@string_utils.capitalize")
+            return @join(@capitalized, " ")
+        }
+        
+        snake_case: @function(text) {
+            let lower = @lower(@text)
+            return @regex_replace("\\s+", @lower, "_")
+        }
+        
+        camel_case: @function(text) {
+            let words = @split(@text, " ")
+            let first = @lower(@first(@words))
+            let rest = @map(@skip(@words, 1), "@string_utils.capitalize")
+            return @concat(@first, @join(@rest, ""))
+        }
+        
+        pascal_case: @function(text) {
+            let words = @split(@text, " ")
+            let capitalized = @map(@words, "@string_utils.capitalize")
+            return @join(@capitalized, "")
+        }
+        
+        truncate: @function(text, max_length, suffix = "...") {
+            if (@length(@text) <= @max_length) {
+                return @text
+            }
+            return @concat(@substr(@text, 0, @subtract(@max_length, @length(@suffix))), @suffix)
+        }
+        
+        mask: @function(text, visible_chars = 4, mask_char = "*") {
+            if (@length(@text) <= @visible_chars) {
+                return @text
+            }
+            let visible = @substr(@text, 0, @visible_chars)
+            let masked_length = @subtract(@length(@text), @visible_chars)
+            let mask = @repeat(@mask_char, @masked_length)
+            return @concat(@visible, @mask)
+        }
+    }
+    
+    # Validation library
+    validation {
+        is_strong_password: @function(password) {
+            return @and(
+                @gte(@length(@password), 8),
+                @regex_match("[A-Z]", @password),
+                @regex_match("[a-z]", @password),
+                @regex_match("\\d", @password),
+                @regex_match("[!@#$%^&*]", @password)
+            )
+        }
+        
+        is_valid_phone: @function(phone) {
+            return @regex_match("^\\+?[1-9]\\d{1,14}$", @phone)
+        }
+        
+        is_valid_credit_card: @function(card_number) {
+            # Luhn algorithm implementation
+            let digits = @map(@split(@regex_replace("\\D", @card_number, ""), ""), "@to_int")
+            return @validation.luhn_check(@digits)
+        }
+        
+        luhn_check: @function(digits) {
+            # Simplified Luhn algorithm
+            let sum = 0
+            let alternate = false
+            
+            # This would need proper loop implementation
+            return @mod(@sum, 10) == 0
+        }
+        
+        is_business_email: @function(email) {
+            let personal_domains = ["gmail.com", "yahoo.com", "hotmail.com", "outlook.com"]
+            let domain = @split(@email, "@")[1]
+            return @not(@contains(@personal_domains, @domain))
+        }
+    }
+    
+    # Date utility library
+    date_utils {
+        start_of_day: @function(date) {
+            return @parse_datetime(@format_date(@date, "yyyy-MM-dd") + "T00:00:00Z")
+        }
+        
+        end_of_day: @function(date) {
+            return @parse_datetime(@format_date(@date, "yyyy-MM-dd") + "T23:59:59Z")
+        }
+        
+        start_of_month: @function(date) {
+            return @parse_date(@format_date(@date, "yyyy-MM-01"))
+        }
+        
+        end_of_month: @function(date) {
+            let next_month = @add_months(@date, 1)
+            let start_next = @date_utils.start_of_month(@next_month)
+            return @subtract_days(@start_next, 1)
+        }
+        
+        is_weekend: @function(date) {
+            let day_of_week = @day_of_week(@date)
+            return @or(@day_of_week == 0, @day_of_week == 6)  # Sunday = 0, Saturday = 6
+        }
+        
+        business_days_between: @function(start_date, end_date) {
+            let total_days = @days_between(@start_date, @end_date)
+            let weeks = @floor(@divide(@total_days, 7))
+            let weekend_days = @multiply(@weeks, 2)
+            return @subtract(@total_days, @weekend_days)
+        }
+        
+        format_relative: @function(date) {
+            let now = @now()
+            let diff_seconds = @divide(@subtract(@now, @date), 1000)
+            
+            if (@diff_seconds < 60) {
+                return "just now"
+            } else if (@diff_seconds < 3600) {
+                let minutes = @floor(@divide(@diff_seconds, 60))
+                return @concat(@minutes, " minutes ago")
+            } else if (@diff_seconds < 86400) {
+                let hours = @floor(@divide(@diff_seconds, 3600))
+                return @concat(@hours, " hours ago")
+            } else {
+                let days = @floor(@divide(@diff_seconds, 86400))
+                return @concat(@days, " days ago")
+            }
+        }
+    }
+}
+
+# 4. Function Usage Examples
+function_usage_examples {
+    # Using built-in functions
+    user_greeting: concat("Welcome, ", env("USER_NAME", "Guest"), "!")
+    formatted_price: format_currency(99.99, "USD")
+    
+    # Using custom functions
+    order_tax: calculate_tax(100.00, 8.5)  # 8.5% tax on $100
+    user_age: calculate_age("1990-01-15")
+    product_slug: slugify("My Awesome Product")
+    
+    # Using library functions
+    secure_password: validation.is_strong_password("MySecure123!")
+    formatted_name: string_utils.title_case("john doe smith")
+    days_until_weekend: date_utils.business_days_between(today(), add_days(today(), 7))
+    
+    # Function composition
+    processed_email: string_utils.mask(lower(trim(env("USER_EMAIL", "user@example.com"))), 3)
+    
+    # Conditional function usage
+    discount_amount: @if(env("VIP_CUSTOMER", false), 
+        calculate_tax(100.00, 20.0), 
+        calculate_tax(100.00, 10.0))
+    
+    # Complex calculations
+    compound_interest: @function(principal, rate, time, compounds_per_year) {
+        let rate_per_compound = divide(@rate, @compounds_per_year)
+        let total_compounds = multiply(@compounds_per_year, @time)
+        let growth_factor = pow(add(1, @rate_per_compound), @total_compounds)
+        return multiply(@principal, @growth_factor)
+    }
+    
+    investment_value: compound_interest(1000, 0.05, 10, 12)  # $1000 at 5% for 10 years, compounded monthly
+}
+
+# 5. Error Handling
+error_handling {
+    # Safe function calls with error handling
+    safe_division: @try(divide(10, 0), "Error: Division by zero")
+    safe_parsing: @try(to_int("not-a-number"), 0)
+    
+    # Function with fallback
+    config_value: @coalesce(
+        env("PRIMARY_CONFIG"),
+        file("config/fallback.json"),
+        "default-value"
+    )
+    
+    # Validation with custom error messages
+    validated_email: @validate(
+        env("USER_EMAIL"),
+        validation.is_email,
+        "Invalid email address provided"
+    )
+    
+    # Conditional execution
+    optional_operation: @if_exists(
+        env("OPTIONAL_FEATURE"),
+        complex_calculation(),
+        null
+    )
+}
+</pre>
+
+<h3>C# Functions Implementation</h3>
+<pre>
+using System;
+using System.Collections.Generic;
+using System.Globalization;
+using System.IO;
+using System.Linq;
+using System.Security.Cryptography;
+using System.Text;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Threading.Tasks;
+
+namespace TuskLang.Functions
+{
+    // Function registry for TuskLang
+    public class TuskFunctionRegistry
+    {
+        private readonly Dictionary<string, Func<object[], object>> _functions = new();
+        private readonly Dictionary<string, TuskFunctionMetadata> _metadata = new();
+
+        public TuskFunctionRegistry()
+        {
+            RegisterBuiltInFunctions();
+        }
+
+        private void RegisterBuiltInFunctions()
+        {
+            // Environment functions
+            RegisterFunction("env", Environment, "Get environment variable with optional default");
+            RegisterFunction("env_required", EnvironmentRequired, "Get required environment variable");
+            RegisterFunction("env_bool", EnvironmentBool, "Get environment variable as boolean");
+            RegisterFunction("env_int", EnvironmentInt, "Get environment variable as integer");
+            RegisterFunction("env_float", EnvironmentFloat, "Get environment variable as float");
+
+            // String functions
+            RegisterFunction("concat", Concat, "Concatenate strings");
+            RegisterFunction("upper", Upper, "Convert to uppercase");
+            RegisterFunction("lower", Lower, "Convert to lowercase");
+            RegisterFunction("trim", Trim, "Trim whitespace");
+            RegisterFunction("replace", Replace, "Replace text in string");
+            RegisterFunction("substr", Substring, "Extract substring");
+            RegisterFunction("length", Length, "Get string/array length");
+            RegisterFunction("format", Format, "Format string with placeholders");
+            RegisterFunction("pad_left", PadLeft, "Pad string on left");
+            RegisterFunction("pad_right", PadRight, "Pad string on right");
+
+            // Numeric functions
+            RegisterFunction("add", Add, "Add numbers");
+            RegisterFunction("subtract", Subtract, "Subtract numbers");
+            RegisterFunction("multiply", Multiply, "Multiply numbers");
+            RegisterFunction("divide", Divide, "Divide numbers");
+            RegisterFunction("mod", Modulo, "Modulo operation");
+            RegisterFunction("pow", Power, "Raise to power");
+            RegisterFunction("sqrt", SquareRoot, "Square root");
+            RegisterFunction("round", Round, "Round number");
+            RegisterFunction("ceil", Ceiling, "Round up");
+            RegisterFunction("floor", Floor, "Round down");
+            RegisterFunction("min", Minimum, "Get minimum value");
+            RegisterFunction("max", Maximum, "Get maximum value");
+            RegisterFunction("abs", Absolute, "Absolute value");
+
+            // Date/Time functions
+            RegisterFunction("now", Now, "Current date/time");
+            RegisterFunction("utc_now", UtcNow, "Current UTC date/time");
+            RegisterFunction("today", Today, "Current date");
+            RegisterFunction("parse_date", ParseDate, "Parse date string");
+            RegisterFunction("format_date", FormatDate, "Format date");
+            RegisterFunction("add_days", AddDays, "Add days to date");
+            RegisterFunction("subtract_days", SubtractDays, "Subtract days from date");
+
+            // Collection functions
+            RegisterFunction("first", First, "Get first element");
+            RegisterFunction("last", Last, "Get last element");
+            RegisterFunction("nth", Nth, "Get nth element");
+            RegisterFunction("reverse", Reverse, "Reverse array");
+            RegisterFunction("sort", Sort, "Sort array");
+            RegisterFunction("unique", Unique, "Get unique elements");
+            RegisterFunction("sum", Sum, "Sum array elements");
+            RegisterFunction("avg", Average, "Average of array elements");
+            RegisterFunction("join", Join, "Join array elements");
+            RegisterFunction("split", Split, "Split string");
+
+            // JSON functions
+            RegisterFunction("json_parse", JsonParse, "Parse JSON string");
+            RegisterFunction("json_stringify", JsonStringify, "Convert to JSON string");
+
+            // Validation functions
+            RegisterFunction("is_email", IsEmail, "Validate email format");
+            RegisterFunction("is_url", IsUrl, "Validate URL format");
+            RegisterFunction("is_number", IsNumber, "Check if string is number");
+
+            // Hash functions
+            RegisterFunction("md5", Md5Hash, "MD5 hash");
+            RegisterFunction("sha256", Sha256Hash, "SHA256 hash");
+            RegisterFunction("uuid", GenerateUuid, "Generate UUID");
+
+            // Regex functions
+            RegisterFunction("regex_match", RegexMatch, "Test regex pattern");
+            RegisterFunction("regex_replace", RegexReplace, "Replace using regex");
+        }
+
+        public void RegisterFunction(string name, Func<object[], object> function, string description = "")
+        {
+            _functions[name] = function;
+            _metadata[name] = new TuskFunctionMetadata
+            {
+                Name = name,
+                Description = description
+            };
+        }
+
+        public object CallFunction(string name, params object[] args)
+        {
+            if (!_functions.TryGetValue(name, out var function))
+            {
+                throw new ArgumentException($"Function '{name}' not found");
+            }
+
+            try
+            {
+                return function(args);
+            }
+            catch (Exception ex)
+            {
+                throw new InvalidOperationException($"Error calling function '{name}': {ex.Message}", ex);
+            }
+        }
+
+        public bool HasFunction(string name) => _functions.ContainsKey(name);
+
+        public IEnumerable<TuskFunctionMetadata> GetFunctions() => _metadata.Values;
+
+        // Built-in function implementations
+        private static object Environment(object[] args)
+        {
+            if (args.Length == 0) return "";
+            
+            var key = args[0]?.ToString() ?? "";
+            var defaultValue = args.Length > 1 ? args[1]?.ToString() ?? "" : "";
+            
+            return System.Environment.GetEnvironmentVariable(key) ?? defaultValue;
+        }
+
+        private static object EnvironmentRequired(object[] args)
+        {
+            if (args.Length == 0) throw new ArgumentException("Environment variable name required");
+            
+            var key = args[0]?.ToString() ?? "";
+            var value = System.Environment.GetEnvironmentVariable(key);
+            
+            if (string.IsNullOrEmpty(value))
+                throw new InvalidOperationException($"Required environment variable '{key}' not found");
+            
+            return value;
+        }
+
+        private static object EnvironmentBool(object[] args)
+        {
+            var envValue = Environment(args)?.ToString() ?? "";
+            var defaultValue = args.Length > 1 && args[1] is bool b ? b : false;
+            
+            return bool.TryParse(envValue, out var result) ? result : defaultValue;
+        }
+
+        private static object EnvironmentInt(object[] args)
+        {
+            var envValue = Environment(args)?.ToString() ?? "";
+            var defaultValue = args.Length > 1 && args[1] is int i ? i : 0;
+            
+            return int.TryParse(envValue, out var result) ? result : defaultValue;
+        }
+
+        private static object EnvironmentFloat(object[] args)
+        {
+            var envValue = Environment(args)?.ToString() ?? "";
+            var defaultValue = args.Length > 1 && args[1] is double d ? d : 0.0;
+            
+            return double.TryParse(envValue, out var result) ? result : defaultValue;
+        }
+
+        private static object Concat(object[] args)
+        {
+            return string.Concat(args.Select(a => a?.ToString() ?? ""));
+        }
+
+        private static object Upper(object[] args)
+        {
+            return args.Length > 0 ? args[0]?.ToString()?.ToUpperInvariant() ?? "" : "";
+        }
+
+        private static object Lower(object[] args)
+        {
+            return args.Length > 0 ? args[0]?.ToString()?.ToLowerInvariant() ?? "" : "";
+        }
+
+        private static object Trim(object[] args)
+        {
+            return args.Length > 0 ? args[0]?.ToString()?.Trim() ?? "" : "";
+        }
+
+        private static object Replace(object[] args)
+        {
+            if (args.Length < 3) return args.Length > 0 ? args[0] : "";
+            
+            var input = args[0]?.ToString() ?? "";
+            var oldValue = args[1]?.ToString() ?? "";
+            var newValue = args[2]?.ToString() ?? "";
+            
+            return input.Replace(oldValue, newValue);
+        }
+
+        private static object Substring(object[] args)
+        {
+            if (args.Length < 2) return "";
+            
+            var input = args[0]?.ToString() ?? "";
+            var start = Convert.ToInt32(args[1]);
+            var length = args.Length > 2 ? Convert.ToInt32(args[2]) : input.Length - start;
+            
+            if (start < 0 || start >= input.Length) return "";
+            
+            length = Math.Min(length, input.Length - start);
+            return input.Substring(start, Math.Max(0, length));
+        }
+
+        private static object Length(object[] args)
+        {
+            if (args.Length == 0) return 0;
+            
+            return args[0] switch
+            {
+                string s => s.Length,
+                Array arr => arr.Length,
+                System.Collections.ICollection collection => collection.Count,
+                _ => 0
+            };
+        }
+
+        private static object Format(object[] args)
+        {
+            if (args.Length == 0) return "";
+            
+            var format = args[0]?.ToString() ?? "";
+            var formatArgs = args.Skip(1).ToArray();
+            
+            return string.Format(format, formatArgs);
+        }
+
+        private static object PadLeft(object[] args)
+        {
+            if (args.Length < 2) return args.Length > 0 ? args[0] : "";
+            
+            var input = args[0]?.ToString() ?? "";
+            var totalWidth = Convert.ToInt32(args[1]);
+            var paddingChar = args.Length > 2 ? args[2]?.ToString()?.FirstOrDefault() ?? ' ' : ' ';
+            
+            return input.PadLeft(totalWidth, paddingChar);
+        }
+
+        private static object PadRight(object[] args)
+        {
+            if (args.Length < 2) return args.Length > 0 ? args[0] : "";
+            
+            var input = args[0]?.ToString() ?? "";
+            var totalWidth = Convert.ToInt32(args[1]);
+            var paddingChar = args.Length > 2 ? args[2]?.ToString()?.FirstOrDefault() ?? ' ' : ' ';
+            
+            return input.PadRight(totalWidth, paddingChar);
+        }
+
+        private static object Add(object[] args)
+        {
+            return args.Aggregate(0.0, (sum, arg) => sum + Convert.ToDouble(arg));
+        }
+
+        private static object Subtract(object[] args)
+        {
+            if (args.Length < 2) return 0;
+            return Convert.ToDouble(args[0]) - Convert.ToDouble(args[1]);
+        }
+
+        private static object Multiply(object[] args)
+        {
+            return args.Aggregate(1.0, (product, arg) => product * Convert.ToDouble(arg));
+        }
+
+        private static object Divide(object[] args)
+        {
+            if (args.Length < 2) return 0;
+            var divisor = Convert.ToDouble(args[1]);
+            if (Math.Abs(divisor) < double.Epsilon) throw new DivideByZeroException();
+            return Convert.ToDouble(args[0]) / divisor;
+        }
+
+        private static object Modulo(object[] args)
+        {
+            if (args.Length < 2) return 0;
+            return Convert.ToDouble(args[0]) % Convert.ToDouble(args[1]);
+        }
+
+        private static object Power(object[] args)
+        {
+            if (args.Length < 2) return 0;
+            return Math.Pow(Convert.ToDouble(args[0]), Convert.ToDouble(args[1]));
+        }
+
+        private static object SquareRoot(object[] args)
+        {
+            if (args.Length == 0) return 0;
+            return Math.Sqrt(Convert.ToDouble(args[0]));
+        }
+
+        private static object Round(object[] args)
+        {
+            if (args.Length == 0) return 0;
+            var value = Convert.ToDouble(args[0]);
+            var digits = args.Length > 1 ? Convert.ToInt32(args[1]) : 0;
+            return Math.Round(value, digits);
+        }
+
+        private static object Ceiling(object[] args)
+        {
+            if (args.Length == 0) return 0;
+            return Math.Ceiling(Convert.ToDouble(args[0]));
+        }
+
+        private static object Floor(object[] args)
+        {
+            if (args.Length == 0) return 0;
+            return Math.Floor(Convert.ToDouble(args[0]));
+        }
+
+        private static object Minimum(object[] args)
+        {
+            if (args.Length == 0) return 0;
+            return args.Select(Convert.ToDouble).Min();
+        }
+
+        private static object Maximum(object[] args)
+        {
+            if (args.Length == 0) return 0;
+            return args.Select(Convert.ToDouble).Max();
+        }
+
+        private static object Absolute(object[] args)
+        {
+            if (args.Length == 0) return 0;
+            return Math.Abs(Convert.ToDouble(args[0]));
+        }
+
+        private static object Now(object[] args)
+        {
+            return DateTime.Now;
+        }
+
+        private static object UtcNow(object[] args)
+        {
+            return DateTime.UtcNow;
+        }
+
+        private static object Today(object[] args)
+        {
+            return DateTime.Today;
+        }
+
+        private static object ParseDate(object[] args)
+        {
+            if (args.Length == 0) return DateTime.MinValue;
+            var dateString = args[0]?.ToString() ?? "";
+            return DateTime.TryParse(dateString, out var result) ? result : DateTime.MinValue;
+        }
+
+        private static object FormatDate(object[] args)
+        {
+            if (args.Length < 2) return "";
+            var date = Convert.ToDateTime(args[0]);
+            var format = args[1]?.ToString() ?? "yyyy-MM-dd";
+            return date.ToString(format);
+        }
+
+        private static object AddDays(object[] args)
+        {
+            if (args.Length < 2) return DateTime.MinValue;
+            var date = Convert.ToDateTime(args[0]);
+            var days = Convert.ToDouble(args[1]);
+            return date.AddDays(days);
+        }
+
+        private static object SubtractDays(object[] args)
+        {
+            if (args.Length < 2) return DateTime.MinValue;
+            var date = Convert.ToDateTime(args[0]);
+            var days = Convert.ToDouble(args[1]);
+            return date.AddDays(-days);
+        }
+
+        private static object First(object[] args)
+        {
+            if (args.Length == 0) return null;
+            
+            return args[0] switch
+            {
+                Array arr when arr.Length > 0 => arr.GetValue(0),
+                System.Collections.IEnumerable enumerable => enumerable.Cast<object>().FirstOrDefault(),
+                string s when s.Length > 0 => s[0],
+                _ => null
+            };
+        }
+
+        private static object Last(object[] args)
+        {
+            if (args.Length == 0) return null;
+            
+            return args[0] switch
+            {
+                Array arr when arr.Length > 0 => arr.GetValue(arr.Length - 1),
+                System.Collections.IEnumerable enumerable => enumerable.Cast<object>().LastOrDefault(),
+                string s when s.Length > 0 => s[s.Length - 1],
+                _ => null
+            };
+        }
+
+        private static object Nth(object[] args)
+        {
+            if (args.Length < 2) return null;
+            
+            var index = Convert.ToInt32(args[1]);
+            
+            return args[0] switch
+            {
+                Array arr when index >= 0 && index < arr.Length => arr.GetValue(index),
+                System.Collections.IEnumerable enumerable => enumerable.Cast<object>().Skip(index).FirstOrDefault(),
+                string s when index >= 0 && index < s.Length => s[index],
+                _ => null
+            };
+        }
+
+        private static object Reverse(object[] args)
+        {
+            if (args.Length == 0) return new object[0];
+            
+            return args[0] switch
+            {
+                Array arr => arr.Cast<object>().Reverse().ToArray(),
+                System.Collections.IEnumerable enumerable => enumerable.Cast<object>().Reverse().ToArray(),
+                string s => new string(s.Reverse().ToArray()),
+                _ => args[0]
+            };
+        }
+
+        private static object Sort(object[] args)
+        {
+            if (args.Length == 0) return new object[0];
+            
+            return args[0] switch
+            {
+                Array arr => arr.Cast<object>().OrderBy(x => x).ToArray(),
+                System.Collections.IEnumerable enumerable => enumerable.Cast<object>().OrderBy(x => x).ToArray(),
+                _ => args[0]
+            };
+        }
+
+        private static object Unique(object[] args)
+        {
+            if (args.Length == 0) return new object[0];
+            
+            return args[0] switch
+            {
+                Array arr => arr.Cast<object>().Distinct().ToArray(),
+                System.Collections.IEnumerable enumerable => enumerable.Cast<object>().Distinct().ToArray(),
+                _ => args[0]
+            };
+        }
+
+        private static object Sum(object[] args)
+        {
+            if (args.Length == 0) return 0;
+            
+            return args[0] switch
+            {
+                Array arr => arr.Cast<object>().Select(Convert.ToDouble).Sum(),
+                System.Collections.IEnumerable enumerable => enumerable.Cast<object>().Select(Convert.ToDouble).Sum(),
+                _ => Convert.ToDouble(args[0])
+            };
+        }
+
+        private static object Average(object[] args)
+        {
+            if (args.Length == 0) return 0;
+            
+            return args[0] switch
+            {
+                Array arr => arr.Cast<object>().Select(Convert.ToDouble).Average(),
+                System.Collections.IEnumerable enumerable => enumerable.Cast<object>().Select(Convert.ToDouble).Average(),
+                _ => Convert.ToDouble(args[0])
+            };
+        }
+
+        private static object Join(object[] args)
+        {
+            if (args.Length < 2) return "";
+            
+            var separator = args[1]?.ToString() ?? "";
+            
+            return args[0] switch
+            {
+                Array arr => string.Join(separator, arr.Cast<object>().Select(x => x?.ToString() ?? "")),
+                System.Collections.IEnumerable enumerable => string.Join(separator, enumerable.Cast<object>().Select(x => x?.ToString() ?? "")),
+                _ => args[0]?.ToString() ?? ""
+            };
+        }
+
+        private static object Split(object[] args)
+        {
+            if (args.Length < 2) return new string[0];
+            
+            var input = args[0]?.ToString() ?? "";
+            var separator = args[1]?.ToString() ?? "";
+            
+            return input.Split(new[] { separator }, StringSplitOptions.None);
+        }
+
+        private static object JsonParse(object[] args)
+        {
+            if (args.Length == 0) return null;
+            
+            var json = args[0]?.ToString() ?? "";
+            try
+            {
+                return JsonSerializer.Deserialize<object>(json);
+            }
+            catch
+            {
+                return null;
+            }
+        }
+
+        private static object JsonStringify(object[] args)
+        {
+            if (args.Length == 0) return "null";
+            
+            try
+            {
+                return JsonSerializer.Serialize(args[0]);
+            }
+            catch
+            {
+                return args[0]?.ToString() ?? "null";
+            }
+        }
+
+        private static object IsEmail(object[] args)
+        {
+            if (args.Length == 0) return false;
+            
+            var email = args[0]?.ToString() ?? "";
+            var emailRegex = new Regex(@"^[^\s@]+@[^\s@]+\.[^\s@]+$");
+            return emailRegex.IsMatch(email);
+        }
+
+        private static object IsUrl(object[] args)
+        {
+            if (args.Length == 0) return false;
+            
+            var url = args[0]?.ToString() ?? "";
+            return Uri.TryCreate(url, UriKind.Absolute, out _);
+        }
+
+        private static object IsNumber(object[] args)
+        {
+            if (args.Length == 0) return false;
+            
+            var input = args[0]?.ToString() ?? "";
+            return double.TryParse(input, out _);
+        }
+
+        private static object Md5Hash(object[] args)
+        {
+            if (args.Length == 0) return "";
+            
+            var input = args[0]?.ToString() ?? "";
+            using var md5 = MD5.Create();
+            var hash = md5.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return Convert.ToHexString(hash).ToLowerInvariant();
+        }
+
+        private static object Sha256Hash(object[] args)
+        {
+            if (args.Length == 0) return "";
+            
+            var input = args[0]?.ToString() ?? "";
+            using var sha256 = SHA256.Create();
+            var hash = sha256.ComputeHash(Encoding.UTF8.GetBytes(input));
+            return Convert.ToHexString(hash).ToLowerInvariant();
+        }
+
+        private static object GenerateUuid(object[] args)
+        {
+            return Guid.NewGuid().ToString();
+        }
+
+        private static object RegexMatch(object[] args)
+        {
+            if (args.Length < 2) return false;
+            
+            var pattern = args[0]?.ToString() ?? "";
+            var input = args[1]?.ToString() ?? "";
+            
+            try
+            {
+                return Regex.IsMatch(input, pattern);
+            }
+            catch
+            {
+                return false;
+            }
+        }
+
+        private static object RegexReplace(object[] args)
+        {
+            if (args.Length < 3) return args.Length > 1 ? args[1] : "";
+            
+            var pattern = args[0]?.ToString() ?? "";
+            var input = args[1]?.ToString() ?? "";
+            var replacement = args[2]?.ToString() ?? "";
+            
+            try
+            {
+                return Regex.Replace(input, pattern, replacement);
+            }
+            catch
+            {
+                return input;
+            }
+        }
+    }
+
+    // Function metadata
+    public class TuskFunctionMetadata
+    {
+        public string Name { get; set; } = "";
+        public string Description { get; set; } = "";
+        public List<string> Parameters { get; set; } = new();
+        public string ReturnType { get; set; } = "";
+        public List<string> Examples { get; set; } = new();
+    }
+
+    // Custom function definition
+    public class TuskCustomFunction
+    {
+        public string Name { get; set; } = "";
+        public List<string> Parameters { get; set; } = new();
+        public string Body { get; set; } = "";
+        public Dictionary<string, object> DefaultValues { get; set; } = new();
+
+        public object Execute(TuskFunctionRegistry registry, params object[] args)
+        {
+            // Implementation would parse and execute the function body
+            // This is a simplified placeholder
+            throw new NotImplementedException("Custom function execution not implemented in this example");
+        }
+    }
+
+    // Function expression evaluator
+    public class TuskFunctionEvaluator
+    {
+        private readonly TuskFunctionRegistry _registry;
+        private readonly Dictionary<string, TuskCustomFunction> _customFunctions = new();
+
+        public TuskFunctionEvaluator()
+        {
+            _registry = new TuskFunctionRegistry();
+        }
+
+        public void RegisterCustomFunction(TuskCustomFunction function)
+        {
+            _customFunctions[function.Name] = function;
+        }
+
+        public object EvaluateExpression(string expression)
+        {
+            // Parse and evaluate TuskLang expression
+            // This is a simplified implementation
+            
+            // Handle function calls like @function_name(arg1, arg2)
+            if (expression.StartsWith('@'))
+            {
+                return EvaluateFunctionCall(expression);
+            }
+            
+            // Handle literals
+            return ParseLiteral(expression);
+        }
+
+        private object EvaluateFunctionCall(string expression)
+        {
+            // Extract function name and arguments
+            var match = Regex.Match(expression, @"@(\w+)\((.*)\)");
+            if (!match.Success) return expression;
+
+            var functionName = match.Groups[1].Value;
+            var argsString = match.Groups[2].Value;
+            var args = ParseArguments(argsString);
+
+            // Check custom functions first
+            if (_customFunctions.TryGetValue(functionName, out var customFunction))
+            {
+                return customFunction.Execute(_registry, args);
+            }
+
+            // Check built-in functions
+            if (_registry.HasFunction(functionName))
+            {
+                return _registry.CallFunction(functionName, args);
+            }
+
+            throw new ArgumentException($"Function '{functionName}' not found");
+        }
+
+        private object[] ParseArguments(string argsString)
+        {
+            if (string.IsNullOrWhiteSpace(argsString)) return new object[0];
+
+            // Simple argument parsing (would need more sophisticated parsing in real implementation)
+            var args = new List<object>();
+            var parts = argsString.Split(',');
+
+            foreach (var part in parts)
+            {
+                var trimmed = part.Trim();
+                args.Add(ParseLiteral(trimmed));
+            }
+
+            return args.ToArray();
+        }
+
+        private object ParseLiteral(string value)
+        {
+            if (string.IsNullOrWhiteSpace(value)) return "";
+
+            value = value.Trim();
+
+            // String literals
+            if ((value.StartsWith('"') && value.EndsWith('"')) ||
+                (value.StartsWith('\'') && value.EndsWith('\'')))
+            {
+                return value.Substring(1, value.Length - 2);
+            }
+
+            // Boolean literals
+            if (bool.TryParse(value, out var boolValue)) return boolValue;
+
+            // Numeric literals
+            if (int.TryParse(value, out var intValue)) return intValue;
+            if (double.TryParse(value, out var doubleValue)) return doubleValue;
+
+            // Default to string
+            return value;
+        }
+
+        public IEnumerable<TuskFunctionMetadata> GetAvailableFunctions()
+        {
+            return _registry.GetFunctions();
+        }
+    }
+}
+</pre>
+
+<h3>Usage Example</h3>
+<pre>
+using System;
+using System.Linq;
+using TuskLang.Functions;
+
+class Program
+{
+    static void Main(string[] args)
+    {
+        Console.WriteLine("=== TuskLang Functions & Methods Demo ===");
+
+        // 1. Initialize function registry
+        var registry = new TuskFunctionRegistry();
+        var evaluator = new TuskFunctionEvaluator();
+
+        // 2. Demonstrate built-in functions
+        DemonstrateBuiltInFunctions(registry);
+
+        // 3. Demonstrate function composition
+        DemonstrateFunctionComposition(registry);
+
+        // 4. Demonstrate custom functions
+        DemonstrateCustomFunctions(evaluator);
+
+        // 5. Demonstrate expression evaluation
+        DemonstrateExpressionEvaluation(evaluator);
+
+        Console.WriteLine("\n=== Demo Complete ===");
+    }
+
+    static void DemonstrateBuiltInFunctions(TuskFunctionRegistry registry)
+    {
+        Console.WriteLine("\n1. Built-in Functions:");
+
+        // Environment functions
+        Console.WriteLine("  Environment Functions:");
+        System.Environment.SetEnvironmentVariable("TEST_VAR", "hello world");
+        var envResult = registry.CallFunction("env", "TEST_VAR", "default");
+        Console.WriteLine($"    env('TEST_VAR'): {envResult}");
+
+        // String functions
+        Console.WriteLine("  String Functions:");
+        var upperResult = registry.CallFunction("upper", "hello world");
+        Console.WriteLine($"    upper('hello world'): {upperResult}");
+        
+        var concatResult = registry.CallFunction("concat", "Hello", " ", "World", "!");
+        Console.WriteLine($"    concat('Hello', ' ', 'World', '!'): {concatResult}");
+        
+        var replaceResult = registry.CallFunction("replace", "Hello World", "World", "TuskLang");
+        Console.WriteLine($"    replace('Hello World', 'World', 'TuskLang'): {replaceResult}");
+
+        // Numeric functions
+        Console.WriteLine("  Numeric Functions:");
+        var addResult = registry.CallFunction("add", 10, 5, 3);
+        Console.WriteLine($"    add(10, 5, 3): {addResult}");
+        
+        var roundResult = registry.CallFunction("round", 3.14159, 2);
+        Console.WriteLine($"    round(3.14159, 2): {roundResult}");
+        
+        var maxResult = registry.CallFunction("max", 10, 5, 8, 3);
+        Console.WriteLine($"    max(10, 5, 8, 3): {maxResult}");
+
+        // Date functions
+        Console.WriteLine("  Date Functions:");
+        var nowResult = registry.CallFunction("now");
+        Console.WriteLine($"    now(): {nowResult}");
+        
+        var formatDateResult = registry.CallFunction("format_date", DateTime.Now, "yyyy-MM-dd HH:mm:ss");
+        Console.WriteLine($"    format_date(now(), 'yyyy-MM-dd HH:mm:ss'): {formatDateResult}");
+
+        // Array functions
+        Console.WriteLine("  Array Functions:");
+        var testArray = new object[] { 1, 2, 3, 4, 5 };
+        var firstResult = registry.CallFunction("first", testArray);
+        Console.WriteLine($"    first([1, 2, 3, 4, 5]): {firstResult}");
+        
+        var sumResult = registry.CallFunction("sum", testArray);
+        Console.WriteLine($"    sum([1, 2, 3, 4, 5]): {sumResult}");
+        
+        var joinResult = registry.CallFunction("join", testArray, ", ");
+        Console.WriteLine($"    join([1, 2, 3, 4, 5], ', '): {joinResult}");
+
+        // Validation functions
+        Console.WriteLine("  Validation Functions:");
+        var emailResult = registry.CallFunction("is_email", "user@example.com");
+        Console.WriteLine($"    is_email('user@example.com'): {emailResult}");
+        
+        var numberResult = registry.CallFunction("is_number", "42.5");
+        Console.WriteLine($"    is_number('42.5'): {numberResult}");
+
+        // Hash functions
+        Console.WriteLine("  Hash Functions:");
+        var md5Result = registry.CallFunction("md5", "Hello World");
+        Console.WriteLine($"    md5('Hello World'): {md5Result}");
+        
+        var uuidResult = registry.CallFunction("uuid");
+        Console.WriteLine($"    uuid(): {uuidResult}");
+    }
+
+    static void DemonstrateFunctionComposition(TuskFunctionRegistry registry)
+    {
+        Console.WriteLine("\n2. Function Composition:");
+
+        // Complex string processing
+        var input = "  HELLO WORLD  ";
+        var step1 = registry.CallFunction("trim", input);
+        var step2 = registry.CallFunction("lower", step1);
+        var step3 = registry.CallFunction("replace", step2, " ", "_");
+        Console.WriteLine($"  trim(lower(replace('  HELLO WORLD  '))): {step3}");
+
+        // Mathematical calculations
+        var base_value = 100;
+        var tax_rate = 8.5;
+        var tax_amount = registry.CallFunction("multiply", base_value, registry.CallFunction("divide", tax_rate, 100));
+        var total = registry.CallFunction("add", base_value, tax_amount);
+        Console.WriteLine($"  Tax calculation: Base={base_value}, Rate={tax_rate}%, Tax={tax_amount}, Total={total}");
+
+        // Date calculations
+        var today = registry.CallFunction("today");
+        var future_date = registry.CallFunction("add_days", today, 30);
+        var formatted_future = registry.CallFunction("format_date", future_date, "MMM dd, yyyy");
+        Console.WriteLine($"  30 days from today: {formatted_future}");
+
+        // Array processing pipeline
+        var numbers = new object[] { 5, 2, 8, 1, 9, 3 };
+        var sorted = registry.CallFunction("sort", numbers);
+        var first_three = registry.CallFunction("nth", sorted, 0);  // Would need slice function
+        Console.WriteLine($"  Array processing: Original=[{string.Join(", ", numbers)}], Sorted=[{string.Join(", ", (object[])sorted)}]");
+    }
+
+    static void DemonstrateCustomFunctions(TuskFunctionEvaluator evaluator)
+    {
+        Console.WriteLine("\n3. Custom Functions:");
+
+        // Register a custom tax calculation function
+        var taxFunction = new TuskCustomFunction
+        {
+            Name = "calculate_tax",
+            Parameters = new List<string> { "amount", "rate" },
+            Body = "multiply(@amount, divide(@rate, 100))"
+        };
+        evaluator.RegisterCustomFunction(taxFunction);
+
+        // Register a custom validation function
+        var strongPasswordFunction = new TuskCustomFunction
+        {
+            Name = "is_strong_password",
+            Parameters = new List<string> { "password" },
+            Body = "and(gte(length(@password), 8), regex_match('[A-Z]', @password), regex_match('[a-z]', @password), regex_match('\\d', @password))"
+        };
+        evaluator.RegisterCustomFunction(strongPasswordFunction);
+
+        Console.WriteLine("  Registered custom functions:");
+        Console.WriteLine("    - calculate_tax(amount, rate): Calculate tax amount");
+        Console.WriteLine("    - is_strong_password(password): Validate password strength");
+
+        // Note: Actual execution would require implementing the custom function execution engine
+        Console.WriteLine("  (Custom function execution requires full expression parser implementation)");
+    }
+
+    static void DemonstrateExpressionEvaluation(TuskFunctionEvaluator evaluator)
+    {
+        Console.WriteLine("\n4. Expression Evaluation:");
+
+        // Simple expressions
+        var expressions = new[]
+        {
+            "\"Hello World\"",
+            "42",
+            "true",
+            "@upper(\"hello world\")",
+            "@add(10, 5)",
+            "@concat(\"Hello\", \" \", \"World\")",
+            "@format_date(@now(), \"yyyy-MM-dd\")"
+        };
+
+        foreach (var expression in expressions)
+        {
+            try
+            {
+                var result = evaluator.EvaluateExpression(expression);
+                Console.WriteLine($"    {expression} => {result}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"    {expression} => Error: {ex.Message}");
+            }
+        }
+
+        // Show available functions
+        Console.WriteLine("\n5. Available Functions:");
+        var functions = evaluator.GetAvailableFunctions().Take(10);
+        foreach (var func in functions)
+        {
+            Console.WriteLine($"    {func.Name}: {func.Description}");
+        }
+        
+        var totalFunctions = evaluator.GetAvailableFunctions().Count();
+        Console.WriteLine($"    ... and {totalFunctions - 10} more functions");
+    }
+}
+</pre>
+
+<p>TuskLang functions and methods in C# provide a comprehensive function library with built-in functions, custom function support, function composition, and expression evaluation for powerful configuration processing.</p>

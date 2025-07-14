@@ -1,0 +1,35 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>Java Class</title>
+  <desc>Java class data containers with fields and methods</desc>
+  
+  <!-- Background -->
+  <rect x="8" y="8" width="48" height="48" rx="4" fill="#2A2A3E" stroke="#F89820" stroke-width="2"/>
+  
+  <!-- Class container -->
+  <rect x="12" y="16" width="40" height="32" rx="3" fill="#F89820" opacity="0.2" stroke="#F89820" stroke-width="2"/>
+  
+  <!-- Class keyword -->
+  <text x="32" y="26" font-family="Courier New" font-size="8" text-anchor="middle" fill="#F89820" font-weight="bold">class</text>
+  
+  <!-- Class fields -->
+  <g stroke="#007396" stroke-width="1.5" fill="none">
+    <path d="M 16 32 L 48 32" opacity="0.8"/>
+    <path d="M 16 38 L 48 38" opacity="0.8"/>
+    <path d="M 16 44 L 48 44" opacity="0.8"/>
+  </g>
+  
+  <!-- Field names -->
+  <text x="18" y="30" font-family="Courier New" font-size="5" fill="#007396" font-weight="bold">name</text>
+  <text x="18" y="36" font-family="Courier New" font-size="5" fill="#007396" font-weight="bold">age</text>
+  <text x="18" y="42" font-family="Courier New" font-size="5" fill="#007396" font-weight="bold">email</text>
+  
+  <!-- Field types -->
+  <text x="50" y="30" font-family="Courier New" font-size="5" fill="#ED8B00" font-weight="bold">String</text>
+  <text x="50" y="36" font-family="Courier New" font-size="5" fill="#ED8B00" font-weight="bold">int</text>
+  <text x="50" y="42" font-family="Courier New" font-size="5" fill="#ED8B00" font-weight="bold">String</text>
+  
+  <!-- Field separators -->
+  <circle cx="16" cy="32" r="1" fill="#007396"/>
+  <circle cx="16" cy="38" r="1" fill="#007396"/>
+  <circle cx="16" cy="44" r="1" fill="#007396"/>
+</svg> 

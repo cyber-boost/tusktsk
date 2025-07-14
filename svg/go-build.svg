@@ -1,0 +1,37 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>Build Process</title>
+  <desc>Go build and compilation pipeline</desc>
+  
+  <!-- Background -->
+  <rect x="8" y="8" width="48" height="48" rx="4" fill="#2A2A3E" stroke="#00ADD8" stroke-width="2"/>
+  
+  <!-- Source files -->
+  <rect x="12" y="16" width="12" height="16" rx="2" fill="#00ADD8" opacity="0.3" stroke="#00ADD8" stroke-width="1.5"/>
+  <text x="18" y="24" font-family="Courier New" font-size="5" text-anchor="middle" fill="#007D9C" font-weight="bold">main.go</text>
+  <text x="18" y="30" font-family="Courier New" font-size="4" text-anchor="middle" fill="#007D9C">package</text>
+  
+  <!-- Build arrow -->
+  <g fill="#5DC9E2">
+    <polygon points="28,24 32,24 30,26" opacity="0.9"/>
+  </g>
+  <line x1="28" y1="24" x2="32" y2="24" stroke="#5DC9E2" stroke-width="2"/>
+  
+  <!-- Compiler -->
+  <rect x="36" y="16" width="16" height="16" rx="3" fill="#5DC9E2" opacity="0.3" stroke="#5DC9E2" stroke-width="1.5"/>
+  <text x="44" y="24" font-family="Courier New" font-size="5" text-anchor="middle" fill="#007D9C" font-weight="bold">Compiler</text>
+  <text x="44" y="30" font-family="Courier New" font-size="4" text-anchor="middle" fill="#007D9C">go build</text>
+  
+  <!-- Output arrow -->
+  <g fill="#00ADD8">
+    <polygon points="44,36 44,40 42,38" opacity="0.9"/>
+  </g>
+  <line x1="44" y1="36" x2="44" y2="40" stroke="#00ADD8" stroke-width="2"/>
+  
+  <!-- Binary output -->
+  <rect x="36" y="44" width="16" height="12" rx="2" fill="#00ADD8" opacity="0.3" stroke="#00ADD8" stroke-width="1.5"/>
+  <text x="44" y="50" font-family="Courier New" font-size="5" text-anchor="middle" fill="#007D9C" font-weight="bold">main</text>
+  <text x="44" y="54" font-family="Courier New" font-size="4" text-anchor="middle" fill="#007D9C">binary</text>
+  
+  <!-- Build status -->
+  <text x="32" y="16" font-family="Courier New" font-size="5" text-anchor="middle" fill="#4ECDC4" font-weight="bold">✓ Build</text>
+</svg> 

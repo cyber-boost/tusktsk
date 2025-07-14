@@ -1,0 +1,80 @@
+<svg viewBox="0 0 300 250" xmlns="http://www.w3.org/2000/svg">
+  <!-- Node.js Ecosystem Integration -->
+  <defs>
+    <linearGradient id="nodeGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#8CC84B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4ECDC4;stop-opacity:1" />
+    </linearGradient>
+    <filter id="nodeGlow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge> 
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Central Node.js logo inspired hexagon -->
+  <polygon points="150,60 180,80 180,120 150,140 120,120 120,80" 
+           fill="url(#nodeGradient)" 
+           stroke="#8CC84B" 
+           stroke-width="2"
+           filter="url(#nodeGlow)"/>
+  
+  <!-- Node.js text -->
+  <text x="150" y="105" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="white">Node</text>
+  
+  <!-- Framework integrations around the center -->
+  
+  <!-- Express.js -->
+  <circle cx="80" cy="80" r="25" fill="#2A2A3E" stroke="#FFE66D" stroke-width="2"/>
+  <text x="80" y="85" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle" fill="#FFE66D">Express</text>
+  
+  <!-- React -->
+  <circle cx="220" cy="80" r="25" fill="#2A2A3E" stroke="#61DAFB" stroke-width="2"/>
+  <text x="220" y="85" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle" fill="#61DAFB">React</text>
+  
+  <!-- Vue.js -->
+  <circle cx="80" cy="160" r="25" fill="#2A2A3E" stroke="#4FC08D" stroke-width="2"/>
+  <text x="80" y="165" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle" fill="#4FC08D">Vue</text>
+  
+  <!-- Next.js -->
+  <circle cx="220" cy="160" r="25" fill="#2A2A3E" stroke="#FFFFFF" stroke-width="2"/>
+  <text x="220" y="165" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle" fill="#FFFFFF">Next</text>
+  
+  <!-- NestJS -->
+  <circle cx="150" cy="200" r="25" fill="#2A2A3E" stroke="#E0234E" stroke-width="2"/>
+  <text x="150" y="205" font-family="Arial" font-size="10" font-weight="bold" text-anchor="middle" fill="#E0234E">Nest</text>
+  
+  <!-- Connection lines -->
+  <line x1="105" y1="95" x2="135" y2="85" stroke="#4ECDC4" stroke-width="2" opacity="0.7"/>
+  <line x1="195" y1="95" x2="165" y2="85" stroke="#4ECDC4" stroke-width="2" opacity="0.7"/>
+  <line x1="105" y1="145" x2="135" y2="115" stroke="#4ECDC4" stroke-width="2" opacity="0.7"/>
+  <line x1="195" y1="145" x2="165" y2="115" stroke="#4ECDC4" stroke-width="2" opacity="0.7"/>
+  <line x1="150" y1="175" x2="150" y2="145" stroke="#4ECDC4" stroke-width="2" opacity="0.7"/>
+  
+  <!-- TuskLang config files floating around -->
+  <rect x="50" y="40" width="20" height="15" rx="2" fill="#4ECDC4" opacity="0.7">
+    <animate attributeName="y" values="40;35;40" dur="3s" repeatCount="indefinite"/>
+  </rect>
+  <text x="60" y="50" font-family="Courier New" font-size="6" text-anchor="middle" fill="#2A2A3E">.tsk</text>
+  
+  <rect x="230" y="50" width="20" height="15" rx="2" fill="#FFE66D" opacity="0.7">
+    <animate attributeName="y" values="50;45;50" dur="2.5s" repeatCount="indefinite"/>
+  </rect>
+  <text x="240" y="60" font-family="Courier New" font-size="6" text-anchor="middle" fill="#2A2A3E">.tsk</text>
+  
+  <rect x="30" y="190" width="20" height="15" rx="2" fill="#FF6B6B" opacity="0.7">
+    <animate attributeName="y" values="190;185;190" dur="3.5s" repeatCount="indefinite"/>
+  </rect>
+  <text x="40" y="200" font-family="Courier New" font-size="6" text-anchor="middle" fill="#2A2A3E">.tsk</text>
+  
+  <rect x="250" y="180" width="20" height="15" rx="2" fill="#4ECDC4" opacity="0.7">
+    <animate attributeName="y" values="180;175;180" dur="2s" repeatCount="indefinite"/>
+  </rect>
+  <text x="260" y="190" font-family="Courier New" font-size="6" text-anchor="middle" fill="#2A2A3E">.tsk</text>
+  
+  <!-- Title -->
+  <text x="150" y="25" font-family="Arial" font-size="16" font-weight="bold" text-anchor="middle" fill="#8CC84B">Ecosystem Integration</text>
+  <text x="150" y="235" font-family="Courier New" font-size="10" text-anchor="middle" fill="#888">Drop-in compatibility with your favorite frameworks</text>
+</svg>

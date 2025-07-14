@@ -1,0 +1,369 @@
+<h1>Basic TuskLang Syntax for Ruby</h1>
+
+<h2>Core Syntax Elements</h2>
+<p>Understanding TuskLang's clean and intuitive syntax for Ruby application configuration.</p>
+
+<h3>syntax.tsk</h3>
+<pre>
+# Comments start with hash
+# This is a comment line
+
+# Key-value pairs (both syntaxes work)
+app_name: "Ruby TuskLang Demo"
+version = "2.1.0"
+debug_mode: true
+max_connections = 100
+
+# String values (quotes optional for simple strings)
+simple_string: hello_world
+quoted_string: "Hello, World!"
+multi_word: "Multiple words here"
+
+# Numbers
+port: 3000
+timeout: 30.5
+ratio = 0.75
+
+# Booleans
+enabled: true
+debug: false
+production = true
+
+# Environment variables
+api_key: env("API_KEY", "default-key")
+database_url: env("DATABASE_URL")
+
+# Nested objects
+server {
+    host: "localhost"
+    port: 3000
+    ssl: true
+    
+    # Nested objects can go deeper
+    ssl_config {
+        cert_file: "/path/to/cert.pem"
+        key_file: "/path/to/key.pem"
+        verify_mode: "peer"
+    }
+}
+
+# Arrays
+allowed_hosts: ["localhost", "127.0.0.1", "example.com"]
+ports = [3000, 3001, 3002]
+features: [
+    "authentication",
+    "logging", 
+    "caching"
+]
+
+# Mixed arrays
+mixed_data: [
+    "string",
+    42,
+    true,
+    {name: "nested", value: 123}
+]
+
+# Multi-line configurations
+database {
+    primary {
+        adapter: "postgresql"
+        host: env("DB_HOST", "localhost")
+        port: env("DB_PORT", 5432)
+        database: env("DB_NAME", "myapp")
+        username: env("DB_USER", "postgres")
+        password: env("DB_PASSWORD")
+        pool: 5
+        timeout: 5000
+    }
+    
+    replica {
+        adapter: "postgresql"
+        host: env("REPLICA_HOST", "localhost")
+        port: env("REPLICA_PORT", 5433)
+        database: env("DB_NAME", "myapp")
+        username: env("DB_USER", "postgres")
+        password: env("DB_PASSWORD")
+        pool: 3
+    }
+}
+
+# Function calls
+current_time: php(time())
+unique_id: php(uniqid())
+config_file: file("/etc/app/settings.conf")
+
+# Conditional and computed values
+log_level: env("LOG_LEVEL", "info")
+workers: env("WEB_WORKERS", 2)
+cache_enabled: env("CACHE_ENABLED", true)
+</pre>
+
+<h3>Ruby Parser Implementation</h3>
+<pre>
+#!/usr/bin/env ruby
+
+require 'ostruct'
+require 'json'
+
+class TuskLangBasicParser
+  def self.parse(content)
+    parser = new
+    parser.parse_content(content)
+  end
+
+  def initialize
+    @config = OpenStruct.new
+  end
+
+  def parse_content(content)
+    @current_section = @config
+    @section_stack = []
+    @line_number = 0
+
+    content.each_line do |line|
+      @line_number += 1
+      process_line(line.strip)
+    end
+
+    @config
+  end
+
+  private
+
+  def process_line(line)
+    return if line.empty? || line.start_with?('#')
+
+    case line
+    when /^(\w+)\s*\{$/
+      # Start nested section: "section_name {"
+      start_section($1)
+    when /^\}$/
+      # End section: "}"
+      end_section
+    when /^(.+?):\s*(.+)$/, /^(.+?)\s*=\s*(.+)$/
+      # Key-value pair: "key: value" or "key = value"
+      key, value = $1.strip, $2.strip
+      set_value(key, value)
+    else
+      raise "Invalid syntax at line #{@line_number}: #{line}"
+    end
+  end
+
+  def start_section(name)
+    new_section = OpenStruct.new
+    @current_section.send("#{sanitize_key(name)}=", new_section)
+    @section_stack.push(@current_section)
+    @current_section = new_section
+  end
+
+  def end_section
+    if @section_stack.empty?
+      raise "Unexpected '}' at line #{@line_number}"
+    end
+    @current_section = @section_stack.pop
+  end
+
+  def set_value(key, value)
+    parsed_value = parse_value(value)
+    sanitized_key = sanitize_key(key)
+    @current_section.send("#{sanitized_key}=", parsed_value)
+  end
+
+  def parse_value(value)
+    case value
+    when /^env\("([^"]+)"(?:,\s*"?([^"]*)"?)?\)$/
+      # Environment variable: env("VAR", "default")
+      env_var, default_val = $1, $2 || ""
+      ENV[env_var] || default_val
+    when /^file\("([^"]+)"\)$/
+      # File inclusion: file("path")
+      file_path = $1
+      File.exist?(file_path) ? File.read(file_path).strip : ""
+    when /^php\(([^)]+)\)$/
+      # PHP-style function: php(time())
+      parse_php_function($1)
+    when /^\[(.+)\]$/
+      # Array: ["item1", "item2", 123]
+      parse_array($1)
+    when /^\{(.+)\}$/
+      # Inline object: {key: "value", num: 42}
+      parse_inline_object($1)
+    when /^"(.+)"$/, /^'(.+)'$/
+      # Quoted string
+      $1
+    when /^(\d+)$/
+      # Integer
+      $1.to_i
+    when /^(\d+\.\d+)$/
+      # Float
+      $1.to_f
+    when /^(true|false)$/i
+      # Boolean
+      $1.downcase == 'true'
+    else
+      # Unquoted string
+      value
+    end
+  end
+
+  def parse_php_function(func)
+    case func
+    when 'time()'
+      Time.now.to_i
+    when 'uniqid()'
+      SecureRandom.hex(8)
+    when /^date\("([^"]+)"\)$/
+      Time.now.strftime($1)
+    else
+      func
+    end
+  end
+
+  def parse_array(content)
+    items = []
+    current_item = ""
+    in_quotes = false
+    quote_char = nil
+    paren_depth = 0
+    brace_depth = 0
+
+    content.each_char do |char|
+      case char
+      when '"', "'"
+        if !in_quotes
+          in_quotes = true
+          quote_char = char
+        elsif char == quote_char
+          in_quotes = false
+          quote_char = nil
+        end
+        current_item << char
+      when '('
+        paren_depth += 1
+        current_item << char
+      when ')'
+        paren_depth -= 1
+        current_item << char
+      when '{'
+        brace_depth += 1
+        current_item << char
+      when '}'
+        brace_depth -= 1
+        current_item << char
+      when ','
+        if !in_quotes && paren_depth == 0 && brace_depth == 0
+          items << parse_value(current_item.strip)
+          current_item = ""
+        else
+          current_item << char
+        end
+      else
+        current_item << char
+      end
+    end
+
+    items << parse_value(current_item.strip) unless current_item.strip.empty?
+    items
+  end
+
+  def parse_inline_object(content)
+    obj = OpenStruct.new
+    parse_object_content(content, obj)
+    obj
+  end
+
+  def parse_object_content(content, obj)
+    current_pair = ""
+    in_quotes = false
+    quote_char = nil
+    paren_depth = 0
+    brace_depth = 0
+
+    content.each_char do |char|
+      case char
+      when '"', "'"
+        if !in_quotes
+          in_quotes = true
+          quote_char = char
+        elsif char == quote_char
+          in_quotes = false
+          quote_char = nil
+        end
+        current_pair << char
+      when '('
+        paren_depth += 1
+        current_pair << char
+      when ')'
+        paren_depth -= 1
+        current_pair << char
+      when '{'
+        brace_depth += 1
+        current_pair << char
+      when '}'
+        brace_depth -= 1
+        current_pair << char
+      when ','
+        if !in_quotes && paren_depth == 0 && brace_depth == 0
+          process_object_pair(current_pair.strip, obj)
+          current_pair = ""
+        else
+          current_pair << char
+        end
+      else
+        current_pair << char
+      end
+    end
+
+    process_object_pair(current_pair.strip, obj) unless current_pair.strip.empty?
+  end
+
+  def process_object_pair(pair, obj)
+    if pair.include?(':')
+      key, value = pair.split(':', 2).map(&:strip)
+      obj.send("#{sanitize_key(key)}=", parse_value(value))
+    end
+  end
+
+  def sanitize_key(key)
+    key.gsub(/[^a-zA-Z0-9_]/, '_')
+  end
+end
+
+# Usage example
+if __FILE__ == $0
+  sample_config = <<~TSK
+    # Sample configuration
+    app_name: "Ruby Syntax Demo"
+    version: "1.0.0"
+    debug: true
+    
+    server {
+        host: "localhost"
+        port: 3000
+        workers: [2, 4, 8]
+    }
+    
+    database {
+        url: env("DATABASE_URL", "postgres://localhost/myapp")
+        pool: 5
+        timeout: 30.0
+    }
+    
+    features: ["auth", "cache", "logging"]
+    metadata: {created: "2024", type: "web"}
+  TSK
+
+  config = TuskLangBasicParser.parse(sample_config)
+  
+  puts "App: #{config.app_name} v#{config.version}"
+  puts "Debug: #{config.debug}"
+  puts "Server: #{config.server.host}:#{config.server.port}"
+  puts "Workers: #{config.server.workers.join(', ')}"
+  puts "Database: #{config.database.url}"
+  puts "Features: #{config.features.join(', ')}"
+  puts "Metadata: #{config.metadata.created} - #{config.metadata.type}"
+end
+</pre>
+
+<p>TuskLang's syntax is designed to be intuitive for Ruby developers while providing powerful configuration capabilities.</p>

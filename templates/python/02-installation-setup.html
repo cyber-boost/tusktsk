@@ -1,0 +1,306 @@
+<h1>Installation and Setup for TuskLang Python</h1>
+
+<h2>Installation Methods</h2>
+<p>Multiple ways to integrate TuskLang into your Python projects with package managers and virtual environments.</p>
+
+<h3>requirements.txt</h3>
+<pre>
+# Core TuskLang parser
+tusklang-python>=1.0.0
+
+# Optional dependencies for enhanced features
+pydantic>=2.0.0      # For data validation
+click>=8.0.0         # For CLI tools
+redis>=4.0.0         # For caching support
+sqlalchemy>=2.0.0    # For database integration
+</pre>
+
+<h3>pyproject.toml</h3>
+<pre>
+[project]
+name = "my-tusklang-app"
+version = "1.0.0"
+dependencies = [
+    "tusklang-python>=1.0.0",
+    "pydantic>=2.0.0",
+    "click>=8.0.0"
+]
+
+[project.optional-dependencies]
+cache = ["redis>=4.0.0"]
+database = ["sqlalchemy>=2.0.0", "psycopg2-binary>=2.9.0"]
+web = ["fastapi>=0.100.0", "uvicorn>=0.23.0"]
+all = ["redis>=4.0.0", "sqlalchemy>=2.0.0", "fastapi>=0.100.0"]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+</pre>
+
+<h3>setup.py Installation</h3>
+<pre>
+#!/usr/bin/env python3
+
+import os
+import sys
+from pathlib import Path
+
+def install_tusklang():
+    """Install TuskLang Python parser."""
+    
+    # Check Python version
+    if sys.version_info < (3.8, 0):
+        print("TuskLang requires Python 3.8 or higher")
+        sys.exit(1)
+    
+    # Create virtual environment
+    os.system("python -m venv venv")
+    
+    # Activate and install dependencies
+    if sys.platform == "win32":
+        activate_cmd = "venv\\Scripts\\activate"
+    else:
+        activate_cmd = "source venv/bin/activate"
+    
+    install_commands = [
+        f"{activate_cmd} && pip install --upgrade pip",
+        f"{activate_cmd} && pip install tusklang-python",
+        f"{activate_cmd} && pip install -r requirements.txt"
+    ]
+    
+    for cmd in install_commands:
+        result = os.system(cmd)
+        if result != 0:
+            print(f"Failed to execute: {cmd}")
+            sys.exit(1)
+    
+    print("TuskLang Python installation completed successfully!")
+
+def setup_project_structure():
+    """Create recommended project structure."""
+    
+    directories = [
+        "config",
+        "src/tusklang_app",
+        "tests",
+        "scripts"
+    ]
+    
+    files = {
+        "config/app.tsk": '''# Application configuration
+name: "My TuskLang App"
+version: "1.0.0"
+debug: env("DEBUG", false)
+
+server {
+    host: "0.0.0.0"
+    port: env("PORT", 8000)
+    workers: env("WORKERS", 4)
+}
+
+database {
+    url: env("DATABASE_URL", "sqlite:///app.db")
+    echo: env("DB_ECHO", false)
+}''',
+        
+        "src/tusklang_app/__init__.py": "",
+        
+        "src/tusklang_app/config.py": '''"""Configuration module using TuskLang."""
+
+from tusklang_python import TuskLangParser
+from pathlib import Path
+
+# Load configuration
+config_path = Path(__file__).parent.parent.parent / "config" / "app.tsk"
+parser = TuskLangParser()
+config = parser.parse_file(str(config_path))
+
+# Export config
+__all__ = ["config"]''',
+        
+        "tests/test_config.py": '''"""Test configuration loading."""
+
+import unittest
+from src.tusklang_app.config import config
+
+class TestConfig(unittest.TestCase):
+    def test_config_loaded(self):
+        self.assertIsNotNone(config)
+        self.assertTrue(hasattr(config, 'name'))
+    
+    def test_server_config(self):
+        self.assertTrue(hasattr(config, 'server'))
+        self.assertTrue(hasattr(config.server, 'port'))
+
+if __name__ == "__main__":
+    unittest.main()''',
+        
+        ".env.example": '''# Environment variables example
+DEBUG=false
+PORT=8000
+WORKERS=4
+DATABASE_URL=postgresql://user:pass@localhost/db
+DB_ECHO=false''',
+        
+        "scripts/validate_config.py": '''#!/usr/bin/env python3
+"""Validate TuskLang configuration files."""
+
+from tusklang_python import TuskLangValidator
+from pathlib import Path
+import sys
+
+def main():
+    config_dir = Path("config")
+    validator = TuskLangValidator()
+    
+    for tsk_file in config_dir.glob("*.tsk"):
+        try:
+            validator.validate_file(str(tsk_file))
+            print(f"✓ {tsk_file} is valid")
+        except Exception as e:
+            print(f"✗ {tsk_file}: {e}")
+            sys.exit(1)
+    
+    print("All configuration files are valid!")
+
+if __name__ == "__main__":
+    main()'''
+    }
+    
+    # Create directories
+    for directory in directories:
+        Path(directory).mkdir(parents=True, exist_ok=True)
+        print(f"Created directory: {directory}")
+    
+    # Create files
+    for file_path, content in files.items():
+        path = Path(file_path)
+        path.parent.mkdir(parents=True, exist_ok=True)
+        path.write_text(content)
+        print(f"Created file: {file_path}")
+
+if __name__ == "__main__":
+    print("TuskLang Python Setup")
+    print("====================")
+    
+    choice = input("Choose action: (i)nstall, (s)etup project, (b)oth: ").lower()
+    
+    if choice in ['i', 'b']:
+        install_tusklang()
+    
+    if choice in ['s', 'b']:
+        setup_project_structure()
+    
+    print("\nSetup completed! Next steps:")
+    print("1. Copy .env.example to .env and configure")
+    print("2. Run: python scripts/validate_config.py")
+    print("3. Start your application")
+</pre>
+
+<h3>Docker Setup</h3>
+<pre>
+# Dockerfile
+FROM python:3.11-slim
+
+WORKDIR /app
+
+# Install system dependencies
+RUN apt-get update && apt-get install -y \
+    gcc \
+    && rm -rf /var/lib/apt/lists/*
+
+# Copy requirements first for better caching
+COPY requirements.txt .
+RUN pip install --no-cache-dir -r requirements.txt
+
+# Copy application code
+COPY . .
+
+# Create non-root user
+RUN useradd -m -u 1000 appuser && chown -R appuser:appuser /app
+USER appuser
+
+# Validate configuration on build
+RUN python scripts/validate_config.py
+
+EXPOSE 8000
+
+CMD ["python", "-m", "src.tusklang_app"]
+</pre>
+
+<h3>Docker Compose</h3>
+<pre>
+version: '3.8'
+
+services:
+  app:
+    build: .
+    ports:
+      - "8000:8000"
+    environment:
+      - DEBUG=false
+      - DATABASE_URL=postgresql://postgres:password@db:5432/myapp
+      - REDIS_URL=redis://redis:6379/0
+    volumes:
+      - ./config:/app/config:ro
+    depends_on:
+      - db
+      - redis
+    restart: unless-stopped
+
+  db:
+    image: postgres:15
+    environment:
+      - POSTGRES_DB=myapp
+      - POSTGRES_USER=postgres
+      - POSTGRES_PASSWORD=password
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    ports:
+      - "5432:5432"
+
+  redis:
+    image: redis:7-alpine
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+
+volumes:
+  postgres_data:
+  redis_data:
+</pre>
+
+<h3>Development Scripts</h3>
+<pre>
+#!/bin/bash
+# scripts/dev-setup.sh
+
+set -e
+
+echo "Setting up TuskLang Python development environment..."
+
+# Create and activate virtual environment
+python -m venv venv
+source venv/bin/activate
+
+# Upgrade pip
+pip install --upgrade pip
+
+# Install dependencies
+pip install -r requirements.txt
+pip install -r requirements-dev.txt
+
+# Install pre-commit hooks
+pre-commit install
+
+# Validate configuration
+python scripts/validate_config.py
+
+# Run tests
+python -m pytest tests/
+
+echo "Development environment setup complete!"
+echo "Activate with: source venv/bin/activate"
+</pre>
+
+<p>This setup provides a complete Python development environment with TuskLang integration, Docker support, and validation tools.</p>

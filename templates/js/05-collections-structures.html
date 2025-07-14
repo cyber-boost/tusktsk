@@ -1,0 +1,338 @@
+<h1>Collections & Data Structures</h1>
+
+<h2>Working with Arrays and Objects in TuskLang</h2>
+<p>TuskLang provides flexible ways to define and manipulate complex data structures in JavaScript.</p>
+
+<h3>collections.tsk</h3>
+<pre>
+# Simple arrays
+fruits: ["apple", "banana", "orange"]
+numbers: [1, 2, 3, 4, 5]
+mixed: ["text", 42, true, null, { nested: "object" }]
+
+# Multi-dimensional arrays
+matrix: [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+
+# Array of objects
+users: [
+    { id: 1, name: "Alice", role: "admin" },
+    { id: 2, name: "Bob", role: "user" },
+    { id: 3, name: "Charlie", role: "user" }
+]
+
+# Nested objects
+company {
+    name: "TechCorp"
+    founded: 2020
+    
+    headquarters {
+        address: "123 Tech Street"
+        city: "San Francisco"
+        coordinates {
+            lat: 37.7749
+            lng: -122.4194
+        }
+    }
+    
+    departments: [
+        {
+            name: "Engineering"
+            employees: 50
+            projects: ["API", "Frontend", "Mobile"]
+        },
+        {
+            name: "Marketing"
+            employees: 20
+            campaigns: ["Social", "Email", "Content"]
+        }
+    ]
+}
+
+# Maps and Sets (as arrays with metadata)
+userRoles: {
+    _type: "Map"
+    entries: [
+        ["alice@example.com", "admin"],
+        ["bob@example.com", "editor"],
+        ["charlie@example.com", "viewer"]
+    ]
+}
+
+uniqueTags: {
+    _type: "Set"
+    values: ["javascript", "nodejs", "tusklang", "config"]
+}
+
+# Complex nested structure
+gameState {
+    players: [
+        {
+            id: "player1"
+            name: "Hero"
+            stats: {
+                health: 100
+                mana: 50
+                level: 10
+            }
+            inventory: [
+                { item: "sword", quantity: 1, equipped: true },
+                { item: "potion", quantity: 5, equipped: false }
+            ]
+        }
+    ]
+    
+    world: {
+        regions: {
+            forest: {
+                enemies: ["goblin", "wolf"]
+                treasures: ["gold", "gem"]
+            }
+            dungeon: {
+                enemies: ["skeleton", "zombie"]
+                boss: { name: "Dragon", health: 1000 }
+            }
+        }
+    }
+}
+</pre>
+
+<h3>JavaScript Collection Handler</h3>
+<pre>
+class CollectionTuskLang {
+    constructor() {
+        this.converters = new Map([
+            ['Map', (data) => new Map(data.entries)],
+            ['Set', (data) => new Set(data.values)],
+            ['Date', (data) => new Date(data.value)],
+            ['Buffer', (data) => Buffer.from(data.value, data.encoding || 'utf8')]
+        ]);
+    }
+    
+    parse(content) {
+        const parsed = this.parseBasic(content);
+        return this.processSpecialTypes(parsed);
+    }
+    
+    parseBasic(content) {
+        // Basic parsing logic from previous examples
+        const parser = new TuskLangParser();
+        return parser.parse(content);
+    }
+    
+    processSpecialTypes(obj) {
+        if (Array.isArray(obj)) {
+            return obj.map(item => this.processSpecialTypes(item));
+        }
+        
+        if (obj && typeof obj === 'object') {
+            // Check for special type
+            if (obj._type && this.converters.has(obj._type)) {
+                return this.converters.get(obj._type)(obj);
+            }
+            
+            // Process nested objects
+            const result = {};
+            for (const [key, value] of Object.entries(obj)) {
+                result[key] = this.processSpecialTypes(value);
+            }
+            return result;
+        }
+        
+        return obj;
+    }
+    
+    // Serialize JavaScript objects back to TuskLang
+    serialize(data, options = {}) {
+        const { indent = 0, maxDepth = 10 } = options;
+        
+        if (indent > maxDepth) {
+            throw new Error('Maximum serialization depth exceeded');
+        }
+        
+        const spaces = '  '.repeat(indent);
+        let result = '';
+        
+        // Handle special types
+        if (data instanceof Map) {
+            result += `${spaces}_type: "Map"\n`;
+            result += `${spaces}entries: [\n`;
+            for (const [key, value] of data) {
+                result += `${spaces}  [${JSON.stringify(key)}, ${JSON.stringify(value)}],\n`;
+            }
+            result = result.slice(0, -2) + '\n'; // Remove last comma
+            result += `${spaces}]\n`;
+            return result;
+        }
+        
+        if (data instanceof Set) {
+            result += `${spaces}_type: "Set"\n`;
+            result += `${spaces}values: ${JSON.stringify([...data])}\n`;
+            return result;
+        }
+        
+        // Handle arrays
+        if (Array.isArray(data)) {
+            if (data.every(item => typeof item !== 'object' || item === null)) {
+                // Simple array - single line
+                return JSON.stringify(data);
+            } else {
+                // Complex array - multi line
+                result = '[\n';
+                for (const item of data) {
+                    if (typeof item === 'object' && item !== null) {
+                        result += `${spaces}  {\n`;
+                        result += this.serialize(item, { ...options, indent: indent + 2 });
+                        result += `${spaces}  },\n`;
+                    } else {
+                        result += `${spaces}  ${JSON.stringify(item)},\n`;
+                    }
+                }
+                result = result.slice(0, -2) + '\n'; // Remove last comma
+                result += `${spaces}]`;
+                return result;
+            }
+        }
+        
+        // Handle objects
+        if (typeof data === 'object' && data !== null) {
+            for (const [key, value] of Object.entries(data)) {
+                if (typeof value === 'object' && value !== null && !Array.isArray(value)) {
+                    result += `${spaces}${key} {\n`;
+                    result += this.serialize(value, { ...options, indent: indent + 1 });
+                    result += `${spaces}}\n`;
+                } else {
+                    const serializedValue = this.serializeValue(value, { ...options, indent });
+                    result += `${spaces}${key}: ${serializedValue}\n`;
+                }
+            }
+        }
+        
+        return result;
+    }
+    
+    serializeValue(value, options) {
+        if (typeof value === 'string') return JSON.stringify(value);
+        if (typeof value === 'number') return String(value);
+        if (typeof value === 'boolean') return String(value);
+        if (value === null) return 'null';
+        if (value === undefined) return 'undefined';
+        if (Array.isArray(value)) return this.serialize(value, options);
+        if (typeof value === 'object') return this.serialize(value, options);
+        return String(value);
+    }
+}
+
+// Collection utilities
+class TuskCollectionUtils {
+    static query(data, path) {
+        const parts = path.split('.');
+        let current = data;
+        
+        for (const part of parts) {
+            if (current === null || current === undefined) {
+                return undefined;
+            }
+            
+            // Handle array indices
+            const arrayMatch = part.match(/^(\w+)\[(\d+)\]$/);
+            if (arrayMatch) {
+                const [, key, index] = arrayMatch;
+                current = current[key]?.[parseInt(index)];
+            } else {
+                current = current[part];
+            }
+        }
+        
+        return current;
+    }
+    
+    static filter(collection, predicate) {
+        if (Array.isArray(collection)) {
+            return collection.filter(predicate);
+        }
+        
+        if (collection instanceof Map) {
+            const result = new Map();
+            for (const [key, value] of collection) {
+                if (predicate(value, key)) {
+                    result.set(key, value);
+                }
+            }
+            return result;
+        }
+        
+        if (typeof collection === 'object') {
+            const result = {};
+            for (const [key, value] of Object.entries(collection)) {
+                if (predicate(value, key)) {
+                    result[key] = value;
+                }
+            }
+            return result;
+        }
+        
+        return collection;
+    }
+    
+    static map(collection, transformer) {
+        if (Array.isArray(collection)) {
+            return collection.map(transformer);
+        }
+        
+        if (collection instanceof Map) {
+            const result = new Map();
+            for (const [key, value] of collection) {
+                result.set(key, transformer(value, key));
+            }
+            return result;
+        }
+        
+        if (typeof collection === 'object') {
+            const result = {};
+            for (const [key, value] of Object.entries(collection)) {
+                result[key] = transformer(value, key);
+            }
+            return result;
+        }
+        
+        return collection;
+    }
+}
+
+// Usage example
+const parser = new CollectionTuskLang();
+const config = parser.parse(fs.readFileSync('collections.tsk', 'utf8'));
+
+// Access nested data
+console.log(config.company.name);                          // "TechCorp"
+console.log(config.company.headquarters.coordinates.lat);   // 37.7749
+console.log(config.gameState.players[0].stats.health);     // 100
+
+// Work with special types
+console.log(config.userRoles instanceof Map);              // true
+console.log(config.userRoles.get('alice@example.com'));    // "admin"
+console.log(config.uniqueTags instanceof Set);             // true
+console.log(config.uniqueTags.has('nodejs'));             // true
+
+// Query data
+const health = TuskCollectionUtils.query(config, 'gameState.players[0].stats.health');
+console.log(health); // 100
+
+// Filter users
+const admins = TuskCollectionUtils.filter(config.users, user => user.role === 'admin');
+console.log(admins); // [{ id: 1, name: "Alice", role: "admin" }]
+
+// Transform data
+const userNames = TuskCollectionUtils.map(config.users, user => user.name);
+console.log(userNames); // ["Alice", "Bob", "Charlie"]
+
+// Serialize back to TuskLang
+const tuskOutput = parser.serialize(config);
+fs.writeFileSync('output.tsk', tuskOutput);
+</pre>
+
+<p>TuskLang's collection support in JavaScript enables complex data structures while maintaining readability and providing powerful manipulation utilities.</p>

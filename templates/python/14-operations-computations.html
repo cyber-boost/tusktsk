@@ -1,0 +1,760 @@
+<h1>Operations and Computations in TuskLang Python</h1>
+
+<h2>Mathematical and Data Operations</h2>
+<p>TuskLang provides comprehensive mathematical operations, data transformations, and computational capabilities for Python applications with real-time expression evaluation.</p>
+
+<h3>operations.tsk</h3>
+<pre>
+# Basic Mathematical Operations
+base_price: 100.00
+tax_rate: 0.08
+discount_rate: 0.15
+
+# Arithmetic computations
+subtotal: base_price * 3
+tax_amount: subtotal * tax_rate
+discount_amount: subtotal * discount_rate
+final_total: subtotal + tax_amount - discount_amount
+
+# Advanced Mathematical Functions
+numbers: [10, 20, 30, 40, 50]
+sum_total: sum(numbers)
+average_value: avg(numbers)
+max_value: max(numbers)
+min_value: min(numbers)
+count_items: count(numbers)
+
+# Statistical Operations
+variance: variance(numbers)
+std_deviation: std_dev(numbers)
+median_value: median(numbers)
+percentile_90: percentile(numbers, 90)
+
+# Percentage Calculations
+completion_rate: (completed_tasks / total_tasks) * 100
+growth_rate: ((current_value - previous_value) / previous_value) * 100
+conversion_rate: (conversions / visitors) * 100
+
+# Financial Calculations
+principal: 10000
+interest_rate: 0.05
+time_years: 3
+
+simple_interest: principal * interest_rate * time_years
+compound_interest: principal * pow((1 + interest_rate), time_years) - principal
+monthly_payment: calc_monthly_payment(principal, interest_rate, time_years * 12)
+
+# String Operations and Manipulations
+text_input: "Hello, World! This is TuskLang."
+text_length: length(text_input)
+text_upper: upper(text_input)
+text_lower: lower(text_input)
+text_reversed: reverse(text_input)
+
+# String transformations
+words: split(text_input, " ")
+word_count: count(words)
+joined_text: join(words, "-")
+trimmed_text: trim("  " + text_input + "  ")
+
+# Regular expressions
+email_text: "Contact us at support@example.com or sales@example.com"
+email_pattern: "[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}"
+extracted_emails: regex_match_all(email_text, email_pattern)
+email_count: count(extracted_emails)
+
+# Date and Time Calculations
+current_timestamp: now()
+current_date: date("Y-m-d")
+current_time: time("H:i:s")
+
+# Date arithmetic
+days_ago_30: date_sub(current_timestamp, 30, "days")
+days_ahead_60: date_add(current_timestamp, 60, "days")
+time_difference: date_diff(current_timestamp, days_ago_30, "days")
+
+# Age calculation
+birth_date: "1990-01-15"
+age_years: date_diff(current_timestamp, strtotime(birth_date), "years")
+age_days: date_diff(current_timestamp, strtotime(birth_date), "days")
+
+# Array Operations and Transformations
+user_scores: [85, 92, 78, 96, 88, 91, 84, 79, 93, 87]
+
+# Array statistics
+highest_score: max(user_scores)
+lowest_score: min(user_scores)
+average_score: avg(user_scores)
+total_scores: sum(user_scores)
+score_range: max(user_scores) - min(user_scores)
+
+# Array filtering and mapping
+passing_scores: filter(user_scores, "score > 80")
+grade_letters: map(user_scores, "score_to_grade(score)")
+sorted_scores: sort(user_scores, "desc")
+unique_scores: unique(user_scores)
+
+# Array grouping and chunking
+score_groups: group_by(user_scores, "score_range_group(score)")
+score_chunks: chunk(user_scores, 3)
+sliced_scores: slice(user_scores, 2, 5)
+
+# Conditional Computations
+user_type: "premium"
+base_storage: 1000  # MB
+storage_multiplier: if(user_type == "premium", 10, if(user_type == "pro", 5, 1))
+total_storage: base_storage * storage_multiplier
+
+# Dynamic pricing calculation
+product_price: 50.00
+user_discount: if(user_type == "premium", 0.20, if(user_type == "pro", 0.10, 0.05))
+bulk_discount: if(quantity > 10, 0.15, if(quantity > 5, 0.10, 0))
+final_price: product_price * (1 - user_discount) * (1 - bulk_discount)
+
+# Geospatial Calculations
+latitude1: 40.7128
+longitude1: -74.0060
+latitude2: 34.0522
+longitude2: -118.2437
+
+# Distance calculation (Haversine formula)
+distance_km: haversine_distance(latitude1, longitude1, latitude2, longitude2)
+distance_miles: distance_km * 0.621371
+
+# Complex Mathematical Expressions
+x: 5
+y: 3
+z: 2
+
+# Algebraic operations
+quadratic_result: (x * x) + (2 * x * y) + (y * y)
+cubic_result: pow(x, 3) + pow(y, 3) + pow(z, 3)
+logarithmic: log(x * y * z)
+exponential: exp(x / y)
+
+# Trigonometric functions
+angle_radians: 1.57  # π/2
+sine_value: sin(angle_radians)
+cosine_value: cos(angle_radians)
+tangent_value: tan(angle_radians)
+
+# Business Logic Calculations
+inventory {
+    initial_stock: 1000
+    daily_sales: [45, 38, 52, 41, 49, 35, 28]
+    weekly_sales: sum(daily_sales)
+    average_daily_sales: avg(daily_sales)
+    
+    # Inventory projections
+    days_remaining: inventory.initial_stock / inventory.average_daily_sales
+    reorder_point: inventory.average_daily_sales * 7  # 7 days lead time
+    needs_reorder: if(inventory.initial_stock < inventory.reorder_point, true, false)
+}
+
+# Performance Metrics
+response_times: [120, 95, 110, 85, 140, 75, 105, 90, 130, 100]  # milliseconds
+
+performance {
+    avg_response_time: avg(response_times)
+    p95_response_time: percentile(response_times, 95)
+    p99_response_time: percentile(response_times, 99)
+    sla_threshold: 100  # ms
+    sla_compliance: (count(filter(response_times, "time <= 100")) / count(response_times)) * 100
+}
+
+# Data Transformation Pipeline
+raw_data: ["  apple  ", "BANANA", "Cherry", "  DATE  ", "elderberry"]
+
+cleaned_data: map(raw_data, "trim(lower(item))")
+filtered_data: filter(cleaned_data, "length(item) > 4")
+sorted_data: sort(filtered_data)
+final_data: join(sorted_data, ", ")
+
+# Hash and Encoding Operations
+sensitive_data: "user123:password456"
+md5_hash: md5(sensitive_data)
+sha256_hash: sha256(sensitive_data)
+base64_encoded: base64_encode(sensitive_data)
+
+# URL manipulation
+base_url: "https://api.example.com"
+endpoint: "/users"
+params: {
+    page: 1
+    limit: 20
+    sort: "created_at"
+    order: "desc"
+}
+
+query_string: build_query_string(params)
+full_url: base_url + endpoint + "?" + query_string
+parsed_url: parse_url(full_url)
+
+# Random number generation and sampling
+random_seed: 12345
+set_random_seed(random_seed)
+
+random_numbers: [rand(1, 100) for i in range(10)]
+random_selection: sample(user_scores, 3)
+weighted_choice: weighted_random(["A", "B", "C"], [0.5, 0.3, 0.2])
+
+# Cache key generation
+user_id: 12345
+resource_type: "profile"
+version: "v2"
+cache_key: hash_combine([user_id, resource_type, version])
+
+# Configuration scoring
+config_score: 0
+config_score += if(database_pool_size > 10, 10, 5)
+config_score += if(cache_enabled, 15, 0)
+config_score += if(ssl_enabled, 20, 0)
+config_score += if(monitoring_enabled, 10, 0)
+config_score += if(backup_enabled, 15, 0)
+
+# Resource utilization calculations
+cpu_cores: 8
+memory_gb: 16
+disk_gb: 500
+
+# Current usage
+cpu_usage_percent: 45.5
+memory_usage_percent: 67.3
+disk_usage_percent: 32.1
+
+# Available resources
+cpu_available: cpu_cores * (100 - cpu_usage_percent) / 100
+memory_available: memory_gb * (100 - memory_usage_percent) / 100
+disk_available: disk_gb * (100 - disk_usage_percent) / 100
+
+# Resource allocation recommendations
+recommended_instances: ceil(current_load / optimal_load_per_instance)
+auto_scaling_threshold: 80.0
+should_scale_up: if(cpu_usage_percent > auto_scaling_threshold || memory_usage_percent > auto_scaling_threshold, true, false)
+
+# A/B Test Statistics
+test_results {
+    control_group: {
+        users: 1000
+        conversions: 85
+        conversion_rate: (85 / 1000) * 100
+    }
+    
+    treatment_group: {
+        users: 1000
+        conversions: 102
+        conversion_rate: (102 / 1000) * 100
+    }
+    
+    # Statistical significance calculation
+    improvement: ((treatment_group.conversion_rate - control_group.conversion_rate) / control_group.conversion_rate) * 100
+    confidence_level: 95
+    is_significant: statistical_significance(control_group, treatment_group, confidence_level)
+}
+
+# Complex derived metrics
+user_engagement {
+    sessions: 1250
+    page_views: 5430
+    unique_users: 890
+    
+    # Calculated metrics
+    pages_per_session: user_engagement.page_views / user_engagement.sessions
+    sessions_per_user: user_engagement.sessions / user_engagement.unique_users
+    engagement_score: (user_engagement.pages_per_session * user_engagement.sessions_per_user) / 10
+}
+</pre>
+
+<h3>Python Operations Implementation</h3>
+<pre>
+import math
+import statistics
+import random
+import hashlib
+import base64
+import re
+import json
+from datetime import datetime, timedelta
+from typing import Any, Dict, List, Union, Optional, Callable
+from urllib.parse import urlencode, urlparse
+import operator
+
+class MathematicalOperations:
+    """Mathematical operations for TuskLang expressions."""
+    
+    @staticmethod
+    def variance(numbers: List[Union[int, float]]) -> float:
+        """Calculate variance of numbers."""
+        return statistics.variance(numbers) if len(numbers) > 1 else 0.0
+    
+    @staticmethod
+    def std_dev(numbers: List[Union[int, float]]) -> float:
+        """Calculate standard deviation."""
+        return statistics.stdev(numbers) if len(numbers) > 1 else 0.0
+    
+    @staticmethod
+    def median(numbers: List[Union[int, float]]) -> float:
+        """Calculate median."""
+        return statistics.median(numbers)
+    
+    @staticmethod
+    def percentile(numbers: List[Union[int, float]], p: float) -> float:
+        """Calculate percentile."""
+        if not numbers:
+            return 0.0
+        
+        sorted_nums = sorted(numbers)
+        k = (len(sorted_nums) - 1) * (p / 100)
+        floor_k = math.floor(k)
+        ceil_k = math.ceil(k)
+        
+        if floor_k == ceil_k:
+            return sorted_nums[int(k)]
+        
+        d0 = sorted_nums[int(floor_k)] * (ceil_k - k)
+        d1 = sorted_nums[int(ceil_k)] * (k - floor_k)
+        return d0 + d1
+    
+    @staticmethod
+    def calc_monthly_payment(principal: float, annual_rate: float, months: int) -> float:
+        """Calculate monthly loan payment."""
+        if annual_rate == 0:
+            return principal / months
+        
+        monthly_rate = annual_rate / 12
+        payment = principal * (monthly_rate * (1 + monthly_rate) ** months) / \
+                  ((1 + monthly_rate) ** months - 1)
+        return payment
+    
+    @staticmethod
+    def haversine_distance(lat1: float, lon1: float, lat2: float, lon2: float) -> float:
+        """Calculate distance between two points using Haversine formula."""
+        R = 6371  # Earth's radius in kilometers
+        
+        lat1_rad = math.radians(lat1)
+        lon1_rad = math.radians(lon1)
+        lat2_rad = math.radians(lat2)
+        lon2_rad = math.radians(lon2)
+        
+        dlat = lat2_rad - lat1_rad
+        dlon = lon2_rad - lon1_rad
+        
+        a = math.sin(dlat/2)**2 + math.cos(lat1_rad) * math.cos(lat2_rad) * math.sin(dlon/2)**2
+        c = 2 * math.asin(math.sqrt(a))
+        
+        return R * c
+
+class StringOperations:
+    """String operations for TuskLang expressions."""
+    
+    @staticmethod
+    def regex_match_all(text: str, pattern: str) -> List[str]:
+        """Find all regex matches."""
+        try:
+            return re.findall(pattern, text)
+        except re.error:
+            return []
+    
+    @staticmethod
+    def split(text: str, delimiter: str) -> List[str]:
+        """Split string by delimiter."""
+        return str(text).split(delimiter)
+    
+    @staticmethod
+    def join(items: List[Any], separator: str) -> str:
+        """Join items with separator."""
+        return separator.join(str(item) for item in items)
+    
+    @staticmethod
+    def reverse(text: str) -> str:
+        """Reverse string."""
+        return str(text)[::-1]
+
+class ArrayOperations:
+    """Array operations for TuskLang expressions."""
+    
+    @staticmethod
+    def filter_array(arr: List[Any], condition: str) -> List[Any]:
+        """Filter array with condition string."""
+        # Simplified filtering - in production use safe evaluation
+        result = []
+        for item in arr:
+            try:
+                # Replace placeholders with actual values
+                expr = condition.replace('score', str(item)).replace('item', f'"{item}"').replace('time', str(item))
+                if eval(expr):
+                    result.append(item)
+            except:
+                continue
+        return result
+    
+    @staticmethod
+    def map_array(arr: List[Any], transformation: str) -> List[Any]:
+        """Map array with transformation string."""
+        # Simplified mapping - in production use safe evaluation
+        result = []
+        for item in arr:
+            try:
+                # Handle specific transformations
+                if 'score_to_grade' in transformation:
+                    score = float(item)
+                    if score >= 90:
+                        result.append('A')
+                    elif score >= 80:
+                        result.append('B')
+                    elif score >= 70:
+                        result.append('C')
+                    elif score >= 60:
+                        result.append('D')
+                    else:
+                        result.append('F')
+                elif 'trim(lower(' in transformation:
+                    result.append(str(item).strip().lower())
+                else:
+                    result.append(item)
+            except:
+                result.append(item)
+        return result
+    
+    @staticmethod
+    def group_by(arr: List[Any], grouping_func: str) -> Dict[str, List[Any]]:
+        """Group array elements."""
+        groups = {}
+        for item in arr:
+            try:
+                # Simplified grouping
+                if 'score_range_group' in grouping_func:
+                    score = float(item)
+                    if score >= 90:
+                        group = 'A'
+                    elif score >= 80:
+                        group = 'B'
+                    else:
+                        group = 'C'
+                else:
+                    group = 'default'
+                
+                if group not in groups:
+                    groups[group] = []
+                groups[group].append(item)
+            except:
+                continue
+        return groups
+    
+    @staticmethod
+    def chunk(arr: List[Any], size: int) -> List[List[Any]]:
+        """Split array into chunks."""
+        return [arr[i:i + size] for i in range(0, len(arr), size)]
+    
+    @staticmethod
+    def slice_array(arr: List[Any], start: int, length: Optional[int] = None) -> List[Any]:
+        """Slice array."""
+        if length is None:
+            return arr[start:]
+        return arr[start:start + length]
+    
+    @staticmethod
+    def sample(arr: List[Any], count: int) -> List[Any]:
+        """Random sample from array."""
+        return random.sample(arr, min(count, len(arr)))
+
+class DateTimeOperations:
+    """Date and time operations."""
+    
+    @staticmethod
+    def date_diff(date1: Union[int, str], date2: Union[int, str], unit: str = 'days') -> int:
+        """Calculate difference between dates."""
+        if isinstance(date1, int):
+            dt1 = datetime.fromtimestamp(date1)
+        else:
+            dt1 = datetime.fromisoformat(str(date1))
+        
+        if isinstance(date2, int):
+            dt2 = datetime.fromtimestamp(date2)
+        else:
+            dt2 = datetime.fromisoformat(str(date2))
+        
+        diff = dt1 - dt2
+        
+        if unit == 'days':
+            return diff.days
+        elif unit == 'hours':
+            return int(diff.total_seconds() / 3600)
+        elif unit == 'minutes':
+            return int(diff.total_seconds() / 60)
+        elif unit == 'seconds':
+            return int(diff.total_seconds())
+        elif unit == 'years':
+            return diff.days // 365
+        else:
+            return diff.days
+    
+    @staticmethod
+    def strtotime(date_string: str) -> int:
+        """Parse date string to timestamp."""
+        try:
+            dt = datetime.fromisoformat(date_string.replace(' ', 'T'))
+            return int(dt.timestamp())
+        except:
+            return int(datetime.now().timestamp())
+
+class TuskLangOperationsProcessor:
+    """Process operations and computations in TuskLang."""
+    
+    def __init__(self):
+        self.math_ops = MathematicalOperations()
+        self.string_ops = StringOperations()
+        self.array_ops = ArrayOperations()
+        self.datetime_ops = DateTimeOperations()
+        
+        # Built-in functions
+        self.functions = self._init_functions()
+        
+        # Set random seed for reproducible results
+        self.random_seed = None
+    
+    def _init_functions(self) -> Dict[str, Callable]:
+        """Initialize built-in functions."""
+        return {
+            # Mathematical functions
+            'sum': sum,
+            'avg': lambda x: sum(x) / len(x) if x else 0,
+            'max': max,
+            'min': min,
+            'count': len,
+            'abs': abs,
+            'ceil': math.ceil,
+            'floor': math.floor,
+            'round': round,
+            'pow': pow,
+            'sqrt': math.sqrt,
+            'log': math.log,
+            'exp': math.exp,
+            'sin': math.sin,
+            'cos': math.cos,
+            'tan': math.tan,
+            
+            # Statistical functions
+            'variance': self.math_ops.variance,
+            'std_dev': self.math_ops.std_dev,
+            'median': self.math_ops.median,
+            'percentile': self.math_ops.percentile,
+            
+            # Financial functions
+            'calc_monthly_payment': self.math_ops.calc_monthly_payment,
+            
+            # String functions
+            'length': len,
+            'upper': lambda x: str(x).upper(),
+            'lower': lambda x: str(x).lower(),
+            'trim': lambda x: str(x).strip(),
+            'reverse': self.string_ops.reverse,
+            'split': self.string_ops.split,
+            'join': self.string_ops.join,
+            'regex_match_all': self.string_ops.regex_match_all,
+            
+            # Array functions
+            'filter': self.array_ops.filter_array,
+            'map': self.array_ops.map_array,
+            'sort': lambda x, order='asc': sorted(x, reverse=(order == 'desc')),
+            'unique': lambda x: list(dict.fromkeys(x)),
+            'group_by': self.array_ops.group_by,
+            'chunk': self.array_ops.chunk,
+            'slice': self.array_ops.slice_array,
+            'sample': self.array_ops.sample,
+            
+            # Date/time functions
+            'now': lambda: int(datetime.now().timestamp()),
+            'date': lambda fmt='%Y-%m-%d': datetime.now().strftime(fmt),
+            'time': lambda fmt='%H:%M:%S': datetime.now().strftime(fmt),
+            'date_add': lambda ts, amount, unit='days': self._date_add(ts, amount, unit),
+            'date_sub': lambda ts, amount, unit='days': self._date_sub(ts, amount, unit),
+            'date_diff': self.datetime_ops.date_diff,
+            'strtotime': self.datetime_ops.strtotime,
+            
+            # Hash and encoding functions
+            'md5': lambda x: hashlib.md5(str(x).encode()).hexdigest(),
+            'sha256': lambda x: hashlib.sha256(str(x).encode()).hexdigest(),
+            'base64_encode': lambda x: base64.b64encode(str(x).encode()).decode(),
+            'base64_decode': lambda x: base64.b64decode(str(x)).decode(),
+            
+            # Random functions
+            'rand': lambda min_val=0, max_val=100: random.randint(min_val, max_val),
+            'rand_float': lambda min_val=0.0, max_val=1.0: random.uniform(min_val, max_val),
+            'set_random_seed': self._set_random_seed,
+            'weighted_random': self._weighted_random,
+            
+            # URL functions
+            'build_query_string': urlencode,
+            'parse_url': self._parse_url,
+            
+            # Geospatial functions
+            'haversine_distance': self.math_ops.haversine_distance,
+            
+            # Utility functions
+            'hash_combine': self._hash_combine,
+            'statistical_significance': self._statistical_significance,
+        }
+    
+    def evaluate_expression(self, expression: str, context: Dict[str, Any]) -> Any:
+        """Evaluate mathematical or computational expression."""
+        try:
+            # Simple expression evaluation (in production, use a proper parser)
+            # Replace function calls
+            for func_name, func in self.functions.items():
+                if func_name in expression:
+                    expression = self._replace_function_calls(expression, func_name, func, context)
+            
+            # Replace variables
+            for var_name, var_value in context.items():
+                expression = expression.replace(var_name, str(var_value))
+            
+            # Evaluate the expression
+            return eval(expression)
+        except Exception as e:
+            print(f"Error evaluating expression '{expression}': {e}")
+            return expression
+    
+    def _replace_function_calls(self, expression: str, func_name: str, func: Callable, context: Dict) -> str:
+        """Replace function calls in expression."""
+        pattern = f'{func_name}\\(([^)]*)\\)'
+        
+        def replace_func(match):
+            args_str = match.group(1)
+            args = self._parse_args(args_str, context)
+            try:
+                result = func(*args)
+                return str(result)
+            except Exception:
+                return match.group(0)
+        
+        return re.sub(pattern, replace_func, expression)
+    
+    def _parse_args(self, args_str: str, context: Dict) -> List[Any]:
+        """Parse function arguments."""
+        if not args_str.strip():
+            return []
+        
+        args = []
+        for arg in args_str.split(','):
+            arg = arg.strip()
+            
+            # Try to evaluate as number
+            try:
+                if '.' in arg:
+                    args.append(float(arg))
+                else:
+                    args.append(int(arg))
+                continue
+            except ValueError:
+                pass
+            
+            # Try as string literal
+            if arg.startswith('"') and arg.endswith('"'):
+                args.append(arg[1:-1])
+                continue
+            
+            # Try as variable
+            if arg in context:
+                args.append(context[arg])
+                continue
+            
+            # Default to string
+            args.append(arg)
+        
+        return args
+    
+    def _date_add(self, timestamp: int, amount: int, unit: str) -> int:
+        """Add time to timestamp."""
+        dt = datetime.fromtimestamp(timestamp)
+        
+        if unit == 'days':
+            dt += timedelta(days=amount)
+        elif unit == 'hours':
+            dt += timedelta(hours=amount)
+        elif unit == 'minutes':
+            dt += timedelta(minutes=amount)
+        elif unit == 'seconds':
+            dt += timedelta(seconds=amount)
+        
+        return int(dt.timestamp())
+    
+    def _date_sub(self, timestamp: int, amount: int, unit: str) -> int:
+        """Subtract time from timestamp."""
+        return self._date_add(timestamp, -amount, unit)
+    
+    def _set_random_seed(self, seed: int) -> None:
+        """Set random seed."""
+        random.seed(seed)
+        self.random_seed = seed
+    
+    def _weighted_random(self, choices: List[Any], weights: List[float]) -> Any:
+        """Weighted random choice."""
+        return random.choices(choices, weights=weights)[0]
+    
+    def _parse_url(self, url: str) -> Dict[str, Any]:
+        """Parse URL into components."""
+        parsed = urlparse(url)
+        return {
+            'scheme': parsed.scheme,
+            'netloc': parsed.netloc,
+            'path': parsed.path,
+            'query': parsed.query,
+            'fragment': parsed.fragment
+        }
+    
+    def _hash_combine(self, values: List[Any]) -> str:
+        """Combine values into hash."""
+        combined = ''.join(str(v) for v in values)
+        return hashlib.md5(combined.encode()).hexdigest()
+    
+    def _statistical_significance(self, control: Dict, treatment: Dict, confidence: float) -> bool:
+        """Simple statistical significance test."""
+        # Simplified implementation - in production use proper statistical tests
+        control_rate = control.get('conversions', 0) / control.get('users', 1)
+        treatment_rate = treatment.get('conversions', 0) / treatment.get('users', 1)
+        
+        # Simple threshold-based significance (not statistically rigorous)
+        difference = abs(treatment_rate - control_rate)
+        threshold = 0.05  # 5% difference threshold
+        
+        return difference > threshold
+
+# Example usage
+def demonstrate_operations():
+    """Demonstrate operations and computations."""
+    
+    processor = TuskLangOperationsProcessor()
+    
+    context = {
+        'numbers': [10, 20, 30, 40, 50],
+        'base_price': 100.0,
+        'tax_rate': 0.08,
+        'user_scores': [85, 92, 78, 96, 88],
+        'quantity': 15,
+    }
+    
+    expressions = [
+        'sum(numbers)',
+        'avg(user_scores)',
+        'max(user_scores) - min(user_scores)',
+        'base_price * (1 + tax_rate)',
+        'percentile(user_scores, 90)',
+        'len([x for x in user_scores if x > 85])',
+    ]
+    
+    print("Operations and Computations Demo:")
+    print("=" * 50)
+    
+    for expr in expressions:
+        try:
+            result = processor.evaluate_expression(expr, context)
+            print(f"{expr}: {result}")
+        except Exception as e:
+            print(f"{expr}: Error - {e}")
+
+if __name__ == "__main__":
+    demonstrate_operations()
+</pre>
+
+<p>TuskLang's operations system provides comprehensive mathematical, statistical, and data processing capabilities that enable sophisticated computations and transformations in Python applications.</p>

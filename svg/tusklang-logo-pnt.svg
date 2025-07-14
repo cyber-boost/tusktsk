@@ -1,0 +1,7 @@
+<svg viewBox="0 0 200 100" xmlns="http://www.w3.org/2000/svg" width="200" height="100">
+    <!-- File shape that looks like peanut -->
+    <path d="M70 20 L70 60 Q70 80 85 80 L105 80 Q120 80 120 60 L120 40 L100 20 Z" 
+          fill="#DEB887" stroke="#8B4513" stroke-width="3"/>
+    <path d="M100 20 L100 40 L120 40" fill="#F4A460"/>
+    <text x="95" y="55" font-family="Courier New" font-size="18" font-weight="bold" text-anchor="middle" fill="#8B4513">PNT</text>
+</svg>

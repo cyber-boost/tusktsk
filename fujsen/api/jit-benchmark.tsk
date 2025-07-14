@@ -1,0 +1,191 @@
+#!api
+# 🚀 TuskLang JIT Benchmark API
+# ============================
+# Demonstrates PHP 8 JIT performance improvements with TuskLang
+
+# Test data for benchmarking
+test_data: {
+    users: [
+        { id: 1, name: "Alice", active: true, score: 95.5 },
+        { id: 2, name: "Bob", active: false, score: 87.2 },
+        { id: 3, name: "Charlie", active: true, score: 92.8 },
+        { id: 4, name: "Diana", active: true, score: 98.1 },
+        { id: 5, name: "Eve", active: false, score: 84.7 }
+    ],
+    config: {
+        database: { host: "localhost", port: 3306, timeout: 30 },
+        cache: { ttl: 3600, max_size: 1024 },
+        performance: { jit_enabled: true, optimization_level: "optimal" }
+    },
+    metrics: {
+        total_requests: @metrics("api_requests", 1),
+        avg_response_time: @learn("avg_response_time", 50),
+        cache_hit_ratio: @optimize("cache_hit_ratio", 0.85)
+    }
+}
+
+# Computational workload for JIT testing
+fibonacci_sequence: php(function($n) {
+    $fib = [0, 1];
+    for ($i = 2; $i < $n; $i++) {
+        $fib[$i] = $fib[$i-1] + $fib[$i-2];
+    }
+    return array_slice($fib, 0, $n);
+}(20))
+
+# Prime number calculation (CPU-intensive for JIT)
+prime_numbers: php(function($limit) {
+    $primes = [];
+    for ($num = 2; $num <= $limit; $num++) {
+        $isPrime = true;
+        for ($i = 2; $i <= sqrt($num); $i++) {
+            if ($num % $i === 0) {
+                $isPrime = false;
+                break;
+            }
+        }
+        if ($isPrime) {
+            $primes[] = $num;
+        }
+    }
+    return $primes;
+}(100))
+
+# Matrix multiplication (JIT optimization candidate)
+matrix_operations: php(function() {
+    $a = [[1, 2], [3, 4]];
+    $b = [[5, 6], [7, 8]];
+    $result = [];
+    
+    for ($i = 0; $i < 2; $i++) {
+        for ($j = 0; $j < 2; $j++) {
+            $result[$i][$j] = 0;
+            for ($k = 0; $k < 2; $k++) {
+                $result[$i][$j] += $a[$i][$k] * $b[$k][$j];
+            }
+        }
+    }
+    return $result;
+}())
+
+# JIT performance statistics
+jit_stats: php(function() {
+    if (class_exists('TuskPHP\\Utils\\TuskLangJITOptimizer')) {
+        $jitOptimizer = \TuskPHP\Utils\TuskLangJITOptimizer::getInstance();
+        return $jitOptimizer->getJITStats();
+    }
+    return ['error' => 'JIT Optimizer not available'];
+}())
+
+# Benchmark results
+benchmark_results: php(function() {
+    if (class_exists('TuskPHP\\Utils\\TuskLangJITOptimizer')) {
+        $jitOptimizer = \TuskPHP\Utils\TuskLangJITOptimizer::getInstance();
+        
+        // Simple benchmark test
+        $testCode = 'items: ["one", "two", "three", "four", "five"]';
+        $results = $jitOptimizer->benchmarkJIT($testCode, 100);
+        
+        return [
+            'test_iterations' => 100,
+            'without_jit_time' => round($results['without_jit'], 6),
+            'with_jit_time' => round($results['with_jit'], 6),
+            'speedup_factor' => round($results['speedup'], 2),
+            'memory_without_jit' => $results['memory_without_jit'],
+            'memory_with_jit' => $results['memory_with_jit'],
+            'performance_gain' => round(($results['speedup'] - 1) * 100, 1) . '%'
+        ];
+    }
+    return ['error' => 'JIT Optimizer not available'];
+}())
+
+# OPcache and JIT configuration
+opcache_info: php(function() {
+    $info = [];
+    
+    if (function_exists('opcache_get_status')) {
+        $status = opcache_get_status();
+        $info['opcache_enabled'] = $status !== false;
+        $info['jit_enabled'] = $status['jit']['enabled'] ?? false;
+        $info['jit_buffer_size'] = ini_get('opcache.jit_buffer_size');
+        $info['jit_mode'] = ini_get('opcache.jit');
+        
+        if (isset($status['jit'])) {
+            $info['jit_buffer_used'] = $status['jit']['buffer_size'] ?? 0;
+            $info['jit_buffer_free'] = $status['jit']['buffer_free'] ?? 0;
+        }
+        
+        if (isset($status['opcache_statistics'])) {
+            $stats = $status['opcache_statistics'];
+            $info['opcache_hit_rate'] = round($stats['opcache_hit_rate'], 2);
+            $info['opcache_memory_usage'] = $stats['memory_usage'];
+        }
+    } else {
+        $info['error'] = 'OPcache not available';
+    }
+    
+    return $info;
+}())
+
+# System performance metrics
+system_metrics: {
+    php_version: php(PHP_VERSION),
+    memory_limit: php(ini_get('memory_limit')),
+    current_memory: php(round(memory_get_usage(true) / 1024 / 1024, 2) . ' MB'),
+    peak_memory: php(round(memory_get_peak_usage(true) / 1024 / 1024, 2) . ' MB'),
+    execution_time: php(round(microtime(true) - $_SERVER['REQUEST_TIME_FLOAT'], 4) . 's'),
+    cpu_cores: php(function() {
+        if (function_exists('shell_exec')) {
+            $cores = shell_exec('nproc 2>/dev/null || echo "unknown"');
+            return trim($cores);
+        }
+        return 'unknown';
+    }())
+}
+
+# Comprehensive response
+@json({
+    status: "success",
+    message: "TuskLang JIT Benchmark completed",
+    timestamp: @request.timestamp,
+    jit_optimization: {
+        enabled: jit_stats.jit_enabled || false,
+        mode: jit_stats.jit_mode || "disabled",
+        buffer_size: jit_stats.jit_buffer_size || "0",
+        performance_metrics: jit_stats.performance_metrics || {}
+    },
+    benchmark_results: benchmark_results,
+    computational_tests: {
+        fibonacci_20: fibonacci_sequence,
+        primes_up_to_100: prime_numbers,
+        matrix_2x2_multiplication: matrix_operations
+    },
+    system_info: {
+        opcache: opcache_info,
+        system: system_metrics,
+        test_data_size: php(count(test_data.users)) . " users"
+    },
+    recommendations: php(function() use ($jit_stats, $benchmark_results) {
+        $recommendations = [];
+        
+        if (!($jit_stats['jit_enabled'] ?? false)) {
+            $recommendations[] = "Enable JIT compilation for better performance";
+            $recommendations[] = "Set opcache.jit=1255 in php.ini";
+            $recommendations[] = "Increase opcache.jit_buffer_size to 128M or higher";
+        } else {
+            if (isset($benchmark_results['speedup_factor']) && $benchmark_results['speedup_factor'] > 1.5) {
+                $recommendations[] = "Excellent JIT performance detected!";
+                $recommendations[] = "Consider using JIT for CPU-intensive TuskLang operations";
+            } else {
+                $recommendations[] = "JIT enabled but limited performance gain";
+                $recommendations[] = "JIT works best with computational workloads";
+            }
+        }
+        
+        $recommendations[] = "Use @cache() for expensive operations";
+        $recommendations[] = "Use @optimize() for adaptive performance tuning";
+        
+        return $recommendations;
+    }()),
+    powered_by: "TuskLang JIT Optimizer + PHP " . php(PHP_VERSION)
+}) 

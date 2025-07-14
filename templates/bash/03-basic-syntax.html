@@ -1,0 +1,299 @@
+<h1>Basic Syntax & Structure</h1>
+
+<h2>TuskLang Syntax in Bash Scripts</h2>
+<p>Understanding TuskLang's syntax and how it maps to bash variables and arrays.</p>
+
+<h3>syntax.tsk</h3>
+<pre>
+# Comments start with hash
+# Both : and = work for assignments
+
+# Simple values
+app_name: "My Bash App"
+version = "1.0.0"
+port: 8080
+debug: true
+
+# Nested objects become prefixed variables
+database {
+    host: "localhost"
+    port: 5432
+    name: "myapp"
+    user: "dbuser"
+}
+
+# Arrays
+servers: ["web1", "web2", "web3"]
+ports = [8080, 8081, 8082]
+features: ["logging", "monitoring", "backup"]
+
+# Inline objects
+redis: { host: "localhost", port: 6379 }
+
+# Multiline values
+description: "This is a multiline
+description that spans
+multiple lines"
+
+# Environment variables
+home_dir: env("HOME")
+custom_path: env("CUSTOM_PATH", "/opt/default")
+
+# Computed values
+is_production: @var.environment == "production"
+log_file: "@var.log_dir/@var.app_name.log"
+</pre>
+
+<h3>Bash Parser Implementation</h3>
+<pre>
+#!/bin/bash
+
+# Enhanced TuskLang parser
+tusk_parse_enhanced() {
+    local file="$1"
+    local -a stack=()
+    local current_prefix=""
+    local in_array=0
+    local array_name=""
+    local array_index=0
+    
+    while IFS= read -r line; do
+        # Remove leading/trailing whitespace
+        line="${line#"${line%%[![:space:]]*}"}"
+        line="${line%"${line##*[![:space:]]}"}"
+        
+        # Skip comments and empty lines
+        [[ "$line" =~ ^# ]] && continue
+        [[ -z "$line" ]] && continue
+        
+        # Handle closing brace
+        if [[ "$line" == "}" ]]; then
+            # Pop from stack
+            unset 'stack[-1]'
+            current_prefix=""
+            for prefix in "${stack[@]}"; do
+                current_prefix="${current_prefix}${prefix}_"
+            done
+            continue
+        fi
+        
+        # Handle array closing
+        if [[ "$line" == "]" ]]; then
+            in_array=0
+            continue
+        fi
+        
+        # Handle object opening
+        if [[ "$line" =~ ^([a-zA-Z_][a-zA-Z0-9_]*)[[:space:]]*\{[[:space:]]*$ ]]; then
+            local key="${BASH_REMATCH[1]}"
+            stack+=("$key")
+            current_prefix="${current_prefix}${key}_"
+            continue
+        fi
+        
+        # Handle array opening
+        if [[ "$line" =~ ^([a-zA-Z_][a-zA-Z0-9_]*):[[:space:]]*\[(.*)$ ]]; then
+            array_name="${current_prefix}${BASH_REMATCH[1]}"
+            local rest="${BASH_REMATCH[2]}"
+            
+            # Check if single-line array
+            if [[ "$rest" =~ \]$ ]]; then
+                # Parse single-line array
+                parse_array_line "$array_name" "$rest"
+            else
+                # Multi-line array
+                in_array=1
+                array_index=0
+                declare -ga "${array_name}=()"
+            fi
+            continue
+        fi
+        
+        # Handle array elements
+        if [[ $in_array -eq 1 ]]; then
+            # Remove trailing comma
+            line="${line%,}"
+            # Remove quotes
+            line="${line#[\"\']}"
+            line="${line%[\"\']}"
+            
+            # Add to array
+            eval "${array_name}[${array_index}]='$line'"
+            ((array_index++))
+            continue
+        fi
+        
+        # Handle key-value pairs
+        if [[ "$line" =~ ^([a-zA-Z_][a-zA-Z0-9_]*)[:=][[:space:]]*(.*)$ ]]; then
+            local key="${BASH_REMATCH[1]}"
+            local value="${BASH_REMATCH[2]}"
+            
+            # Process value
+            value=$(process_value "$value")
+            
+            # Export variable
+            local var_name="${current_prefix}${key}"
+            export "$var_name=$value"
+            echo "export ${var_name}='${value}'"
+        fi
+    done < "$file"
+}
+
+# Process value (remove quotes, handle special values)
+process_value() {
+    local value="$1"
+    
+    # Remove surrounding quotes
+    if [[ "$value" =~ ^[\"\'](.*)[\"\']$ ]]; then
+        value="${BASH_REMATCH[1]}"
+    fi
+    
+    # Handle booleans
+    case "${value,,}" in
+        "true") value="true" ;;
+        "false") value="false" ;;
+        "null") value="" ;;
+    esac
+    
+    # Handle env() function
+    if [[ "$value" =~ ^env\([\"\']([^\"\']+)[\"\']([[:space:]]*,[[:space:]]*[\"\']([^\"\']+)[\"\'])?\)$ ]]; then
+        local env_var="${BASH_REMATCH[1]}"
+        local default="${BASH_REMATCH[3]}"
+        value="${!env_var:-$default}"
+    fi
+    
+    echo "$value"
+}
+
+# Parse array line
+parse_array_line() {
+    local array_name="$1"
+    local content="$2"
+    
+    # Remove brackets
+    content="${content#\[}"
+    content="${content%\]}"
+    
+    # Create array
+    declare -ga "${array_name}=()"
+    
+    # Parse elements
+    local IFS=','
+    local -a elements=($content)
+    local index=0
+    
+    for element in "${elements[@]}"; do
+        # Trim whitespace and quotes
+        element="${element#"${element%%[![:space:]]*}"}"
+        element="${element%"${element##*[![:space:]]}"}"
+        element="${element#[\"\']}"
+        element="${element%[\"\']}"
+        
+        eval "${array_name}[${index}]='$element'"
+        ((index++))
+    done
+    
+    # Export array
+    echo "declare -a ${array_name}=("
+    for element in "${elements[@]}"; do
+        element="${element#"${element%%[![:space:]]*}"}"
+        element="${element%"${element##*[![:space:]]}"}"
+        element="${element#[\"\']}"
+        element="${element%[\"\']}"
+        echo "  '$element'"
+    done
+    echo ")"
+}
+
+# Example usage functions
+tusk_get_array() {
+    local array_name="$1"
+    local index="${2:-}"
+    
+    if [ -z "$index" ]; then
+        # Return all elements
+        eval "echo \"\${${array_name}[@]}\""
+    else
+        # Return specific element
+        eval "echo \"\${${array_name}[$index]}\""
+    fi
+}
+
+tusk_array_length() {
+    local array_name="$1"
+    eval "echo \${#${array_name}[@]}"
+}
+
+# Type checking functions
+tusk_is_true() {
+    [ "${1,,}" = "true" ]
+}
+
+tusk_is_false() {
+    [ "${1,,}" = "false" ]
+}
+
+tusk_is_null() {
+    [ -z "$1" ]
+}
+
+tusk_is_number() {
+    [[ "$1" =~ ^-?[0-9]+(\.[0-9]+)?$ ]]
+}
+</pre>
+
+<h3>Usage Example</h3>
+<pre>
+#!/bin/bash
+
+# Load TuskLang library
+source /usr/local/lib/tusklang.sh
+
+# Parse configuration
+eval "$(tusk_parse_enhanced syntax.tsk)"
+
+# Access simple values
+echo "App: $app_name v$version"
+echo "Port: $port"
+
+# Check boolean
+if tusk_is_true "$debug"; then
+    echo "Debug mode is ON"
+fi
+
+# Access nested values
+echo "Database: $database_user@$database_host:$database_port/$database_name"
+
+# Work with arrays
+echo "Servers: $(tusk_get_array servers)"
+echo "First server: $(tusk_get_array servers 0)"
+echo "Number of servers: $(tusk_array_length servers)"
+
+# Iterate over array
+for server in $(tusk_get_array servers); do
+    echo "Configuring server: $server"
+done
+
+# Access inline object values
+echo "Redis: $redis_host:$redis_port"
+
+# Pretty print configuration
+tusk_print_config() {
+    echo "=== Configuration ==="
+    # Print all exported variables with prefix
+    for var in $(compgen -v | grep -E '^(app_|database_|redis_)' | sort); do
+        echo "$var = ${!var}"
+    done
+    
+    # Print arrays
+    for array in servers ports features; do
+        if declare -p "$array" &>/dev/null; then
+            echo "$array = [$(tusk_get_array "$array" | sed 's/ /, /g')]"
+        fi
+    done
+}
+
+tusk_print_config
+</pre>
+
+<p>TuskLang's syntax maps naturally to bash variables, with nested objects becoming prefixed variables and arrays maintaining their structure.</p>

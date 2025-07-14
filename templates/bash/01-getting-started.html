@@ -1,0 +1,70 @@
+<h1>Getting Started with TuskLang in Bash</h1>
+
+<h2>Basic TuskLang Configuration</h2>
+<p>TuskLang provides a powerful alternative to traditional shell configuration files, making bash scripts more maintainable and readable.</p>
+
+<h3>config.tsk</h3>
+<pre>
+# Application configuration
+app_name: "TuskBash"
+version: "1.0.0"
+debug: true
+
+# Paths configuration
+paths {
+    base: "/opt/app"
+    logs: "@var.paths.base/logs"
+    data: "@var.paths.base/data"
+    config: "@var.paths.base/config"
+}
+
+# Server settings
+server {
+    host: "localhost"
+    port: 8080
+    workers: 4
+    timeout: 30
+}
+
+# Environment settings
+environment: env("APP_ENV", "development")
+log_level: @var.environment == "production" ? "error" : "debug"
+</pre>
+
+<h3>Bash Usage</h3>
+<pre>
+#!/bin/bash
+
+# Load TuskLang parser
+source /usr/local/lib/tusklang.sh
+
+# Parse configuration file
+eval "$(tusk_parse config.tsk)"
+
+# Access configuration values
+echo "Application: $app_name v$version"
+echo "Environment: $environment"
+echo "Log level: $log_level"
+
+# Access nested values
+echo "Server running at $server_host:$server_port"
+echo "Log directory: $paths_logs"
+
+# Use in conditionals
+if [ "$debug" = "true" ]; then
+    echo "Debug mode enabled"
+fi
+
+# Function to get nested values
+tusk_get() {
+    local key="$1"
+    local var_name=$(echo "$key" | tr '.' '_')
+    echo "${!var_name}"
+}
+
+# Usage
+host=$(tusk_get "server.host")
+echo "Host: $host"
+</pre>
+
+<p>TuskLang simplifies bash configuration management by providing a cleaner syntax than traditional shell variables or sourced files.</p>

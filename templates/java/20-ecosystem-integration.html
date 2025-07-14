@@ -1,0 +1,1526 @@
+<h1>Ecosystem Integration for Java</h1>
+
+<h2>Spring Framework Integration</h2>
+<pre>
+# Spring framework integration
+spring: {
+    # Spring Boot configuration
+    boot: {
+        version: "3.1.5"
+        
+        # Application configuration
+        application: {
+            name: env("SPRING_APPLICATION_NAME", "myapp")
+            
+            # Admin and management
+            admin: {
+                enabled: env("SPRING_BOOT_ADMIN_ENABLED", "false") == "true"
+                url: env("SPRING_BOOT_ADMIN_URL", "http://localhost:8080")
+                
+                # Client configuration
+                client: {
+                    url: spring.boot.admin.url + "/instances"
+                    username: env("ADMIN_USERNAME")
+                    password: env("ADMIN_PASSWORD")
+                    
+                    # Metadata
+                    metadata: {
+                        user_name: env("ADMIN_USERNAME")
+                        user_password: env("ADMIN_PASSWORD")
+                        tags: {
+                            environment: env("ENVIRONMENT", "development")
+                            version: env("APPLICATION_VERSION", "1.0.0")
+                        }
+                    }
+                }
+            }
+        }
+        
+        # Actuator configuration
+        actuator: {
+            enabled: env("ACTUATOR_ENABLED", "true") == "true"
+            
+            # Management endpoints
+            management: {
+                endpoints: {
+                    web: {
+                        exposure: {
+                            include: env("ACTUATOR_ENDPOINTS", "health,info,metrics,prometheus")
+                        }
+                        base_path: "/actuator"
+                        
+                        # CORS configuration
+                        cors: {
+                            allowed_origins: ["http://localhost:3000", "https://monitoring.myapp.com"]
+                            allowed_methods: ["GET", "POST"]
+                        }
+                    }
+                }
+                
+                # Endpoint configuration
+                endpoint: {
+                    health: {
+                        show_details: env("ACTUATOR_HEALTH_DETAILS", "when-authorized")
+                        show_components: env("ACTUATOR_HEALTH_COMPONENTS", "when-authorized")
+                        
+                        # Custom health indicators
+                        indicators: {
+                            database: true
+                            redis: true
+                            disk_space: true
+                            custom_app_health: true
+                        }
+                    }
+                    
+                    info: {
+                        build: {
+                            enabled: true
+                        }
+                        env: {
+                            enabled: true
+                            keys: ["java.version", "java.vendor", "os.name"]
+                        }
+                        git: {
+                            enabled: true
+                            mode: "full"  # simple, full
+                        }
+                    }
+                    
+                    metrics: {
+                        enabled: true
+                        
+                        # Custom metrics
+                        export: {
+                            prometheus: {
+                                enabled: env("PROMETHEUS_ENABLED", "true") == "true"
+                                descriptions: true
+                                step: "1m"
+                            }
+                            
+                            # Other exporters
+                            influx: {
+                                enabled: env("INFLUX_ENABLED", "false") == "true"
+                                uri: env("INFLUX_URI", "http://localhost:8086")
+                                db: env("INFLUX_DB", "myapp")
+                                username: env("INFLUX_USERNAME")
+                                password: env("INFLUX_PASSWORD")
+                                step: "1m"
+                            }
+                        }
+                    }
+                }
+                
+                # Security
+                security: {
+                    enabled: env("ACTUATOR_SECURITY", "true") == "true"
+                    roles: ["ACTUATOR"]
+                }
+            }
+        }
+        
+        # DevTools configuration
+        devtools: {
+            enabled: env("SPRING_DEVTOOLS", "false") == "true"
+            restart: {
+                enabled: true
+                exclude: ["static/**", "public/**"]
+                additional_exclude: ["logs/**"]
+                poll_interval: "1s"
+                quiet_period: "400ms"
+            }
+            
+            # LiveReload
+            livereload: {
+                enabled: env("LIVERELOAD_ENABLED", "true") == "true"
+                port: env("LIVERELOAD_PORT", "35729")
+            }
+            
+            # Remote debugging
+            remote: {
+                enabled: env("REMOTE_DEBUG", "false") == "true"
+                context_path: "/.~~spring-boot!~"
+                secret_header_name: "X-AUTH-TOKEN"
+                secret: env("REMOTE_DEBUG_SECRET")
+            }
+        }
+    }
+    
+    # Spring Cloud configuration
+    cloud: {
+        enabled: env("SPRING_CLOUD_ENABLED", "false") == "true"
+        version: "2022.0.4"
+        
+        # Configuration management
+        config: {
+            enabled: spring.cloud.enabled
+            
+            # Config server
+            server: {
+                enabled: env("CONFIG_SERVER_ENABLED", "false") == "true"
+                git: {
+                    uri: env("CONFIG_GIT_URI", "https://github.com/mycompany/config-repo")
+                    username: env("CONFIG_GIT_USERNAME")
+                    password: env("CONFIG_GIT_PASSWORD")
+                    default_label: "main"
+                    
+                    # Search paths
+                    search_paths: [
+                        "{application}",
+                        "{application}/{profile}",
+                        "shared"
+                    ]
+                    
+                    # Clone on start
+                    clone_on_start: true
+                    force_pull: true
+                }
+                
+                # Native profile (file system)
+                native: {
+                    search_locations: [
+                        "classpath:/config/",
+                        "file:./config/"
+                    ]
+                }
+            }
+            
+            # Config client
+            client: {
+                enabled: spring.cloud.enabled && !spring.cloud.config.server.enabled
+                
+                # Server configuration
+                uri: env("CONFIG_SERVER_URI", "http://localhost:8888")
+                username: env("CONFIG_SERVER_USERNAME")
+                password: env("CONFIG_SERVER_PASSWORD")
+                
+                # Application configuration
+                name: spring.boot.application.name
+                profile: env("SPRING_PROFILES_ACTIVE", "default")
+                label: env("CONFIG_LABEL", "main")
+                
+                # Retry configuration
+                retry: {
+                    initial_interval: 1000
+                    multiplier: 1.1
+                    max_interval: 2000
+                    max_attempts: 6
+                }
+                
+                # Fail fast
+                fail_fast: env("CONFIG_FAIL_FAST", "false") == "true"
+            }
+        }
+        
+        # Service discovery
+        discovery: {
+            enabled: spring.cloud.enabled
+            
+            # Consul
+            consul: {
+                enabled: env("CONSUL_ENABLED", "false") == "true"
+                host: env("CONSUL_HOST", "localhost")
+                port: env("CONSUL_PORT", "8500")
+                
+                # Discovery configuration
+                discovery: {
+                    service_name: spring.boot.application.name
+                    instance_id: "${spring.application.name}:${random.value}"
+                    health_check_interval: "10s"
+                    health_check_timeout: "3s"
+                    health_check_critical_timeout: "1m"
+                    
+                    # Tags
+                    tags: [
+                        "version=" + env("APPLICATION_VERSION", "1.0.0"),
+                        "environment=" + env("ENVIRONMENT", "development")
+                    ]
+                    
+                    # Metadata
+                    metadata: {
+                        version: env("APPLICATION_VERSION", "1.0.0")
+                        environment: env("ENVIRONMENT", "development")
+                        zone: env("AVAILABILITY_ZONE", "zone-1")
+                    }
+                }
+                
+                # Configuration
+                config: {
+                    enabled: true
+                    prefix: "config"
+                    default_context: "application"
+                    profile_separator: ","
+                    
+                    # Data format
+                    format: "YAML"  # YAML, PROPERTIES, KEY_VALUE
+                    data_key: "data"
+                }
+            }
+        }
+        
+        # Load balancing
+        loadbalancer: {
+            enabled: spring.cloud.enabled
+            
+            # Ribbon (legacy)
+            ribbon: {
+                enabled: env("RIBBON_ENABLED", "false") == "true"
+                
+                # Default configuration
+                default: {
+                    connect_timeout: 1000
+                    read_timeout: 3000
+                    
+                    # Retry configuration
+                    max_auto_retries: 0
+                    max_auto_retries_next_server: 1
+                    ok_to_retry_on_all_operations: false
+                    
+                    # Server list refresh
+                    server_list_refresh_interval: 2000
+                }
+            }
+            
+            # Spring Cloud LoadBalancer
+            spring_cloud: {
+                enabled: !spring.cloud.loadbalancer.ribbon.enabled
+                
+                # Health check
+                health_check: {
+                    enabled: true
+                    initial_delay: "0s"
+                    interval: "25s"
+                    path: "/actuator/health"
+                }
+                
+                # Retry configuration
+                retry: {
+                    enabled: true
+                    max_retries_on_same_service_instance: 0
+                    max_retries_on_next_service_instance: 1
+                    retry_on_all_operations: false
+                }
+                
+                # Caching
+                cache: {
+                    enabled: true
+                    ttl: "35s"
+                    capacity: 256
+                }
+            }
+        }
+        
+        # Circuit breaker
+        circuitbreaker: {
+            enabled: spring.cloud.enabled
+            
+            # Resilience4j
+            resilience4j: {
+                enabled: true
+                
+                # Circuit breaker configuration
+                circuitbreaker: {
+                    configs: {
+                        default: {
+                            registerHealthIndicator: true
+                            slidingWindowSize: 10
+                            minimumNumberOfCalls: 5
+                            permittedNumberOfCallsInHalfOpenState: 3
+                            automaticTransitionFromOpenToHalfOpenEnabled: true
+                            waitDurationInOpenState: "5s"
+                            failureRateThreshold: 50
+                            eventConsumerBufferSize: 10
+                            recordExceptions: [
+                                "org.springframework.web.client.HttpServerErrorException",
+                                "java.io.IOException"
+                            ]
+                            ignoreExceptions: [
+                                "org.springframework.web.client.HttpClientErrorException"
+                            ]
+                        }
+                    }
+                    
+                    # Instance configuration
+                    instances: {
+                        userService: {
+                            baseConfig: "default"
+                            waitDurationInOpenState: "10s"
+                        }
+                        orderService: {
+                            baseConfig: "default"
+                            slidingWindowSize: 20
+                            failureRateThreshold: 60
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    # Spring Security integration
+    security: {
+        enabled: env("SPRING_SECURITY_ENABLED", "true") == "true"
+        
+        # OAuth2 Resource Server
+        oauth2: {
+            resourceserver: {
+                jwt: {
+                    issuer_uri: env("JWT_ISSUER_URI")
+                    jwk_set_uri: env("JWT_JWK_SET_URI")
+                    
+                    # JWT configuration
+                    audiences: [env("JWT_AUDIENCE", "myapp")]
+                    
+                    # Clock skew
+                    clock_skew: "60s"
+                    
+                    # Cache configuration
+                    cache_duration: "5m"
+                }
+            }
+        }
+        
+        # Method security
+        method: {
+            enabled: true
+            pre_post_enabled: true
+            secured_enabled: true
+            jsr250_enabled: true
+        }
+    }
+    
+    # Spring Data configuration
+    data: {
+        # JPA configuration
+        jpa: {
+            repositories: {
+                enabled: true
+                bootstrap_mode: "default"  # default, lazy, deferred
+            }
+            
+            # Hibernate configuration
+            hibernate: {
+                ddl_auto: env("HIBERNATE_DDL_AUTO", "validate")
+                naming: {
+                    physical_strategy: "org.springframework.boot.orm.jpa.hibernate.SpringPhysicalNamingStrategy"
+                    implicit_strategy: "org.springframework.boot.orm.jpa.hibernate.SpringImplicitNamingStrategy"
+                }
+                
+                # Performance settings
+                jdbc: {
+                    batch_size: 20
+                    fetch_size: 50
+                    batch_versioned_data: true
+                }
+                
+                # Cache configuration
+                cache: {
+                    use_second_level_cache: true
+                    use_query_cache: true
+                    region: {
+                        factory_class: "org.hibernate.cache.redis.RedisRegionFactory"
+                    }
+                }
+                
+                # Statistics
+                generate_statistics: env("HIBERNATE_STATS", "false") == "true"
+                
+                # SQL logging
+                show_sql: env("HIBERNATE_SHOW_SQL", "false") == "true"
+                format_sql: env("HIBERNATE_FORMAT_SQL", "false") == "true"
+                use_sql_comments: env("HIBERNATE_SQL_COMMENTS", "false") == "true"
+            }
+        }
+        
+        # Redis configuration
+        redis: {
+            repositories: {
+                enabled: env("REDIS_REPOSITORIES", "false") == "true"
+            }
+            
+            # Connection configuration
+            host: env("REDIS_HOST", "localhost")
+            port: env("REDIS_PORT", "6379")
+            password: env("REDIS_PASSWORD")
+            database: env("REDIS_DATABASE", "0")
+            
+            # Connection pool
+            jedis: {
+                pool: {
+                    max_active: 20
+                    max_idle: 10
+                    min_idle: 5
+                    max_wait: "1s"
+                }
+            }
+            
+            # Timeout configuration
+            timeout: "2s"
+            connect_timeout: "2s"
+            
+            # Cluster configuration
+            cluster: {
+                enabled: env("REDIS_CLUSTER", "false") == "true"
+                nodes: env("REDIS_CLUSTER_NODES", "localhost:7000,localhost:7001,localhost:7002").split(",")
+                max_redirects: 3
+            }
+            
+            # Sentinel configuration
+            sentinel: {
+                enabled: env("REDIS_SENTINEL", "false") == "true"
+                master: env("REDIS_SENTINEL_MASTER", "mymaster")
+                nodes: env("REDIS_SENTINEL_NODES", "localhost:26379,localhost:26380,localhost:26381").split(",")
+            }
+        }
+    }
+}
+</pre>
+
+<h2>Java Spring Integration Configuration</h2>
+<pre>
+// SpringIntegrationConfiguration.java
+@Configuration
+@EnableConfigurationProperties
+@ConditionalOnProperty(name = "spring.boot.enabled", havingValue = "true")
+public class SpringIntegrationConfiguration {
+    
+    @Value("#{${spring.boot.actuator}}")
+    private Map&lt;String, Object&gt; actuatorConfig;
+    
+    @Value("#{${spring.cloud}}")
+    private Map&lt;String, Object&gt; cloudConfig;
+    
+    // Actuator custom health indicators
+    @Bean
+    @ConditionalOnProperty(name = "spring.boot.actuator.enabled", havingValue = "true")
+    public HealthIndicator customAppHealthIndicator() {
+        return new CustomApplicationHealthIndicator();
+    }
+    
+    @Bean
+    @ConditionalOnProperty(name = "spring.boot.actuator.enabled", havingValue = "true")
+    public InfoContributor customInfoContributor() {
+        return new CustomInfoContributor();
+    }
+    
+    // Spring Cloud Config
+    @Bean
+    @ConditionalOnProperty(name = "spring.cloud.config.server.enabled", havingValue = "true")
+    public ConfigServerHealthIndicator configServerHealthIndicator() {
+        return new ConfigServerHealthIndicator();
+    }
+    
+    // Load balancer configuration
+    @Bean
+    @ConditionalOnProperty(name = "spring.cloud.loadbalancer.spring_cloud.enabled", havingValue = "true")
+    public ServiceInstanceListSupplier discoveryClientServiceInstanceListSupplier(
+            ConfigurableApplicationContext context) {
+        return ServiceInstanceListSupplier.builder()
+            .withDiscoveryClient()
+            .withHealthChecks()
+            .withCaching()
+            .build(context);
+    }
+    
+    // Circuit breaker configuration
+    @Bean
+    @ConditionalOnProperty(name = "spring.cloud.circuitbreaker.resilience4j.enabled", havingValue = "true")
+    public Customizer&lt;ReactiveResilience4JCircuitBreakerFactory&gt; defaultCustomizer() {
+        return factory -&gt; {
+            Map&lt;String, Object&gt; circuitBreakerConfig = 
+                (Map&lt;String, Object&gt;) cloudConfig.get("circuitbreaker");
+            
+            if (circuitBreakerConfig != null) {
+                configureCircuitBreakerFactory(factory, circuitBreakerConfig);
+            }
+        };
+    }
+    
+    private void configureCircuitBreakerFactory(
+            ReactiveResilience4JCircuitBreakerFactory factory,
+            Map&lt;String, Object&gt; config) {
+        
+        Map&lt;String, Object&gt; resilience4j = (Map&lt;String, Object&gt;) config.get("resilience4j");
+        if (resilience4j == null) return;
+        
+        Map&lt;String, Object&gt; circuitbreaker = (Map&lt;String, Object&gt;) resilience4j.get("circuitbreaker");
+        if (circuitbreaker == null) return;
+        
+        // Configure default settings
+        Map&lt;String, Object&gt; configs = (Map&lt;String, Object&gt;) circuitbreaker.get("configs");
+        if (configs != null) {
+            Map&lt;String, Object&gt; defaultConfig = (Map&lt;String, Object&gt;) configs.get("default");
+            if (defaultConfig != null) {
+                CircuitBreakerConfig cbConfig = createCircuitBreakerConfig(defaultConfig);
+                factory.configureDefault(id -&gt; cbConfig);
+            }
+        }
+        
+        // Configure specific instances
+        Map&lt;String, Object&gt; instances = (Map&lt;String, Object&gt;) circuitbreaker.get("instances");
+        if (instances != null) {
+            instances.forEach((name, instanceConfig) -&gt; {
+                Map&lt;String, Object&gt; instanceConfigMap = (Map&lt;String, Object&gt;) instanceConfig;
+                CircuitBreakerConfig cbConfig = createCircuitBreakerConfig(instanceConfigMap);
+                factory.configure(builder -&gt; builder.circuitBreakerConfig(cbConfig), name);
+            });
+        }
+    }
+    
+    private CircuitBreakerConfig createCircuitBreakerConfig(Map&lt;String, Object&gt; config) {
+        CircuitBreakerConfig.Builder builder = CircuitBreakerConfig.ofDefaults().toBuilder();
+        
+        if (config.containsKey("slidingWindowSize")) {
+            builder.slidingWindowSize((Integer) config.get("slidingWindowSize"));
+        }
+        
+        if (config.containsKey("minimumNumberOfCalls")) {
+            builder.minimumNumberOfCalls((Integer) config.get("minimumNumberOfCalls"));
+        }
+        
+        if (config.containsKey("permittedNumberOfCallsInHalfOpenState")) {
+            builder.permittedNumberOfCallsInHalfOpenState(
+                (Integer) config.get("permittedNumberOfCallsInHalfOpenState"));
+        }
+        
+        if (config.containsKey("waitDurationInOpenState")) {
+            String duration = (String) config.get("waitDurationInOpenState");
+            builder.waitDurationInOpenState(Duration.parse("PT" + duration));
+        }
+        
+        if (config.containsKey("failureRateThreshold")) {
+            Float threshold = ((Number) config.get("failureRateThreshold")).floatValue();
+            builder.failureRateThreshold(threshold);
+        }
+        
+        return builder.build();
+    }
+}
+
+// Custom health indicators
+@Component
+public class CustomApplicationHealthIndicator implements HealthIndicator {
+    
+    @Autowired
+    private DataSource dataSource;
+    
+    @Autowired(required = false)
+    private RedisTemplate&lt;String, Object&gt; redisTemplate;
+    
+    @Override
+    public Health health() {
+        Health.Builder builder = Health.up();
+        
+        // Check database connectivity
+        checkDatabase(builder);
+        
+        // Check Redis connectivity
+        if (redisTemplate != null) {
+            checkRedis(builder);
+        }
+        
+        // Check application-specific health
+        checkApplicationHealth(builder);
+        
+        return builder.build();
+    }
+    
+    private void checkDatabase(Health.Builder builder) {
+        try (Connection connection = dataSource.getConnection()) {
+            if (connection.isValid(1)) {
+                builder.withDetail("database", "UP");
+            } else {
+                builder.down().withDetail("database", "Connection invalid");
+            }
+        } catch (Exception e) {
+            builder.down().withDetail("database", "Connection failed: " + e.getMessage());
+        }
+    }
+    
+    private void checkRedis(Health.Builder builder) {
+        try {
+            redisTemplate.opsForValue().get("health-check");
+            builder.withDetail("redis", "UP");
+        } catch (Exception e) {
+            builder.down().withDetail("redis", "Connection failed: " + e.getMessage());
+        }
+    }
+    
+    private void checkApplicationHealth(Health.Builder builder) {
+        // Add custom application health checks
+        long freeMemory = Runtime.getRuntime().freeMemory();
+        long totalMemory = Runtime.getRuntime().totalMemory();
+        double memoryUsage = (double) (totalMemory - freeMemory) / totalMemory;
+        
+        builder.withDetail("memory_usage", String.format("%.2f%%", memoryUsage * 100));
+        
+        if (memoryUsage > 0.9) {
+            builder.down().withDetail("memory", "High memory usage: " + 
+                String.format("%.2f%%", memoryUsage * 100));
+        }
+    }
+}
+
+// Custom info contributor
+@Component
+public class CustomInfoContributor implements InfoContributor {
+    
+    @Override
+    public void contribute(Info.Builder builder) {
+        // Application information
+        builder.withDetail("app", Map.of(
+            "name", "My Java Application",
+            "description", "TuskLang integrated Java application",
+            "version", getClass().getPackage().getImplementationVersion(),
+            "built", getBuildTime()
+        ));
+        
+        // Runtime information
+        Runtime runtime = Runtime.getRuntime();
+        builder.withDetail("runtime", Map.of(
+            "processors", runtime.availableProcessors(),
+            "memory", Map.of(
+                "total", runtime.totalMemory(),
+                "free", runtime.freeMemory(),
+                "max", runtime.maxMemory()
+            )
+        ));
+        
+        // System information
+        builder.withDetail("system", Map.of(
+            "java_version", System.getProperty("java.version"),
+            "java_vendor", System.getProperty("java.vendor"),
+            "os_name", System.getProperty("os.name"),
+            "os_version", System.getProperty("os.version")
+        ));
+    }
+    
+    private String getBuildTime() {
+        // This would typically come from build metadata
+        return "2024-01-15T10:30:00Z";
+    }
+}
+</pre>
+
+<h2>Enterprise Frameworks Integration</h2>
+<pre>
+# Enterprise frameworks integration
+enterprise: {
+    # Apache Kafka integration
+    kafka: {
+        enabled: env("KAFKA_ENABLED", "false") == "true"
+        bootstrap_servers: env("KAFKA_BOOTSTRAP_SERVERS", "localhost:9092")
+        
+        # Producer configuration
+        producer: {
+            # Serialization
+            key_serializer: "org.apache.kafka.common.serialization.StringSerializer"
+            value_serializer: "org.springframework.kafka.support.serializer.JsonSerializer"
+            
+            # Performance settings
+            acks: "all"
+            retries: 3
+            batch_size: 16384
+            linger_ms: 5
+            buffer_memory: 33554432
+            compression_type: "snappy"
+            
+            # Reliability settings
+            enable_idempotence: true
+            max_in_flight_requests_per_connection: 5
+            
+            # Timeout settings
+            request_timeout_ms: 30000
+            delivery_timeout_ms: 120000
+            
+            # Transaction support
+            transactional_id: env("KAFKA_TRANSACTIONAL_ID")
+            transaction_timeout_ms: 60000
+        }
+        
+        # Consumer configuration
+        consumer: {
+            # Deserialization
+            key_deserializer: "org.apache.kafka.common.serialization.StringDeserializer"
+            value_deserializer: "org.springframework.kafka.support.serializer.JsonDeserializer"
+            
+            # Consumer group
+            group_id: env("KAFKA_CONSUMER_GROUP", "myapp-group")
+            client_id: env("KAFKA_CLIENT_ID", "myapp-client")
+            
+            # Offset management
+            auto_offset_reset: "earliest"
+            enable_auto_commit: false
+            auto_commit_interval_ms: 1000
+            
+            # Fetch settings
+            fetch_min_bytes: 1
+            fetch_max_wait_ms: 500
+            max_poll_records: 500
+            max_poll_interval_ms: 300000
+            
+            # Session settings
+            session_timeout_ms: 30000
+            heartbeat_interval_ms: 3000
+            
+            # Error handling
+            isolation_level: "read_committed"
+        }
+        
+        # Admin configuration
+        admin: {
+            # Connection settings
+            bootstrap_servers: enterprise.kafka.bootstrap_servers
+            request_timeout_ms: 30000
+            
+            # Topic management
+            topics: {
+                user_events: {
+                    partitions: 3
+                    replication_factor: 2
+                    config: {
+                        "retention.ms": "604800000"  # 7 days
+                        "cleanup.policy": "delete"
+                        "compression.type": "snappy"
+                    }
+                },
+                order_events: {
+                    partitions: 6
+                    replication_factor: 2
+                    config: {
+                        "retention.ms": "2592000000"  # 30 days
+                        "cleanup.policy": "delete"
+                    }
+                }
+            }
+        }
+        
+        # Streams configuration
+        streams: {
+            enabled: env("KAFKA_STREAMS_ENABLED", "false") == "true"
+            application_id: env("KAFKA_STREAMS_APP_ID", "myapp-streams")
+            
+            # Processing configuration
+            processing_guarantee: "exactly_once_v2"
+            commit_interval_ms: 30000
+            cache_max_bytes_buffering: 10485760  # 10MB
+            
+            # State store configuration
+            state_dir: env("KAFKA_STREAMS_STATE_DIR", "/tmp/kafka-streams")
+            
+            # Topology configuration
+            topologies: {
+                user_analytics: {
+                    input_topic: "user.events"
+                    output_topic: "user.analytics"
+                    store_name: "user-analytics-store"
+                }
+            }
+        }
+    }
+    
+    # Apache Camel integration
+    camel: {
+        enabled: env("CAMEL_ENABLED", "false") == "true"
+        version: "4.0.0"
+        
+        # Spring Boot integration
+        springboot: {
+            # Route configuration
+            routes: {
+                include_patterns: ["classpath:camel/routes/*.xml", "classpath:camel/routes/*.java"]
+                
+                # Java DSL routes
+                java_routes_packages: ["com.myapp.camel.routes"]
+            }
+            
+            # Component configuration
+            components: {
+                # File component
+                file: {
+                    enabled: true
+                }
+                
+                # HTTP component
+                http: {
+                    enabled: true
+                    connection_timeout: 30000
+                    socket_timeout: 60000
+                }
+                
+                # JMS component
+                jms: {
+                    enabled: env("CAMEL_JMS_ENABLED", "false") == "true"
+                    connection_factory: "jmsConnectionFactory"
+                    concurrent_consumers: 5
+                    max_concurrent_consumers: 10
+                }
+                
+                # Database component
+                sql: {
+                    enabled: true
+                    data_source: "dataSource"
+                }
+            }
+            
+            # Error handling
+            error_handler: {
+                type: "default"  # default, dead_letter_channel, no_error_handler
+                
+                # Dead letter channel
+                dead_letter: {
+                    uri: "jms:queue:deadLetter"
+                    use_original_message: true
+                    
+                    # Retry configuration
+                    maximum_redeliveries: 3
+                    redelivery_delay: 1000
+                    back_off_multiplier: 2.0
+                    maximum_redelivery_delay: 60000
+                }
+            }
+            
+            # Monitoring
+            monitoring: {
+                jmx_enabled: true
+                route_coverage_enabled: env("CAMEL_ROUTE_COVERAGE", "false") == "true"
+                
+                # Metrics
+                metrics: {
+                    enabled: true
+                    micrometer_enabled: true
+                }
+            }
+        }
+        
+        # Route definitions
+        routes: {
+            file_processor: {
+                from: "file:{{camel.input.dir}}?noop=true"
+                to: ["log:file-processed", "jms:queue:file.processing"]
+                
+                # Route configuration
+                id: "fileProcessorRoute"
+                auto_startup: true
+                
+                # Error handling
+                on_exception: {
+                    "java.io.IOException": {
+                        handled: true
+                        to: "jms:queue:file.errors"
+                        log: "File processing error: ${exception.message}"
+                    }
+                }
+            }
+            
+            database_sync: {
+                from: "timer:dbSync?period=60000"  # Every minute
+                to: ["sql:select * from pending_sync", "log:db-sync"]
+                
+                # Transformation
+                transform: {
+                    type: "simple"
+                    expression: "${body.toString()}"
+                }
+            }
+        }
+    }
+    
+    # Elasticsearch integration
+    elasticsearch: {
+        enabled: env("ELASTICSEARCH_ENABLED", "false") == "true"
+        
+        # Connection configuration
+        hosts: env("ELASTICSEARCH_HOSTS", "localhost:9200").split(",")
+        username: env("ELASTICSEARCH_USERNAME")
+        password: env("ELASTICSEARCH_PASSWORD")
+        
+        # Connection settings
+        connection_timeout: "1s"
+        socket_timeout: "30s"
+        connection_request_timeout: "500ms"
+        max_retry_timeout: "30s"
+        
+        # SSL configuration
+        ssl: {
+            enabled: env("ELASTICSEARCH_SSL", "false") == "true"
+            verification_mode: "certificate"  # none, certificate, full
+            certificate_authorities: env("ELASTICSEARCH_CA_PATH")
+        }
+        
+        # Index configuration
+        indices: {
+            users: {
+                name: "users"
+                settings: {
+                    number_of_shards: 3
+                    number_of_replicas: 1
+                    refresh_interval: "1s"
+                    max_result_window: 10000
+                }
+                
+                # Mapping configuration
+                mappings: {
+                    properties: {
+                        username: { type: "keyword" }
+                        email: { type: "keyword" }
+                        full_name: { 
+                            type: "text"
+                            analyzer: "standard"
+                            fields: {
+                                keyword: { type: "keyword" }
+                            }
+                        }
+                        created_at: { type: "date" }
+                        active: { type: "boolean" }
+                    }
+                }
+            }
+            
+            orders: {
+                name: "orders"
+                settings: {
+                    number_of_shards: 6
+                    number_of_replicas: 1
+                    refresh_interval: "30s"
+                }
+                
+                mappings: {
+                    properties: {
+                        order_id: { type: "keyword" }
+                        user_id: { type: "keyword" }
+                        total: { type: "scaled_float", scaling_factor: 100 }
+                        status: { type: "keyword" }
+                        created_at: { type: "date" }
+                        items: {
+                            type: "nested"
+                            properties: {
+                                product_id: { type: "keyword" }
+                                quantity: { type: "integer" }
+                                price: { type: "scaled_float", scaling_factor: 100 }
+                            }
+                        }
+                    }
+                }
+            }
+        }
+        
+        # Search configuration
+        search: {
+            default_size: 20
+            max_size: 1000
+            
+            # Highlighting
+            highlight: {
+                enabled: true
+                pre_tags: ["&lt;mark&gt;"]
+                post_tags: ["&lt;/mark&gt;"]
+                fragment_size: 150
+                number_of_fragments: 3
+            }
+            
+            # Aggregations
+            aggregations: {
+                max_buckets: 10000
+                
+                # Common aggregations
+                date_histogram: {
+                    calendar_interval: "1d"
+                    min_doc_count: 1
+                }
+            }
+        }
+        
+        # Bulk operations
+        bulk: {
+            enabled: true
+            size: 1000
+            flush_interval: "5s"
+            concurrent_requests: 1
+            
+            # Retry configuration
+            backoff: {
+                initial_delay: "100ms"
+                max_delay: "10s"
+                max_retries: 3
+            }
+        }
+    }
+    
+    # Message Queue integration (RabbitMQ)
+    rabbitmq: {
+        enabled: env("RABBITMQ_ENABLED", "false") == "true"
+        
+        # Connection configuration
+        host: env("RABBITMQ_HOST", "localhost")
+        port: env("RABBITMQ_PORT", "5672")
+        virtual_host: env("RABBITMQ_VHOST", "/")
+        username: env("RABBITMQ_USERNAME", "guest")
+        password: env("RABBITMQ_PASSWORD", "guest")
+        
+        # Connection settings
+        connection_timeout: "30s"
+        requested_heartbeat: "60s"
+        channel_cache_size: 25
+        
+        # Publisher settings
+        publisher_confirms: true
+        publisher_returns: true
+        mandatory: true
+        
+        # Consumer settings
+        listener: {
+            type: "simple"  # simple, direct
+            
+            # Simple container
+            simple: {
+                concurrency: 5
+                max_concurrency: 10
+                prefetch: 10
+                transaction_size: 1
+                
+                # Acknowledge mode
+                acknowledge_mode: "manual"  # auto, manual, none
+                
+                # Error handling
+                default_requeue_rejected: false
+                retry: {
+                    enabled: true
+                    max_attempts: 3
+                    initial_interval: "1s"
+                    multiplier: 2.0
+                    max_interval: "10s"
+                }
+            }
+        }
+        
+        # Template configuration
+        template: {
+            retry: {
+                enabled: true
+                max_attempts: 3
+                initial_interval: "1s"
+                multiplier: 2.0
+                max_interval: "10s"
+            }
+            
+            # Exchange and routing
+            exchange: "myapp.exchange"
+            routing_key: "default"
+            
+            # Message properties
+            mandatory: true
+            
+            # Confirmation
+            confirm_timeout: "5s"
+            returns_timeout: "5s"
+        }
+        
+        # Queue and exchange definitions
+        definitions: {
+            exchanges: [
+                {
+                    name: "myapp.exchange"
+                    type: "topic"
+                    durable: true
+                    auto_delete: false
+                    internal: false
+                    arguments: {}
+                },
+                {
+                    name: "myapp.dlx"
+                    type: "direct"
+                    durable: true
+                    auto_delete: false
+                }
+            ]
+            
+            queues: [
+                {
+                    name: "user.events"
+                    durable: true
+                    exclusive: false
+                    auto_delete: false
+                    arguments: {
+                        "x-message-ttl": 86400000  # 24 hours
+                        "x-dead-letter-exchange": "myapp.dlx"
+                        "x-dead-letter-routing-key": "user.events.dlq"
+                    }
+                },
+                {
+                    name: "order.events"
+                    durable: true
+                    exclusive: false
+                    auto_delete: false
+                    arguments: {
+                        "x-message-ttl": 86400000
+                        "x-dead-letter-exchange": "myapp.dlx"
+                    }
+                }
+            ]
+            
+            bindings: [
+                {
+                    exchange: "myapp.exchange"
+                    queue: "user.events"
+                    routing_key: "user.*"
+                },
+                {
+                    exchange: "myapp.exchange"
+                    queue: "order.events"
+                    routing_key: "order.*"
+                }
+            ]
+        }
+    }
+}
+</pre>
+
+<h2>Java Enterprise Integration Configuration</h2>
+<pre>
+// EnterpriseIntegrationConfiguration.java
+@Configuration
+public class EnterpriseIntegrationConfiguration {
+    
+    // Kafka Configuration
+    @Configuration
+    @ConditionalOnProperty(name = "enterprise.kafka.enabled", havingValue = "true")
+    @EnableKafka
+    public static class KafkaConfiguration {
+        
+        @Value("#{${enterprise.kafka}}")
+        private Map&lt;String, Object&gt; kafkaConfig;
+        
+        @Bean
+        public ProducerFactory&lt;String, Object&gt; producerFactory() {
+            Map&lt;String, Object&gt; props = new HashMap&lt;&gt;();
+            
+            props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.get("bootstrap_servers"));
+            
+            Map&lt;String, Object&gt; producer = (Map&lt;String, Object&gt;) kafkaConfig.get("producer");
+            if (producer != null) {
+                producer.forEach(props::put);
+            }
+            
+            return new DefaultKafkaProducerFactory&lt;&gt;(props);
+        }
+        
+        @Bean
+        public KafkaTemplate&lt;String, Object&gt; kafkaTemplate() {
+            KafkaTemplate&lt;String, Object&gt; template = new KafkaTemplate&lt;&gt;(producerFactory());
+            
+            // Configure callbacks
+            template.setProducerListener(new LoggingProducerListener&lt;&gt;());
+            
+            return template;
+        }
+        
+        @Bean
+        public ConsumerFactory&lt;String, Object&gt; consumerFactory() {
+            Map&lt;String, Object&gt; props = new HashMap&lt;&gt;();
+            
+            props.put(ConsumerConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.get("bootstrap_servers"));
+            
+            Map&lt;String, Object&gt; consumer = (Map&lt;String, Object&gt;) kafkaConfig.get("consumer");
+            if (consumer != null) {
+                consumer.forEach(props::put);
+            }
+            
+            return new DefaultKafkaConsumerFactory&lt;&gt;(props);
+        }
+        
+        @Bean
+        public ConcurrentKafkaListenerContainerFactory&lt;String, Object&gt; kafkaListenerContainerFactory() {
+            ConcurrentKafkaListenerContainerFactory&lt;String, Object&gt; factory = 
+                new ConcurrentKafkaListenerContainerFactory&lt;&gt;();
+            factory.setConsumerFactory(consumerFactory());
+            
+            // Configure error handling
+            factory.setCommonErrorHandler(new DefaultErrorHandler(
+                new FixedBackOff(1000L, 3L)));
+            
+            return factory;
+        }
+        
+        @Bean
+        public KafkaAdmin kafkaAdmin() {
+            Map&lt;String, Object&gt; adminConfig = (Map&lt;String, Object&gt;) kafkaConfig.get("admin");
+            
+            Map&lt;String, Object&gt; props = new HashMap&lt;&gt;();
+            props.put(AdminClientConfig.BOOTSTRAP_SERVERS_CONFIG, kafkaConfig.get("bootstrap_servers"));
+            
+            if (adminConfig != null) {
+                adminConfig.forEach(props::put);
+            }
+            
+            return new KafkaAdmin(props);
+        }
+        
+        @Bean
+        public NewTopic userEventsTopic() {
+            Map&lt;String, Object&gt; adminConfig = (Map&lt;String, Object&gt;) kafkaConfig.get("admin");
+            if (adminConfig == null) return null;
+            
+            Map&lt;String, Object&gt; topics = (Map&lt;String, Object&gt;) adminConfig.get("topics");
+            if (topics == null) return null;
+            
+            Map&lt;String, Object&gt; userEvents = (Map&lt;String, Object&gt;) topics.get("user_events");
+            if (userEvents == null) return null;
+            
+            TopicBuilder builder = TopicBuilder.name("user.events")
+                .partitions((Integer) userEvents.get("partitions"))
+                .replicas((Integer) userEvents.get("replication_factor"));
+            
+            Map&lt;String, Object&gt; config = (Map&lt;String, Object&gt;) userEvents.get("config");
+            if (config != null) {
+                config.forEach((key, value) -&gt; builder.config(key, value.toString()));
+            }
+            
+            return builder.build();
+        }
+    }
+    
+    // Elasticsearch Configuration
+    @Configuration
+    @ConditionalOnProperty(name = "enterprise.elasticsearch.enabled", havingValue = "true")
+    public static class ElasticsearchConfiguration {
+        
+        @Value("#{${enterprise.elasticsearch}}")
+        private Map&lt;String, Object&gt; elasticsearchConfig;
+        
+        @Bean
+        public ElasticsearchClient elasticsearchClient() {
+            List&lt;String&gt; hosts = (List&lt;String&gt;) elasticsearchConfig.get("hosts");
+            
+            HttpHost[] httpHosts = hosts.stream()
+                .map(host -&gt; {
+                    String[] parts = host.split(":");
+                    return new HttpHost(parts[0], Integer.parseInt(parts[1]), "http");
+                })
+                .toArray(HttpHost[]::new);
+            
+            RestClientBuilder builder = RestClient.builder(httpHosts);
+            
+            // Configure authentication
+            String username = (String) elasticsearchConfig.get("username");
+            String password = (String) elasticsearchConfig.get("password");
+            
+            if (username != null && password != null) {
+                CredentialsProvider credentialsProvider = new BasicCredentialsProvider();
+                credentialsProvider.setCredentials(AuthScope.ANY, 
+                    new UsernamePasswordCredentials(username, password));
+                
+                builder.setHttpClientConfigCallback(httpClientBuilder -&gt;
+                    httpClientBuilder.setDefaultCredentialsProvider(credentialsProvider));
+            }
+            
+            // Configure timeouts
+            builder.setRequestConfigCallback(requestConfigBuilder -&gt; {
+                String connectionTimeout = (String) elasticsearchConfig.get("connection_timeout");
+                String socketTimeout = (String) elasticsearchConfig.get("socket_timeout");
+                
+                if (connectionTimeout != null) {
+                    requestConfigBuilder.setConnectTimeout((int) Duration.parse("PT" + connectionTimeout).toMillis());
+                }
+                if (socketTimeout != null) {
+                    requestConfigBuilder.setSocketTimeout((int) Duration.parse("PT" + socketTimeout).toMillis());
+                }
+                
+                return requestConfigBuilder;
+            });
+            
+            ElasticsearchTransport transport = new RestClientTransport(
+                builder.build(), new JacksonJsonpMapper());
+            
+            return new ElasticsearchClient(transport);
+        }
+        
+        @Bean
+        public ElasticsearchService elasticsearchService(ElasticsearchClient client) {
+            return new ElasticsearchService(client, elasticsearchConfig);
+        }
+    }
+    
+    // RabbitMQ Configuration
+    @Configuration
+    @ConditionalOnProperty(name = "enterprise.rabbitmq.enabled", havingValue = "true")
+    @EnableRabbit
+    public static class RabbitMQConfiguration {
+        
+        @Value("#{${enterprise.rabbitmq}}")
+        private Map&lt;String, Object&gt; rabbitmqConfig;
+        
+        @Bean
+        public ConnectionFactory connectionFactory() {
+            CachingConnectionFactory factory = new CachingConnectionFactory();
+            
+            factory.setHost((String) rabbitmqConfig.get("host"));
+            factory.setPort((Integer) rabbitmqConfig.get("port"));
+            factory.setVirtualHost((String) rabbitmqConfig.get("virtual_host"));
+            factory.setUsername((String) rabbitmqConfig.get("username"));
+            factory.setPassword((String) rabbitmqConfig.get("password"));
+            
+            // Connection settings
+            String connectionTimeout = (String) rabbitmqConfig.get("connection_timeout");
+            if (connectionTimeout != null) {
+                factory.setConnectionTimeout((int) Duration.parse("PT" + connectionTimeout).toMillis());
+            }
+            
+            String heartbeat = (String) rabbitmqConfig.get("requested_heartbeat");
+            if (heartbeat != null) {
+                factory.setRequestedHeartBeat((int) Duration.parse("PT" + heartbeat).toSeconds());
+            }
+            
+            Integer cacheSize = (Integer) rabbitmqConfig.get("channel_cache_size");
+            if (cacheSize != null) {
+                factory.setChannelCacheSize(cacheSize);
+            }
+            
+            // Publisher settings
+            Boolean publisherConfirms = (Boolean) rabbitmqConfig.get("publisher_confirms");
+            if (publisherConfirms != null && publisherConfirms) {
+                factory.setPublisherConfirms(true);
+            }
+            
+            Boolean publisherReturns = (Boolean) rabbitmqConfig.get("publisher_returns");
+            if (publisherReturns != null && publisherReturns) {
+                factory.setPublisherReturns(true);
+            }
+            
+            return factory;
+        }
+        
+        @Bean
+        public RabbitTemplate rabbitTemplate(ConnectionFactory connectionFactory) {
+            RabbitTemplate template = new RabbitTemplate(connectionFactory);
+            
+            Map&lt;String, Object&gt; templateConfig = (Map&lt;String, Object&gt;) rabbitmqConfig.get("template");
+            if (templateConfig != null) {
+                String exchange = (String) templateConfig.get("exchange");
+                if (exchange != null) {
+                    template.setExchange(exchange);
+                }
+                
+                String routingKey = (String) templateConfig.get("routing_key");
+                if (routingKey != null) {
+                    template.setRoutingKey(routingKey);
+                }
+                
+                Boolean mandatory = (Boolean) templateConfig.get("mandatory");
+                if (mandatory != null) {
+                    template.setMandatory(mandatory);
+                }
+                
+                // Configure retry
+                Map&lt;String, Object&gt; retry = (Map&lt;String, Object&gt;) templateConfig.get("retry");
+                if (retry != null && Boolean.TRUE.equals(retry.get("enabled"))) {
+                    RetryTemplate retryTemplate = createRetryTemplate(retry);
+                    template.setRetryTemplate(retryTemplate);
+                }
+            }
+            
+            return template;
+        }
+        
+        @Bean
+        public SimpleRabbitListenerContainerFactory rabbitListenerContainerFactory(
+                ConnectionFactory connectionFactory) {
+            
+            SimpleRabbitListenerContainerFactory factory = new SimpleRabbitListenerContainerFactory();
+            factory.setConnectionFactory(connectionFactory);
+            
+            Map&lt;String, Object&gt; listener = (Map&lt;String, Object&gt;) rabbitmqConfig.get("listener");
+            if (listener != null) {
+                Map&lt;String, Object&gt; simple = (Map&lt;String, Object&gt;) listener.get("simple");
+                if (simple != null) {
+                    Integer concurrency = (Integer) simple.get("concurrency");
+                    Integer maxConcurrency = (Integer) simple.get("max_concurrency");
+                    
+                    if (concurrency != null && maxConcurrency != null) {
+                        factory.setConcurrentConsumers(concurrency);
+                        factory.setMaxConcurrentConsumers(maxConcurrency);
+                    }
+                    
+                    Integer prefetch = (Integer) simple.get("prefetch");
+                    if (prefetch != null) {
+                        factory.setPrefetchCount(prefetch);
+                    }
+                    
+                    String ackMode = (String) simple.get("acknowledge_mode");
+                    if (ackMode != null) {
+                        factory.setAcknowledgeMode(AcknowledgeMode.valueOf(ackMode.toUpperCase()));
+                    }
+                    
+                    // Configure retry
+                    Map&lt;String, Object&gt; retry = (Map&lt;String, Object&gt;) simple.get("retry");
+                    if (retry != null && Boolean.TRUE.equals(retry.get("enabled"))) {
+                        RetryTemplate retryTemplate = createRetryTemplate(retry);
+                        factory.setRetryTemplate(retryTemplate);
+                    }
+                }
+            }
+            
+            return factory;
+        }
+        
+        private RetryTemplate createRetryTemplate(Map&lt;String, Object&gt; retryConfig) {
+            RetryTemplate retryTemplate = new RetryTemplate();
+            
+            Integer maxAttempts = (Integer) retryConfig.get("max_attempts");
+            String initialInterval = (String) retryConfig.get("initial_interval");
+            Double multiplier = (Double) retryConfig.get("multiplier");
+            String maxInterval = (String) retryConfig.get("max_interval");
+            
+            FixedBackOffPolicy backOffPolicy = new FixedBackOffPolicy();
+            if (initialInterval != null) {
+                backOffPolicy.setBackOffPeriod(Duration.parse("PT" + initialInterval).toMillis());
+            }
+            
+            ExponentialBackOffPolicy exponentialBackOffPolicy = new ExponentialBackOffPolicy();
+            if (initialInterval != null) {
+                exponentialBackOffPolicy.setInitialInterval(Duration.parse("PT" + initialInterval).toMillis());
+            }
+            if (multiplier != null) {
+                exponentialBackOffPolicy.setMultiplier(multiplier);
+            }
+            if (maxInterval != null) {
+                exponentialBackOffPolicy.setMaxInterval(Duration.parse("PT" + maxInterval).toMillis());
+            }
+            
+            retryTemplate.setBackOffPolicy(exponentialBackOffPolicy);
+            
+            SimpleRetryPolicy retryPolicy = new SimpleRetryPolicy();
+            if (maxAttempts != null) {
+                retryPolicy.setMaxAttempts(maxAttempts);
+            }
+            retryTemplate.setRetryPolicy(retryPolicy);
+            
+            return retryTemplate;
+        }
+        
+        // Define exchanges, queues, and bindings
+        @Bean
+        public TopicExchange myappExchange() {
+            return new TopicExchange("myapp.exchange", true, false);
+        }
+        
+        @Bean
+        public Queue userEventsQueue() {
+            Map&lt;String, Object&gt; args = new HashMap&lt;&gt;();
+            args.put("x-message-ttl", 86400000);
+            args.put("x-dead-letter-exchange", "myapp.dlx");
+            args.put("x-dead-letter-routing-key", "user.events.dlq");
+            
+            return QueueBuilder.durable("user.events")
+                .withArguments(args)
+                .build();
+        }
+        
+        @Bean
+        public Binding userEventsBinding() {
+            return BindingBuilder.bind(userEventsQueue())
+                .to(myappExchange())
+                .with("user.*");
+        }
+    }
+}
+</pre>

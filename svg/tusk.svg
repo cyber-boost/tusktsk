@@ -1,0 +1,8 @@
+<svg viewBox="0 0 140 40" width="140" height="40" xmlns="http://www.w3.org/2000/svg">
+    <!-- TuskLang Logo -->
+    <text x="70" y="28" font-family="Courier New" font-size="22" font-weight="bold" text-anchor="middle">
+        <tspan fill="#FF6B6B">&lt;?</tspan>
+        <tspan fill="#4ECDC4">tusk</tspan>
+        <tspan fill="#FF6B6B">&gt;</tspan>
+    </text>
+</svg>

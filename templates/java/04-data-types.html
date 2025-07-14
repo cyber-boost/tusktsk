@@ -1,0 +1,369 @@
+<h1>Data Types for Java</h1>
+
+<h2>Primitive Types</h2>
+<pre>
+# Numeric types
+byte_value: 127                    # byte (Java byte)
+short_value: 32767                 # short (Java short)
+int_value: 2147483647              # int (Java int)
+long_value: 9223372036854775807    # long (Java long)
+float_value: 3.14159               # float (Java float)
+double_value: 3.141592653589793    # double (Java double)
+
+# Boolean type
+is_enabled: true                   # boolean (Java boolean)
+is_disabled: false                 # boolean (Java boolean)
+
+# Character type (single character strings map to char)
+grade: "A"                         # char (Java char) if single character
+</pre>
+
+<h2>Java Primitive Wrapper Classes</h2>
+<pre>
+// ConfigData.java
+@Component
+@ConfigurationProperties
+public class ConfigData {
+    private Byte byteValue;           // Maps from byte_value
+    private Short shortValue;         // Maps from short_value
+    private Integer intValue;         // Maps from int_value
+    private Long longValue;           // Maps from long_value
+    private Float floatValue;         // Maps from float_value
+    private Double doubleValue;       // Maps from double_value
+    private Boolean isEnabled;        // Maps from is_enabled
+    private Character grade;          // Maps from grade (if single char)
+    
+    // Getters and setters
+    public Integer getIntValue() { return intValue; }
+    public void setIntValue(Integer intValue) { this.intValue = intValue; }
+    
+    public Boolean getIsEnabled() { return isEnabled; }
+    public void setIsEnabled(Boolean isEnabled) { this.isEnabled = isEnabled; }
+    
+    // Additional getters and setters...
+}
+</pre>
+
+<h2>String Types and Manipulation</h2>
+<pre>
+# String configurations
+app_name: "JavaApplication"
+description: 'This is a Java application'
+multiline_text: """
+This is a multiline string
+that can span multiple lines
+and preserves formatting
+"""
+
+# String with special characters
+json_data: "{\"name\": \"John\", \"age\": 30}"
+file_path: "C:\\Program Files\\MyApp"
+regex_pattern: "\\w+@\\w+\\.\\w+"
+
+# String concatenation
+full_path: env("APP_HOME") + "/config/application.properties"
+connection_url: "jdbc:" + database.type + "://" + database.host + ":" + database.port
+
+# String formatting with Java expressions
+formatted_message: java("String.format(\"Hello %s, you have %d messages\", userName, messageCount)")
+timestamp_string: java("java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)")
+</pre>
+
+<h2>Collection Types</h2>
+<pre>
+# Lists (Java List&lt;T&gt;)
+string_list: ["Java", "Spring", "Boot"]
+number_list: [1, 2, 3, 4, 5]
+mixed_list: ["text", 42, true, null]
+
+# Sets (require explicit Java configuration)
+unique_values: ["admin", "user", "guest"]  # Will become List, convert to Set in Java
+
+# Maps (nested objects become Map&lt;String, Object&gt;)
+database_config: {
+    "postgresql": {
+        driver: "org.postgresql.Driver"
+        port: 5432
+    },
+    "mysql": {
+        driver: "com.mysql.cj.jdbc.Driver"
+        port: 3306
+    }
+}
+
+# Complex nested structures
+server_clusters: [
+    {
+        name: "cluster-1"
+        nodes: ["node1.example.com", "node2.example.com"]
+        config: {
+            max_connections: 100
+            timeout: 30
+        }
+    },
+    {
+        name: "cluster-2"
+        nodes: ["node3.example.com", "node4.example.com"]
+        config: {
+            max_connections: 200
+            timeout: 60
+        }
+    }
+]
+</pre>
+
+<h2>Java Collection Mapping</h2>
+<pre>
+// CollectionConfig.java
+@ConfigurationProperties
+@Component
+public class CollectionConfig {
+    private List&lt;String&gt; stringList;
+    private List&lt;Integer&gt; numberList;
+    private List&lt;Object&gt; mixedList;
+    private Set&lt;String&gt; uniqueValues;
+    private Map&lt;String, DatabaseDriver&gt; databaseConfig;
+    private List&lt;ServerCluster&gt; serverClusters;
+    
+    // Convert List to Set for unique values
+    public Set&lt;String&gt; getUniqueValues() {
+        if (uniqueValues == null && stringList != null) {
+            uniqueValues = new HashSet&lt;&gt;(stringList);
+        }
+        return uniqueValues;
+    }
+    
+    public void setStringList(List&lt;String&gt; stringList) {
+        this.stringList = stringList;
+        // Auto-convert to Set
+        this.uniqueValues = new HashSet&lt;&gt;(stringList);
+    }
+    
+    // Inner classes for complex types
+    public static class DatabaseDriver {
+        private String driver;
+        private int port;
+        
+        // Getters and setters
+        public String getDriver() { return driver; }
+        public void setDriver(String driver) { this.driver = driver; }
+        
+        public int getPort() { return port; }
+        public void setPort(int port) { this.port = port; }
+    }
+    
+    public static class ServerCluster {
+        private String name;
+        private List&lt;String&gt; nodes;
+        private ClusterConfig config;
+        
+        // Getters and setters
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        
+        public List&lt;String&gt; getNodes() { return nodes; }
+        public void setNodes(List&lt;String&gt; nodes) { this.nodes = nodes; }
+        
+        public ClusterConfig getConfig() { return config; }
+        public void setConfig(ClusterConfig config) { this.config = config; }
+        
+        public static class ClusterConfig {
+            private int maxConnections;
+            private int timeout;
+            
+            // Getters and setters
+            public int getMaxConnections() { return maxConnections; }
+            public void setMaxConnections(int maxConnections) { 
+                this.maxConnections = maxConnections; 
+            }
+            
+            public int getTimeout() { return timeout; }
+            public void setTimeout(int timeout) { this.timeout = timeout; }
+        }
+    }
+}
+</pre>
+
+<h2>Date and Time Types</h2>
+<pre>
+# Date and time as strings (parsed in Java)
+start_date: "2024-01-15"
+start_time: "10:30:00"
+timestamp: "2024-01-15T10:30:00"
+iso_timestamp: "2024-01-15T10:30:00.123Z"
+
+# Using Java expressions for current time
+current_time: java("java.time.LocalDateTime.now()")
+current_date: java("java.time.LocalDate.now()")
+epoch_time: java("System.currentTimeMillis()")
+formatted_date: java("java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)")
+
+# Duration and period
+cache_ttl: "PT1H"              # 1 hour (ISO-8601 duration)
+session_timeout: "PT30M"       # 30 minutes
+retry_interval: "PT5S"         # 5 seconds
+</pre>
+
+<h2>Java Time Type Mapping</h2>
+<pre>
+// TimeConfig.java
+@ConfigurationProperties(prefix = "time")
+@Component
+public class TimeConfig {
+    private LocalDate startDate;
+    private LocalTime startTime;
+    private LocalDateTime timestamp;
+    private Instant isoTimestamp;
+    private long epochTime;
+    private Duration cacheTtl;
+    private Duration sessionTimeout;
+    
+    // Custom converters for string to time types
+    public void setStartDate(String startDate) {
+        this.startDate = LocalDate.parse(startDate);
+    }
+    
+    public void setStartTime(String startTime) {
+        this.startTime = LocalTime.parse(startTime);
+    }
+    
+    public void setTimestamp(String timestamp) {
+        this.timestamp = LocalDateTime.parse(timestamp);
+    }
+    
+    public void setIsoTimestamp(String isoTimestamp) {
+        this.isoTimestamp = Instant.parse(isoTimestamp);
+    }
+    
+    public void setCacheTtl(String cacheTtl) {
+        this.cacheTtl = Duration.parse(cacheTtl);
+    }
+    
+    // Getters
+    public LocalDate getStartDate() { return startDate; }
+    public LocalTime getStartTime() { return startTime; }
+    public LocalDateTime getTimestamp() { return timestamp; }
+    public Instant getIsoTimestamp() { return isoTimestamp; }
+    public long getEpochTime() { return epochTime; }
+    public Duration getCacheTtl() { return cacheTtl; }
+    public Duration getSessionTimeout() { return sessionTimeout; }
+}
+</pre>
+
+<h2>Enum Types</h2>
+<pre>
+# Enum values as strings
+log_level: "INFO"              # Maps to LogLevel.INFO
+database_type: "POSTGRESQL"   # Maps to DatabaseType.POSTGRESQL
+environment: "PRODUCTION"     # Maps to Environment.PRODUCTION
+
+# Array of enum values
+supported_levels: ["DEBUG", "INFO", "WARN", "ERROR"]
+enabled_features: ["CACHING", "METRICS", "SECURITY"]
+</pre>
+
+<h2>Java Enum Mapping</h2>
+<pre>
+// Enums.java
+public enum LogLevel {
+    DEBUG, INFO, WARN, ERROR
+}
+
+public enum DatabaseType {
+    POSTGRESQL, MYSQL, H2, ORACLE
+}
+
+public enum Environment {
+    DEVELOPMENT, STAGING, PRODUCTION
+}
+
+// EnumConfig.java
+@ConfigurationProperties
+@Component
+public class EnumConfig {
+    private LogLevel logLevel;
+    private DatabaseType databaseType;
+    private Environment environment;
+    private List&lt;LogLevel&gt; supportedLevels;
+    private Set&lt;Feature&gt; enabledFeatures;
+    
+    // Spring Boot automatically converts strings to enums
+    public LogLevel getLogLevel() { return logLevel; }
+    public void setLogLevel(LogLevel logLevel) { this.logLevel = logLevel; }
+    
+    public DatabaseType getDatabaseType() { return databaseType; }
+    public void setDatabaseType(DatabaseType databaseType) { 
+        this.databaseType = databaseType; 
+    }
+    
+    public Environment getEnvironment() { return environment; }
+    public void setEnvironment(Environment environment) { 
+        this.environment = environment; 
+    }
+    
+    // Enum collections
+    public List&lt;LogLevel&gt; getSupportedLevels() { return supportedLevels; }
+    public void setSupportedLevels(List&lt;LogLevel&gt; supportedLevels) { 
+        this.supportedLevels = supportedLevels; 
+    }
+}
+</pre>
+
+<h2>Custom Type Converters</h2>
+<pre>
+// CustomTypeConverter.java
+@Component
+public class CustomTypeConverter {
+    
+    @Bean
+    @ConfigurationPropertiesBinding
+    public Converter&lt;String, URL&gt; stringToUrlConverter() {
+        return new Converter&lt;String, URL&gt;() {
+            @Override
+            public URL convert(String source) {
+                try {
+                    return new URL(source);
+                } catch (MalformedURLException e) {
+                    throw new IllegalArgumentException("Invalid URL: " + source, e);
+                }
+            }
+        };
+    }
+    
+    @Bean
+    @ConfigurationPropertiesBinding
+    public Converter&lt;String, Pattern&gt; stringToPatternConverter() {
+        return Pattern::compile;
+    }
+    
+    @Bean
+    @ConfigurationPropertiesBinding
+    public Converter&lt;String, DataSize&gt; stringToDataSizeConverter() {
+        return DataSize::parse;
+    }
+}
+</pre>
+
+<h2>Optional and Nullable Types</h2>
+<pre>
+# Optional configuration values
+optional_feature: null
+backup_url: env("BACKUP_URL")  # May be null if not set
+
+# Java Optional handling
+// OptionalConfig.java
+@ConfigurationProperties
+@Component
+public class OptionalConfig {
+    private Optional&lt;String&gt; optionalFeature = Optional.empty();
+    private String backupUrl;  // May be null
+    
+    public Optional&lt;String&gt; getOptionalFeature() { return optionalFeature; }
+    public void setOptionalFeature(String optionalFeature) {
+        this.optionalFeature = Optional.ofNullable(optionalFeature);
+    }
+    
+    public Optional&lt;String&gt; getBackupUrl() { return Optional.ofNullable(backupUrl); }
+    public void setBackupUrl(String backupUrl) { this.backupUrl = backupUrl; }
+}
+</pre>

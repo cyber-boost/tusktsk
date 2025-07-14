@@ -1,0 +1,91 @@
+<h1>Advanced Features with TuskLang in C#</h1>
+
+<h2>Advanced TuskLang Integration Patterns</h2>
+<p>Sophisticated TuskLang usage patterns including dependency injection, configuration providers, and advanced @ operators.</p>
+
+<h3>Dependency Injection Integration</h3>
+<pre>
+public class TuskConfigurationProvider : ConfigurationProvider
+{
+    private readonly string _configPath;
+    
+    public TuskConfigurationProvider(string configPath)
+    {
+        _configPath = configPath;
+    }
+    
+    public override void Load()
+    {
+        var tuskConfig = TuskLangParser.ParseFile(_configPath);
+        Data = FlattenConfiguration(tuskConfig);
+    }
+    
+    private Dictionary&lt;string, string&gt; FlattenConfiguration(object config, string prefix = "")
+    {
+        var result = new Dictionary&lt;string, string&gt;();
+        // Flatten nested configuration for ASP.NET Core
+        return result;
+    }
+}
+
+// Startup.cs
+public void ConfigureServices(IServiceCollection services)
+{
+    var builder = new ConfigurationBuilder()
+        .Add(new TuskConfigurationProvider("appsettings.tsk"));
+        
+    Configuration = builder.Build();
+    services.AddSingleton(Configuration);
+}
+</pre>
+
+<h3>Advanced @ Operators</h3>
+<pre>
+# advanced.tsk
+features {
+    dynamic_config: @learn("user_preferences", {
+        theme: "dark"
+        language: "en"
+    })
+    
+    auto_scaling: @optimize("instances", {
+        min: 2
+        max: 10
+        target_cpu: 70
+    })
+    
+    intelligent_cache: @cache("adaptive", @metrics("response_time") > 100 ? "5m" : "1h")
+}
+
+monitoring {
+    custom_metrics: @metrics("business_kpi", {
+        revenue: @Query("Orders").sum("amount")
+        users: @Query("Users").count()
+    })
+}
+</pre>
+
+<h3>Custom Parser Extensions</h3>
+<pre>
+public class ExtendedTuskParser : TuskLangParser
+{
+    protected override object ParseCustomFunction(string function, string[] args)
+    {
+        return function switch
+        {
+            "decrypt" => DecryptValue(args[0]),
+            "transform" => TransformData(args[0], args[1]),
+            "validate" => ValidateInput(args[0], args[1]),
+            _ => base.ParseCustomFunction(function, args)
+        };
+    }
+    
+    private string DecryptValue(string encryptedValue)
+    {
+        // Custom decryption logic
+        return DecryptionService.Decrypt(encryptedValue);
+    }
+}
+</pre>
+
+<p>Leverage advanced TuskLang features for sophisticated C# applications with custom parsing, DI integration, and intelligent configuration.</p>

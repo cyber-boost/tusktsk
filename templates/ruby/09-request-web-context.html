@@ -1,0 +1,597 @@
+<h1>Request and Web Context in TuskLang for Ruby</h1>
+
+<h2>HTTP Request Processing and Web Integration</h2>
+<p>TuskLang provides comprehensive web context handling for Ruby applications with Rack, Rails, and Sinatra integration.</p>
+
+<h3>web_context.tsk</h3>
+<pre>
+# Request Information
+request_method: @request.method
+request_path: @request.path
+request_url: @request.url
+request_ip: @request.remote_ip
+user_agent: @request.user_agent
+
+# Query Parameters
+search_query: @request.query.q
+page_number: @request.query.page|1
+limit: @request.query.limit|25
+sort_by: @request.query.sort|"created_at"
+
+# Form Data
+user_name: @request.post.name
+user_email: @request.post.email
+password: @request.post.password
+file_upload: @request.files.avatar
+
+# Headers
+content_type: @request.headers.Content-Type
+authorization: @request.headers.Authorization
+accept_language: @request.headers.Accept-Language
+custom_header: @request.headers.X-Custom-Header
+
+# Session Management
+user_id: @session.user_id
+login_time: @session.login_time
+shipping_cart: @session.cart
+preferences: @session.preferences
+
+# Cookies
+theme_preference: @cookie.theme|"light"
+language: @cookie.lang|"en"
+remember_token: @cookie.remember_token
+analytics_id: @cookie.analytics_id
+
+# Flash Messages
+success_message: @flash.success
+error_message: @flash.error
+notice: @flash.notice
+warning: @flash.warning
+
+# Authentication Context
+current_user: @auth.current_user
+is_authenticated: @auth.authenticated?
+user_roles: @auth.user_roles
+permissions: @auth.permissions
+
+# Device and Browser Detection
+is_mobile: @device.mobile?
+is_tablet: @device.tablet?
+is_desktop: @device.desktop?
+browser_name: @device.browser
+browser_version: @device.browser_version
+
+# Geolocation
+country_code: @geo.country
+region: @geo.region
+city: @geo.city
+timezone: @geo.timezone
+
+# Rails-specific Context
+controller_name: @rails.controller_name
+action_name: @rails.action_name
+route_params: @rails.params
+csrf_token: @rails.csrf_token
+
+# API Configuration
+api_key: @request.headers.X-API-Key
+api_version: @request.headers.X-API-Version|"v1"
+client_id: @request.query.client_id
+access_token: @request.headers.Authorization.split(" ")[1]
+
+# Content Negotiation
+accepts_json: @request.accepts?("application/json")
+accepts_html: @request.accepts?("text/html")
+accepts_xml: @request.accepts?("application/xml")
+preferred_format: @request.format
+
+# Request Timing
+request_start: @time()
+max_execution_time: 30
+timeout_warning: @time() + 25
+
+# Rate Limiting
+rate_limit_key: "api:#{@request.remote_ip}:#{@time().strftime('%H:%M')}"
+rate_limit_max: 100
+rate_limit_window: 3600
+
+# Response Configuration
+response_headers: {
+    "X-Frame-Options": "DENY",
+    "X-Content-Type-Options": "nosniff",
+    "X-XSS-Protection": "1; mode=block",
+    "Strict-Transport-Security": "max-age=31536000"
+}
+
+cors_headers: {
+    "Access-Control-Allow-Origin": @request.headers.Origin,
+    "Access-Control-Allow-Methods": "GET, POST, PUT, DELETE, OPTIONS",
+    "Access-Control-Allow-Headers": "Content-Type, Authorization",
+    "Access-Control-Allow-Credentials": "true"
+}
+
+# Environment-specific Settings
+web_config: {
+    development: {
+        debug_toolbar: true,
+        detailed_errors: true,
+        asset_debugging: true,
+        cache_classes: false
+    },
+    
+    test: {
+        debug_toolbar: false,
+        detailed_errors: true,
+        asset_debugging: false,
+        cache_classes: true
+    },
+    
+    production: {
+        debug_toolbar: false,
+        detailed_errors: false,
+        asset_debugging: false,
+        cache_classes: true
+    }
+}
+
+current_web_config: @web_config[@env.RAILS_ENV]
+
+# Conditional Responses
+error_response: @if(@request.accepts_json?, 
+    @json({error: @var.error_message, status: @var.status_code}),
+    @html({title: "Error", message: @var.error_message})
+)
+
+success_response: @if(@request.xhr?,
+    @json({status: "success", data: @var.result}),
+    @redirect(@var.success_url)
+)
+
+# Middleware Configuration
+middleware_stack: [
+    "Rack::CORS",
+    "Rack::Attack", 
+    "Warden::Manager",
+    "ActionDispatch::Session::CookieStore"
+]
+
+# Security Headers
+security_policy: {
+    content_security_policy: "default-src 'self'; script-src 'self' 'unsafe-inline'",
+    frame_options: "DENY",
+    content_type_options: "nosniff",
+    xss_protection: "1; mode=block"
+}
+</pre>
+
+<h3>Ruby Web Context Handler</h3>
+<pre>
+#!/usr/bin/env ruby
+
+require 'rack'
+require 'json'
+require 'ostruct'
+
+class TuskLangWebContextHandler
+  attr_reader :request, :response, :session, :env
+
+  def initialize(rack_env)
+    @env = rack_env
+    @request = Rack::Request.new(rack_env)
+    @response = Rack::Response.new
+    @session = @request.session
+    @flash = @session[:flash] || {}
+    @cookies = @request.cookies
+  end
+
+  def process_web_context(config)
+    # Process TuskLang configuration with web context
+    process_recursively(config)
+  end
+
+  def get_request_info
+    {
+      method: @request.request_method,
+      path: @request.path_info,
+      url: @request.url,
+      query_string: @request.query_string,
+      remote_ip: @request.ip,
+      user_agent: @request.user_agent,
+      referer: @request.referer,
+      scheme: @request.scheme,
+      host: @request.host,
+      port: @request.port
+    }
+  end
+
+  def get_request_headers
+    headers = {}
+    @env.each do |key, value|
+      if key.start_with?('HTTP_')
+        header_name = key[5..-1].split('_').map(&:capitalize).join('-')
+        headers[header_name] = value
+      end
+    end
+    headers
+  end
+
+  def get_query_params
+    @request.params.select { |k, v| @request.query_string.include?(k) }
+  end
+
+  def get_post_params
+    return {} unless @request.post?
+    @request.params.reject { |k, v| @request.query_string.include?(k) }
+  end
+
+  def get_uploaded_files
+    files = {}
+    @request.params.each do |key, value|
+      if value.is_a?(Hash) && value[:tempfile]
+        files[key] = {
+          filename: value[:filename],
+          content_type: value[:type],
+          size: value[:tempfile].size,
+          path: value[:tempfile].path
+        }
+      end
+    end
+    files
+  end
+
+  def detect_device
+    user_agent = @request.user_agent || ""
+    
+    mobile_agents = /Mobile|Android|iPhone|iPad|iPod|BlackBerry|Windows Phone/i
+    tablet_agents = /iPad|Android.*Tablet|Kindle|Silk/i
+    
+    {
+      mobile?: !!(user_agent =~ mobile_agents && !(user_agent =~ tablet_agents)),
+      tablet?: !!(user_agent =~ tablet_agents),
+      desktop?: !(user_agent =~ mobile_agents),
+      browser: detect_browser(user_agent),
+      platform: detect_platform(user_agent)
+    }
+  end
+
+  def detect_geolocation
+    # This would integrate with a GeoIP service
+    ip = @request.ip
+    
+    # Placeholder implementation
+    {
+      country: 'US',
+      region: 'California', 
+      city: 'San Francisco',
+      timezone: 'America/Los_Angeles',
+      latitude: 37.7749,
+      longitude: -122.4194
+    }
+  end
+
+  def get_authentication_context
+    # This would integrate with your authentication system
+    {
+      authenticated?: !!@session[:user_id],
+      current_user: get_current_user,
+      roles: get_user_roles,
+      permissions: get_user_permissions
+    }
+  end
+
+  def accepts?(content_type)
+    accept_header = @request.env['HTTP_ACCEPT'] || ''
+    accept_header.include?(content_type)
+  end
+
+  def xhr?
+    @request.xhr?
+  end
+
+  def secure?
+    @request.ssl?
+  end
+
+  def set_response_headers(headers)
+    headers.each do |key, value|
+      @response[key] = value
+    end
+  end
+
+  def set_cors_headers
+    origin = @request.env['HTTP_ORIGIN']
+    
+    if allowed_origin?(origin)
+      @response['Access-Control-Allow-Origin'] = origin
+      @response['Access-Control-Allow-Credentials'] = 'true'
+      @response['Access-Control-Allow-Methods'] = 'GET, POST, PUT, DELETE, OPTIONS'
+      @response['Access-Control-Allow-Headers'] = 'Content-Type, Authorization, X-Requested-With'
+    end
+  end
+
+  def set_security_headers
+    @response['X-Frame-Options'] = 'DENY'
+    @response['X-Content-Type-Options'] = 'nosniff'
+    @response['X-XSS-Protection'] = '1; mode=block'
+    
+    if secure?
+      @response['Strict-Transport-Security'] = 'max-age=31536000; includeSubDomains'
+    end
+  end
+
+  def render_json(data, status = 200)
+    @response.status = status
+    @response['Content-Type'] = 'application/json'
+    @response.body = [JSON.generate(data)]
+    @response
+  end
+
+  def render_html(content, status = 200)
+    @response.status = status
+    @response['Content-Type'] = 'text/html'
+    @response.body = [content]
+    @response
+  end
+
+  def redirect(location, status = 302)
+    @response.status = status
+    @response['Location'] = location
+    @response
+  end
+
+  def set_flash(type, message)
+    @session[:flash] ||= {}
+    @session[:flash][type] = message
+  end
+
+  def get_flash(type)
+    flash = @session[:flash] || {}
+    message = flash[type]
+    
+    # Clear flash after reading
+    if flash[type]
+      flash.delete(type)
+      @session[:flash] = flash
+    end
+    
+    message
+  end
+
+  private
+
+  def process_recursively(obj)
+    case obj
+    when String
+      process_web_operators(obj)
+    when Array
+      obj.map { |item| process_recursively(item) }
+    when Hash
+      obj.transform_values { |value| process_recursively(value) }
+    when OpenStruct
+      new_struct = OpenStruct.new
+      obj.each_pair do |key, value|
+        new_struct.send("#{key}=", process_recursively(value))
+      end
+      new_struct
+    else
+      obj
+    end
+  end
+
+  def process_web_operators(value)
+    return value unless value.include?('@')
+    
+    # Handle various web context operators
+    value.gsub(/@(\w+)\.(\w+(?:\.\w+)*)/) do |match|
+      namespace, path = $1, $2
+      
+      case namespace
+      when 'request'
+        get_request_value(path)
+      when 'session'
+        @session[path.to_sym] || ''
+      when 'cookie'
+        @cookies[path] || ''
+      when 'flash'
+        get_flash(path.to_sym) || ''
+      when 'auth'
+        get_auth_value(path)
+      when 'device'
+        get_device_value(path)
+      when 'geo'
+        get_geo_value(path)
+      else
+        match
+      end
+    end
+  end
+
+  def get_request_value(path)
+    case path
+    when 'method'
+      @request.request_method
+    when 'path'
+      @request.path_info
+    when 'url'
+      @request.url
+    when 'remote_ip'
+      @request.ip
+    when 'user_agent'
+      @request.user_agent
+    when /^query\.(\w+)$/
+      @request.params[$1]
+    when /^post\.(\w+)$/
+      get_post_params[$1]
+    when /^headers\.(\w+)$/
+      header_name = $1.gsub('-', '_').upcase
+      @env["HTTP_#{header_name}"]
+    else
+      ''
+    end
+  end
+
+  def get_auth_value(path)
+    auth_context = get_authentication_context
+    
+    case path
+    when 'authenticated?'
+      auth_context[:authenticated?]
+    when 'current_user'
+      auth_context[:current_user]
+    when 'roles'
+      auth_context[:roles]
+    when 'permissions'
+      auth_context[:permissions]
+    else
+      ''
+    end
+  end
+
+  def get_device_value(path)
+    device_info = detect_device
+    device_info[path.to_sym] || ''
+  end
+
+  def get_geo_value(path)
+    geo_info = detect_geolocation
+    geo_info[path.to_sym] || ''
+  end
+
+  def detect_browser(user_agent)
+    case user_agent
+    when /Chrome/
+      'Chrome'
+    when /Firefox/
+      'Firefox'
+    when /Safari/
+      'Safari'
+    when /Edge/
+      'Edge'
+    else
+      'Unknown'
+    end
+  end
+
+  def detect_platform(user_agent)
+    case user_agent
+    when /Windows/
+      'Windows'
+    when /Mac/
+      'macOS'
+    when /Linux/
+      'Linux'
+    when /Android/
+      'Android'
+    when /iOS/
+      'iOS'
+    else
+      'Unknown'
+    end
+  end
+
+  def get_current_user
+    return nil unless @session[:user_id]
+    
+    # This would fetch from your user model
+    OpenStruct.new(
+      id: @session[:user_id],
+      name: @session[:user_name] || 'Unknown',
+      email: @session[:user_email]
+    )
+  end
+
+  def get_user_roles
+    return [] unless @session[:user_id]
+    @session[:user_roles] || ['user']
+  end
+
+  def get_user_permissions
+    return [] unless @session[:user_id]
+    @session[:user_permissions] || []
+  end
+
+  def allowed_origin?(origin)
+    # Define allowed origins for CORS
+    allowed_origins = [
+      'http://localhost:3000',
+      'https://myapp.com',
+      'https://www.myapp.com'
+    ]
+    
+    allowed_origins.include?(origin)
+  end
+end
+
+# Rack application example
+class TuskLangWebApp
+  def call(env)
+    handler = TuskLangWebContextHandler.new(env)
+    
+    # Load TuskLang configuration with web context
+    config = load_config_with_context(handler)
+    
+    # Set security headers
+    handler.set_security_headers
+    handler.set_cors_headers if handler.request.options?
+    
+    # Route handling
+    case handler.request.path_info
+    when '/api/status'
+      handle_api_status(handler, config)
+    when '/api/user'
+      handle_api_user(handler, config)
+    else
+      handle_not_found(handler)
+    end
+  end
+
+  private
+
+  def load_config_with_context(handler)
+    # Load your TuskLang configuration here
+    config = {
+      app_name: 'Ruby Web Demo',
+      user_agent: '@request.user_agent',
+      is_mobile: '@device.mobile?',
+      current_user: '@auth.current_user'
+    }
+    
+    handler.process_web_context(config)
+  end
+
+  def handle_api_status(handler, config)
+    status_data = {
+      status: 'ok',
+      timestamp: Time.now.iso8601,
+      app_name: config[:app_name],
+      user_agent: config[:user_agent],
+      is_mobile: config[:is_mobile]
+    }
+    
+    handler.render_json(status_data)
+  end
+
+  def handle_api_user(handler, config)
+    if config[:current_user]
+      handler.render_json(config[:current_user])
+    else
+      handler.render_json({error: 'Not authenticated'}, 401)
+    end
+  end
+
+  def handle_not_found(handler)
+    handler.render_json({error: 'Not found'}, 404)
+  end
+end
+
+if __FILE__ == $0
+  # Example usage
+  app = TuskLangWebApp.new
+  
+  # This would be run with a Rack server:
+  # rackup -p 3000
+  puts "TuskLang Web Context Demo"
+  puts "Run with: rackup -p 3000"
+end</pre>
+
+<p>TuskLang's web context integration provides seamless HTTP request processing and response generation for Ruby web applications.</p>

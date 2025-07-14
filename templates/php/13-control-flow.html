@@ -1,0 +1,425 @@
+<h1>Control Flow</h1>
+
+<h2>Control Flow in TuskLang PHP</h2>
+<p>TuskLang supports conditional logic, loops, and dynamic configuration through control flow constructs.</p>
+
+<h3>Conditional Expressions</h3>
+<pre>
+# Ternary operators
+environment: env("APP_ENV", "production")
+debug_mode: environment == "development" ? true : false
+log_level: debug_mode ? "debug" : "info"
+workers: environment == "production" ? 8 : 2
+
+# Complex conditions
+ssl_enabled: environment == "production" && env("SSL", "true") == "true"
+cache_driver: environment == "production" ? "redis" : "file"
+database_pool: environment == "production" ? 20 : 5
+</pre>
+
+<h3>Hash Directive Conditionals</h3>
+<pre>
+#!if env("APP_ENV") == "production"
+# Production-only configuration
+ssl {
+    enabled: true
+    cert_path: "/etc/ssl/certs/app.crt"
+    key_path: "/etc/ssl/private/app.key"
+}
+
+logging {
+    level: "error"
+    file: "/var/log/app.log"
+    rotate: true
+}
+#!endif
+
+#!if env("APP_ENV") == "development"
+# Development-only configuration
+debug {
+    enabled: true
+    show_errors: true
+    log_queries: true
+}
+
+hot_reload: true
+cors_enabled: true
+#!endif
+
+#!unless env("DISABLE_ANALYTICS")
+# Include unless analytics is disabled
+analytics {
+    enabled: true
+    tracking_id: env("GA_TRACKING_ID")
+    events: ["page_view", "click", "purchase"]
+}
+#!endunless
+</pre>
+
+<h3>Database-Driven Conditionals</h3>
+<pre>
+# Feature flags from database
+new_ui_enabled: @query("SELECT enabled FROM feature_flags WHERE name = 'new_ui'")
+api_v2_enabled: @query("SELECT enabled FROM feature_flags WHERE name = 'api_v2'")
+
+# Conditional configuration based on database
+ui_config: new_ui_enabled ? {
+    theme: "modern"
+    layout: "grid"
+    animations: true
+} : {
+    theme: "classic"
+    layout: "list"
+    animations: false
+}
+
+api_config: api_v2_enabled ? {
+    version: "v2"
+    endpoint: "/api/v2"
+    rate_limit: 1000
+} : {
+    version: "v1"
+    endpoint: "/api/v1"
+    rate_limit: 500
+}
+
+# User role-based configuration
+user_role: @query("SELECT role FROM users WHERE id = ?", [user_id])
+permissions: user_role == "admin" ? [
+    "read", "write", "delete", "manage_users"
+] : user_role == "editor" ? [
+    "read", "write"
+] : [
+    "read"
+]
+</pre>
+
+<h3>PHP Implementation</h3>
+<pre>
+&lt;?php
+namespace TuskLang\ControlFlow;
+
+class ConditionalProcessor {
+    private array $variables = [];
+    
+    public function evaluateCondition(string $expression): bool {
+        // Simple expression evaluator
+        $expression = $this->replaceVariables($expression);
+        
+        // Handle comparison operators
+        if (preg_match('/(.*?)\s*(==|!=|>|<|>=|<=)\s*(.*?)/', $expression, $matches)) {
+            $left = $this->parseValue(trim($matches[1]));
+            $operator = $matches[2];
+            $right = $this->parseValue(trim($matches[3]));
+            
+            return match($operator) {
+                '==' => $left == $right,
+                '!=' => $left != $right,
+                '>' => $left > $right,
+                '<' => $left < $right,
+                '>=' => $left >= $right,
+                '<=' => $left <= $right,
+                default => false
+            };
+        }
+        
+        // Handle logical operators
+        if (strpos($expression, '&&') !== false) {
+            $parts = explode('&&', $expression);
+            foreach ($parts as $part) {
+                if (!$this->evaluateCondition(trim($part))) {
+                    return false;
+                }
+            }
+            return true;
+        }
+        
+        if (strpos($expression, '||') !== false) {
+            $parts = explode('||', $expression);
+            foreach ($parts as $part) {
+                if ($this->evaluateCondition(trim($part))) {
+                    return true;
+                }
+            }
+            return false;
+        }
+        
+        // Simple boolean evaluation
+        return $this->parseValue($expression) ? true : false;
+    }
+    
+    public function evaluateTernary(string $expression) {
+        if (preg_match('/(.*?)\s*\?\s*(.*?)\s*:\s*(.*?)$/', $expression, $matches)) {
+            $condition = trim($matches[1]);
+            $trueValue = trim($matches[2]);
+            $falseValue = trim($matches[3]);
+            
+            if ($this->evaluateCondition($condition)) {
+                return $this->parseValue($trueValue);
+            } else {
+                return $this->parseValue($falseValue);
+            }
+        }
+        
+        return $this->parseValue($expression);
+    }
+    
+    private function replaceVariables(string $expression): string {
+        return preg_replace_callback('/\b([a-zA-Z_][a-zA-Z0-9_.]*)\b/', function($matches) {
+            $var = $matches[1];
+            return $this->getVariable($var) ?? $var;
+        }, $expression);
+    }
+    
+    private function parseValue($value) {
+        $value = trim($value);
+        
+        // Remove quotes
+        if (preg_match('/^["\'](.*)["\'\']$/', $value, $matches)) {
+            return $matches[1];
+        }
+        
+        // Numbers
+        if (is_numeric($value)) {
+            return strpos($value, '.') !== false ? (float)$value : (int)$value;
+        }
+        
+        // Booleans
+        if ($value === 'true') return true;
+        if ($value === 'false') return false;
+        if ($value === 'null') return null;
+        
+        // Variables
+        return $this->getVariable($value) ?? $value;
+    }
+    
+    private function getVariable(string $name) {
+        return $this->variables[$name] ?? null;
+    }
+    
+    public function setVariable(string $name, $value): void {
+        $this->variables[$name] = $value;
+    }
+}
+</pre>
+
+<h3>Loops and Iteration</h3>
+<pre>
+# Array iteration with conditions
+users: @query("SELECT * FROM users")
+active_users: @filter(users, function($user) {
+    return $user.active == true;
+})
+
+admin_users: @filter(users, function($user) {
+    return $user.role == "admin";
+})
+
+# Transform arrays
+user_emails: @map(active_users, function($user) {
+    return $user.email;
+})
+
+user_summaries: @map(users, function($user) {
+    return {
+        name: $user.name,
+        status: $user.active ? "active" : "inactive",
+        last_login: $user.last_login ?? "never"
+    };
+})
+
+# Reduce operations
+total_revenue: @reduce(@query("SELECT amount FROM orders"), function($carry, $order) {
+    return $carry + $order.amount;
+}, 0)
+
+average_score: @reduce(@query("SELECT score FROM reviews"), function($carry, $review, $index, $array) {
+    $total = $carry + $review.score;
+    return $index == count($array) - 1 ? $total / count($array) : $total;
+}, 0)
+</pre>
+
+<h3>Switch-like Behavior</h3>
+<pre>
+# Multi-condition configuration
+environment: env("APP_ENV", "production")
+
+config: environment == "development" ? {
+    debug: true,
+    log_level: "debug",
+    cache_ttl: 60
+} : environment == "staging" ? {
+    debug: false,
+    log_level: "info",
+    cache_ttl: 300
+} : environment == "production" ? {
+    debug: false,
+    log_level: "error",
+    cache_ttl: 3600
+} : {
+    debug: false,
+    log_level: "warning",
+    cache_ttl: 1800
+}
+
+# Database driver configuration
+db_driver: env("DB_DRIVER", "mysql")
+
+db_config: db_driver == "mysql" ? {
+    host: env("MYSQL_HOST", "localhost"),
+    port: 3306,
+    charset: "utf8mb4"
+} : db_driver == "pgsql" ? {
+    host: env("PGSQL_HOST", "localhost"),
+    port: 5432,
+    charset: "utf8"
+} : db_driver == "sqlite" ? {
+    database: env("SQLITE_PATH", "database.sqlite"),
+    foreign_keys: true
+} : {
+    error: "Unsupported database driver: " + db_driver
+}
+</pre>
+
+<h3>Dynamic Configuration Loading</h3>
+<pre>
+# Load configuration based on conditions
+base_config: file("config/base.tsk")
+environment: env("APP_ENV", "production")
+
+# Merge environment-specific config
+env_config: file("config/" + environment + ".tsk")
+
+# Feature-specific configs
+features_enabled: @query("SELECT name FROM feature_flags WHERE enabled = 1")
+
+feature_configs: @map(features_enabled, function($feature) {
+    $config_file = "config/features/" + $feature.name + ".tsk";
+    return file_exists($config_file) ? file($config_file) : {};
+})
+
+# Merge all configurations
+final_config: @merge(base_config, env_config, ...feature_configs)
+</pre>
+
+<h3>Laravel Integration</h3>
+<pre>
+&lt;?php
+// Laravel service for conditional configuration
+namespace App\Services;
+
+use TuskLang\ControlFlow\ConditionalProcessor;
+use TuskLang\TuskLangEnhanced;
+
+class ConditionalConfigService {
+    private ConditionalProcessor $processor;
+    private TuskLangEnhanced $parser;
+    
+    public function __construct() {
+        $this->processor = new ConditionalProcessor();
+        $this->parser = new TuskLangEnhanced();
+    }
+    
+    public function loadConditionalConfig(string $file, array $context = []): array {
+        // Set context variables
+        foreach ($context as $name => $value) {
+            $this->processor->setVariable($name, $value);
+        }
+        
+        // Parse configuration with conditionals
+        $config = $this->parser->parseFile($file);
+        
+        return $this->processConditionals($config);
+    }
+    
+    private function processConditionals(array $config): array {
+        $processed = [];
+        
+        foreach ($config as $key => $value) {
+            if (is_string($value) && $this->isTernary($value)) {
+                $processed[$key] = $this->processor->evaluateTernary($value);
+            } elseif (is_array($value)) {
+                $processed[$key] = $this->processConditionals($value);
+            } else {
+                $processed[$key] = $value;
+            }
+        }
+        
+        return $processed;
+    }
+    
+    private function isTernary(string $value): bool {
+        return strpos($value, '?') !== false && strpos($value, ':') !== false;
+    }
+}
+
+// Usage in controller
+class ConfigController {
+    public function getUserConfig(Request $request) {
+        $service = new ConditionalConfigService();
+        
+        $config = $service->loadConditionalConfig('user-config.tsk', [
+            'user_id' => auth()->id(),
+            'user_role' => auth()->user()->role,
+            'environment' => app()->environment()
+        ]);
+        
+        return response()->json($config);
+    }
+}
+</pre>
+
+<h3>Error Handling in Control Flow</h3>
+<pre>
+# Safe conditionals with fallbacks
+api_enabled: @try(@query("SELECT enabled FROM features WHERE name = 'api'"), false)
+max_users: @try(@query("SELECT value FROM settings WHERE key = 'max_users'"), 1000)
+
+# Default configurations for error cases
+db_config: @try(file("config/database.tsk"), {
+    driver: "sqlite",
+    database: ":memory:"
+})
+
+# Conditional error handling
+environment: env("APP_ENV", "production")
+error_reporting: environment == "development" ? {
+    display_errors: true,
+    log_errors: true,
+    error_level: "E_ALL"
+} : {
+    display_errors: false,
+    log_errors: true,
+    error_level: "E_ERROR"
+}
+</pre>
+
+<h3>Performance Considerations</h3>
+<pre>
+# Cache conditional results
+expensive_condition: @cache("feature_check", "5m", @query("SELECT enabled FROM expensive_feature_check()"))
+
+# Lazy evaluation
+complex_config: expensive_condition ? @lazy({
+    data: @query("SELECT * FROM expensive_operation()")
+}) : {
+    data: []
+}
+
+# Optimize database conditions
+user_permissions: @cache("user_perms_" + string(user_id), "1h", 
+    @query("SELECT permission FROM user_permissions WHERE user_id = ?", [user_id])
+)
+</pre>
+
+<h3>Best Practices</h3>
+<ul>
+    <li>Keep conditional expressions simple and readable</li>
+    <li>Use hash directives for environment-specific configurations</li>
+    <li>Cache results of expensive conditional evaluations</li>
+    <li>Provide fallback values for all conditional expressions</li>
+    <li>Use database-driven feature flags for runtime configuration</li>
+    <li>Test all conditional branches thoroughly</li>
+    <li>Avoid deeply nested conditional logic</li>
+    <li>Document complex conditional configurations</li>
+</ul>

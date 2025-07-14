@@ -1,0 +1,45 @@
+#!api
+# 👥 Users API Endpoint
+# ===================
+# Demonstrates database queries with intelligent caching
+
+# Cache active users for 5 minutes
+active_users: @cache("5m", @Query("users").equalTo("status", "active").findAll())
+
+# Get user count with metrics tracking
+total_users: @metrics("user_count", @Query("users").count())
+
+# Smart pagination based on request parameters
+page: @request.query.page || 1
+limit: @request.query.limit || 10
+offset: (page - 1) * limit
+
+# Paginated results with intelligent optimization
+users: @optimize("user_query", @Query("users").limit(limit).skip(offset).findAll())
+
+# Learning-based response optimization
+response_format: @learn("preferred_format", "detailed")
+
+# Build response based on request method
+response: @json({
+    success: true,
+    data: {
+        users: users,
+        active_count: active_users.length,
+        total_count: total_users,
+        pagination: {
+            page: page,
+            limit: limit,
+            has_more: users.length == limit
+        }
+    },
+    meta: {
+        cached_active: @cache("5m", php(time())),
+        request_method: @request.method,
+        request_time: @request.timestamp,
+        format: response_format
+    }
+})
+
+# Return the response
+response 

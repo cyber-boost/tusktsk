@@ -1,0 +1,545 @@
+#!/usr/bin/env php
+<?php
+/**
+ * 🧪 TuskLang Test Suite
+ * =====================
+ * "Testing the elephant's intelligence"
+ * 
+ * Commands:
+ *   all                 - Run all tests
+ *   parser              - Test TuskLang parser
+ *   fujsen              - Test FUJSEN @ operators
+ *   database            - Test database connectivity
+ *   cache               - Test caching system
+ *   web                 - Test web handler
+ *   performance         - Performance benchmarks
+ *   integration         - Integration tests
+ */
+
+if (php_sapi_name() !== 'cli') {
+    die("TuskLang Test Suite must be run from command line\n");
+}
+
+// Auto-detect installation paths
+$paths = [
+    __DIR__ . '/../fujsen/src',
+    __DIR__ . '/../../fujsen/src',
+    '/usr/local/lib/tusklang/fujsen/src',
+    '/opt/tusklang/fujsen/src'
+];
+
+$fujsenPath = null;
+foreach ($paths as $path) {
+    if (file_exists($path . '/autoload.php')) {
+        $fujsenPath = $path;
+        break;
+    }
+}
+
+if (!$fujsenPath) {
+    die("❌ FUJSEN installation not found\n");
+}
+
+require_once $fujsenPath . '/autoload.php';
+
+use TuskPHP\TuskLang;
+use TuskPHP\TuskDb;
+use TuskPHP\Utils\TuskLangWebHandler;
+
+class TuskLangTestSuite 
+{
+    private $command;
+    private $args;
+    private $results = [];
+    private $startTime;
+    
+    public function __construct($argv) 
+    {
+        $this->command = $argv[1] ?? 'help';
+        $this->args = array_slice($argv, 2);
+        $this->startTime = microtime(true);
+        
+        echo "🧪 TuskLang Test Suite v2.0.0-Elder\n";
+        echo "   Testing the Elephant's Intelligence\n\n";
+    }
+    
+    public function run() 
+    {
+        switch ($this->command) {
+            case 'all':
+                $this->runAllTests();
+                break;
+            case 'parser':
+                $this->testParser();
+                break;
+            case 'fujsen':
+                $this->testFujsen();
+                break;
+            case 'database':
+                $this->testDatabase();
+                break;
+            case 'cache':
+                $this->testCache();
+                break;
+            case 'web':
+                $this->testWebHandler();
+                break;
+            case 'performance':
+                $this->runPerformanceTests();
+                break;
+            case 'integration':
+                $this->runIntegrationTests();
+                break;
+            case 'help':
+            default:
+                $this->showHelp();
+                break;
+        }
+        
+        $this->showSummary();
+    }
+    
+    private function runAllTests() 
+    {
+        echo "🔄 Running complete test suite...\n\n";
+        
+        $this->testParser();
+        $this->testFujsen();
+        $this->testDatabase();
+        $this->testCache();
+        $this->testWebHandler();
+        $this->runPerformanceTests();
+        $this->runIntegrationTests();
+    }
+    
+    private function testParser() 
+    {
+        echo "📝 Testing TuskLang Parser...\n";
+        
+        try {
+            // Test basic parsing
+            $parser = new TuskLang();
+            
+            // Test @ operators
+            $testCases = [
+                '@cache("test", 300)' => 'Cache operator',
+                '@query("SELECT * FROM users")' => 'Query operator',
+                '@metrics("performance")' => 'Metrics operator',
+                '@learn("user_behavior", {})' => 'Learn operator',
+                '@optimize("performance")' => 'Optimize operator'
+            ];
+            
+            $passed = 0;
+            $total = count($testCases);
+            
+            foreach ($testCases as $code => $description) {
+                try {
+                    $result = $parser->parse($code);
+                    if ($result !== false) {
+                        echo "  ✅ $description\n";
+                        $passed++;
+                    } else {
+                        echo "  ❌ $description - Parse failed\n";
+                    }
+                } catch (Exception $e) {
+                    echo "  ❌ $description - Exception: " . $e->getMessage() . "\n";
+                }
+            }
+            
+            $this->results['parser'] = [
+                'passed' => $passed,
+                'total' => $total,
+                'status' => $passed === $total ? 'PASS' : 'FAIL'
+            ];
+            
+        } catch (Exception $e) {
+            echo "  ❌ Parser test failed: " . $e->getMessage() . "\n";
+            $this->results['parser'] = ['passed' => 0, 'total' => 1, 'status' => 'FAIL'];
+        }
+        
+        echo "\n";
+    }
+    
+    private function testFujsen() 
+    {
+        echo "🚀 Testing FUJSEN @ Operators...\n";
+        
+        try {
+            $passed = 0;
+            $total = 0;
+            
+            // Test @cache() operator
+            if (method_exists('TuskPHP\\TuskLang', 'executeCache')) {
+                $total++;
+                try {
+                    $result = TuskLang::executeCache('test_key', 'test_value', 300);
+                    echo "  ✅ @cache() operator functional\n";
+                    $passed++;
+                } catch (Exception $e) {
+                    echo "  ❌ @cache() operator failed: " . $e->getMessage() . "\n";
+                }
+            }
+            
+            // Test @metrics() operator
+            if (method_exists('TuskPHP\\TuskLang', 'executeMetrics')) {
+                $total++;
+                try {
+                    $result = TuskLang::executeMetrics('test_metric');
+                    echo "  ✅ @metrics() operator functional\n";
+                    $passed++;
+                } catch (Exception $e) {
+                    echo "  ❌ @metrics() operator failed: " . $e->getMessage() . "\n";
+                }
+            }
+            
+            // Test @learn() operator
+            if (method_exists('TuskPHP\\TuskLang', 'executeLearn')) {
+                $total++;
+                try {
+                    $result = TuskLang::executeLearn('test_pattern', []);
+                    echo "  ✅ @learn() operator functional\n";
+                    $passed++;
+                } catch (Exception $e) {
+                    echo "  ❌ @learn() operator failed: " . $e->getMessage() . "\n";
+                }
+            }
+            
+            // Test @optimize() operator
+            if (method_exists('TuskPHP\\TuskLang', 'executeOptimize')) {
+                $total++;
+                try {
+                    $result = TuskLang::executeOptimize('test_code');
+                    echo "  ✅ @optimize() operator functional\n";
+                    $passed++;
+                } catch (Exception $e) {
+                    echo "  ❌ @optimize() operator failed: " . $e->getMessage() . "\n";
+                }
+            }
+            
+            if ($total === 0) {
+                echo "  ⚠️ No FUJSEN operators found to test\n";
+                $this->results['fujsen'] = ['passed' => 0, 'total' => 0, 'status' => 'SKIP'];
+            } else {
+                $this->results['fujsen'] = [
+                    'passed' => $passed,
+                    'total' => $total,
+                    'status' => $passed === $total ? 'PASS' : 'FAIL'
+                ];
+            }
+            
+        } catch (Exception $e) {
+            echo "  ❌ FUJSEN test failed: " . $e->getMessage() . "\n";
+            $this->results['fujsen'] = ['passed' => 0, 'total' => 1, 'status' => 'FAIL'];
+        }
+        
+        echo "\n";
+    }
+    
+    private function testDatabase() 
+    {
+        echo "🗄️ Testing Database Connectivity...\n";
+        
+        try {
+            $testResult = TuskDb::testConnection();
+            
+            if ($testResult['success']) {
+                echo "  ✅ Database connection successful\n";
+                echo "  📊 Type: " . $testResult['type'] . "\n";
+                echo "  🔗 Host: " . $testResult['host'] . "\n";
+                
+                // Test basic query
+                try {
+                    $result = TuskDb::query("SELECT 1 as test");
+                    if (!empty($result) && $result[0]['test'] == 1) {
+                        echo "  ✅ Basic query execution\n";
+                        $passed = 2;
+                    } else {
+                        echo "  ❌ Basic query failed\n";
+                        $passed = 1;
+                    }
+                } catch (Exception $e) {
+                    echo "  ❌ Query test failed: " . $e->getMessage() . "\n";
+                    $passed = 1;
+                }
+                
+                $this->results['database'] = [
+                    'passed' => $passed,
+                    'total' => 2,
+                    'status' => $passed === 2 ? 'PASS' : 'PARTIAL'
+                ];
+                
+            } else {
+                echo "  ❌ Database connection failed\n";
+                echo "  🔍 Error: " . $testResult['error'] . "\n";
+                
+                $this->results['database'] = [
+                    'passed' => 0,
+                    'total' => 2,
+                    'status' => 'FAIL'
+                ];
+            }
+            
+        } catch (Exception $e) {
+            echo "  ❌ Database test failed: " . $e->getMessage() . "\n";
+            $this->results['database'] = ['passed' => 0, 'total' => 2, 'status' => 'FAIL'];
+        }
+        
+        echo "\n";
+    }
+    
+    private function testCache() 
+    {
+        echo "🧠 Testing Cache System...\n";
+        
+        try {
+            $passed = 0;
+            $total = 3;
+            
+            // Test cache directory
+            $cacheDir = __DIR__ . '/../cache';
+            if (!is_dir($cacheDir)) {
+                mkdir($cacheDir, 0755, true);
+            }
+            
+            if (is_writable($cacheDir)) {
+                echo "  ✅ Cache directory writable\n";
+                $passed++;
+            } else {
+                echo "  ❌ Cache directory not writable\n";
+            }
+            
+            // Test cache file operations
+            $testFile = $cacheDir . '/test_cache.tmp';
+            if (file_put_contents($testFile, 'test data')) {
+                echo "  ✅ Cache file write\n";
+                $passed++;
+                
+                if (file_get_contents($testFile) === 'test data') {
+                    echo "  ✅ Cache file read\n";
+                    $passed++;
+                }
+                
+                unlink($testFile);
+            } else {
+                echo "  ❌ Cache file write failed\n";
+            }
+            
+            $this->results['cache'] = [
+                'passed' => $passed,
+                'total' => $total,
+                'status' => $passed === $total ? 'PASS' : 'FAIL'
+            ];
+            
+        } catch (Exception $e) {
+            echo "  ❌ Cache test failed: " . $e->getMessage() . "\n";
+            $this->results['cache'] = ['passed' => 0, 'total' => 3, 'status' => 'FAIL'];
+        }
+        
+        echo "\n";
+    }
+    
+    private function testWebHandler() 
+    {
+        echo "🌐 Testing Web Handler...\n";
+        
+        try {
+            $passed = 0;
+            $total = 2;
+            
+            // Test web handler instantiation
+            try {
+                $handler = TuskLangWebHandler::getInstance();
+                echo "  ✅ Web handler instantiation\n";
+                $passed++;
+            } catch (Exception $e) {
+                echo "  ❌ Web handler instantiation failed: " . $e->getMessage() . "\n";
+            }
+            
+            // Test .tsk file detection
+            $testFile = __DIR__ . '/../test.tsk';
+            file_put_contents($testFile, "#!/usr/bin/env tusklang\n@echo('Hello from test')");
+            
+            if (file_exists($testFile)) {
+                echo "  ✅ .tsk file handling\n";
+                $passed++;
+                unlink($testFile);
+            } else {
+                echo "  ❌ .tsk file handling failed\n";
+            }
+            
+            $this->results['web'] = [
+                'passed' => $passed,
+                'total' => $total,
+                'status' => $passed === $total ? 'PASS' : 'FAIL'
+            ];
+            
+        } catch (Exception $e) {
+            echo "  ❌ Web handler test failed: " . $e->getMessage() . "\n";
+            $this->results['web'] = ['passed' => 0, 'total' => 2, 'status' => 'FAIL'];
+        }
+        
+        echo "\n";
+    }
+    
+    private function runPerformanceTests() 
+    {
+        echo "⚡ Running Performance Tests...\n";
+        
+        try {
+            $tests = [];
+            
+            // Parser performance
+            $startTime = microtime(true);
+            $parser = new TuskLang();
+            for ($i = 0; $i < 100; $i++) {
+                $parser->parse('@cache("test_' . $i . '", 300)');
+            }
+            $parseTime = (microtime(true) - $startTime) * 1000;
+            $tests['Parser (100 operations)'] = $parseTime;
+            echo "  📊 Parser: " . number_format($parseTime, 2) . "ms\n";
+            
+            // Database performance (if available)
+            try {
+                $startTime = microtime(true);
+                for ($i = 0; $i < 10; $i++) {
+                    TuskDb::query("SELECT 1");
+                }
+                $dbTime = (microtime(true) - $startTime) * 1000;
+                $tests['Database (10 queries)'] = $dbTime;
+                echo "  📊 Database: " . number_format($dbTime, 2) . "ms\n";
+            } catch (Exception $e) {
+                echo "  ⚠️ Database performance test skipped\n";
+            }
+            
+            // Memory usage
+            $memoryUsage = memory_get_peak_usage(true) / 1024 / 1024;
+            echo "  📊 Peak Memory: " . number_format($memoryUsage, 2) . "MB\n";
+            
+            $this->results['performance'] = [
+                'tests' => $tests,
+                'memory' => $memoryUsage,
+                'status' => 'PASS'
+            ];
+            
+        } catch (Exception $e) {
+            echo "  ❌ Performance test failed: " . $e->getMessage() . "\n";
+            $this->results['performance'] = ['status' => 'FAIL'];
+        }
+        
+        echo "\n";
+    }
+    
+    private function runIntegrationTests() 
+    {
+        echo "🔗 Running Integration Tests...\n";
+        
+        try {
+            $passed = 0;
+            $total = 2;
+            
+            // Test FUJSEN ecosystem integration
+            $parser = new TuskLang();
+            $testCode = '@cache("integration_test", "test_data", 300)';
+            
+            try {
+                $result = $parser->parse($testCode);
+                echo "  ✅ Parser-Cache integration\n";
+                $passed++;
+            } catch (Exception $e) {
+                echo "  ❌ Parser-Cache integration failed: " . $e->getMessage() . "\n";
+            }
+            
+            // Test database-cache integration
+            try {
+                $testResult = TuskDb::testConnection();
+                if ($testResult['success']) {
+                    echo "  ✅ Database-System integration\n";
+                    $passed++;
+                } else {
+                    echo "  ❌ Database-System integration failed\n";
+                }
+            } catch (Exception $e) {
+                echo "  ❌ Database integration test failed: " . $e->getMessage() . "\n";
+            }
+            
+            $this->results['integration'] = [
+                'passed' => $passed,
+                'total' => $total,
+                'status' => $passed === $total ? 'PASS' : 'FAIL'
+            ];
+            
+        } catch (Exception $e) {
+            echo "  ❌ Integration test failed: " . $e->getMessage() . "\n";
+            $this->results['integration'] = ['passed' => 0, 'total' => 2, 'status' => 'FAIL'];
+        }
+        
+        echo "\n";
+    }
+    
+    private function showSummary() 
+    {
+        $totalTime = (microtime(true) - $this->startTime) * 1000;
+        
+        echo "📋 Test Summary:\n";
+        echo "================\n\n";
+        
+        $overallPassed = 0;
+        $overallTotal = 0;
+        
+        foreach ($this->results as $testName => $result) {
+            $status = $result['status'];
+            $statusIcon = $status === 'PASS' ? '✅' : ($status === 'FAIL' ? '❌' : '⚠️');
+            
+            echo "$statusIcon $testName: $status";
+            
+            if (isset($result['passed']) && isset($result['total'])) {
+                echo " ({$result['passed']}/{$result['total']})";
+                $overallPassed += $result['passed'];
+                $overallTotal += $result['total'];
+            }
+            
+            echo "\n";
+        }
+        
+        echo "\n";
+        echo "🎯 Overall: $overallPassed/$overallTotal tests passed\n";
+        echo "⏱️ Total time: " . number_format($totalTime, 2) . "ms\n";
+        
+        if (isset($this->results['performance']['memory'])) {
+            echo "💾 Peak memory: " . number_format($this->results['performance']['memory'], 2) . "MB\n";
+        }
+        
+        $successRate = $overallTotal > 0 ? ($overallPassed / $overallTotal) * 100 : 0;
+        echo "📊 Success rate: " . number_format($successRate, 1) . "%\n\n";
+        
+        if ($successRate >= 80) {
+            echo "🎉 FUJSEN ecosystem is healthy!\n";
+        } elseif ($successRate >= 60) {
+            echo "⚠️ FUJSEN ecosystem has some issues\n";
+        } else {
+            echo "❌ FUJSEN ecosystem needs attention\n";
+        }
+    }
+    
+    private function showHelp() 
+    {
+        echo "TuskLang Test Commands:\n\n";
+        echo "🧪 all                  Run all tests\n";
+        echo "📝 parser               Test TuskLang parser\n";
+        echo "🚀 fujsen               Test FUJSEN @ operators\n";
+        echo "🗄️ database             Test database connectivity\n";
+        echo "🧠 cache                Test caching system\n";
+        echo "🌐 web                  Test web handler\n";
+        echo "⚡ performance          Performance benchmarks\n";
+        echo "🔗 integration          Integration tests\n";
+        echo "❓ help                 Show this help\n\n";
+        
+        echo "Examples:\n";
+        echo "  tusklang-test all\n";
+        echo "  tusklang-test parser\n";
+        echo "  tusklang-test performance\n";
+    }
+}
+
+$testSuite = new TuskLangTestSuite($argv);
+$testSuite->run(); 

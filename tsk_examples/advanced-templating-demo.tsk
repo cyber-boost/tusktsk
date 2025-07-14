@@ -1,0 +1,257 @@
+# 🎨 Advanced Templating Demo - TuskLang
+# =====================================
+# "Templates that think, loop, include, and expand like magic"
+# 
+# This file demonstrates all advanced templating features:
+# - Conditional compilation (@if, @unless, @switch)
+# - Loop constructs (@foreach, @while, @for)
+# - Include/import system (@include, @import)
+# - Macro definitions and expansion (@macro, @call)
+#
+# Strong. Secure. Scalable. 🐘🎨
+
+# Sample data for demonstrations
+users: [
+    {name: "Alice", role: "admin", active: true, age: 28},
+    {name: "Bob", role: "user", active: true, age: 32},
+    {name: "Charlie", role: "moderator", active: false, age: 25},
+    {name: "Diana", role: "user", active: true, age: 29}
+]
+
+settings: {
+    debug_mode: true
+    theme: "dark"
+    language: "en"
+    features: ["search", "notifications", "analytics"]
+}
+
+# 1. CONDITIONAL COMPILATION EXAMPLES
+
+# @if directive
+@if(@settings.debug_mode)
+debug_info: "Application is running in debug mode"
+log_level: "debug"
+@endif
+
+# @unless directive (opposite of @if)
+@unless(@settings.debug_mode)
+production_warning: "Running in production mode - be careful!"
+@endunless
+
+# @switch directive
+@switch(@settings.theme)
+@case("dark")
+theme_colors: {
+    background: "#1a1a1a"
+    text: "#ffffff"
+    accent: "#3498db"
+}
+@case("light")
+theme_colors: {
+    background: "#ffffff"
+    text: "#333333"
+    accent: "#2980b9"
+}
+@default
+theme_colors: {
+    background: "#f5f5f5"
+    text: "#000000"
+    accent: "#e74c3c"
+}
+@endswitch
+
+# 2. LOOP CONSTRUCTS EXAMPLES
+
+# @foreach loop with array
+@foreach(@users as user)
+user_profile: """
+Name: ${user.name}
+Role: ${user.role}
+Status: ${user.active ? 'Active' : 'Inactive'}
+Age: ${user.age}
+"""
+@endforeach
+
+# @foreach loop with key-value pairs
+@foreach(@settings as key => value)
+setting_item: "${key}: ${value}"
+@endforeach
+
+# @while loop example
+counter: 0
+@while(@counter < 5)
+iteration: "This is iteration number ${counter}"
+@counter = @counter + 1
+@endwhile
+
+# @for loop example
+@for(@i = 0; @i < 3; @i = @i + 1)
+square: "${i} squared is ${i * i}"
+@endfor
+
+# 3. INCLUDE/IMPORT SYSTEM EXAMPLES
+
+# Include a template file
+@include("templates/header.html", {
+    title: "Advanced Templating Demo",
+    description: "Showcasing TuskLang's powerful templating features"
+})
+
+# Import from plugin
+@import("database-optimizer/templates/dashboard.html", {
+    show_metrics: true,
+    refresh_interval: 30
+})
+
+# 4. MACRO DEFINITIONS AND EXPANSION
+
+# Define a reusable HTML form macro
+@macro(form, action, method, class)
+<form action="${action}" method="${method}" class="${class}">
+    <div class="form-group">
+        <label for="name">Name:</label>
+        <input type="text" id="name" name="name" required>
+    </div>
+    <div class="form-group">
+        <label for="email">Email:</label>
+        <input type="email" id="email" name="email" required>
+    </div>
+    <button type="submit" class="btn btn-primary">Submit</button>
+</form>
+@endmacro
+
+# Define a card component macro
+@macro(card, title, content, class)
+<div class="card ${class}">
+    <div class="card-header">
+        <h3>${title}</h3>
+    </div>
+    <div class="card-body">
+        ${content}
+    </div>
+</div>
+@endmacro
+
+# Define a user list macro
+@macro(user_list, users, show_actions)
+<div class="user-list">
+    @foreach(@users as user)
+    <div class="user-item">
+        <h4>${user.name}</h4>
+        <p>Role: ${user.role}</p>
+        <p>Status: ${user.active ? 'Active' : 'Inactive'}</p>
+        @if(@show_actions)
+        <div class="actions">
+            <button class="btn btn-sm btn-primary">Edit</button>
+            <button class="btn btn-sm btn-danger">Delete</button>
+        </div>
+        @endif
+    </div>
+    @endforeach
+</div>
+@endmacro
+
+# 5. USING THE MACROS
+
+# Call the form macro
+contact_form: @call(form, "/contact", "POST", "contact-form")
+
+# Call the card macro
+welcome_card: @call(card, "Welcome to TuskLang", "Advanced templating is awesome!", "welcome-card")
+
+# Call the user list macro
+active_users: @call(user_list, @users, true)
+
+# 6. COMPLEX TEMPLATING EXAMPLES
+
+# Conditional user filtering with loops
+@if(@settings.debug_mode)
+debug_users: """
+DEBUG: Processing ${count(@users)} users
+"""
+@endif
+
+# Filter active users
+active_user_list: @foreach(@users as user)
+@if(@user.active)
+- ${user.name} (${user.role})
+@endif
+@endforeach
+
+# Generate feature flags
+feature_flags: @foreach(@settings.features as feature)
+@switch(@feature)
+@case("search")
+search_enabled: true
+search_api: "/api/search"
+@case("notifications")
+notifications_enabled: true
+notification_types: ["email", "push", "sms"]
+@case("analytics")
+analytics_enabled: true
+tracking_id: @env("ANALYTICS_ID", "UA-12345678-9")
+@default
+unknown_feature: "${feature}"
+@endswitch
+@endforeach
+
+# 7. NESTED TEMPLATING
+
+# Complex nested structure
+dashboard: {
+    header: @call(card, "Dashboard", "Welcome back!", "dashboard-header")
+    sidebar: @include("templates/sidebar.html", {
+        menu_items: ["Home", "Users", "Settings", "Analytics"],
+        current_page: "dashboard"
+    })
+    content: @call(user_list, @users, false)
+    footer: @include("templates/footer.html", {
+        copyright: "2025 TuskLang",
+        version: "1.0.0"
+    })
+}
+
+# 8. PERFORMANCE OPTIMIZATION
+
+# Cache expensive operations
+@if(@settings.debug_mode)
+performance_metrics: {
+    template_processing_time: "@time.now()"
+    memory_usage: "@memory_get_usage()"
+    cache_hits: 0
+    cache_misses: 0
+}
+@endif
+
+# 9. ERROR HANDLING
+
+# Safe template processing
+@if(@isset(unknown_variable))
+unknown_content: "${unknown_variable}"
+@else
+fallback_content: "Variable not found, using fallback"
+@endif
+
+# 10. PLUGIN INTEGRATION EXAMPLE
+
+# Import plugin templates with context
+@import("cache-manager/templates/status.html", {
+    cache_stats: {
+        hit_rate: 85.5
+        memory_usage: "256MB"
+        items_cached: 1024
+    }
+})
+
+# Final output configuration
+output: {
+    template_engine: "TuskLang Advanced Templating"
+    features_used: [
+        "conditionals",
+        "loops", 
+        "includes",
+        "macros"
+    ]
+    performance: "optimized"
+    compatibility: "peanu.tsk"
+} 

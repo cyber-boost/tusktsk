@@ -1,0 +1,787 @@
+<h1>Operations and Computations with TuskLang in Go</h1>
+
+<h2>Mathematical and Logical Operations</h2>
+<p>TuskLang supports mathematical computations, logical operations, and data transformations for dynamic configuration in Go applications.</p>
+
+<h3>operations.tsk</h3>
+<pre>
+# Mathematical operations
+base_memory: 512
+scale_factor: env("SCALE_FACTOR", 2)
+max_memory: compute(var("base_memory") * var("scale_factor"))
+cpu_cores: compute(max(1, min(8, env("CPU_CORES", 4))))
+
+# Percentage calculations
+cache_memory_percent: 25
+cache_memory: compute(var("max_memory") * var("cache_memory_percent") / 100)
+available_memory: compute(var("max_memory") - var("cache_memory"))
+
+# Time calculations
+base_timeout: 30
+retry_timeout: compute(var("base_timeout") * 2)
+max_timeout: compute(var("base_timeout") * 5)
+connection_timeout: compute(min(var("max_timeout"), 120))
+
+# Array operations
+server_list: ["web1", "web2", "web3", "web4"]
+server_count: length(var("server_list"))
+balanced_load: compute(100 / var("server_count"))
+primary_servers: slice(var("server_list"), 0, 2)
+backup_servers: slice(var("server_list"), 2, -1)
+
+# String operations and formatting
+app_name: "MyGoApp"
+version: "1.2.3"
+build_number: env("BUILD_NUMBER", 1)
+full_version: format("%s v%s (build %d)", var("app_name"), var("version"), var("build_number"))
+slug: slugify(var("app_name"))
+uppercase_name: upper(var("app_name"))
+
+# Conditional computations
+environment: env("ENVIRONMENT", "development")
+is_production: compute(var("environment") == "production")
+worker_count: compute(var("is_production") ? var("cpu_cores") * 2 : 1)
+log_retention_days: compute(var("is_production") ? 90 : 7)
+
+# Complex calculations
+traffic_multiplier: env("TRAFFIC_MULTIPLIER", 1.0)
+expected_rps: 1000
+scaled_rps: compute(var("expected_rps") * var("traffic_multiplier"))
+connection_pool_size: compute(ceil(var("scaled_rps") / 10))
+buffer_size: compute(pow(2, ceil(log2(var("scaled_rps") / 100))))
+
+# Database sharding calculations
+total_users: env("TOTAL_USERS", 100000)
+users_per_shard: 50000
+shard_count: compute(ceil(var("total_users") / var("users_per_shard")))
+shard_config: generate_shards(var("shard_count"))
+
+# Load balancer weights
+servers: [
+    {name: "web1", capacity: 100},
+    {name: "web2", capacity: 150}, 
+    {name: "web3", capacity: 200}
+]
+total_capacity: sum(pluck(var("servers"), "capacity"))
+weighted_servers: map(var("servers"), {
+    name: item.name,
+    weight: compute(item.capacity / var("total_capacity") * 100),
+    max_connections: compute(item.capacity * 10)
+})
+
+# Rate limiting calculations
+base_rate_limit: 100
+user_tier: env("USER_TIER", "basic")
+rate_multiplier: switch(var("user_tier"), {
+    "basic": 1,
+    "premium": 3,
+    "enterprise": 10
+}, 1)
+user_rate_limit: compute(var("base_rate_limit") * var("rate_multiplier"))
+
+# Cache sizing
+available_ram_gb: env("AVAILABLE_RAM_GB", 8)
+cache_ratio: 0.3
+max_cache_size_mb: compute(var("available_ram_gb") * var("cache_ratio") * 1024)
+cache_entries: compute(var("max_cache_size_mb") * 1024 / 2) # Assume 2KB per entry
+
+# Monitoring thresholds
+cpu_warning_threshold: 70
+cpu_critical_threshold: compute(var("cpu_warning_threshold") + 15)
+memory_warning_threshold: 80
+memory_critical_threshold: compute(var("memory_warning_threshold") + 10)
+
+# Performance optimizations
+batch_size_base: 100
+connection_count: env("DB_CONNECTIONS", 10)
+optimal_batch_size: compute(var("batch_size_base") * sqrt(var("connection_count")))
+max_batch_size: compute(min(var("optimal_batch_size"), 1000))
+
+# Network calculations
+bandwidth_mbps: env("BANDWIDTH_MBPS", 100)
+max_concurrent_downloads: compute(var("bandwidth_mbps") / 2) # 2 Mbps per download
+buffer_pool_size: compute(var("max_concurrent_downloads") * 4) # 4 buffers per download
+</pre>
+
+<h3>Go Operations Implementation</h3>
+<pre>
+package main
+
+import (
+    "fmt"
+    "math"
+    "os"
+    "regexp"
+    "sort"
+    "strconv"
+    "strings"
+)
+
+type ComputationEngine struct {
+    variables map[string]interface{}
+    functions map[string]func([]interface{}) interface{}
+}
+
+func NewComputationEngine() *ComputationEngine {
+    engine := &ComputationEngine{
+        variables: make(map[string]interface{}),
+        functions: make(map[string]func([]interface{}) interface{}),
+    }
+    
+    engine.registerFunctions()
+    return engine
+}
+
+func (ce *ComputationEngine) registerFunctions() {
+    // Mathematical functions
+    ce.functions["compute"] = ce.handleCompute
+    ce.functions["max"] = ce.handleMax
+    ce.functions["min"] = ce.handleMin
+    ce.functions["ceil"] = ce.handleCeil
+    ce.functions["floor"] = ce.handleFloor
+    ce.functions["round"] = ce.handleRound
+    ce.functions["pow"] = ce.handlePow
+    ce.functions["sqrt"] = ce.handleSqrt
+    ce.functions["log2"] = ce.handleLog2
+    ce.functions["abs"] = ce.handleAbs
+    
+    // Array functions
+    ce.functions["length"] = ce.handleLength
+    ce.functions["slice"] = ce.handleSlice
+    ce.functions["sum"] = ce.handleSum
+    ce.functions["pluck"] = ce.handlePluck
+    ce.functions["map"] = ce.handleMap
+    
+    // String functions
+    ce.functions["format"] = ce.handleFormat
+    ce.functions["slugify"] = ce.handleSlugify
+    ce.functions["upper"] = ce.handleUpper
+    ce.functions["lower"] = ce.handleLower
+    
+    // Control flow
+    ce.functions["switch"] = ce.handleSwitch
+    
+    // Utility functions
+    ce.functions["var"] = ce.handleVar
+    ce.functions["env"] = ce.handleEnv
+    ce.functions["generate_shards"] = ce.handleGenerateShards
+}
+
+func (ce *ComputationEngine) SetVariable(key string, value interface{}) {
+    ce.variables[key] = value
+}
+
+func (ce *ComputationEngine) GetVariable(key string) interface{} {
+    return ce.variables[key]
+}
+
+func (ce *ComputationEngine) ProcessExpression(expr string) interface{} {
+    expr = strings.TrimSpace(expr)
+    
+    // Handle function calls
+    if funcName, args, ok := ce.parseFunctionCall(expr); ok {
+        if fn, exists := ce.functions[funcName]; exists {
+            return fn(args)
+        }
+    }
+    
+    // Handle literals
+    return ce.parseLiteral(expr)
+}
+
+func (ce *ComputationEngine) parseFunctionCall(expr string) (string, []interface{}, bool) {
+    if !strings.Contains(expr, "(") || !strings.HasSuffix(expr, ")") {
+        return "", nil, false
+    }
+    
+    parenIndex := strings.Index(expr, "(")
+    funcName := strings.TrimSpace(expr[:parenIndex])
+    argsStr := expr[parenIndex+1 : len(expr)-1]
+    
+    args := ce.parseArguments(argsStr)
+    return funcName, args, true
+}
+
+func (ce *ComputationEngine) handleCompute(args []interface{}) interface{} {
+    if len(args) == 0 {
+        return 0
+    }
+    
+    expr := fmt.Sprintf("%v", args[0])
+    return ce.evaluateExpression(expr)
+}
+
+func (ce *ComputationEngine) evaluateExpression(expr string) interface{} {
+    expr = strings.TrimSpace(expr)
+    
+    // Handle ternary operator (condition ? true : false)
+    if strings.Contains(expr, "?") && strings.Contains(expr, ":") {
+        return ce.evaluateTernary(expr)
+    }
+    
+    // Handle comparison operations
+    if strings.Contains(expr, "==") || strings.Contains(expr, "!=") ||
+       strings.Contains(expr, ">=") || strings.Contains(expr, "<=") ||
+       strings.Contains(expr, ">") || strings.Contains(expr, "<") {
+        return ce.evaluateComparison(expr)
+    }
+    
+    // Handle arithmetic operations
+    return ce.evaluateArithmetic(expr)
+}
+
+func (ce *ComputationEngine) evaluateTernary(expr string) interface{} {
+    parts := strings.Split(expr, "?")
+    if len(parts) != 2 {
+        return expr
+    }
+    
+    condition := strings.TrimSpace(parts[0])
+    valuePart := strings.TrimSpace(parts[1])
+    
+    colonParts := strings.Split(valuePart, ":")
+    if len(colonParts) != 2 {
+        return expr
+    }
+    
+    trueValue := strings.TrimSpace(colonParts[0])
+    falseValue := strings.TrimSpace(colonParts[1])
+    
+    conditionResult := ce.evaluateExpression(condition)
+    if ce.isTruthy(conditionResult) {
+        return ce.evaluateExpression(trueValue)
+    }
+    return ce.evaluateExpression(falseValue)
+}
+
+func (ce *ComputationEngine) evaluateComparison(expr string) bool {
+    operators := []string{"==", "!=", ">=", "<=", ">", "<"}
+    
+    for _, op := range operators {
+        if strings.Contains(expr, op) {
+            parts := strings.Split(expr, op)
+            if len(parts) == 2 {
+                left := ce.evaluateExpression(strings.TrimSpace(parts[0]))
+                right := ce.evaluateExpression(strings.TrimSpace(parts[1]))
+                
+                return ce.compareValues(left, right, op)
+            }
+        }
+    }
+    
+    return false
+}
+
+func (ce *ComputationEngine) compareValues(left, right interface{}, operator string) bool {
+    leftNum := ce.toFloat64(left)
+    rightNum := ce.toFloat64(right)
+    
+    switch operator {
+    case "==":
+        if math.IsNaN(leftNum) || math.IsNaN(rightNum) {
+            return fmt.Sprintf("%v", left) == fmt.Sprintf("%v", right)
+        }
+        return leftNum == rightNum
+    case "!=":
+        if math.IsNaN(leftNum) || math.IsNaN(rightNum) {
+            return fmt.Sprintf("%v", left) != fmt.Sprintf("%v", right)
+        }
+        return leftNum != rightNum
+    case ">":
+        return leftNum > rightNum
+    case "<":
+        return leftNum < rightNum
+    case ">=":
+        return leftNum >= rightNum
+    case "<=":
+        return leftNum <= rightNum
+    }
+    
+    return false
+}
+
+func (ce *ComputationEngine) evaluateArithmetic(expr string) interface{} {
+    // Handle parentheses first
+    for strings.Contains(expr, "(") {
+        start := strings.LastIndex(expr, "(")
+        end := strings.Index(expr[start:], ")") + start
+        if end > start {
+            subExpr := expr[start+1 : end]
+            result := ce.evaluateArithmetic(subExpr)
+            expr = expr[:start] + fmt.Sprintf("%v", result) + expr[end+1:]
+        } else {
+            break
+        }
+    }
+    
+    // Handle multiplication and division first
+    expr = ce.handleOperator(expr, "*", ce.multiply)
+    expr = ce.handleOperator(expr, "/", ce.divide)
+    
+    // Then handle addition and subtraction
+    expr = ce.handleOperator(expr, "+", ce.add)
+    expr = ce.handleOperator(expr, "-", ce.subtract)
+    
+    // Parse final result
+    return ce.parseLiteral(expr)
+}
+
+func (ce *ComputationEngine) handleOperator(expr, operator string, operation func(float64, float64) float64) string {
+    for strings.Contains(expr, operator) {
+        index := strings.Index(expr, operator)
+        
+        // Find left operand
+        leftStart := index - 1
+        for leftStart >= 0 && (expr[leftStart] >= '0' && expr[leftStart] <= '9' || expr[leftStart] == '.') {
+            leftStart--
+        }
+        leftStart++
+        
+        // Find right operand
+        rightEnd := index + 1
+        for rightEnd < len(expr) && (expr[rightEnd] >= '0' && expr[rightEnd] <= '9' || expr[rightEnd] == '.') {
+            rightEnd++
+        }
+        
+        if leftStart < index && rightEnd > index+1 {
+            leftVal := ce.toFloat64(expr[leftStart:index])
+            rightVal := ce.toFloat64(expr[index+1:rightEnd])
+            result := operation(leftVal, rightVal)
+            
+            expr = expr[:leftStart] + fmt.Sprintf("%g", result) + expr[rightEnd:]
+        } else {
+            break
+        }
+    }
+    
+    return expr
+}
+
+func (ce *ComputationEngine) multiply(a, b float64) float64 { return a * b }
+func (ce *ComputationEngine) divide(a, b float64) float64   { 
+    if b == 0 {
+        return math.Inf(1)
+    }
+    return a / b 
+}
+func (ce *ComputationEngine) add(a, b float64) float64      { return a + b }
+func (ce *ComputationEngine) subtract(a, b float64) float64 { return a - b }
+
+func (ce *ComputationEngine) handleMax(args []interface{}) interface{} {
+    if len(args) == 0 {
+        return 0
+    }
+    
+    max := ce.toFloat64(ce.evaluateValue(args[0]))
+    for _, arg := range args[1:] {
+        val := ce.toFloat64(ce.evaluateValue(arg))
+        if val > max {
+            max = val
+        }
+    }
+    return max
+}
+
+func (ce *ComputationEngine) handleMin(args []interface{}) interface{} {
+    if len(args) == 0 {
+        return 0
+    }
+    
+    min := ce.toFloat64(ce.evaluateValue(args[0]))
+    for _, arg := range args[1:] {
+        val := ce.toFloat64(ce.evaluateValue(arg))
+        if val < min {
+            min = val
+        }
+    }
+    return min
+}
+
+func (ce *ComputationEngine) handleCeil(args []interface{}) interface{} {
+    if len(args) > 0 {
+        val := ce.toFloat64(ce.evaluateValue(args[0]))
+        return math.Ceil(val)
+    }
+    return 0
+}
+
+func (ce *ComputationEngine) handleFloor(args []interface{}) interface{} {
+    if len(args) > 0 {
+        val := ce.toFloat64(ce.evaluateValue(args[0]))
+        return math.Floor(val)
+    }
+    return 0
+}
+
+func (ce *ComputationEngine) handleRound(args []interface{}) interface{} {
+    if len(args) > 0 {
+        val := ce.toFloat64(ce.evaluateValue(args[0]))
+        return math.Round(val)
+    }
+    return 0
+}
+
+func (ce *ComputationEngine) handlePow(args []interface{}) interface{} {
+    if len(args) >= 2 {
+        base := ce.toFloat64(ce.evaluateValue(args[0]))
+        exp := ce.toFloat64(ce.evaluateValue(args[1]))
+        return math.Pow(base, exp)
+    }
+    return 0
+}
+
+func (ce *ComputationEngine) handleSqrt(args []interface{}) interface{} {
+    if len(args) > 0 {
+        val := ce.toFloat64(ce.evaluateValue(args[0]))
+        return math.Sqrt(val)
+    }
+    return 0
+}
+
+func (ce *ComputationEngine) handleLog2(args []interface{}) interface{} {
+    if len(args) > 0 {
+        val := ce.toFloat64(ce.evaluateValue(args[0]))
+        return math.Log2(val)
+    }
+    return 0
+}
+
+func (ce *ComputationEngine) handleAbs(args []interface{}) interface{} {
+    if len(args) > 0 {
+        val := ce.toFloat64(ce.evaluateValue(args[0]))
+        return math.Abs(val)
+    }
+    return 0
+}
+
+func (ce *ComputationEngine) handleLength(args []interface{}) interface{} {
+    if len(args) > 0 {
+        value := ce.evaluateValue(args[0])
+        if arr, ok := value.([]interface{}); ok {
+            return len(arr)
+        }
+        if str, ok := value.(string); ok {
+            return len(str)
+        }
+    }
+    return 0
+}
+
+func (ce *ComputationEngine) handleSlice(args []interface{}) interface{} {
+    if len(args) < 3 {
+        return []interface{}{}
+    }
+    
+    arr := ce.evaluateValue(args[0])
+    start := int(ce.toFloat64(ce.evaluateValue(args[1])))
+    end := int(ce.toFloat64(ce.evaluateValue(args[2])))
+    
+    if slice, ok := arr.([]interface{}); ok {
+        if end == -1 {
+            end = len(slice)
+        }
+        if start >= 0 && end <= len(slice) && start <= end {
+            return slice[start:end]
+        }
+    }
+    
+    return []interface{}{}
+}
+
+func (ce *ComputationEngine) handleSum(args []interface{}) interface{} {
+    if len(args) > 0 {
+        arr := ce.evaluateValue(args[0])
+        if slice, ok := arr.([]interface{}); ok {
+            sum := 0.0
+            for _, item := range slice {
+                sum += ce.toFloat64(item)
+            }
+            return sum
+        }
+    }
+    return 0
+}
+
+func (ce *ComputationEngine) handlePluck(args []interface{}) interface{} {
+    if len(args) < 2 {
+        return []interface{}{}
+    }
+    
+    arr := ce.evaluateValue(args[0])
+    field := fmt.Sprintf("%v", ce.evaluateValue(args[1]))
+    
+    if slice, ok := arr.([]interface{}); ok {
+        var result []interface{}
+        for _, item := range slice {
+            if obj, ok := item.(map[string]interface{}); ok {
+                if value, exists := obj[field]; exists {
+                    result = append(result, value)
+                }
+            }
+        }
+        return result
+    }
+    
+    return []interface{}{}
+}
+
+func (ce *ComputationEngine) handleFormat(args []interface{}) interface{} {
+    if len(args) == 0 {
+        return ""
+    }
+    
+    format := fmt.Sprintf("%v", ce.evaluateValue(args[0]))
+    values := make([]interface{}, len(args)-1)
+    
+    for i, arg := range args[1:] {
+        values[i] = ce.evaluateValue(arg)
+    }
+    
+    return fmt.Sprintf(format, values...)
+}
+
+func (ce *ComputationEngine) handleSlugify(args []interface{}) interface{} {
+    if len(args) > 0 {
+        str := fmt.Sprintf("%v", ce.evaluateValue(args[0]))
+        
+        // Convert to lowercase
+        str = strings.ToLower(str)
+        
+        // Replace spaces and special characters with dashes
+        reg := regexp.MustCompile(`[^a-z0-9]+`)
+        str = reg.ReplaceAllString(str, "-")
+        
+        // Remove leading/trailing dashes
+        str = strings.Trim(str, "-")
+        
+        return str
+    }
+    return ""
+}
+
+func (ce *ComputationEngine) handleUpper(args []interface{}) interface{} {
+    if len(args) > 0 {
+        str := fmt.Sprintf("%v", ce.evaluateValue(args[0]))
+        return strings.ToUpper(str)
+    }
+    return ""
+}
+
+func (ce *ComputationEngine) handleLower(args []interface{}) interface{} {
+    if len(args) > 0 {
+        str := fmt.Sprintf("%v", ce.evaluateValue(args[0]))
+        return strings.ToLower(str)
+    }
+    return ""
+}
+
+func (ce *ComputationEngine) handleVar(args []interface{}) interface{} {
+    if len(args) > 0 {
+        varName := fmt.Sprintf("%v", args[0])
+        return ce.variables[varName]
+    }
+    return nil
+}
+
+func (ce *ComputationEngine) handleEnv(args []interface{}) interface{} {
+    if len(args) == 0 {
+        return ""
+    }
+    
+    envVar := fmt.Sprintf("%v", args[0])
+    defaultValue := ""
+    
+    if len(args) > 1 {
+        defaultValue = fmt.Sprintf("%v", args[1])
+    }
+    
+    if value := os.Getenv(envVar); value != "" {
+        return value
+    }
+    return defaultValue
+}
+
+func (ce *ComputationEngine) handleSwitch(args []interface{}) interface{} {
+    if len(args) < 2 {
+        return nil
+    }
+    
+    switchValue := ce.evaluateValue(args[0])
+    cases := args[1]
+    defaultValue := interface{}(nil)
+    
+    if len(args) > 2 {
+        defaultValue = args[2]
+    }
+    
+    if casesMap, ok := cases.(map[string]interface{}); ok {
+        for caseValue, result := range casesMap {
+            if fmt.Sprintf("%v", switchValue) == caseValue {
+                return ce.evaluateValue(result)
+            }
+        }
+    }
+    
+    if defaultValue != nil {
+        return ce.evaluateValue(defaultValue)
+    }
+    
+    return nil
+}
+
+func (ce *ComputationEngine) handleGenerateShards(args []interface{}) interface{} {
+    if len(args) == 0 {
+        return []interface{}{}
+    }
+    
+    count := int(ce.toFloat64(ce.evaluateValue(args[0])))
+    var shards []interface{}
+    
+    for i := 0; i < count; i++ {
+        shard := map[string]interface{}{
+            "id":   i,
+            "name": fmt.Sprintf("shard_%d", i),
+            "host": fmt.Sprintf("db-shard-%d.example.com", i+1),
+            "port": 5432,
+        }
+        shards = append(shards, shard)
+    }
+    
+    return shards
+}
+
+func (ce *ComputationEngine) evaluateValue(value interface{}) interface{} {
+    switch val := value.(type) {
+    case string:
+        if funcName, args, ok := ce.parseFunctionCall(val); ok {
+            if fn, exists := ce.functions[funcName]; exists {
+                return fn(args)
+            }
+        }
+        return ce.parseLiteral(val)
+    default:
+        return value
+    }
+}
+
+func (ce *ComputationEngine) parseLiteral(expr string) interface{} {
+    expr = strings.TrimSpace(expr)
+    
+    // Handle quoted strings
+    if strings.HasPrefix(expr, `"`) && strings.HasSuffix(expr, `"`) {
+        return expr[1 : len(expr)-1]
+    }
+    
+    // Handle numbers
+    if num, err := strconv.ParseFloat(expr, 64); err == nil {
+        return num
+    }
+    
+    // Handle booleans
+    if expr == "true" {
+        return true
+    }
+    if expr == "false" {
+        return false
+    }
+    
+    return expr
+}
+
+func (ce *ComputationEngine) toFloat64(value interface{}) float64 {
+    switch val := value.(type) {
+    case float64:
+        return val
+    case int:
+        return float64(val)
+    case string:
+        if num, err := strconv.ParseFloat(val, 64); err == nil {
+            return num
+        }
+        return math.NaN()
+    default:
+        return math.NaN()
+    }
+}
+
+func (ce *ComputationEngine) isTruthy(value interface{}) bool {
+    switch val := value.(type) {
+    case bool:
+        return val
+    case float64:
+        return val != 0
+    case string:
+        return val != "" && val != "false" && val != "0"
+    default:
+        return value != nil
+    }
+}
+
+func (ce *ComputationEngine) parseArguments(argsStr string) []interface{} {
+    if argsStr == "" {
+        return []interface{}{}
+    }
+    
+    var args []interface{}
+    var current strings.Builder
+    var inQuotes bool
+    var parenDepth int
+    
+    for _, char := range argsStr {
+        switch char {
+        case '"':
+            inQuotes = !inQuotes
+            current.WriteRune(char)
+        case '(':
+            parenDepth++
+            current.WriteRune(char)
+        case ')':
+            parenDepth--
+            current.WriteRune(char)
+        case ',':
+            if !inQuotes && parenDepth == 0 {
+                args = append(args, strings.TrimSpace(current.String()))
+                current.Reset()
+            } else {
+                current.WriteRune(char)
+            }
+        default:
+            current.WriteRune(char)
+        }
+    }
+    
+    if current.Len() > 0 {
+        args = append(args, strings.TrimSpace(current.String()))
+    }
+    
+    return args
+}
+
+// Example usage
+func main() {
+    engine := NewComputationEngine()
+    
+    // Set environment variables
+    os.Setenv("SCALE_FACTOR", "3")
+    os.Setenv("CPU_CORES", "8")
+    
+    // Set variables
+    engine.SetVariable("base_memory", 512)
+    engine.SetVariable("environment", "production")
+    
+    // Test computations
+    maxMemory := engine.ProcessExpression("compute(var(\"base_memory\") * env(\"SCALE_FACTOR\", 2))")
+    fmt.Printf("Max memory: %v\n", maxMemory)
+    
+    cpuCores := engine.ProcessExpression("compute(max(1, min(8, env(\"CPU_CORES\", 4))))")
+    fmt.Printf("CPU cores: %v\n", cpuCores)
+    
+    workerCount := engine.ProcessExpression("compute(var(\"environment\") == \"production\" ? var(\"cpu_cores\") * 2 : 1)")
+    fmt.Printf("Worker count: %v\n", workerCount)
+    
+    slug := engine.ProcessExpression("slugify(\"My Go App\")")
+    fmt.Printf("Slug: %v\n", slug)
+}
+</pre>
+
+<p>TuskLang operations and computations enable complex mathematical calculations, data transformations, and dynamic value generation for Go applications.</p>

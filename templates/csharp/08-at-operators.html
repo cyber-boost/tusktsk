@@ -1,0 +1,906 @@
+<h1>@ Operators</h1>
+
+<h2>TuskLang @ Operators in C#</h2>
+<p>Implement and use TuskLang @ operators for runtime evaluation, intelligent caching, metrics collection, and dynamic configuration in C# applications.</p>
+
+<h3>operators.tsk</h3>
+<pre>
+# TuskLang @ Operators Configuration
+
+# 1. Basic @ Operators
+basic_operators {
+    # Variable references
+    app_name: "MyApplication"
+    app_version: "1.0.0"
+    full_title: "#{@app_name} v#{@app_version}"
+    
+    # Environment references
+    environment: @env.NODE_ENV
+    debug_mode: @env.DEBUG
+    port: @env.PORT
+    
+    # System references
+    hostname: @system.hostname
+    platform: @system.platform
+    cpu_count: @system.cpu_count
+    memory_total: @system.memory_total
+    
+    # Current context
+    current_time: @now
+    current_user: @user.name
+    current_directory: @pwd
+    file_path: @file.path
+}
+
+# 2. Conditional @ Operators
+conditional_operators {
+    # Conditional expressions
+    cache_enabled: @env.NODE_ENV == "production"
+    debug_logging: @env.NODE_ENV != "production"
+    ssl_required: @env.HTTPS == "true"
+    
+    # Ternary operations
+    database_host: @env.NODE_ENV == "production" ? "prod-db.example.com" : "localhost"
+    log_level: @debug_mode ? "debug" : "info"
+    max_connections: @cache_enabled ? 100 : 10
+    
+    # Null coalescing
+    api_key: @env.API_KEY ?? @file.secrets.api_key ?? "default-key"
+    timeout: @config.timeout ?? 30
+    retries: @config.retries ?? 3
+    
+    # Existence checks
+    has_redis: @service.redis.exists
+    has_database: @service.database.connected
+    has_cache: @cache.available && @cache_enabled
+}
+
+# 3. Function @ Operators
+function_operators {
+    # String functions
+    uppercase_name: @upper(@app_name)
+    lowercase_env: @lower(@environment)
+    trimmed_input: @trim(@user.input)
+    formatted_message: @format("User {0} logged in at {1}", @user.name, @now)
+    
+    # Math functions
+    calculated_memory: @round(@memory_total * 0.8)
+    random_port: @random(8000, 9000)
+    max_workers: @max(@cpu_count, 4)
+    min_connections: @min(@max_connections / 4, 5)
+    
+    # Date/time functions
+    formatted_date: @format_date(@now, "yyyy-MM-dd")
+    timestamp: @unix_timestamp(@now)
+    expires_at: @add_hours(@now, 24)
+    
+    # Array functions
+    first_feature: @first(@features)
+    last_config: @last(@config_files)
+    joined_tags: @join(@tags, ", ")
+    sorted_names: @sort(@user_names)
+    
+    # Object functions
+    config_keys: @keys(@config)
+    feature_count: @length(@features)
+    has_admin: @contains(@roles, "admin")
+}
+
+# 4. Cache @ Operators
+cache_operators {
+    # Basic caching with TTL
+    user_data: @cache("user_#{@user.id}", "5m", @fetch_user_data(@user.id))
+    config_data: @cache("app_config", "1h", @load_configuration())
+    api_response: @cache("api_#{@endpoint}", "10m", @call_external_api(@endpoint))
+    
+    # Conditional caching
+    cached_result: @cache_if(@cache_enabled, "expensive_operation", "30m", @expensive_calculation())
+    
+    # Cache with dependencies
+    dependent_cache: @cache("user_profile_#{@user.id}", "15m", @load_user_profile(@user.id), [@user.last_modified])
+    
+    # Cache invalidation
+    fresh_data: @cache_invalidate("user_#{@user.id}", @fetch_fresh_user_data(@user.id))
+    
+    # Cache warming
+    warmed_cache: @cache_warm("popular_content", "1h", @load_popular_content(), @schedule.daily)
+}
+
+# 5. Metrics @ Operators
+metrics_operators {
+    # Counter metrics
+    request_count: @metrics.counter("http_requests_total", { method: @request.method, path: @request.path })
+    error_count: @metrics.counter("errors_total", { type: @error.type, service: @service.name })
+    
+    # Gauge metrics
+    active_users: @metrics.gauge("active_users", @count_active_users())
+    memory_usage: @metrics.gauge("memory_usage_bytes", @system.memory_used)
+    queue_size: @metrics.gauge("queue_size", @queue.length)
+    
+    # Histogram metrics
+    request_duration: @metrics.histogram("request_duration_seconds", @request.duration, [0.1, 0.5, 1.0, 2.5, 5.0])
+    response_size: @metrics.histogram("response_size_bytes", @response.size, [100, 1000, 10000, 100000])
+    
+    # Timer metrics
+    db_query_time: @metrics.timer("database_query_duration", @execute_query(@sql))
+    api_call_time: @metrics.timer("external_api_duration", @call_api(@endpoint))
+    
+    # Custom metrics with labels
+    business_metric: @metrics.custom("orders_processed", @process_orders(), {
+        region: @user.region,
+        product_type: @order.product_type,
+        payment_method: @order.payment_method
+    })
+}
+
+# 6. Learning @ Operators
+learning_operators {
+    # Pattern recognition
+    optimal_cache_ttl: @learn("cache_ttl_#{@endpoint}", "5m", @analyze_cache_hit_rate())
+    best_batch_size: @learn("batch_size_#{@operation}", 100, @optimize_batch_performance())
+    
+    # User behavior learning
+    preferred_settings: @learn("user_preferences_#{@user.id}", @default_settings, @track_user_interactions())
+    optimal_timeout: @learn("timeout_#{@service}", 30, @measure_response_times())
+    
+    # System optimization
+    auto_scaling: @learn("instances_#{@service}", 2, @analyze_load_patterns())
+    cache_strategy: @learn("cache_strategy_#{@data_type}", "lru", @evaluate_cache_performance())
+    
+    # A/B testing
+    feature_variant: @learn("feature_#{@feature_name}", "control", @ab_test_results())
+    ui_layout: @learn("layout_#{@user.segment}", "default", @ui_engagement_metrics())
+}
+
+# 7. Query @ Operators
+query_operators {
+    # Database queries
+    active_users: @query("Users").where("active", true).where("last_login", ">", @subtract_days(@now, 7)).find()
+    recent_orders: @query("Orders").where("created_at", ">", @subtract_hours(@now, 24)).orderBy("created_at", "desc").limit(10).find()
+    
+    # Aggregation queries
+    user_count: @query("Users").where("active", true).count()
+    total_revenue: @query("Orders").where("status", "completed").sum("amount")
+    average_rating: @query("Reviews").where("product_id", @product.id).avg("rating")
+    
+    # Complex queries with joins
+    user_orders: @query("Users").join("Orders", "user_id").where("Users.active", true).select(["Users.name", "Orders.total"]).find()
+    
+    # Real-time queries
+    live_stats: @query("Metrics").where("timestamp", ">", @subtract_minutes(@now, 5)).groupBy("metric_name").avg("value").find()
+    
+    # Cached queries
+    popular_products: @cache("popular_products", "1h", @query("Products").orderBy("view_count", "desc").limit(20).find())
+}
+
+# 8. Optimization @ Operators
+optimization_operators {
+    # Auto-tuning parameters
+    connection_pool_size: @optimize("db_pool_size", 10, @monitor_connection_usage())
+    cache_size: @optimize("cache_size", "100MB", @track_cache_efficiency())
+    worker_threads: @optimize("worker_threads", @cpu_count, @measure_throughput())
+    
+    # Performance optimization
+    batch_size: @optimize("batch_size_#{@operation}", 50, @benchmark_batch_performance())
+    timeout_value: @optimize("timeout_#{@service}", 30, @analyze_response_times())
+    
+    # Resource optimization
+    memory_limit: @optimize("memory_limit", "512MB", @monitor_memory_usage())
+    cpu_limit: @optimize("cpu_limit", "80%", @track_cpu_utilization())
+    
+    # Algorithm optimization
+    sort_algorithm: @optimize("sort_#{@data_type}", "quicksort", @compare_algorithms())
+    compression_level: @optimize("compression", 6, @balance_speed_vs_size())
+}
+
+# 9. Reactive @ Operators
+reactive_operators {
+    # Event-driven updates
+    config_updates: @reactive("config_changed", @reload_configuration())
+    user_changes: @reactive("user_updated", @invalidate_user_cache(@user.id))
+    
+    # Stream processing
+    real_time_metrics: @stream("metrics_stream", @process_metric_event())
+    live_notifications: @stream("notification_stream", @send_notification())
+    
+    # Observer patterns
+    file_changes: @observe("config/*.tsk", @on_config_file_changed())
+    database_changes: @observe("users", @on_user_table_changed())
+    
+    # Reactive computations
+    derived_state: @reactive_compute(@user.preferences, @system.capabilities, @calculate_recommendations())
+    live_dashboard: @reactive_compute(@metrics.stream, @alerts.stream, @update_dashboard())
+}
+
+# 10. Validation @ Operators
+validation_operators {
+    # Type validation
+    valid_port: @validate(@port, "integer", { min: 1, max: 65535 })
+    valid_email: @validate(@user.email, "email")
+    valid_url: @validate(@api.endpoint, "url", { protocols: ["http", "https"] })
+    
+    # Schema validation
+    valid_config: @validate(@config, @schema.config)
+    valid_request: @validate(@request.body, @schema.api_request)
+    
+    # Custom validation
+    unique_username: @validate(@user.username, @custom_validator.unique_username)
+    strong_password: @validate(@user.password, @custom_validator.strong_password)
+    
+    # Conditional validation
+    production_validation: @validate_if(@env.NODE_ENV == "production", @ssl_config, @schema.ssl_required)
+    admin_validation: @validate_if(@user.role == "admin", @admin_config, @schema.admin_required)
+}
+
+# Application configuration using @ operators
+application: {
+    # Basic info with @ operators
+    name: @app_name
+    version: @app_version
+    environment: @environment
+    
+    # Dynamic configuration
+    server: {
+        host: @env.HOST ?? "localhost"
+        port: @valid_port
+        ssl: @ssl_required
+        workers: @worker_threads
+    }
+    
+    # Database with optimization
+    database: {
+        host: @database_host
+        pool_size: @connection_pool_size
+        timeout: @timeout_value
+        queries: {
+            users: @active_users
+            metrics: @live_stats
+        }
+    }
+    
+    # Caching with intelligence
+    cache: {
+        enabled: @cache_enabled
+        size: @cache_size
+        ttl: @optimal_cache_ttl
+        strategy: @cache_strategy
+        data: {
+            config: @config_data
+            users: @user_data
+        }
+    }
+    
+    # Monitoring and metrics
+    monitoring: {
+        metrics: {
+            requests: @request_count
+            errors: @error_count
+            performance: @request_duration
+        }
+        alerts: @reactive_alerts
+        dashboard: @live_dashboard
+    }
+    
+    # Learning and optimization
+    optimization: {
+        auto_tune: @auto_scaling
+        performance: @batch_size
+        preferences: @preferred_settings
+    }
+}
+</pre>
+
+<h3>TuskAtOperatorEngine.cs</h3>
+<pre>
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Text.Json;
+using System.Text.RegularExpressions;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace TuskLang.AtOperators
+{
+    // Main engine for processing @ operators
+    public class TuskAtOperatorEngine
+    {
+        private readonly Dictionary&lt;string, IAtOperatorHandler&gt; _handlers;
+        private readonly AtOperatorContext _context;
+        private readonly ConcurrentDictionary&lt;string, object&gt; _cache;
+        private readonly ConcurrentDictionary&lt;string, MetricValue&gt; _metrics;
+        private readonly ConcurrentDictionary&lt;string, LearningValue&gt; _learning;
+        
+        public TuskAtOperatorEngine()
+        {
+            _handlers = new Dictionary&lt;string, IAtOperatorHandler&gt;();
+            _context = new AtOperatorContext();
+            _cache = new ConcurrentDictionary&lt;string, object&gt;();
+            _metrics = new ConcurrentDictionary&lt;string, MetricValue&gt;();
+            _learning = new ConcurrentDictionary&lt;string, LearningValue&gt;();
+            
+            RegisterBuiltInHandlers();
+        }
+        
+        // Register built-in @ operator handlers
+        private void RegisterBuiltInHandlers()
+        {
+            // Basic operators
+            RegisterHandler("env", new EnvironmentOperatorHandler());
+            RegisterHandler("system", new SystemOperatorHandler());
+            RegisterHandler("now", new DateTimeOperatorHandler());
+            RegisterHandler("user", new UserOperatorHandler());
+            RegisterHandler("file", new FileOperatorHandler());
+            
+            // Function operators
+            RegisterHandler("upper", new StringFunctionHandler());
+            RegisterHandler("lower", new StringFunctionHandler());
+            RegisterHandler("trim", new StringFunctionHandler());
+            RegisterHandler("format", new StringFunctionHandler());
+            RegisterHandler("round", new MathFunctionHandler());
+            RegisterHandler("random", new MathFunctionHandler());
+            RegisterHandler("max", new MathFunctionHandler());
+            RegisterHandler("min", new MathFunctionHandler());
+            
+            // Cache operators
+            RegisterHandler("cache", new CacheOperatorHandler(_cache));
+            RegisterHandler("cache_if", new CacheOperatorHandler(_cache));
+            RegisterHandler("cache_invalidate", new CacheOperatorHandler(_cache));
+            RegisterHandler("cache_warm", new CacheOperatorHandler(_cache));
+            
+            // Metrics operators
+            RegisterHandler("metrics", new MetricsOperatorHandler(_metrics));
+            
+            // Learning operators
+            RegisterHandler("learn", new LearningOperatorHandler(_learning));
+            RegisterHandler("optimize", new OptimizationOperatorHandler(_learning));
+            
+            // Query operators
+            RegisterHandler("query", new QueryOperatorHandler());
+            
+            // Validation operators
+            RegisterHandler("validate", new ValidationOperatorHandler());
+            RegisterHandler("validate_if", new ValidationOperatorHandler());
+            
+            // Reactive operators
+            RegisterHandler("reactive", new ReactiveOperatorHandler());
+            RegisterHandler("stream", new StreamOperatorHandler());
+            RegisterHandler("observe", new ObserverOperatorHandler());
+        }
+        
+        // Register a custom @ operator handler
+        public void RegisterHandler(string operatorName, IAtOperatorHandler handler)
+        {
+            _handlers[operatorName] = handler;
+        }
+        
+        // Evaluate an @ operator expression
+        public async Task&lt;object&gt; EvaluateAsync(string expression, AtOperatorContext context = null)
+        {
+            context ??= _context;
+            
+            // Parse the @ operator expression
+            var parsed = ParseAtExpression(expression);
+            if (parsed == null)
+                return expression; // Not an @ operator, return as-is
+            
+            // Get the handler for this operator
+            if (!_handlers.TryGetValue(parsed.Operator, out var handler))
+                throw new InvalidOperationException($"Unknown @ operator: {parsed.Operator}");
+            
+            // Evaluate the operator
+            return await handler.EvaluateAsync(parsed.Arguments, context);
+        }
+        
+        // Parse an @ operator expression
+        private AtOperatorExpression ParseAtExpression(string expression)
+        {
+            if (!expression.StartsWith("@"))
+                return null;
+            
+            // Remove the @ prefix
+            expression = expression.Substring(1);
+            
+            // Parse operator name and arguments
+            var match = Regex.Match(expression, @"^(\w+)(?:\.(\w+))*(?:\((.*)\))?$");
+            if (!match.Success)
+            {
+                // Simple property access like @env.NODE_ENV
+                var parts = expression.Split('.');
+                return new AtOperatorExpression
+                {
+                    Operator = parts[0],
+                    Property = parts.Length &gt; 1 ? string.Join(".", parts.Skip(1)) : null,
+                    Arguments = new List&lt;object&gt;()
+                };
+            }
+            
+            var operatorName = match.Groups[1].Value;
+            var property = match.Groups[2].Success ? match.Groups[2].Value : null;
+            var argsString = match.Groups[3].Success ? match.Groups[3].Value : "";
+            
+            var arguments = ParseArguments(argsString);
+            
+            return new AtOperatorExpression
+            {
+                Operator = operatorName,
+                Property = property,
+                Arguments = arguments
+            };
+        }
+        
+        // Parse function arguments
+        private List&lt;object&gt; ParseArguments(string argsString)
+        {
+            if (string.IsNullOrWhiteSpace(argsString))
+                return new List&lt;object&gt;();
+            
+            var arguments = new List&lt;object&gt;();
+            var current = "";
+            var inQuotes = false;
+            var quoteChar = '\0';
+            var parenthesesDepth = 0;
+            
+            for (int i = 0; i &lt; argsString.Length; i++)
+            {
+                var c = argsString[i];
+                
+                if (!inQuotes && (c == '"' || c == '\''))
+                {
+                    inQuotes = true;
+                    quoteChar = c;
+                    current += c;
+                }
+                else if (inQuotes && c == quoteChar)
+                {
+                    inQuotes = false;
+                    current += c;
+                }
+                else if (!inQuotes && c == '(')
+                {
+                    parenthesesDepth++;
+                    current += c;
+                }
+                else if (!inQuotes && c == ')')
+                {
+                    parenthesesDepth--;
+                    current += c;
+                }
+                else if (!inQuotes && c == ',' && parenthesesDepth == 0)
+                {
+                    arguments.Add(ParseSingleArgument(current.Trim()));
+                    current = "";
+                }
+                else
+                {
+                    current += c;
+                }
+            }
+            
+            if (!string.IsNullOrWhiteSpace(current))
+            {
+                arguments.Add(ParseSingleArgument(current.Trim()));
+            }
+            
+            return arguments;
+        }
+        
+        // Parse a single argument
+        private object ParseSingleArgument(string arg)
+        {
+            if (string.IsNullOrWhiteSpace(arg))
+                return null;
+            
+            // Remove quotes for string literals
+            if ((arg.StartsWith('"') && arg.EndsWith('"')) || (arg.StartsWith('\'') && arg.EndsWith('\'')))
+                return arg.Substring(1, arg.Length - 2);
+            
+            // Parse numbers
+            if (int.TryParse(arg, out var intValue))
+                return intValue;
+            if (double.TryParse(arg, out var doubleValue))
+                return doubleValue;
+            
+            // Parse booleans
+            if (bool.TryParse(arg, out var boolValue))
+                return boolValue;
+            
+            // Check for @ operator expressions
+            if (arg.StartsWith("@"))
+                return new AtOperatorReference { Expression = arg };
+            
+            // Return as string
+            return arg;
+        }
+        
+        // Evaluate a complex expression with multiple @ operators
+        public async Task&lt;object&gt; EvaluateExpressionAsync(string expression, AtOperatorContext context = null)
+        {
+            context ??= _context;
+            
+            // Find all @ operator expressions in the string
+            var atOperatorPattern = @"@[\w\.]+(?:\([^)]*\))?";
+            var matches = Regex.Matches(expression, atOperatorPattern);
+            
+            var result = expression;
+            foreach (Match match in matches)
+            {
+                var operatorExpression = match.Value;
+                var value = await EvaluateAsync(operatorExpression, context);
+                result = result.Replace(operatorExpression, value?.ToString() ?? "");
+            }
+            
+            return result;
+        }
+        
+        // Get cache statistics
+        public CacheStatistics GetCacheStatistics()
+        {
+            return new CacheStatistics
+            {
+                EntryCount = _cache.Count,
+                TotalMemoryUsage = EstimateCacheMemoryUsage(),
+                HitRate = CalculateCacheHitRate()
+            };
+        }
+        
+        // Get metrics
+        public Dictionary&lt;string, MetricValue&gt; GetMetrics()
+        {
+            return new Dictionary&lt;string, MetricValue&gt;(_metrics);
+        }
+        
+        // Get learning values
+        public Dictionary&lt;string, LearningValue&gt; GetLearningValues()
+        {
+            return new Dictionary&lt;string, LearningValue&gt;(_learning);
+        }
+        
+        // Clear all cached data
+        public void ClearCache()
+        {
+            _cache.Clear();
+        }
+        
+        // Private helper methods
+        private long EstimateCacheMemoryUsage()
+        {
+            // Simple estimation - could be more sophisticated
+            return _cache.Count * 1024; // Assume 1KB per entry on average
+        }
+        
+        private double CalculateCacheHitRate()
+        {
+            // This would require tracking hits/misses
+            return 0.85; // Placeholder
+        }
+    }
+    
+    // @ operator handler interface
+    public interface IAtOperatorHandler
+    {
+        Task&lt;object&gt; EvaluateAsync(List&lt;object&gt; arguments, AtOperatorContext context);
+    }
+    
+    // Context for @ operator evaluation
+    public class AtOperatorContext
+    {
+        public Dictionary&lt;string, object&gt; Variables { get; set; } = new();
+        public Dictionary&lt;string, object&gt; Environment { get; set; } = new();
+        public Dictionary&lt;string, object&gt; System { get; set; } = new();
+        public Dictionary&lt;string, object&gt; User { get; set; } = new();
+        public Dictionary&lt;string, object&gt; Request { get; set; } = new();
+        public Dictionary&lt;string, object&gt; Config { get; set; } = new();
+        public string CurrentFile { get; set; }
+        public DateTime CurrentTime { get; set; } = DateTime.UtcNow;
+    }
+    
+    // @ operator expression representation
+    public class AtOperatorExpression
+    {
+        public string Operator { get; set; }
+        public string Property { get; set; }
+        public List&lt;object&gt; Arguments { get; set; } = new();
+    }
+    
+    // Reference to another @ operator
+    public class AtOperatorReference
+    {
+        public string Expression { get; set; }
+    }
+    
+    // Metric value
+    public class MetricValue
+    {
+        public string Name { get; set; }
+        public object Value { get; set; }
+        public Dictionary&lt;string, string&gt; Labels { get; set; } = new();
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        public MetricType Type { get; set; }
+    }
+    
+    public enum MetricType
+    {
+        Counter,
+        Gauge,
+        Histogram,
+        Timer
+    }
+    
+    // Learning value
+    public class LearningValue
+    {
+        public string Key { get; set; }
+        public object CurrentValue { get; set; }
+        public object DefaultValue { get; set; }
+        public List&lt;object&gt; History { get; set; } = new();
+        public double Confidence { get; set; }
+        public DateTime LastUpdated { get; set; } = DateTime.UtcNow;
+    }
+    
+    // Cache statistics
+    public class CacheStatistics
+    {
+        public int EntryCount { get; set; }
+        public long TotalMemoryUsage { get; set; }
+        public double HitRate { get; set; }
+    }
+}
+</pre>
+
+<h3>Example @ Operator Handlers</h3>
+<pre>
+using TuskLang.AtOperators;
+
+// Environment operator handler
+public class EnvironmentOperatorHandler : IAtOperatorHandler
+{
+    public async Task&lt;object&gt; EvaluateAsync(List&lt;object&gt; arguments, AtOperatorContext context)
+    {
+        if (arguments.Count == 0)
+            return context.Environment;
+        
+        var key = arguments[0]?.ToString();
+        if (string.IsNullOrEmpty(key))
+            return null;
+        
+        // Check context first, then actual environment
+        if (context.Environment.TryGetValue(key, out var contextValue))
+            return contextValue;
+        
+        var envValue = Environment.GetEnvironmentVariable(key);
+        if (envValue != null)
+            return envValue;
+        
+        // Return default value if provided
+        return arguments.Count &gt; 1 ? arguments[1] : null;
+    }
+}
+
+// Cache operator handler
+public class CacheOperatorHandler : IAtOperatorHandler
+{
+    private readonly ConcurrentDictionary&lt;string, object&gt; _cache;
+    private readonly ConcurrentDictionary&lt;string, DateTime&gt; _expiry;
+    
+    public CacheOperatorHandler(ConcurrentDictionary&lt;string, object&gt; cache)
+    {
+        _cache = cache;
+        _expiry = new ConcurrentDictionary&lt;string, DateTime&gt;();
+    }
+    
+    public async Task&lt;object&gt; EvaluateAsync(List&lt;object&gt; arguments, AtOperatorContext context)
+    {
+        if (arguments.Count &lt; 3)
+            throw new ArgumentException("Cache operator requires at least 3 arguments: key, ttl, value");
+        
+        var key = arguments[0]?.ToString();
+        var ttl = arguments[1]?.ToString();
+        var valueProvider = arguments[2];
+        
+        // Check if cached value exists and is not expired
+        if (_cache.TryGetValue(key, out var cachedValue))
+        {
+            if (_expiry.TryGetValue(key, out var expiryTime) && DateTime.UtcNow &lt; expiryTime)
+            {
+                return cachedValue;
+            }
+            else
+            {
+                // Remove expired entry
+                _cache.TryRemove(key, out _);
+                _expiry.TryRemove(key, out _);
+            }
+        }
+        
+        // Evaluate the value provider
+        object newValue;
+        if (valueProvider is AtOperatorReference reference)
+        {
+            // This would require access to the main engine - simplified for example
+            newValue = reference.Expression;
+        }
+        else
+        {
+            newValue = valueProvider;
+        }
+        
+        // Parse TTL and calculate expiry
+        var expiryDateTime = ParseTtl(ttl);
+        
+        // Store in cache
+        _cache[key] = newValue;
+        _expiry[key] = expiryDateTime;
+        
+        return newValue;
+    }
+    
+    private DateTime ParseTtl(string ttl)
+    {
+        var match = Regex.Match(ttl, @"(\d+)([smhd])");
+        if (!match.Success)
+            return DateTime.UtcNow.AddMinutes(5); // Default 5 minutes
+        
+        var value = int.Parse(match.Groups[1].Value);
+        var unit = match.Groups[2].Value;
+        
+        return unit switch
+        {
+            "s" =&gt; DateTime.UtcNow.AddSeconds(value),
+            "m" =&gt; DateTime.UtcNow.AddMinutes(value),
+            "h" =&gt; DateTime.UtcNow.AddHours(value),
+            "d" =&gt; DateTime.UtcNow.AddDays(value),
+            _ =&gt; DateTime.UtcNow.AddMinutes(value)
+        };
+    }
+}
+
+// Metrics operator handler
+public class MetricsOperatorHandler : IAtOperatorHandler
+{
+    private readonly ConcurrentDictionary&lt;string, MetricValue&gt; _metrics;
+    
+    public MetricsOperatorHandler(ConcurrentDictionary&lt;string, MetricValue&gt; metrics)
+    {
+        _metrics = metrics;
+    }
+    
+    public async Task&lt;object&gt; EvaluateAsync(List&lt;object&gt; arguments, AtOperatorContext context)
+    {
+        if (arguments.Count &lt; 2)
+            throw new ArgumentException("Metrics operator requires at least 2 arguments: type, name");
+        
+        var type = arguments[0]?.ToString().ToLower();
+        var name = arguments[1]?.ToString();
+        
+        return type switch
+        {
+            "counter" =&gt; RecordCounter(name, arguments),
+            "gauge" =&gt; RecordGauge(name, arguments),
+            "histogram" =&gt; RecordHistogram(name, arguments),
+            "timer" =&gt; RecordTimer(name, arguments),
+            _ =&gt; throw new ArgumentException($"Unknown metric type: {type}")
+        };
+    }
+    
+    private object RecordCounter(string name, List&lt;object&gt; arguments)
+    {
+        var increment = arguments.Count &gt; 2 ? Convert.ToDouble(arguments[2]) : 1.0;
+        var labels = arguments.Count &gt; 3 ? arguments[3] as Dictionary&lt;string, string&gt; : new Dictionary&lt;string, string&gt;();
+        
+        var key = $"{name}_{string.Join("_", labels.Values)}";
+        
+        _metrics.AddOrUpdate(key, 
+            new MetricValue { Name = name, Value = increment, Labels = labels, Type = MetricType.Counter },
+            (k, existing) =&gt; new MetricValue 
+            { 
+                Name = name, 
+                Value = Convert.ToDouble(existing.Value) + increment, 
+                Labels = labels, 
+                Type = MetricType.Counter 
+            });
+        
+        return increment;
+    }
+    
+    private object RecordGauge(string name, List&lt;object&gt; arguments)
+    {
+        var value = arguments.Count &gt; 2 ? Convert.ToDouble(arguments[2]) : 0.0;
+        var labels = arguments.Count &gt; 3 ? arguments[3] as Dictionary&lt;string, string&gt; : new Dictionary&lt;string, string&gt;();
+        
+        var key = $"{name}_{string.Join("_", labels.Values)}";
+        
+        _metrics[key] = new MetricValue { Name = name, Value = value, Labels = labels, Type = MetricType.Gauge };
+        
+        return value;
+    }
+    
+    private object RecordHistogram(string name, List&lt;object&gt; arguments)
+    {
+        var value = arguments.Count &gt; 2 ? Convert.ToDouble(arguments[2]) : 0.0;
+        var buckets = arguments.Count &gt; 3 ? arguments[3] as List&lt;double&gt; : new List&lt;double&gt; { 0.1, 0.5, 1.0, 2.5, 5.0 };
+        
+        _metrics[$"{name}_histogram"] = new MetricValue { Name = name, Value = value, Type = MetricType.Histogram };
+        
+        return value;
+    }
+    
+    private object RecordTimer(string name, List&lt;object&gt; arguments)
+    {
+        // This would typically time an operation
+        var duration = TimeSpan.FromMilliseconds(100); // Placeholder
+        
+        _metrics[$"{name}_timer"] = new MetricValue { Name = name, Value = duration.TotalSeconds, Type = MetricType.Timer };
+        
+        return duration.TotalSeconds;
+    }
+}
+</pre>
+
+<h3>Usage Example</h3>
+<pre>
+using TuskLang.AtOperators;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        var engine = new TuskAtOperatorEngine();
+        
+        // Set up context
+        var context = new AtOperatorContext();
+        context.Environment["NODE_ENV"] = "production";
+        context.Environment["API_KEY"] = "secret-key-123";
+        context.User["name"] = "John Doe";
+        context.User["id"] = "user-123";
+        
+        // Evaluate basic @ operators
+        var env = await engine.EvaluateAsync("@env.NODE_ENV", context);
+        Console.WriteLine($"Environment: {env}");
+        
+        var userName = await engine.EvaluateAsync("@user.name", context);
+        Console.WriteLine($"User: {userName}");
+        
+        // Evaluate function @ operators
+        var upperName = await engine.EvaluateAsync("@upper(@user.name)", context);
+        Console.WriteLine($"Upper case name: {upperName}");
+        
+        // Evaluate cache @ operators
+        var cachedData = await engine.EvaluateAsync("@cache(\"user_#{@user.id}\", \"5m\", \"User data for John\")", context);
+        Console.WriteLine($"Cached data: {cachedData}");
+        
+        // Evaluate metrics @ operators
+        await engine.EvaluateAsync("@metrics.counter(\"requests_total\", 1)", context);
+        await engine.EvaluateAsync("@metrics.gauge(\"active_users\", 42)", context);
+        
+        // Evaluate complex expressions
+        var complexExpression = "Hello @user.name! Your environment is @env.NODE_ENV.";
+        var result = await engine.EvaluateExpressionAsync(complexExpression, context);
+        Console.WriteLine($"Complex expression result: {result}");
+        
+        // Get statistics
+        var cacheStats = engine.GetCacheStatistics();
+        Console.WriteLine($"Cache entries: {cacheStats.EntryCount}");
+        
+        var metrics = engine.GetMetrics();
+        Console.WriteLine($"Metrics collected: {metrics.Count}");
+        
+        // Register custom @ operator
+        engine.RegisterHandler("custom", new CustomOperatorHandler());
+        
+        var customResult = await engine.EvaluateAsync("@custom(\"test\")", context);
+        Console.WriteLine($"Custom operator result: {customResult}");
+    }
+}
+
+// Custom @ operator handler example
+public class CustomOperatorHandler : IAtOperatorHandler
+{
+    public async Task&lt;object&gt; EvaluateAsync(List&lt;object&gt; arguments, AtOperatorContext context)
+    {
+        var input = arguments.FirstOrDefault()?.ToString() ?? "default";
+        return $"Custom processing of: {input}";
+    }
+}
+</pre>

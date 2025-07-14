@@ -1,0 +1,421 @@
+#!/usr/bin/env php
+<?php
+/**
+ * 🔧 FUJSEN Services Manager
+ * =========================
+ * "Managing the elephant's ecosystem services"
+ * 
+ * Commands:
+ *   start [service]      - Start service(s)
+ *   stop [service]       - Stop service(s)
+ *   restart [service]    - Restart service(s)
+ *   status              - Show all service status
+ *   logs <service>      - Show service logs
+ *   list                - List available services
+ */
+
+if (php_sapi_name() !== 'cli') {
+    die("FUJSEN Services must be run from command line\n");
+}
+
+class FujsenServices 
+{
+    private $command;
+    private $args;
+    private $services;
+    private $pidDir;
+    private $logDir;
+    
+    public function __construct($argv) 
+    {
+        $this->command = $argv[1] ?? 'help';
+        $this->args = array_slice($argv, 2);
+        
+        $this->pidDir = sys_get_temp_dir() . '/fujsen';
+        $this->logDir = __DIR__ . '/../logs';
+        
+        // Create directories if they don't exist
+        if (!is_dir($this->pidDir)) {
+            mkdir($this->pidDir, 0755, true);
+        }
+        if (!is_dir($this->logDir)) {
+            mkdir($this->logDir, 0755, true);
+        }
+        
+        $this->defineServices();
+        
+        echo "🔧 FUJSEN Services Manager v2.0.0-Elder\n";
+        echo "   Managing the Elephant's Ecosystem\n\n";
+    }
+    
+    private function defineServices() 
+    {
+        $this->services = [
+            'fujsen-server' => [
+                'name' => 'FUJSEN Development Server',
+                'port' => 8874,
+                'command' => 'php -S localhost:8874 -t . ' . __DIR__ . '/fujsen-server.php',
+                'pidfile' => $this->pidDir . '/fujsen-server.pid',
+                'logfile' => $this->logDir . '/fujsen-server.log',
+                'description' => 'TuskLang .tsk file execution server'
+            ],
+            'c3b2' => [
+                'name' => 'C3B2 Application',
+                'port' => 7326,
+                'command' => 'php -S localhost:7326 -t ./public',
+                'pidfile' => $this->pidDir . '/c3b2.pid',
+                'logfile' => $this->logDir . '/c3b2.log',
+                'description' => 'Main application server'
+            ],
+            'peanuts-protection' => [
+                'name' => 'Peanuts Protection System',
+                'command' => __DIR__ . '/../protect-peanuts.sh',
+                'pidfile' => $this->pidDir . '/peanuts-protection.pid',
+                'logfile' => $this->logDir . '/peanuts-protection.log',
+                'description' => 'File integrity monitoring'
+            ],
+            'cache-cleaner' => [
+                'name' => 'Cache Cleanup Service',
+                'command' => __DIR__ . '/cache-cleaner.php --service',
+                'pidfile' => $this->pidDir . '/cache-cleaner.pid',
+                'logfile' => $this->logDir . '/cache-cleaner.log',
+                'description' => 'Periodic cache maintenance',
+                'interval' => 300 // Run every 5 minutes
+            ]
+        ];
+    }
+    
+    public function run() 
+    {
+        switch ($this->command) {
+            case 'start':
+                $this->startServices();
+                break;
+            case 'stop':
+                $this->stopServices();
+                break;
+            case 'restart':
+                $this->restartServices();
+                break;
+            case 'status':
+                $this->showStatus();
+                break;
+            case 'logs':
+                $this->showLogs();
+                break;
+            case 'list':
+                $this->listServices();
+                break;
+            case 'help':
+            default:
+                $this->showHelp();
+                break;
+        }
+    }
+    
+    private function startServices() 
+    {
+        $serviceName = $this->args[0] ?? null;
+        
+        if ($serviceName) {
+            if (isset($this->services[$serviceName])) {
+                $this->startService($serviceName);
+            } else {
+                echo "❌ Unknown service: $serviceName\n";
+                echo "Available services: " . implode(', ', array_keys($this->services)) . "\n";
+            }
+        } else {
+            echo "🚀 Starting all FUJSEN services...\n\n";
+            foreach ($this->services as $name => $config) {
+                $this->startService($name);
+            }
+        }
+    }
+    
+    private function stopServices() 
+    {
+        $serviceName = $this->args[0] ?? null;
+        
+        if ($serviceName) {
+            if (isset($this->services[$serviceName])) {
+                $this->stopService($serviceName);
+            } else {
+                echo "❌ Unknown service: $serviceName\n";
+            }
+        } else {
+            echo "🛑 Stopping all FUJSEN services...\n\n";
+            foreach ($this->services as $name => $config) {
+                $this->stopService($name);
+            }
+        }
+    }
+    
+    private function restartServices() 
+    {
+        $serviceName = $this->args[0] ?? null;
+        
+        if ($serviceName) {
+            if (isset($this->services[$serviceName])) {
+                echo "🔄 Restarting $serviceName...\n";
+                $this->stopService($serviceName);
+                sleep(2);
+                $this->startService($serviceName);
+            } else {
+                echo "❌ Unknown service: $serviceName\n";
+            }
+        } else {
+            echo "🔄 Restarting all FUJSEN services...\n\n";
+            foreach ($this->services as $name => $config) {
+                $this->stopService($name);
+            }
+            sleep(2);
+            foreach ($this->services as $name => $config) {
+                $this->startService($name);
+            }
+        }
+    }
+    
+    private function startService($name) 
+    {
+        $service = $this->services[$name];
+        
+        echo "🔧 Starting {$service['name']}...\n";
+        
+        // Check if already running
+        if ($this->isServiceRunning($name)) {
+            echo "⚠️ Service already running\n\n";
+            return;
+        }
+        
+        // Start the service
+        $command = $service['command'];
+        if (isset($service['logfile'])) {
+            $command .= " >> {$service['logfile']} 2>&1";
+        }
+        $command .= " & echo $! > {$service['pidfile']}";
+        
+        exec($command);
+        
+        // Wait a moment and check if it started
+        sleep(1);
+        if ($this->isServiceRunning($name)) {
+            echo "✅ Started successfully";
+            if (isset($service['port'])) {
+                echo " on port {$service['port']}";
+            }
+            echo "\n\n";
+        } else {
+            echo "❌ Failed to start\n\n";
+        }
+    }
+    
+    private function stopService($name) 
+    {
+        $service = $this->services[$name];
+        
+        echo "🛑 Stopping {$service['name']}...\n";
+        
+        if (!$this->isServiceRunning($name)) {
+            echo "⚠️ Service not running\n\n";
+            return;
+        }
+        
+        $pid = $this->getServicePid($name);
+        if ($pid) {
+            // Try graceful shutdown first
+            exec("kill $pid");
+            sleep(2);
+            
+            // Force kill if still running
+            if ($this->isServiceRunning($name)) {
+                exec("kill -9 $pid");
+                sleep(1);
+            }
+            
+            // Clean up PID file
+            if (file_exists($service['pidfile'])) {
+                unlink($service['pidfile']);
+            }
+            
+            if ($this->isServiceRunning($name)) {
+                echo "❌ Failed to stop\n\n";
+            } else {
+                echo "✅ Stopped successfully\n\n";
+            }
+        }
+    }
+    
+    private function showStatus() 
+    {
+        echo "📊 FUJSEN Services Status:\n\n";
+        
+        foreach ($this->services as $name => $service) {
+            $status = $this->isServiceRunning($name) ? '✅ Running' : '❌ Stopped';
+            $pid = $this->getServicePid($name);
+            
+            echo "🔧 {$service['name']}: $status";
+            if ($pid) {
+                echo " (PID: $pid)";
+            }
+            if (isset($service['port'])) {
+                echo " (Port: {$service['port']})";
+            }
+            echo "\n";
+            echo "   {$service['description']}\n\n";
+        }
+        
+        // Show system resources
+        echo "💻 System Resources:\n";
+        echo "   Memory: " . $this->getMemoryUsage() . "\n";
+        echo "   Load: " . $this->getSystemLoad() . "\n";
+        echo "   Disk: " . $this->getDiskUsage() . "\n\n";
+    }
+    
+    private function showLogs() 
+    {
+        $serviceName = $this->args[0] ?? null;
+        $lines = $this->args[1] ?? 50;
+        
+        if (!$serviceName) {
+            echo "❌ Please specify service name\n";
+            echo "Usage: fujsen-services logs <service> [lines]\n";
+            return;
+        }
+        
+        if (!isset($this->services[$serviceName])) {
+            echo "❌ Unknown service: $serviceName\n";
+            return;
+        }
+        
+        $logfile = $this->services[$serviceName]['logfile'];
+        
+        if (!file_exists($logfile)) {
+            echo "📝 No logs found for $serviceName\n";
+            return;
+        }
+        
+        echo "📝 Last $lines lines from {$this->services[$serviceName]['name']} logs:\n\n";
+        passthru("tail -n $lines " . escapeshellarg($logfile));
+    }
+    
+    private function listServices() 
+    {
+        echo "📋 Available FUJSEN Services:\n\n";
+        
+        foreach ($this->services as $name => $service) {
+            echo "🔧 $name\n";
+            echo "   Name: {$service['name']}\n";
+            echo "   Description: {$service['description']}\n";
+            if (isset($service['port'])) {
+                echo "   Port: {$service['port']}\n";
+            }
+            echo "   Command: {$service['command']}\n";
+            echo "\n";
+        }
+    }
+    
+    private function isServiceRunning($name) 
+    {
+        $service = $this->services[$name];
+        
+        if (!file_exists($service['pidfile'])) {
+            return false;
+        }
+        
+        $pid = trim(file_get_contents($service['pidfile']));
+        if (!$pid) {
+            return false;
+        }
+        
+        // Check if process is actually running
+        exec("ps -p $pid", $output, $returnCode);
+        return $returnCode === 0;
+    }
+    
+    private function getServicePid($name) 
+    {
+        $service = $this->services[$name];
+        
+        if (!file_exists($service['pidfile'])) {
+            return null;
+        }
+        
+        return trim(file_get_contents($service['pidfile']));
+    }
+    
+    private function getMemoryUsage() 
+    {
+        $free = shell_exec('free -m | grep "^Mem"');
+        if ($free) {
+            $parts = preg_split('/\s+/', trim($free));
+            $used = $parts[2] ?? 0;
+            $total = $parts[1] ?? 1;
+            $percent = round(($used / $total) * 100, 1);
+            return "{$used}MB / {$total}MB ({$percent}%)";
+        }
+        return "Unknown";
+    }
+    
+    private function getSystemLoad() 
+    {
+        $load = sys_getloadavg();
+        if ($load) {
+            return number_format($load[0], 2) . " " . 
+                   number_format($load[1], 2) . " " . 
+                   number_format($load[2], 2);
+        }
+        return "Unknown";
+    }
+    
+    private function getDiskUsage() 
+    {
+        $total = disk_total_space('.');
+        $free = disk_free_space('.');
+        
+        if ($total && $free) {
+            $used = $total - $free;
+            $percent = round(($used / $total) * 100, 1);
+            return $this->formatBytes($used) . " / " . $this->formatBytes($total) . " ({$percent}%)";
+        }
+        return "Unknown";
+    }
+    
+    private function formatBytes($bytes) 
+    {
+        $units = ['B', 'KB', 'MB', 'GB', 'TB'];
+        $bytes = max($bytes, 0);
+        $pow = floor(($bytes ? log($bytes) : 0) / log(1024));
+        $pow = min($pow, count($units) - 1);
+        
+        $bytes /= pow(1024, $pow);
+        
+        return round($bytes, 2) . ' ' . $units[$pow];
+    }
+    
+    private function showHelp() 
+    {
+        echo "FUJSEN Services Commands:\n\n";
+        echo "🚀 start [service]      Start service(s)\n";
+        echo "🛑 stop [service]       Stop service(s)\n";
+        echo "🔄 restart [service]    Restart service(s)\n";
+        echo "📊 status               Show all service status\n";
+        echo "📝 logs <service>       Show service logs\n";
+        echo "📋 list                 List available services\n";
+        echo "❓ help                 Show this help\n\n";
+        
+        echo "Available Services:\n";
+        foreach ($this->services as $name => $service) {
+            echo "  $name - {$service['name']}\n";
+        }
+        echo "\n";
+        
+        echo "Examples:\n";
+        echo "  fujsen-services start fujsen-server\n";
+        echo "  fujsen-services stop\n";
+        echo "  fujsen-services restart c3b2\n";
+        echo "  fujsen-services logs fujsen-server 100\n";
+    }
+}
+
+$manager = new FujsenServices($argv);
+$manager->run(); 

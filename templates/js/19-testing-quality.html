@@ -1,0 +1,654 @@
+<h1>Testing & Quality</h1>
+
+<h2>Testing TuskLang Applications in JavaScript</h2>
+<p>Comprehensive testing strategies for TuskLang configurations and JavaScript applications.</p>
+
+<h3>testing.tsk</h3>
+<pre>
+# Testing configuration
+testing {
+    # Test runner configuration
+    runner {
+        framework: "jest"
+        
+        config: {
+            testEnvironment: "node",
+            coverageDirectory: "./coverage",
+            
+            collectCoverageFrom: [
+                "src/**/*.js",
+                "!src/**/*.test.js",
+                "!src/**/*.spec.js"
+            ],
+            
+            testMatch: [
+                "**/__tests__/**/*.js",
+                "**/*.test.js",
+                "**/*.spec.js"
+            ],
+            
+            setupFilesAfterEnv: ["./test/setup.js"],
+            
+            transform: {
+                "^.+\\.tsk$": "./test/tusk-transformer.js"
+            },
+            
+            moduleNameMapper: {
+                "^@/(.*)$": "<rootDir>/src/$1",
+                "^@config/(.*)$": "<rootDir>/config/$1"
+            }
+        }
+    }
+    
+    # Test suites
+    suites {
+        unit: {
+            pattern: "**/*.unit.test.js",
+            timeout: 5000,
+            
+            before_all: @setupUnitTests,
+            after_all: @teardownUnitTests,
+            
+            coverage: {
+                statements: 90,
+                branches: 85,
+                functions: 90,
+                lines: 90
+            }
+        },
+        
+        integration: {
+            pattern: "**/*.integration.test.js",
+            timeout: 30000,
+            
+            before_all: @setupIntegrationTests,
+            after_all: @teardownIntegrationTests,
+            
+            database: {
+                reset: true,
+                seed: true,
+                fixtures: "./test/fixtures"
+            }
+        },
+        
+        e2e: {
+            pattern: "**/*.e2e.test.js",
+            timeout: 60000,
+            
+            browser: {
+                headless: @env.CI|true,
+                slowMo: @env.DEBUG ? 100 : 0
+            },
+            
+            server: {
+                port: 3001,
+                env: "test"
+            }
+        }
+    }
+    
+    # Mocking configuration
+    mocks {
+        # API mocks
+        api: {
+            base_url: "http://localhost:3000",
+            
+            endpoints: {
+                "GET /users": {
+                    response: @fixture("users.json"),
+                    delay: 100
+                },
+                
+                "POST /users": {
+                    response: (req) => ({
+                        id: @uuid(),
+                        ...req.body,
+                        created_at: @now()
+                    }),
+                    status: 201
+                },
+                
+                "GET /users/:id": {
+                    response: (req) => @fixture("users.json").find(u => u.id === req.params.id),
+                    status: (req, res) => res ? 200 : 404
+                }
+            }
+        },
+        
+        # Service mocks
+        services: {
+            email: {
+                send: @jest.fn(() => Promise.resolve({ messageId: @uuid() })),
+                verify: @jest.fn(() => Promise.resolve(true))
+            },
+            
+            payment: {
+                charge: @jest.fn(() => Promise.resolve({ 
+                    id: @uuid(), 
+                    status: "succeeded" 
+                })),
+                refund: @jest.fn(() => Promise.resolve({ 
+                    id: @uuid(), 
+                    status: "refunded" 
+                }))
+            }
+        },
+        
+        # Module mocks
+        modules: {
+            fs: {
+                readFile: @jest.fn((path, cb) => cb(null, @fixture(path))),
+                writeFile: @jest.fn((path, data, cb) => cb(null))
+            },
+            
+            crypto: {
+                randomUUID: @jest.fn(() => "test-uuid-1234")
+            }
+        }
+    }
+    
+    # Test data factories
+    factories {
+        user: @factory({
+            id: @sequence(),
+            name: @faker.name.findName(),
+            email: @faker.internet.email(),
+            password: @bcrypt.hash("password123"),
+            role: @oneOf(["user", "admin", "moderator"]),
+            active: true,
+            created_at: @faker.date.past()
+        })
+        
+        post: @factory({
+            id: @sequence(),
+            title: @faker.lorem.sentence(),
+            content: @faker.lorem.paragraphs(3),
+            author_id: @factory.user.id,
+            status: @oneOf(["draft", "published"]),
+            tags: @array(@faker.lorem.word, 3),
+            published_at: @when(@this.status === "published", @faker.date.recent())
+        })
+        
+        comment: @factory({
+            id: @sequence(),
+            post_id: @factory.post.id,
+            author_id: @factory.user.id,
+            content: @faker.lorem.paragraph(),
+            created_at: @faker.date.recent()
+        })
+    }
+    
+    # Assertions and matchers
+    matchers {
+        # Custom Jest matchers
+        toBeValidEmail: (received) => ({
+            pass: /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(received),
+            message: () => `Expected ${received} to be a valid email`
+        })
+        
+        toMatchSchema: (received, schema) => {
+            const validation = @validate(received, schema)
+            return {
+                pass: validation.valid,
+                message: () => `Expected object to match schema: ${validation.errors}`
+            }
+        }
+        
+        toBeWithinRange: (received, min, max) => ({
+            pass: received >= min && received <= max,
+            message: () => `Expected ${received} to be between ${min} and ${max}`
+        })
+        
+        toContainKeys: (received, keys) => ({
+            pass: keys.every(key => key in received),
+            message: () => `Expected object to contain keys: ${keys}`
+        })
+    }
+    
+    # Test utilities
+    utils {
+        # Wait helpers
+        waitFor: @retry({
+            times: 50,
+            interval: 100,
+            errorMessage: "Condition not met within timeout"
+        })
+        
+        waitForElement: (selector) => @waitFor(() => document.querySelector(selector))
+        
+        # Snapshot testing
+        snapshot: {
+            serializers: [
+                {
+                    test: (val) => val && val._id,
+                    print: (val) => ({ ...val, _id: "[ID]", created_at: "[DATE]" })
+                }
+            ]
+        }
+        
+        # Performance testing
+        performance: {
+            measure: (name, fn) => {
+                const start = performance.now()
+                const result = fn()
+                const duration = performance.now() - start
+                
+                @expect(duration).toBeLessThan(@var.performance.thresholds[name])
+                return result
+            },
+            
+            thresholds: {
+                api_response: 200,
+                database_query: 50,
+                render: 16
+            }
+        }
+    }
+}
+
+# Test scenarios
+scenarios {
+    # User authentication flow
+    auth_flow: {
+        steps: [
+            {
+                name: "User can register",
+                action: @api.post("/auth/register", {
+                    email: @faker.internet.email(),
+                    password: "Test123!@#",
+                    name: @faker.name.findName()
+                }),
+                expect: {
+                    status: 201,
+                    body: {
+                        user: { email: @match.email },
+                        token: @match.string
+                    }
+                }
+            },
+            
+            {
+                name: "User can login",
+                action: @api.post("/auth/login", {
+                    email: @previous.body.user.email,
+                    password: "Test123!@#"
+                }),
+                expect: {
+                    status: 200,
+                    body: {
+                        user: { id: @match.number },
+                        token: @match.string
+                    }
+                }
+            },
+            
+            {
+                name: "User can access protected route",
+                action: @api.get("/api/profile", {
+                    headers: {
+                        Authorization: `Bearer ${@previous.body.token}`
+                    }
+                }),
+                expect: {
+                    status: 200,
+                    body: {
+                        user: { email: @steps[0].body.user.email }
+                    }
+                }
+            }
+        ]
+    }
+    
+    # Data validation flow
+    validation_flow: {
+        steps: [
+            {
+                name: "Rejects invalid email",
+                action: @api.post("/users", { email: "invalid" }),
+                expect: { status: 400, body: { errors: { email: @match.string } } }
+            },
+            
+            {
+                name: "Rejects short password",
+                action: @api.post("/users", { 
+                    email: "test@example.com", 
+                    password: "123" 
+                }),
+                expect: { status: 400, body: { errors: { password: @match.string } } }
+            }
+        ]
+    }
+}
+</pre>
+
+<h3>JavaScript Testing Implementation</h3>
+<pre>
+// Test setup and utilities
+const { TuskLang } = require('../src/TuskLang');
+const fs = require('fs-extra');
+const path = require('path');
+
+// Load test configuration
+const testConfig = TuskLang.parse(
+    fs.readFileSync(path.join(__dirname, 'testing.tsk'), 'utf8')
+);
+
+// Jest configuration
+module.exports = {
+    ...testConfig.testing.runner.config,
+    
+    // Custom global setup
+    globalSetup: async () => {
+        // Setup test database
+        if (process.env.TEST_DATABASE) {
+            await setupTestDatabase();
+        }
+        
+        // Start mock server
+        const mockServer = await startMockServer(testConfig.testing.mocks.api);
+        global.__MOCK_SERVER__ = mockServer;
+    },
+    
+    // Custom global teardown
+    globalTeardown: async () => {
+        if (global.__MOCK_SERVER__) {
+            await global.__MOCK_SERVER__.close();
+        }
+    }
+};
+
+// TuskLang test transformer
+class TuskLangTransformer {
+    process(src, filename) {
+        if (filename.endsWith('.tsk')) {
+            const parsed = TuskLang.parse(src);
+            return `module.exports = ${JSON.stringify(parsed)};`;
+        }
+        return src;
+    }
+}
+
+// Test factories
+class TestFactory {
+    constructor(definition) {
+        this.definition = definition;
+        this.sequence = 0;
+    }
+    
+    create(overrides = {}) {
+        const instance = {};
+        
+        for (const [key, value] of Object.entries(this.definition)) {
+            if (typeof value === 'function') {
+                instance[key] = value.call(instance, this);
+            } else if (value && value._factory) {
+                instance[key] = value._factory();
+            } else {
+                instance[key] = value;
+            }
+        }
+        
+        return { ...instance, ...overrides };
+    }
+    
+    createMany(count, overrides = {}) {
+        return Array.from({ length: count }, () => this.create(overrides));
+    }
+    
+    sequence() {
+        return ++this.sequence;
+    }
+}
+
+// Custom matchers
+expect.extend({
+    toBeValidEmail(received) {
+        const pass = /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(received);
+        
+        return {
+            pass,
+            message: () => pass
+                ? `Expected ${received} not to be a valid email`
+                : `Expected ${received} to be a valid email`
+        };
+    },
+    
+    toMatchSchema(received, schema) {
+        const ajv = new Ajv();
+        const validate = ajv.compile(schema);
+        const valid = validate(received);
+        
+        return {
+            pass: valid,
+            message: () => valid
+                ? `Expected object not to match schema`
+                : `Expected object to match schema. Errors: ${JSON.stringify(validate.errors)}`
+        };
+    },
+    
+    toBeWithinRange(received, min, max) {
+        const pass = received >= min && received <= max;
+        
+        return {
+            pass,
+            message: () => pass
+                ? `Expected ${received} not to be between ${min} and ${max}`
+                : `Expected ${received} to be between ${min} and ${max}`
+        };
+    },
+    
+    toContainKeys(received, keys) {
+        const missingKeys = keys.filter(key => !(key in received));
+        const pass = missingKeys.length === 0;
+        
+        return {
+            pass,
+            message: () => pass
+                ? `Expected object not to contain keys: ${keys}`
+                : `Expected object to contain keys: ${missingKeys}`
+        };
+    }
+});
+
+// Test utilities
+class TestUtils {
+    static async waitFor(condition, options = {}) {
+        const { timeout = 5000, interval = 100 } = options;
+        const start = Date.now();
+        
+        while (Date.now() - start < timeout) {
+            try {
+                const result = await condition();
+                if (result) return result;
+            } catch (error) {
+                // Continue waiting
+            }
+            
+            await new Promise(resolve => setTimeout(resolve, interval));
+        }
+        
+        throw new Error(options.errorMessage || 'Timeout waiting for condition');
+    }
+    
+    static mockApi(config) {
+        const nock = require('nock');
+        const scope = nock(config.base_url);
+        
+        Object.entries(config.endpoints).forEach(([route, handler]) => {
+            const [method, path] = route.split(' ');
+            
+            scope[method.toLowerCase()](path)
+                .delay(handler.delay || 0)
+                .reply(function(uri, requestBody) {
+                    const req = { 
+                        params: this.req.params || {}, 
+                        body: requestBody,
+                        headers: this.req.headers
+                    };
+                    
+                    const response = typeof handler.response === 'function'
+                        ? handler.response(req)
+                        : handler.response;
+                    
+                    const status = typeof handler.status === 'function'
+                        ? handler.status(req, response)
+                        : handler.status || 200;
+                    
+                    return [status, response];
+                });
+        });
+        
+        return scope;
+    }
+    
+    static createFixture(name) {
+        const fixturePath = path.join(__dirname, 'fixtures', name);
+        return fs.readJsonSync(fixturePath);
+    }
+    
+    static async measurePerformance(name, fn) {
+        const start = performance.now();
+        const result = await fn();
+        const duration = performance.now() - start;
+        
+        // Check against threshold
+        const threshold = testConfig.testing.utils.performance.thresholds[name];
+        if (threshold && duration > threshold) {
+            console.warn(`Performance warning: ${name} took ${duration}ms (threshold: ${threshold}ms)`);
+        }
+        
+        return { result, duration };
+    }
+}
+
+// Example test file
+describe('TuskLang Parser', () => {
+    let parser;
+    
+    beforeEach(() => {
+        parser = new TuskLang();
+    });
+    
+    describe('Basic parsing', () => {
+        test('parses simple key-value pairs', () => {
+            const input = 'name: "John"\nage: 30';
+            const result = parser.parse(input);
+            
+            expect(result).toEqual({
+                name: 'John',
+                age: 30
+            });
+        });
+        
+        test('parses nested objects', () => {
+            const input = `
+                user {
+                    name: "John"
+                    email: "john@example.com"
+                }
+            `;
+            
+            const result = parser.parse(input);
+            
+            expect(result.user).toContainKeys(['name', 'email']);
+            expect(result.user.email).toBeValidEmail();
+        });
+    });
+    
+    describe('Advanced features', () => {
+        test('handles @ operators', async () => {
+            const input = 'timestamp: @now()';
+            const result = parser.parse(input);
+            
+            expect(result.timestamp).toBeWithinRange(
+                Date.now() - 1000,
+                Date.now() + 1000
+            );
+        });
+        
+        test('validates against schema', () => {
+            const schema = {
+                type: 'object',
+                required: ['name', 'email'],
+                properties: {
+                    name: { type: 'string' },
+                    email: { type: 'string', format: 'email' }
+                }
+            };
+            
+            const validData = { name: 'John', email: 'john@example.com' };
+            const invalidData = { name: 'John' };
+            
+            expect(validData).toMatchSchema(schema);
+            expect(invalidData).not.toMatchSchema(schema);
+        });
+    });
+    
+    describe('Performance', () => {
+        test('parses large files within threshold', async () => {
+            const largeConfig = TestFactory.create('largeConfig');
+            const input = TuskLang.serialize(largeConfig);
+            
+            const { result, duration } = await TestUtils.measurePerformance(
+                'large_file_parse',
+                () => parser.parse(input)
+            );
+            
+            expect(result).toBeDefined();
+            expect(duration).toBeLessThan(100); // 100ms threshold
+        });
+    });
+});
+
+// Integration test example
+describe('API Integration', () => {
+    let apiMock;
+    
+    beforeAll(() => {
+        apiMock = TestUtils.mockApi(testConfig.testing.mocks.api);
+    });
+    
+    afterAll(() => {
+        nock.cleanAll();
+    });
+    
+    test('User registration flow', async () => {
+        const scenario = testConfig.testing.scenarios.auth_flow;
+        const context = {};
+        
+        for (const step of scenario.steps) {
+            console.log(`Running: ${step.name}`);
+            
+            const response = await executeStep(step, context);
+            
+            // Validate expectations
+            expect(response.status).toBe(step.expect.status);
+            
+            if (step.expect.body) {
+                validateBody(response.body, step.expect.body);
+            }
+            
+            // Store result in context
+            context.previous = response;
+            context.steps = context.steps || [];
+            context.steps.push(response);
+        }
+    });
+});
+
+// Snapshot testing
+describe('Configuration snapshots', () => {
+    test('matches production config snapshot', () => {
+        const config = TuskLang.parse(
+            fs.readFileSync('config/production.tsk', 'utf8')
+        );
+        
+        expect(config).toMatchSnapshot({
+            timestamp: expect.any(Number),
+            version: expect.any(String)
+        });
+    });
+});
+</pre>
+
+<p>Comprehensive testing in TuskLang applications ensures reliability through unit tests, integration tests, E2E tests, and performance benchmarks, all configured declaratively.</p>

@@ -1,0 +1,275 @@
+#!/usr/bin/env php
+<?php
+/**
+ * 🐘 TuskLang License Manager
+ * ==========================
+ * CLI tool for managing TuskLang licenses
+ */
+
+// Autoload TuskLang classes
+require_once __DIR__ . '/../lib/TuskLicense.php';
+
+use TuskPHP\License\TuskLicense;
+
+// Parse command line arguments
+$command = $argv[1] ?? 'help';
+$args = array_slice($argv, 2);
+
+// ANSI color codes
+$GREEN = "\033[0;32m";
+$RED = "\033[0;31m";
+$YELLOW = "\033[1;33m";
+$BLUE = "\033[0;34m";
+$NC = "\033[0m"; // No Color
+
+function printHeader() {
+    global $BLUE, $NC;
+    echo "{$BLUE}🐘 TuskLang License Manager{$NC}\n";
+    echo "===========================\n\n";
+}
+
+function printSuccess($message) {
+    global $GREEN, $NC;
+    echo "{$GREEN}✓ {$message}{$NC}\n";
+}
+
+function printError($message) {
+    global $RED, $NC;
+    echo "{$RED}✗ {$message}{$NC}\n";
+}
+
+function printInfo($message) {
+    global $YELLOW, $NC;
+    echo "{$YELLOW}ℹ {$message}{$NC}\n";
+}
+
+// Command handlers
+switch ($command) {
+    case 'generate':
+        printHeader();
+        
+        // Parse options
+        $options = [];
+        for ($i = 0; $i < count($args); $i++) {
+            switch ($args[$i]) {
+                case '--type':
+                    $options['type'] = $args[++$i] ?? 'community';
+                    break;
+                case '--email':
+                    $options['email'] = $args[++$i] ?? '';
+                    break;
+                case '--organization':
+                    $options['organization'] = $args[++$i] ?? '';
+                    break;
+                case '--expires':
+                    $options['expires'] = $args[++$i] ?? null;
+                    break;
+                case '--max-installations':
+                    $options['max_installations'] = (int)($args[++$i] ?? 1);
+                    break;
+            }
+        }
+        
+        // Generate license
+        try {
+            $license = TuskLicense::generate($options);
+            
+            printSuccess("License generated successfully!");
+            echo "\n";
+            echo "License ID:      {$license['id']}\n";
+            echo "License Key:     {$YELLOW}{$license['key']}{$NC}\n";
+            echo "Type:            {$license['type']}\n";
+            echo "Email:           " . ($license['email'] ?: 'N/A') . "\n";
+            echo "Organization:    " . ($license['organization'] ?: 'N/A') . "\n";
+            echo "Max Installs:    {$license['max_installations']}\n";
+            echo "Expires:         " . ($license['expires'] ?: 'Never') . "\n";
+            echo "Created:         {$license['created']}\n";
+            
+        } catch (Exception $e) {
+            printError("Failed to generate license: " . $e->getMessage());
+            exit(1);
+        }
+        break;
+        
+    case 'validate':
+        printHeader();
+        
+        if (empty($args[0])) {
+            printError("Please provide a license key to validate");
+            exit(1);
+        }
+        
+        $key = $args[0];
+        
+        try {
+            $result = TuskLicense::validate($key);
+            
+            if ($result['valid']) {
+                printSuccess("License is valid!");
+                echo "\n";
+                echo "License ID:      {$result['license']['id']}\n";
+                echo "Type:            {$result['license']['type']}\n";
+                echo "Organization:    " . ($result['license']['organization'] ?: 'N/A') . "\n";
+                echo "Max Installs:    {$result['license']['max_installations']}\n";
+                echo "Expires:         " . ($result['license']['expires'] ?: 'Never') . "\n";
+            } else {
+                printError("License is invalid: {$result['reason']}");
+                exit(1);
+            }
+            
+        } catch (Exception $e) {
+            printError("Failed to validate license: " . $e->getMessage());
+            exit(1);
+        }
+        break;
+        
+    case 'track':
+        printHeader();
+        
+        // Get installation info
+        $info = [
+            'path' => getcwd(),
+            'version' => '1.0.0',
+            'fujsen' => file_exists('/opt/tusklang/fujsen'),
+            'sdks' => []
+        ];
+        
+        // Check for SDKs
+        if (file_exists(__DIR__ . '/../sdk/js/tsk.js')) {
+            $info['sdks'][] = 'javascript';
+        }
+        if (file_exists(__DIR__ . '/../sdk/python/tsk.py')) {
+            $info['sdks'][] = 'python';
+        }
+        if (file_exists(__DIR__ . '/../sdk/bash/tsk.sh')) {
+            $info['sdks'][] = 'bash';
+        }
+        
+        // Check for license
+        $licenseFile = __DIR__ . '/../.license';
+        if (file_exists($licenseFile)) {
+            $info['license_id'] = trim(file_get_contents($licenseFile));
+        }
+        
+        try {
+            TuskLicense::trackInstallation($info);
+            printSuccess("Installation tracked successfully!");
+            
+            echo "\n";
+            echo "Hostname:        " . gethostname() . "\n";
+            echo "Path:            {$info['path']}\n";
+            echo "PHP Version:     " . PHP_VERSION . "\n";
+            echo "OS:              " . PHP_OS . "\n";
+            echo "SDKs:            " . implode(', ', $info['sdks']) . "\n";
+            
+        } catch (Exception $e) {
+            printError("Failed to track installation: " . $e->getMessage());
+            exit(1);
+        }
+        break;
+        
+    case 'stats':
+        printHeader();
+        
+        try {
+            $stats = TuskLicense::getStats();
+            
+            echo "Installation Statistics\n";
+            echo "======================\n\n";
+            echo "Total Installations:  {$stats['total']}\n";
+            echo "Last 30 Days:         {$stats['recent_30_days']}\n";
+            echo "\n";
+            
+            echo "By Operating System:\n";
+            foreach ($stats['by_os'] as $os => $count) {
+                printf("  %-20s %d\n", $os . ':', $count);
+            }
+            echo "\n";
+            
+            echo "By PHP Version:\n";
+            foreach ($stats['by_php'] as $version => $count) {
+                printf("  %-20s %d\n", $version . ':', $count);
+            }
+            echo "\n";
+            
+            echo "Generated: {$stats['generated']}\n";
+            
+        } catch (Exception $e) {
+            printError("Failed to get statistics: " . $e->getMessage());
+            exit(1);
+        }
+        break;
+        
+    case 'installations':
+        printHeader();
+        
+        $licenseId = $args[0] ?? 'COMMUNITY';
+        
+        try {
+            $installations = TuskLicense::getInstallations($licenseId);
+            
+            echo "Installations for License: {$licenseId}\n";
+            echo "=====================================\n\n";
+            
+            if (empty($installations)) {
+                printInfo("No installations found");
+            } else {
+                foreach ($installations as $inst) {
+                    echo "Installation ID:  {$inst['id']}\n";
+                    echo "Hostname:         {$inst['hostname']}\n";
+                    echo "IP:               {$inst['ip']}\n";
+                    echo "Path:             {$inst['path']}\n";
+                    echo "PHP Version:      {$inst['php_version']}\n";
+                    echo "OS:               {$inst['os']}\n";
+                    echo "Created:          {$inst['created']}\n";
+                    echo "Last Seen:        {$inst['last_seen']}\n";
+                    echo "---\n\n";
+                }
+            }
+            
+        } catch (Exception $e) {
+            printError("Failed to get installations: " . $e->getMessage());
+            exit(1);
+        }
+        break;
+        
+    case 'help':
+    default:
+        printHeader();
+        
+        echo "Usage: tusk-license <command> [options]\n\n";
+        
+        echo "Commands:\n";
+        echo "  generate         Generate a new license key\n";
+        echo "  validate <key>   Validate a license key\n";
+        echo "  track            Track current installation\n";
+        echo "  stats            Show installation statistics\n";
+        echo "  installations    List installations for a license\n";
+        echo "  help             Show this help message\n";
+        echo "\n";
+        
+        echo "Generate Options:\n";
+        echo "  --type <type>              License type (community|professional|enterprise)\n";
+        echo "  --email <email>            License holder email\n";
+        echo "  --organization <org>       Organization name\n";
+        echo "  --expires <date>           Expiration date (YYYY-MM-DD)\n";
+        echo "  --max-installations <n>    Maximum installations allowed\n";
+        echo "\n";
+        
+        echo "Examples:\n";
+        echo "  # Generate a community license\n";
+        echo "  tusk-license generate\n\n";
+        
+        echo "  # Generate a professional license\n";
+        echo "  tusk-license generate --type professional --email user@example.com\n\n";
+        
+        echo "  # Validate a license key\n";
+        echo "  tusk-license validate TSK-ABCD-1234-EFGH-5678\n\n";
+        
+        echo "  # Track current installation\n";
+        echo "  tusk-license track\n\n";
+        
+        echo "  # View installation statistics\n";
+        echo "  tusk-license stats\n";
+        break;
+}

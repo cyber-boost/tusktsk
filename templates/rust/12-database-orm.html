@@ -1,0 +1,1208 @@
+<h1>Database and ORM with TuskLang in Rust</h1>
+
+<h2>Database Integration and Query Building</h2>
+<p>TuskLang provides powerful database integration capabilities that work seamlessly with popular Rust ORMs like Diesel, SeaORM, and SQLx, enabling type-safe database operations and intelligent query optimization.</p>
+
+<h3>Database Configuration</h3>
+<pre>
+# database-orm.tsk
+# Multi-database configuration with connection pooling
+databases {
+    primary: {
+        driver: "postgresql"
+        url: env("DATABASE_URL", "postgresql://localhost:5432/myapp")
+        
+        pool: {
+            min_connections: env_int("DB_POOL_MIN", 5)
+            max_connections: env_int("DB_POOL_MAX", 20)
+            acquire_timeout: parse_duration("30s")
+            idle_timeout: parse_duration("10m")
+            max_lifetime: parse_duration("1h")
+        }
+        
+        # Performance tuning
+        performance: {
+            statement_cache_size: 100
+            prepared_statement_cache: true
+            log_slow_queries: env_bool("LOG_SLOW_QUERIES", true)
+            slow_query_threshold: parse_duration("500ms")
+        }
+        
+        # Migration settings
+        migrations: {
+            auto_migrate: env_bool("AUTO_MIGRATE", false)
+            migration_path: "./migrations"
+            backup_before_migrate: true
+        }
+    }
+    
+    # Read replica configuration
+    read_replica: {
+        driver: "postgresql"
+        url: env("READ_REPLICA_URL", "postgresql://replica.localhost:5432/myapp")
+        
+        pool: {
+            min_connections: 2
+            max_connections: 15
+            acquire_timeout: parse_duration("10s")
+        }
+        
+        # Read-only configuration
+        read_only: true
+        query_timeout: parse_duration("30s")
+    }
+    
+    # Redis for caching
+    cache: {
+        driver: "redis"
+        url: env("REDIS_URL", "redis://localhost:6379/0")
+        
+        pool: {
+            max_connections: 10
+            connection_timeout: parse_duration("5s")
+        }
+        
+        # Cache settings
+        default_ttl: parse_duration("1h")
+        key_prefix: env("CACHE_PREFIX", "myapp:")
+        compression: env_bool("CACHE_COMPRESSION", true)
+    }
+}
+
+# ORM configuration with intelligent features
+orm_config {
+    # Query optimization
+    query_optimization: {
+        auto_eager_loading: @learn("eager_loading", true)
+        batch_size: @optimize("batch_size", 100)
+        query_caching: @cache("query_cache", true)
+        
+        # Intelligent indexing suggestions
+        index_analysis: @metrics("index_usage", 1)
+        slow_query_detection: @metrics("slow_queries", 1)
+    }
+    
+    # Connection routing
+    connection_routing: {
+        read_preference: "replica_preferred"
+        write_preference: "primary_only"
+        
+        # Load balancing for read queries
+        read_load_balancing: {
+            algorithm: @learn("lb_algorithm", "round_robin")
+            health_check_interval: parse_duration("30s")
+            failover_timeout: parse_duration("5s")
+        }
+    }
+    
+    # Transaction management
+    transactions: {
+        default_isolation: "read_committed"
+        auto_retry: true
+        max_retries: @optimize("tx_retries", 3)
+        retry_backoff: parse_duration("100ms")
+        
+        # Deadlock detection and handling
+        deadlock_detection: true
+        deadlock_timeout: parse_duration("1s")
+    }
+}
+
+# Model definitions with TuskLang integration
+models {
+    user: {
+        table: "users"
+        primary_key: "id"
+        
+        fields: {
+            id: "uuid"
+            email: "varchar(255)"
+            password_hash: "varchar(255)"
+            created_at: "timestamp"
+            updated_at: "timestamp"
+        }
+        
+        indexes: [
+            {name: "idx_users_email", columns: ["email"], unique: true},
+            {name: "idx_users_created", columns: ["created_at"]}
+        ]
+        
+        # Intelligent caching
+        cache_strategy: {
+            enabled: @cache("user_cache", true)
+            ttl: @optimize("user_cache_ttl", 3600)
+            invalidation_patterns: ["user_updated", "user_deleted"]
+        }
+        
+        # Query patterns
+        common_queries: {
+            find_by_email: @cache("5m", "SELECT * FROM users WHERE email = ?")
+            active_users: @cache("10m", "SELECT * FROM users WHERE last_active > ?")
+            user_count: @metrics("user_count", "SELECT COUNT(*) FROM users")
+        }
+    }
+    
+    product: {
+        table: "products"
+        primary_key: "id"
+        
+        fields: {
+            id: "uuid"
+            name: "varchar(255)"
+            description: "text"
+            price: "decimal(10,2)"
+            category_id: "uuid"
+            created_at: "timestamp"
+            updated_at: "timestamp"
+        }
+        
+        relationships: {
+            category: {
+                type: "belongs_to"
+                model: "category"
+                foreign_key: "category_id"
+            }
+            
+            reviews: {
+                type: "has_many"
+                model: "review"
+                foreign_key: "product_id"
+            }
+        }
+        
+        # Search configuration
+        search: {
+            full_text_fields: ["name", "description"]
+            search_index: "products_search_idx"
+            ranking_factors: ["popularity", "rating", "price"]
+        }
+    }
+}
+</pre>
+
+<h3>Rust Database Implementation with TuskLang</h3>
+<pre>
+use sqlx::{PgPool, Row, FromRow, postgres::PgPoolOptions};
+use serde::{Deserialize, Serialize};
+use std::collections::HashMap;
+use std::time::Duration;
+use anyhow::Result;
+use uuid::Uuid;
+use chrono::{DateTime, Utc};
+
+// Database configuration structure
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct DatabaseConfig {
+    pub primary: ConnectionConfig,
+    pub read_replica: Option<ConnectionConfig>,
+    pub cache: Option<CacheConfig>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct ConnectionConfig {
+    pub driver: String,
+    pub url: String,
+    pub pool: PoolConfig,
+    pub performance: Option<PerformanceConfig>,
+    pub migrations: Option<MigrationConfig>,
+    pub read_only: Option<bool>,
+    pub query_timeout: Option<Duration>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct PoolConfig {
+    pub min_connections: u32,
+    pub max_connections: u32,
+    pub acquire_timeout: Duration,
+    pub idle_timeout: Option<Duration>,
+    pub max_lifetime: Option<Duration>,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct PerformanceConfig {
+    pub statement_cache_size: u32,
+    pub prepared_statement_cache: bool,
+    pub log_slow_queries: bool,
+    pub slow_query_threshold: Duration,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct MigrationConfig {
+    pub auto_migrate: bool,
+    pub migration_path: String,
+    pub backup_before_migrate: bool,
+}
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+pub struct CacheConfig {
+    pub driver: String,
+    pub url: String,
+    pub pool: PoolConfig,
+    pub default_ttl: Duration,
+    pub key_prefix: String,
+    pub compression: bool,
+}
+
+// Database manager with TuskLang integration
+#[derive(Debug)]
+pub struct DatabaseManager {
+    primary_pool: PgPool,
+    read_pool: Option<PgPool>,
+    cache_client: Option<redis::Client>,
+    config: DatabaseConfig,
+    query_cache: Arc<Mutex<HashMap<String, (String, std::time::Instant)>>>,
+    metrics: Arc<AtOperatorManager>,
+}
+
+impl DatabaseManager {
+    pub async fn new(config: DatabaseConfig) -> Result<Self> {
+        // Create primary connection pool
+        let primary_pool = PgPoolOptions::new()
+            .min_connections(config.primary.pool.min_connections)
+            .max_connections(config.primary.pool.max_connections)
+            .acquire_timeout(config.primary.pool.acquire_timeout)
+            .idle_timeout(config.primary.pool.idle_timeout)
+            .max_lifetime(config.primary.pool.max_lifetime)
+            .connect(&config.primary.url)
+            .await?;
+        
+        // Create read replica pool if configured
+        let read_pool = if let Some(ref replica_config) = config.read_replica {
+            Some(
+                PgPoolOptions::new()
+                    .min_connections(replica_config.pool.min_connections)
+                    .max_connections(replica_config.pool.max_connections)
+                    .acquire_timeout(replica_config.pool.acquire_timeout)
+                    .connect(&replica_config.url)
+                    .await?
+            )
+        } else {
+            None
+        };
+        
+        // Create cache client if configured
+        let cache_client = if let Some(ref cache_config) = config.cache {
+            Some(redis::Client::open(cache_config.url.clone())?)
+        } else {
+            None
+        };
+        
+        Ok(DatabaseManager {
+            primary_pool,
+            read_pool,
+            cache_client,
+            config,
+            query_cache: Arc::new(Mutex::new(HashMap::new())),
+            metrics: Arc::new(AtOperatorManager::new()),
+        })
+    }
+    
+    // Intelligent query routing
+    pub fn get_pool_for_query(&self, query_type: QueryType) -> &PgPool {
+        match query_type {
+            QueryType::Read => {
+                if let Some(ref read_pool) = self.read_pool {
+                    read_pool
+                } else {
+                    &self.primary_pool
+                }
+            }
+            QueryType::Write => &self.primary_pool,
+        }
+    }
+    
+    // Query with caching and metrics
+    pub async fn query_with_cache<T>(&self, 
+        sql: &str, 
+        params: &[&(dyn sqlx::Encode<sqlx::Postgres> + Sync)],
+        cache_key: Option<&str>,
+        ttl: Option<Duration>
+    ) -> Result<Vec<T>>
+    where
+        T: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Send + Unpin,
+    {
+        let start_time = std::time::Instant::now();
+        
+        // Try cache first if enabled
+        if let (Some(cache_key), Some(cache_client)) = (cache_key, &self.cache_client) {
+            if let Ok(cached_result) = self.get_from_cache::<Vec<T>>(cache_key).await {
+                self.record_query_metric("cache_hit", start_time.elapsed()).await;
+                return Ok(cached_result);
+            }
+        }
+        
+        // Execute query
+        let pool = self.get_pool_for_query(QueryType::Read);
+        let mut query = sqlx::query_as::<_, T>(sql);
+        
+        for param in params {
+            query = query.bind(param);
+        }
+        
+        let result = query.fetch_all(pool).await?;
+        
+        // Cache result if caching is enabled
+        if let (Some(cache_key), Some(_), Some(ttl)) = (cache_key, &self.cache_client, ttl) {
+            let _ = self.set_in_cache(cache_key, &result, ttl).await;
+        }
+        
+        self.record_query_metric("query_executed", start_time.elapsed()).await;
+        Ok(result)
+    }
+    
+    async fn get_from_cache<T>(&self, key: &str) -> Result<T>
+    where
+        T: serde::de::DeserializeOwned,
+    {
+        if let Some(ref cache_client) = self.cache_client {
+            let mut conn = cache_client.get_async_connection().await?;
+            let cached_data: String = redis::cmd("GET")
+                .arg(key)
+                .query_async(&mut conn)
+                .await?;
+            
+            let result: T = serde_json::from_str(&cached_data)?;
+            Ok(result)
+        } else {
+            anyhow::bail!("Cache not configured");
+        }
+    }
+    
+    async fn set_in_cache<T>(&self, key: &str, value: &T, ttl: Duration) -> Result<()>
+    where
+        T: serde::Serialize,
+    {
+        if let Some(ref cache_client) = self.cache_client {
+            let mut conn = cache_client.get_async_connection().await?;
+            let serialized = serde_json::to_string(value)?;
+            
+            redis::cmd("SETEX")
+                .arg(key)
+                .arg(ttl.as_secs())
+                .arg(serialized)
+                .query_async(&mut conn)
+                .await?;
+        }
+        Ok(())
+    }
+    
+    async fn record_query_metric(&self, metric_name: &str, duration: Duration) {
+        let context = OperatorContext {
+            config_path: "database.tsk".to_string(),
+            environment: "production".to_string(),
+            request_id: None,
+            metadata: HashMap::new(),
+        };
+        
+        let params = vec![
+            metric_name.to_string(),
+            duration.as_millis().to_string(),
+        ];
+        
+        let _ = self.metrics.execute_operator("metrics", &params, &context).await;
+    }
+}
+
+#[derive(Debug, Clone, Copy)]
+pub enum QueryType {
+    Read,
+    Write,
+}
+
+// Model traits and implementations
+pub trait TuskLangModel: Sized + Send + Sync {
+    type Id;
+    
+    fn table_name() -> &'static str;
+    fn cache_key_prefix() -> &'static str;
+    
+    async fn find_by_id(db: &DatabaseManager, id: Self::Id) -> Result<Option<Self>>;
+    async fn create(db: &DatabaseManager, data: &Self) -> Result<Self>;
+    async fn update(db: &DatabaseManager, id: Self::Id, data: &Self) -> Result<Self>;
+    async fn delete(db: &DatabaseManager, id: Self::Id) -> Result<bool>;
+}
+
+// User model implementation
+#[derive(Debug, Serialize, Deserialize, FromRow)]
+pub struct User {
+    pub id: Uuid,
+    pub email: String,
+    pub password_hash: String,
+    pub created_at: DateTime<Utc>,
+    pub updated_at: DateTime<Utc>,
+}
+
+impl TuskLangModel for User {
+    type Id = Uuid;
+    
+    fn table_name() -> &'static str {
+        "users"
+    }
+    
+    fn cache_key_prefix() -> &'static str {
+        "user:"
+    }
+    
+    async fn find_by_id(db: &DatabaseManager, id: Self::Id) -> Result<Option<Self>> {
+        let cache_key = format!("{}id:{}", Self::cache_key_prefix(), id);
+        
+        let result = db.query_with_cache::<Self>(
+            "SELECT * FROM users WHERE id = $1",
+            &[&id],
+            Some(&cache_key),
+            Some(Duration::from_secs(300)), // 5 minutes
+        ).await?;
+        
+        Ok(result.into_iter().next())
+    }
+    
+    async fn create(db: &DatabaseManager, user: &Self) -> Result<Self> {
+        let pool = db.get_pool_for_query(QueryType::Write);
+        
+        let result = sqlx::query_as::<_, User>(
+            "INSERT INTO users (id, email, password_hash, created_at, updated_at) 
+             VALUES ($1, $2, $3, $4, $5) RETURNING *"
+        )
+        .bind(&user.id)
+        .bind(&user.email)
+        .bind(&user.password_hash)
+        .bind(&user.created_at)
+        .bind(&user.updated_at)
+        .fetch_one(pool)
+        .await?;
+        
+        // Invalidate related caches
+        let cache_key = format!("{}id:{}", Self::cache_key_prefix(), result.id);
+        let _ = db.invalidate_cache(&cache_key).await;
+        
+        Ok(result)
+    }
+    
+    async fn update(db: &DatabaseManager, id: Self::Id, user: &Self) -> Result<Self> {
+        let pool = db.get_pool_for_query(QueryType::Write);
+        
+        let result = sqlx::query_as::<_, User>(
+            "UPDATE users SET email = $2, password_hash = $3, updated_at = $4 
+             WHERE id = $1 RETURNING *"
+        )
+        .bind(&id)
+        .bind(&user.email)
+        .bind(&user.password_hash)
+        .bind(&Utc::now())
+        .fetch_one(pool)
+        .await?;
+        
+        // Invalidate cache
+        let cache_key = format!("{}id:{}", Self::cache_key_prefix(), id);
+        let _ = db.invalidate_cache(&cache_key).await;
+        
+        Ok(result)
+    }
+    
+    async fn delete(db: &DatabaseManager, id: Self::Id) -> Result<bool> {
+        let pool = db.get_pool_for_query(QueryType::Write);
+        
+        let rows_affected = sqlx::query("DELETE FROM users WHERE id = $1")
+            .bind(&id)
+            .execute(pool)
+            .await?
+            .rows_affected();
+        
+        // Invalidate cache
+        let cache_key = format!("{}id:{}", Self::cache_key_prefix(), id);
+        let _ = db.invalidate_cache(&cache_key).await;
+        
+        Ok(rows_affected > 0)
+    }
+}
+
+// Query builder with TuskLang integration
+#[derive(Debug)]
+pub struct TuskLangQueryBuilder {
+    table: String,
+    select_fields: Vec<String>,
+    where_conditions: Vec<WhereCondition>,
+    joins: Vec<JoinClause>,
+    order_by: Vec<OrderClause>,
+    limit: Option<u64>,
+    offset: Option<u64>,
+    cache_config: Option<CacheConfig>,
+}
+
+#[derive(Debug)]
+struct WhereCondition {
+    field: String,
+    operator: String,
+    value: sqlx::types::Json<serde_json::Value>,
+}
+
+#[derive(Debug)]
+struct JoinClause {
+    join_type: String,
+    table: String,
+    on_condition: String,
+}
+
+#[derive(Debug)]
+struct OrderClause {
+    field: String,
+    direction: String,
+}
+
+impl TuskLangQueryBuilder {
+    pub fn new(table: &str) -> Self {
+        TuskLangQueryBuilder {
+            table: table.to_string(),
+            select_fields: vec!["*".to_string()],
+            where_conditions: Vec::new(),
+            joins: Vec::new(),
+            order_by: Vec::new(),
+            limit: None,
+            offset: None,
+            cache_config: None,
+        }
+    }
+    
+    pub fn select(mut self, fields: &[&str]) -> Self {
+        self.select_fields = fields.iter().map(|f| f.to_string()).collect();
+        self
+    }
+    
+    pub fn where_eq<T>(mut self, field: &str, value: T) -> Self
+    where
+        T: serde::Serialize,
+    {
+        self.where_conditions.push(WhereCondition {
+            field: field.to_string(),
+            operator: "=".to_string(),
+            value: sqlx::types::Json(serde_json::to_value(value).unwrap()),
+        });
+        self
+    }
+    
+    pub fn join(mut self, table: &str, on_condition: &str) -> Self {
+        self.joins.push(JoinClause {
+            join_type: "INNER JOIN".to_string(),
+            table: table.to_string(),
+            on_condition: on_condition.to_string(),
+        });
+        self
+    }
+    
+    pub fn left_join(mut self, table: &str, on_condition: &str) -> Self {
+        self.joins.push(JoinClause {
+            join_type: "LEFT JOIN".to_string(),
+            table: table.to_string(),
+            on_condition: on_condition.to_string(),
+        });
+        self
+    }
+    
+    pub fn order_by(mut self, field: &str, direction: &str) -> Self {
+        self.order_by.push(OrderClause {
+            field: field.to_string(),
+            direction: direction.to_string(),
+        });
+        self
+    }
+    
+    pub fn limit(mut self, limit: u64) -> Self {
+        self.limit = Some(limit);
+        self
+    }
+    
+    pub fn offset(mut self, offset: u64) -> Self {
+        self.offset = Some(offset);
+        self
+    }
+    
+    pub fn with_cache(mut self, ttl: Duration) -> Self {
+        self.cache_config = Some(CacheConfig {
+            driver: "redis".to_string(),
+            url: "".to_string(),
+            pool: PoolConfig {
+                min_connections: 1,
+                max_connections: 10,
+                acquire_timeout: Duration::from_secs(5),
+                idle_timeout: None,
+                max_lifetime: None,
+            },
+            default_ttl: ttl,
+            key_prefix: "query:".to_string(),
+            compression: false,
+        });
+        self
+    }
+    
+    pub fn build_sql(&self) -> (String, Vec<serde_json::Value>) {
+        let mut sql = format!("SELECT {} FROM {}", 
+                             self.select_fields.join(", "), 
+                             self.table);
+        
+        // Add joins
+        for join in &self.joins {
+            sql.push_str(&format!(" {} {} ON {}", 
+                                 join.join_type, join.table, join.on_condition));
+        }
+        
+        // Add WHERE conditions
+        if !self.where_conditions.is_empty() {
+            sql.push_str(" WHERE ");
+            let conditions: Vec<String> = self.where_conditions
+                .iter()
+                .enumerate()
+                .map(|(i, cond)| format!("{} {} ${}", cond.field, cond.operator, i + 1))
+                .collect();
+            sql.push_str(&conditions.join(" AND "));
+        }
+        
+        // Add ORDER BY
+        if !self.order_by.is_empty() {
+            sql.push_str(" ORDER BY ");
+            let orders: Vec<String> = self.order_by
+                .iter()
+                .map(|order| format!("{} {}", order.field, order.direction))
+                .collect();
+            sql.push_str(&orders.join(", "));
+        }
+        
+        // Add LIMIT and OFFSET
+        if let Some(limit) = self.limit {
+            sql.push_str(&format!(" LIMIT {}", limit));
+        }
+        
+        if let Some(offset) = self.offset {
+            sql.push_str(&format!(" OFFSET {}", offset));
+        }
+        
+        let params: Vec<serde_json::Value> = self.where_conditions
+            .iter()
+            .map(|cond| cond.value.0.clone())
+            .collect();
+        
+        (sql, params)
+    }
+    
+    pub async fn execute<T>(&self, db: &DatabaseManager) -> Result<Vec<T>>
+    where
+        T: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Send + Unpin + serde::Serialize + serde::de::DeserializeOwned,
+    {
+        let (sql, params) = self.build_sql();
+        
+        let cache_key = if self.cache_config.is_some() {
+            Some(format!("{}:{}", "query", base64::encode(&sql)))
+        } else {
+            None
+        };
+        
+        let ttl = self.cache_config.as_ref().map(|c| c.default_ttl);
+        
+        // Convert params for SQLx
+        let sqlx_params: Vec<&(dyn sqlx::Encode<sqlx::Postgres> + Sync)> = Vec::new(); // Simplified
+        
+        db.query_with_cache(&sql, &sqlx_params, cache_key.as_deref(), ttl).await
+    }
+}
+
+impl DatabaseManager {
+    async fn invalidate_cache(&self, key: &str) -> Result<()> {
+        if let Some(ref cache_client) = self.cache_client {
+            let mut conn = cache_client.get_async_connection().await?;
+            redis::cmd("DEL").arg(key).query_async(&mut conn).await?;
+        }
+        Ok(())
+    }
+}
+</pre>
+
+<h3>Advanced ORM Features</h3>
+<pre>
+# advanced-orm.tsk
+# Intelligent query optimization
+query_optimization {
+    # Adaptive batch sizes based on performance
+    batch_sizes: {
+        user_queries: @optimize("user_batch", 50)
+        product_queries: @optimize("product_batch", 100)
+        order_queries: @optimize("order_batch", 25)
+    }
+    
+    # Query plan caching
+    plan_cache: {
+        enabled: @cache("plan_cache", true)
+        max_size: @learn("plan_cache_size", 1000)
+        ttl: @optimize("plan_cache_ttl", 3600)
+    }
+    
+    # Automatic index suggestions
+    index_analysis: {
+        monitor_slow_queries: @metrics("slow_queries", 1)
+        suggest_indexes: @learn("index_suggestions", true)
+        auto_create_indexes: env_bool("AUTO_CREATE_INDEXES", false)
+    }
+}
+
+# Connection pool optimization
+connection_pools {
+    # Dynamic pool sizing based on load
+    primary_pool: {
+        base_size: 10
+        max_size: @optimize("primary_pool_max", 50)
+        scale_factor: @learn("primary_scale", 1.5)
+        
+        # Health monitoring
+        health_check: {
+            interval: parse_duration("30s")
+            timeout: parse_duration("5s")
+            failure_threshold: 3
+        }
+    }
+    
+    read_pool: {
+        base_size: 5
+        max_size: @optimize("read_pool_max", 30)
+        
+        # Load balancing
+        load_balancing: {
+            algorithm: @learn("read_lb_algo", "least_connections")
+            health_aware: true
+            failover_time: parse_duration("1s")
+        }
+    }
+}
+
+# Intelligent caching strategies
+cache_strategies {
+    # Model-specific caching
+    user_cache: {
+        strategy: @learn("user_cache_strategy", "write_through")
+        ttl: @optimize("user_cache_ttl", 1800)
+        invalidation: ["user_updated", "user_deleted", "user_login"]
+        
+        # Cache warming
+        preload_queries: [
+            "SELECT * FROM users WHERE last_active > NOW() - INTERVAL '1 day'",
+            "SELECT * FROM users WHERE role = 'admin'"
+        ]
+    }
+    
+    product_cache: {
+        strategy: @learn("product_cache_strategy", "lazy_loading")
+        ttl: @optimize("product_cache_ttl", 3600)
+        
+        # Category-based invalidation
+        invalidation_patterns: [
+            "product_updated:${product.category_id}",
+            "category_updated:${product.category_id}"
+        ]
+    }
+    
+    # Query result caching
+    query_cache: {
+        enabled: @cache("query_cache_enabled", true)
+        max_size: @optimize("query_cache_size", 10000)
+        ttl_by_table: {
+            users: @learn("user_query_ttl", 300)
+            products: @learn("product_query_ttl", 1800)
+            orders: @learn("order_query_ttl", 60)
+        }
+    }
+}
+
+# Advanced transaction management
+transactions {
+    # Deadlock prevention and handling
+    deadlock_handling: {
+        detection_enabled: true
+        retry_strategy: @learn("deadlock_retry", "exponential_backoff")
+        max_retries: @optimize("deadlock_retries", 5)
+        base_delay: parse_duration("10ms")
+    }
+    
+    # Saga pattern for distributed transactions
+    saga_config: {
+        enabled: env_bool("ENABLE_SAGAS", false)
+        timeout: parse_duration("30s")
+        compensation_strategy: "reverse_order"
+        
+        # Saga step definitions
+        steps: {
+            create_order: {
+                action: "orders.create"
+                compensation: "orders.cancel"
+                timeout: parse_duration("5s")
+            }
+            
+            reserve_inventory: {
+                action: "inventory.reserve"
+                compensation: "inventory.release"
+                timeout: parse_duration("3s")
+            }
+            
+            process_payment: {
+                action: "payments.charge"
+                compensation: "payments.refund"
+                timeout: parse_duration("10s")
+            }
+        }
+    }
+}
+
+// Advanced ORM features implementation
+use std::sync::Arc;
+use tokio::sync::RwLock;
+
+#[derive(Debug)]
+pub struct AdvancedORM {
+    db_manager: Arc<DatabaseManager>,
+    query_optimizer: Arc<QueryOptimizer>,
+    cache_manager: Arc<CacheManager>,
+    transaction_manager: Arc<TransactionManager>,
+    saga_coordinator: Option<Arc<SagaCoordinator>>,
+}
+
+impl AdvancedORM {
+    pub async fn new(config: DatabaseConfig) -> Result<Self> {
+        let db_manager = Arc::new(DatabaseManager::new(config.clone()).await?);
+        let query_optimizer = Arc::new(QueryOptimizer::new(db_manager.clone()));
+        let cache_manager = Arc::new(CacheManager::new(config.cache.clone()));
+        let transaction_manager = Arc::new(TransactionManager::new(db_manager.clone()));
+        
+        let saga_coordinator = if std::env::var("ENABLE_SAGAS").unwrap_or_default() == "true" {
+            Some(Arc::new(SagaCoordinator::new(db_manager.clone())))
+        } else {
+            None
+        };
+        
+        Ok(AdvancedORM {
+            db_manager,
+            query_optimizer,
+            cache_manager,
+            transaction_manager,
+            saga_coordinator,
+        })
+    }
+    
+    pub async fn execute_optimized_query<T>(&self, builder: TuskLangQueryBuilder) -> Result<Vec<T>>
+    where
+        T: for<'r> FromRow<'r, sqlx::postgres::PgRow> + Send + Unpin + serde::Serialize + serde::de::DeserializeOwned,
+    {
+        // Optimize query before execution
+        let optimized_builder = self.query_optimizer.optimize(builder).await?;
+        
+        // Execute with caching
+        optimized_builder.execute(&self.db_manager).await
+    }
+    
+    pub async fn start_saga(&self, saga_definition: SagaDefinition) -> Result<SagaExecution> {
+        if let Some(ref coordinator) = self.saga_coordinator {
+            coordinator.start_saga(saga_definition).await
+        } else {
+            anyhow::bail!("Saga coordinator not enabled");
+        }
+    }
+}
+
+#[derive(Debug)]
+pub struct QueryOptimizer {
+    db_manager: Arc<DatabaseManager>,
+    optimization_cache: Arc<RwLock<HashMap<String, OptimizationHint>>>,
+}
+
+#[derive(Debug, Clone)]
+struct OptimizationHint {
+    suggested_indexes: Vec<String>,
+    optimal_batch_size: u64,
+    cache_ttl: Duration,
+    execution_plan: Option<String>,
+}
+
+impl QueryOptimizer {
+    pub fn new(db_manager: Arc<DatabaseManager>) -> Self {
+        QueryOptimizer {
+            db_manager,
+            optimization_cache: Arc::new(RwLock::new(HashMap::new())),
+        }
+    }
+    
+    pub async fn optimize(&self, mut builder: TuskLangQueryBuilder) -> Result<TuskLangQueryBuilder> {
+        let (sql, _) = builder.build_sql();
+        let query_hash = format!("{:x}", md5::compute(&sql));
+        
+        // Check optimization cache
+        {
+            let cache = self.optimization_cache.read().await;
+            if let Some(hint) = cache.get(&query_hash) {
+                // Apply optimization hints
+                if builder.limit.is_none() && hint.optimal_batch_size > 0 {
+                    builder = builder.limit(hint.optimal_batch_size);
+                }
+                
+                if builder.cache_config.is_none() {
+                    builder = builder.with_cache(hint.cache_ttl);
+                }
+                
+                return Ok(builder);
+            }
+        }
+        
+        // Analyze query and generate optimization hints
+        let hint = self.analyze_query(&sql).await?;
+        
+        // Cache the optimization hint
+        {
+            let mut cache = self.optimization_cache.write().await;
+            cache.insert(query_hash, hint.clone());
+        }
+        
+        // Apply optimizations
+        if builder.limit.is_none() && hint.optimal_batch_size > 0 {
+            builder = builder.limit(hint.optimal_batch_size);
+        }
+        
+        if builder.cache_config.is_none() {
+            builder = builder.with_cache(hint.cache_ttl);
+        }
+        
+        Ok(builder)
+    }
+    
+    async fn analyze_query(&self, sql: &str) -> Result<OptimizationHint> {
+        // Analyze query execution plan
+        let pool = self.db_manager.get_pool_for_query(QueryType::Read);
+        let explain_result = sqlx::query(&format!("EXPLAIN (FORMAT JSON) {}", sql))
+            .fetch_all(pool)
+            .await?;
+        
+        // Extract optimization suggestions (simplified)
+        let optimal_batch_size = self.suggest_batch_size(sql).await;
+        let cache_ttl = self.suggest_cache_ttl(sql).await;
+        let suggested_indexes = self.suggest_indexes(sql).await;
+        
+        Ok(OptimizationHint {
+            suggested_indexes,
+            optimal_batch_size,
+            cache_ttl,
+            execution_plan: None,
+        })
+    }
+    
+    async fn suggest_batch_size(&self, _sql: &str) -> u64 {
+        // Machine learning-based batch size suggestion
+        // This would integrate with the @optimize operator
+        100
+    }
+    
+    async fn suggest_cache_ttl(&self, sql: &str) -> Duration {
+        // Analyze query patterns to suggest optimal TTL
+        if sql.contains("users") {
+            Duration::from_secs(300) // 5 minutes for user data
+        } else if sql.contains("products") {
+            Duration::from_secs(1800) // 30 minutes for product data
+        } else {
+            Duration::from_secs(60) // 1 minute default
+        }
+    }
+    
+    async fn suggest_indexes(&self, _sql: &str) -> Vec<String> {
+        // Analyze query to suggest missing indexes
+        Vec::new()
+    }
+}
+
+#[derive(Debug)]
+pub struct SagaCoordinator {
+    db_manager: Arc<DatabaseManager>,
+    active_sagas: Arc<RwLock<HashMap<Uuid, SagaExecution>>>,
+}
+
+#[derive(Debug, Clone)]
+pub struct SagaDefinition {
+    pub id: Uuid,
+    pub steps: Vec<SagaStep>,
+    pub timeout: Duration,
+}
+
+#[derive(Debug, Clone)]
+pub struct SagaStep {
+    pub name: String,
+    pub action: String,
+    pub compensation: String,
+    pub timeout: Duration,
+}
+
+#[derive(Debug, Clone)]
+pub struct SagaExecution {
+    pub id: Uuid,
+    pub definition: SagaDefinition,
+    pub current_step: usize,
+    pub status: SagaStatus,
+    pub completed_steps: Vec<CompletedStep>,
+}
+
+#[derive(Debug, Clone)]
+pub enum SagaStatus {
+    Running,
+    Completed,
+    Failed,
+    Compensating,
+    Compensated,
+}
+
+#[derive(Debug, Clone)]
+pub struct CompletedStep {
+    pub step_name: String,
+    pub result: serde_json::Value,
+    pub compensation_data: Option<serde_json::Value>,
+}
+
+impl SagaCoordinator {
+    pub fn new(db_manager: Arc<DatabaseManager>) -> Self {
+        SagaCoordinator {
+            db_manager,
+            active_sagas: Arc::new(RwLock::new(HashMap::new())),
+        }
+    }
+    
+    pub async fn start_saga(&self, definition: SagaDefinition) -> Result<SagaExecution> {
+        let execution = SagaExecution {
+            id: definition.id,
+            definition: definition.clone(),
+            current_step: 0,
+            status: SagaStatus::Running,
+            completed_steps: Vec::new(),
+        };
+        
+        {
+            let mut sagas = self.active_sagas.write().await;
+            sagas.insert(definition.id, execution.clone());
+        }
+        
+        // Start executing the saga
+        tokio::spawn({
+            let coordinator = Arc::new(self.clone());
+            let saga_id = definition.id;
+            async move {
+                let _ = coordinator.execute_saga(saga_id).await;
+            }
+        });
+        
+        Ok(execution)
+    }
+    
+    async fn execute_saga(&self, saga_id: Uuid) -> Result<()> {
+        loop {
+            let (current_step, definition, status) = {
+                let sagas = self.active_sagas.read().await;
+                if let Some(execution) = sagas.get(&saga_id) {
+                    (execution.current_step, execution.definition.clone(), execution.status.clone())
+                } else {
+                    break;
+                }
+            };
+            
+            match status {
+                SagaStatus::Running => {
+                    if current_step >= definition.steps.len() {
+                        // Saga completed successfully
+                        self.update_saga_status(saga_id, SagaStatus::Completed).await;
+                        break;
+                    }
+                    
+                    let step = &definition.steps[current_step];
+                    match self.execute_step(saga_id, step).await {
+                        Ok(result) => {
+                            self.record_step_completion(saga_id, step, result).await;
+                            self.advance_saga_step(saga_id).await;
+                        }
+                        Err(_) => {
+                            // Step failed, start compensation
+                            self.update_saga_status(saga_id, SagaStatus::Compensating).await;
+                        }
+                    }
+                }
+                SagaStatus::Compensating => {
+                    // Execute compensation steps in reverse order
+                    if self.compensate_saga(saga_id).await.is_ok() {
+                        self.update_saga_status(saga_id, SagaStatus::Compensated).await;
+                    }
+                    break;
+                }
+                _ => break,
+            }
+        }
+        
+        Ok(())
+    }
+    
+    async fn execute_step(&self, _saga_id: Uuid, step: &SagaStep) -> Result<serde_json::Value> {
+        // Execute the actual step action
+        // This would call the appropriate service/function
+        Ok(serde_json::json!({
+            "step": step.name,
+            "action": step.action,
+            "status": "completed"
+        }))
+    }
+    
+    async fn record_step_completion(&self, saga_id: Uuid, step: &SagaStep, result: serde_json::Value) {
+        let mut sagas = self.active_sagas.write().await;
+        if let Some(execution) = sagas.get_mut(&saga_id) {
+            execution.completed_steps.push(CompletedStep {
+                step_name: step.name.clone(),
+                result,
+                compensation_data: None,
+            });
+        }
+    }
+    
+    async fn advance_saga_step(&self, saga_id: Uuid) {
+        let mut sagas = self.active_sagas.write().await;
+        if let Some(execution) = sagas.get_mut(&saga_id) {
+            execution.current_step += 1;
+        }
+    }
+    
+    async fn update_saga_status(&self, saga_id: Uuid, status: SagaStatus) {
+        let mut sagas = self.active_sagas.write().await;
+        if let Some(execution) = sagas.get_mut(&saga_id) {
+            execution.status = status;
+        }
+    }
+    
+    async fn compensate_saga(&self, saga_id: Uuid) -> Result<()> {
+        let completed_steps = {
+            let sagas = self.active_sagas.read().await;
+            if let Some(execution) = sagas.get(&saga_id) {
+                execution.completed_steps.clone()
+            } else {
+                return Ok(());
+            }
+        };
+        
+        // Execute compensation steps in reverse order
+        for step in completed_steps.iter().rev() {
+            // Execute compensation action
+            let _ = self.execute_compensation(&step.step_name, &step.result).await;
+        }
+        
+        Ok(())
+    }
+    
+    async fn execute_compensation(&self, _step_name: &str, _original_result: &serde_json::Value) -> Result<()> {
+        // Execute the compensation action
+        Ok(())
+    }
+}
+
+impl Clone for SagaCoordinator {
+    fn clone(&self) -> Self {
+        SagaCoordinator {
+            db_manager: self.db_manager.clone(),
+            active_sagas: self.active_sagas.clone(),
+        }
+    }
+}
+</pre>
+
+<p>TuskLang's database and ORM integration in Rust provides intelligent query optimization, adaptive caching, connection pooling, and advanced transaction management including saga patterns for distributed systems, all with excellent performance and type safety.</p>
