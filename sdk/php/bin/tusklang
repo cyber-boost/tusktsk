@@ -1,0 +1,144 @@
+#!/usr/bin/env php
+<?php
+/**
+ * TuskLang Enhanced CLI Tool
+ * ==========================
+ * Command-line interface for TuskLang Enhanced
+ */
+
+// Find autoload
+$autoloadPaths = [
+    __DIR__ . '/../vendor/autoload.php',
+    __DIR__ . '/../../../vendor/autoload.php',
+    __DIR__ . '/../autoload.php'
+];
+
+foreach ($autoloadPaths as $path) {
+    if (file_exists($path)) {
+        require_once $path;
+        break;
+    }
+}
+
+// Fallback: include directly
+if (!class_exists('\TuskLang\Enhanced\TuskLangEnhanced')) {
+    require_once __DIR__ . '/../src/TuskLangEnhanced.php';
+    require_once __DIR__ . '/../src/functions.php';
+}
+
+use TuskLang\Enhanced\TuskLangEnhanced;
+
+function showUsage()
+{
+    echo <<<USAGE
+TuskLang Enhanced for PHP - The Freedom Parser
+==============================================
+
+Usage: tusklang [command] [options]
+
+Commands:
+    parse <file>     Parse a .tsk file
+    get <file> <key> Get a value by key
+    keys <file>      List all keys
+    peanut           Load from peanut.tsk
+    validate <file>  Validate syntax
+    
+Examples:
+    tusklang parse config.tsk
+    tusklang get config.tsk database.host
+    tusklang keys config.tsk
+    tusklang peanut
+
+Features:
+    - Multiple syntax styles: [], {}, <>
+    - Global variables with $
+    - Cross-file references: @file.tsk.get()
+    - Database queries: @query()
+    - Date functions: @date()
+    - Environment variables: @env()
+
+Default config file: peanut.tsk
+USAGE;
+}
+
+function main($argv)
+{
+    $command = $argv[1] ?? 'help';
+    
+    switch ($command) {
+        case 'parse':
+            if (empty($argv[2])) {
+                echo "Error: File path required\n";
+                exit(1);
+            }
+            
+            $parser = new TuskLangEnhanced();
+            $data = $parser->parseFile($argv[2]);
+            
+            foreach ($parser->items() as [$key, $value]) {
+                echo "$key = " . (is_array($value) ? json_encode($value) : $value) . "\n";
+            }
+            break;
+            
+        case 'get':
+            if (empty($argv[2]) || empty($argv[3])) {
+                echo "Error: File path and key required\n";
+                exit(1);
+            }
+            
+            $parser = new TuskLangEnhanced();
+            $parser->parseFile($argv[2]);
+            $value = $parser->get($argv[3]);
+            echo $value !== null ? (is_array($value) ? json_encode($value) : $value) : '';
+            echo "\n";
+            break;
+            
+        case 'keys':
+            if (empty($argv[2])) {
+                echo "Error: File path required\n";
+                exit(1);
+            }
+            
+            $parser = new TuskLangEnhanced();
+            $parser->parseFile($argv[2]);
+            
+            foreach ($parser->keys() as $key) {
+                echo "$key\n";
+            }
+            break;
+            
+        case 'peanut':
+            $parser = tsk_load_from_peanut();
+            echo "Loaded " . count($parser->toArray()) . " configuration items\n";
+            
+            foreach ($parser->items() as [$key, $value]) {
+                echo "$key = " . (is_array($value) ? json_encode($value) : $value) . "\n";
+            }
+            break;
+            
+        case 'validate':
+            if (empty($argv[2])) {
+                echo "Error: File path required\n";
+                exit(1);
+            }
+            
+            try {
+                $parser = new TuskLangEnhanced();
+                $parser->parseFile($argv[2]);
+                echo "✅ Valid TuskLang syntax\n";
+            } catch (Exception $e) {
+                echo "❌ Syntax error: " . $e->getMessage() . "\n";
+                exit(1);
+            }
+            break;
+            
+        case 'help':
+        case '--help':
+        case '-h':
+        default:
+            showUsage();
+            break;
+    }
+}
+
+main($argv);

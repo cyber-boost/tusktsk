@@ -1,0 +1,108 @@
+{
+    "name": "tusklang/tusklang",
+    "description": "🥜 TuskLang Enhanced - The Freedom Configuration Language for PHP",
+    "type": "library",
+    "keywords": ["configuration", "parser", "tusklang", "tsk", "config", "database-queries", "flexible-syntax"],
+    "homepage": "https://github.com/tuskphp/tusklang",
+    "license": "MIT",
+    "version": "2.0.0",
+    
+    "authors": [
+        {
+            "name": "C3B2",
+            "email": "team@tusklang.org",
+            "homepage": "https://tusklang.org"
+        }
+    ],
+    
+    "require": {
+        "php": ">=8.1",
+        "ext-pdo": "*",
+        "ext-json": "*"
+    },
+    
+    "require-dev": {
+        "phpunit/phpunit": "^10.0",
+        "phpstan/phpstan": "^1.0"
+    },
+    
+    "suggest": {
+        "mongodb/mongodb": "Required for MongoDB adapter support",
+        "predis/predis": "Required for Redis adapter support (alternative to php-redis extension)",
+        "ext-redis": "Native PHP Redis extension (alternative to predis/predis)"
+    },
+    
+    "autoload": {
+        "psr-4": {
+            "TuskLang\\Enhanced\\": "src/"
+        },
+        "files": [
+            "src/functions.php"
+        ]
+    },
+    
+    "autoload-dev": {
+        "psr-4": {
+            "TuskLang\\Enhanced\\Tests\\": "tests/"
+        }
+    },
+    
+    "scripts": {
+        "test": "phpunit",
+        "analyze": "phpstan analyse src --level=8",
+        "format": "php-cs-fixer fix",
+        "check": [
+            "@analyze",
+            "@test"
+        ]
+    },
+    
+    "config": {
+        "optimize-autoloader": true,
+        "sort-packages": true,
+        "preferred-install": {
+            "*": "dist"
+        }
+    },
+    
+    "extra": {
+        "branch-alias": {
+            "dev-main": "2.0-dev"
+        },
+        "tusklang": {
+            "peanut-locations": [
+                "./peanut.tsk",
+                "../peanut.tsk",
+                "/etc/tusklang/peanut.tsk",
+                "~/.config/tusklang/peanut.tsk"
+            ],
+            "features": [
+                "flexible-syntax",
+                "global-variables", 
+                "cross-file-communication",
+                "database-queries",
+                "peanut-integration",
+                "conditional-expressions",
+                "range-syntax",
+                "date-functions",
+                "environment-variables"
+            ],
+            "legal": {
+                "license": "https://tusklang.org/license",
+                "privacy-policy": "https://tusklang.org/privacy-policy",
+                "terms-and-conditions": "https://tusklang.org/terms-and-conditions"
+            }
+        }
+    },
+    
+    "bin": [
+        "bin/tusklang"
+    ],
+    
+    "support": {
+        "issues": "https://github.com/tuskphp/tusklang/issues",
+        "source": "https://github.com/tuskphp/tusklang",
+        "docs": "https://docs.tusklang.org"
+    },
+    
+}
