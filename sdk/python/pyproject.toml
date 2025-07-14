@@ -1,0 +1,25 @@
+[build-system]
+requires = ["setuptools>=45", "wheel", "setuptools_scm[toml]>=6.2"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tusklang"
+version = "2.0.0"
+authors = [
+  { name="TuskLang Team", email="zoo@phptu.sk" },
+]
+description = "TuskLang - Configuration with a Heartbeat"
+readme = "README.md"
+requires-python = ">=3.8"
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: Other/Proprietary License",
+    "Operating System :: OS Independent",
+]
+
+[project.urls]
+"Homepage" = "https://tusklang.org"
+"Bug Tracker" = "https://github.com/tusklang/python/issues"
+
+[tool.setuptools]
+packages = ["tusklang"]
