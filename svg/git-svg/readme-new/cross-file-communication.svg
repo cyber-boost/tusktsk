@@ -1,0 +1,78 @@
+<svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="linkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#3776ac;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#ffd43b;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#3776ac;stop-opacity:1" />
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f0f0f0" stroke-width="1"/>
+    </pattern>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="400" fill="#fafafa"/>
+  <rect width="800" height="400" fill="url(#grid)"/>
+  
+  <!-- Title -->
+  <text x="400" y="40" font-family="Arial, sans-serif" font-size="28" font-weight="bold" text-anchor="middle" fill="#2a2a3e">
+    🔗 Cross-File Communication &amp; peanut.tsk Magic
+  </text>
+  
+  <!-- Central peanut.tsk -->
+  <g transform="translate(400, 200)">
+    <circle cx="0" cy="0" r="60" fill="#2a2a3e" stroke="url(#linkGradient)" stroke-width="4"/>
+    <text x="0" y="-5" font-family="monospace" font-size="16" font-weight="bold" text-anchor="middle" fill="#ffd43b">peanut.tsk</text>
+    <text x="0" y="15" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#fff">Global Config</text>
+  </g>
+  
+  <!-- File 1: config.tsk -->
+  <g transform="translate(150, 120)">
+    <rect x="-60" y="-30" width="120" height="60" fill="#fff" stroke="#3776ac" stroke-width="2" rx="10"/>
+    <text x="0" y="-5" font-family="monospace" font-size="14" text-anchor="middle" fill="#3776ac">config.tsk</text>
+    <text x="0" y="15" font-family="monospace" font-size="10" text-anchor="middle" fill="#666">@peanut.get()</text>
+    <!-- Connection line -->
+    <path d="M 60 15 Q 150 80 190 80" stroke="url(#linkGradient)" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  </g>
+  
+  <!-- File 2: database.tsk -->
+  <g transform="translate(650, 120)">
+    <rect x="-60" y="-30" width="120" height="60" fill="#fff" stroke="#3776ac" stroke-width="2" rx="10"/>
+    <text x="0" y="-5" font-family="monospace" font-size="14" text-anchor="middle" fill="#3776ac">database.tsk</text>
+    <text x="0" y="15" font-family="monospace" font-size="10" text-anchor="middle" fill="#666">@peanut.get()</text>
+    <!-- Connection line -->
+    <path d="M -60 15 Q -150 80 -190 80" stroke="url(#linkGradient)" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  </g>
+  
+  <!-- File 3: api.tsk -->
+  <g transform="translate(150, 280)">
+    <rect x="-60" y="-30" width="120" height="60" fill="#fff" stroke="#3776ac" stroke-width="2" rx="10"/>
+    <text x="0" y="-5" font-family="monospace" font-size="14" text-anchor="middle" fill="#3776ac">api.tsk</text>
+    <text x="0" y="15" font-family="monospace" font-size="10" text-anchor="middle" fill="#666">@config.get()</text>
+    <!-- Connection line -->
+    <path d="M 60 -15 Q 150 -80 190 -80" stroke="url(#linkGradient)" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  </g>
+  
+  <!-- File 4: server.tsk -->
+  <g transform="translate(650, 280)">
+    <rect x="-60" y="-30" width="120" height="60" fill="#fff" stroke="#3776ac" stroke-width="2" rx="10"/>
+    <text x="0" y="-5" font-family="monospace" font-size="14" text-anchor="middle" fill="#3776ac">server.tsk</text>
+    <text x="0" y="15" font-family="monospace" font-size="10" text-anchor="middle" fill="#666">@database.query()</text>
+    <!-- Connection line -->
+    <path d="M -60 -15 Q -150 -80 -190 -80" stroke="url(#linkGradient)" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  </g>
+  
+  <!-- Arrows definition -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ffd43b" />
+    </marker>
+  </defs>
+  
+  <!-- Feature callouts -->
+  <g transform="translate(400, 340)">
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#666">
+      Seamless cross-file references • Hierarchical inheritance • Zero configuration
+    </text>
+  </g>
+</svg>

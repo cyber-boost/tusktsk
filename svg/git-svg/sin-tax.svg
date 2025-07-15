@@ -1,0 +1,28 @@
+<svg width="600" height="300" viewBox="0 0 600 300" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="300" y="50" font-family="Arial, sans-serif" font-size="28" font-weight="bold" text-anchor="middle" fill="#1A1A1A">Choose Your Syntax</text>
+  
+  <!-- Morphing brackets -->
+  <g transform="translate(300, 180)">
+    <text x="0" y="0" font-family="monospace" font-size="120" font-weight="bold" text-anchor="middle" fill="#4ECDC4">
+      <animate attributeName="fill" values="#4ECDC4;#FF6B6B;#FFE66D;#4ECDC4" dur="6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="1;0;1" dur="2s" repeatCount="indefinite"/>
+      []
+    </text>
+    
+    <text x="0" y="0" font-family="monospace" font-size="120" font-weight="bold" text-anchor="middle" fill="#FF6B6B">
+      <animate attributeName="fill" values="#FF6B6B;#FFE66D;#4ECDC4;#FF6B6B" dur="6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;1;0" dur="2s" begin="2s" repeatCount="indefinite"/>
+      {}
+    </text>
+    
+    <text x="0" y="0" font-family="monospace" font-size="120" font-weight="bold" text-anchor="middle" fill="#FFE66D">
+      <animate attributeName="fill" values="#FFE66D;#4ECDC4;#FF6B6B;#FFE66D" dur="6s" repeatCount="indefinite"/>
+      <animate attributeName="opacity" values="0;1;0" dur="2s" begin="4s" repeatCount="indefinite"/>
+      &lt;&gt;
+    </text>
+  </g>
+  
+  <!-- Supporting text -->
+  <text x="300" y="260" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="#1A1A1A" opacity="0.8">Your config, your rules</text>
+</svg> 

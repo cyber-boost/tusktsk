@@ -1,0 +1,31 @@
+<svg width="300" height="300" viewBox="0 0 300 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="crownGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFE66D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF6B6B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background circle -->
+  <circle cx="150" cy="150" r="140" fill="none" stroke="#FFE66D" stroke-width="3"/>
+  
+  <!-- Crown -->
+  <g transform="translate(150, 120)">
+    <path d="M -50 20 L -50 0 L -30 -30 L -15 0 L 0 -40 L 15 0 L 30 -30 L 50 0 L 50 20 Z" 
+          fill="none" stroke="url(#crownGradient)" stroke-width="4"/>
+    
+    <!-- Crown jewels -->
+    <circle cx="-30" cy="-30" r="5" fill="#FFE66D"/>
+    <circle cx="0" cy="-40" r="5" fill="#FFE66D"/>
+    <circle cx="30" cy="-30" r="5" fill="#FFE66D"/>
+    
+    <!-- Strike through -->
+    <line x1="-70" y1="-20" x2="70" y2="10" stroke="#FF6B6B" stroke-width="8">
+      <animate attributeName="x2" from="-70" to="70" dur="0.5s" fill="freeze"/>
+    </line>
+  </g>
+  
+  <!-- Text -->
+  <text x="150" y="200" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="#1A1A1A">We Don't Bow</text>
+  <text x="150" y="230" font-family="Arial, sans-serif" font-size="16" text-anchor="middle" fill="#FFE66D">To Any King</text>
+</svg>

@@ -1,0 +1,130 @@
+<svg width="700" height="500" viewBox="0 0 700 500" xmlns="http://www.w3.org/2000/svg">
+  <!-- Title -->
+  <text x="350" y="40" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="#1A1A1A">TuskLang vs The Competition</text>
+  
+  <!-- Y-axis labels with background for readability -->
+  <g>
+    <rect x="5" y="85" width="130" height="25" fill="#F8F9FA" opacity="0.9" rx="3"/>
+    <text x="70" y="100" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#1A1A1A">Database Queries</text>
+  </g>
+  
+  <g>
+    <rect x="5" y="135" width="130" height="25" fill="#F8F9FA" opacity="0.9" rx="3"/>
+    <text x="70" y="150" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#1A1A1A">Syntax Flexibility</text>
+  </g>
+  
+  <g>
+    <rect x="5" y="185" width="130" height="25" fill="#F8F9FA" opacity="0.9" rx="3"/>
+    <text x="70" y="200" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#1A1A1A">Cross-File Refs</text>
+  </g>
+  
+  <g>
+    <rect x="5" y="235" width="130" height="25" fill="#F8F9FA" opacity="0.9" rx="3"/>
+    <text x="70" y="250" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#1A1A1A">@ Operators</text>
+  </g>
+  
+  <g>
+    <rect x="5" y="285" width="130" height="25" fill="#F8F9FA" opacity="0.9" rx="3"/>
+    <text x="70" y="300" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#1A1A1A">Type Safety</text>
+  </g>
+  
+  <g>
+    <rect x="5" y="335" width="130" height="25" fill="#F8F9FA" opacity="0.9" rx="3"/>
+    <text x="70" y="350" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#1A1A1A">Comments</text>
+  </g>
+  
+  <!-- Grid lines -->
+  <line x1="140" y1="80" x2="140" y2="380" stroke="#1A1A1A" stroke-width="1" opacity="0.3"/>
+  <line x1="140" y1="380" x2="650" y2="380" stroke="#1A1A1A" stroke-width="1" opacity="0.3"/>
+  
+  <!-- TuskLang bars (all perfect) -->
+  <g transform="translate(190, 0)">
+    <text x="0" y="420" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#4ECDC4">TuskLang</text>
+    <rect x="-25" y="90" width="50" height="20" fill="#4ECDC4" rx="2">
+      <animate attributeName="width" from="0" to="50" dur="0.5s" fill="freeze"/>
+    </rect>
+    <rect x="-25" y="140" width="50" height="20" fill="#4ECDC4" rx="2">
+      <animate attributeName="width" from="0" to="50" dur="0.5s" begin="0.1s" fill="freeze"/>
+    </rect>
+    <rect x="-25" y="190" width="50" height="20" fill="#4ECDC4" rx="2">
+      <animate attributeName="width" from="0" to="50" dur="0.5s" begin="0.2s" fill="freeze"/>
+    </rect>
+    <rect x="-25" y="240" width="50" height="20" fill="#4ECDC4" rx="2">
+      <animate attributeName="width" from="0" to="50" dur="0.5s" begin="0.3s" fill="freeze"/>
+    </rect>
+    <rect x="-25" y="290" width="50" height="20" fill="#4ECDC4" rx="2">
+      <animate attributeName="width" from="0" to="50" dur="0.5s" begin="0.4s" fill="freeze"/>
+    </rect>
+    <rect x="-25" y="340" width="50" height="20" fill="#4ECDC4" rx="2">
+      <animate attributeName="width" from="0" to="50" dur="0.5s" begin="0.5s" fill="freeze"/>
+    </rect>
+  </g>
+  
+  <!-- JSON (poor) -->
+  <g transform="translate(310, 0)">
+    <text x="0" y="420" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#FF6B6B">JSON</text>
+    <!-- No database queries -->
+    <rect x="-25" y="90" width="5" height="20" fill="#FF6B6B" rx="2" opacity="0.3"/>
+    <!-- No syntax flexibility -->
+    <rect x="-25" y="140" width="5" height="20" fill="#FF6B6B" rx="2" opacity="0.3"/>
+    <!-- No cross-file -->
+    <rect x="-25" y="190" width="5" height="20" fill="#FF6B6B" rx="2" opacity="0.3"/>
+    <!-- No operators -->
+    <rect x="-25" y="240" width="5" height="20" fill="#FF6B6B" rx="2" opacity="0.3"/>
+    <!-- Partial type safety -->
+    <rect x="-25" y="290" width="25" height="20" fill="#FF6B6B" rx="2" opacity="0.6"/>
+    <!-- No comments -->
+    <rect x="-25" y="340" width="5" height="20" fill="#FF6B6B" rx="2" opacity="0.3"/>
+  </g>
+  
+  <!-- YAML (mediocre) -->
+  <g transform="translate(410, 0)">
+    <text x="0" y="420" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#FFE66D">YAML</text>
+    <!-- No database queries -->
+    <rect x="-25" y="90" width="5" height="20" fill="#FFE66D" rx="2" opacity="0.3"/>
+    <!-- No syntax flexibility -->
+    <rect x="-25" y="140" width="5" height="20" fill="#FFE66D" rx="2" opacity="0.3"/>
+    <!-- No cross-file -->
+    <rect x="-25" y="190" width="5" height="20" fill="#FFE66D" rx="2" opacity="0.3"/>
+    <!-- No operators -->
+    <rect x="-25" y="240" width="5" height="20" fill="#FFE66D" rx="2" opacity="0.3"/>
+    <!-- Partial type safety -->
+    <rect x="-25" y="290" width="25" height="20" fill="#FFE66D" rx="2" opacity="0.6"/>
+    <!-- Has comments -->
+    <rect x="-25" y="340" width="50" height="20" fill="#FFE66D" rx="2"/>
+  </g>
+  
+  <!-- TOML (mediocre) -->
+  <g transform="translate(510, 0)">
+    <text x="0" y="420" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#1A1A1A">TOML</text>
+    <!-- No database queries -->
+    <rect x="-25" y="90" width="5" height="20" fill="#1A1A1A" rx="2" opacity="0.3"/>
+    <!-- No syntax flexibility -->
+    <rect x="-25" y="140" width="5" height="20" fill="#1A1A1A" rx="2" opacity="0.3"/>
+    <!-- No cross-file -->
+    <rect x="-25" y="190" width="5" height="20" fill="#1A1A1A" rx="2" opacity="0.3"/>
+    <!-- No operators -->
+    <rect x="-25" y="240" width="5" height="20" fill="#1A1A1A" rx="2" opacity="0.3"/>
+    <!-- Good type safety -->
+    <rect x="-25" y="290" width="50" height="20" fill="#1A1A1A" rx="2"/>
+    <!-- Has comments -->
+    <rect x="-25" y="340" width="50" height="20" fill="#1A1A1A" rx="2"/>
+  </g>
+  
+  <!-- HCL (okay) -->
+  <g transform="translate(610, 0)">
+    <text x="0" y="420" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#4ECDC4">HCL</text>
+    <!-- No database queries -->
+    <rect x="-25" y="90" width="5" height="20" fill="#4ECDC4" rx="2" opacity="0.3"/>
+    <!-- No syntax flexibility -->
+    <rect x="-25" y="140" width="5" height="20" fill="#4ECDC4" rx="2" opacity="0.3"/>
+    <!-- No cross-file -->
+    <rect x="-25" y="190" width="5" height="20" fill="#4ECDC4" rx="2" opacity="0.3"/>
+    <!-- No operators -->
+    <rect x="-25" y="240" width="5" height="20" fill="#4ECDC4" rx="2" opacity="0.3"/>
+    <!-- Good type safety -->
+    <rect x="-25" y="290" width="50" height="20" fill="#4ECDC4" rx="2"/>
+    <!-- Has comments -->
+    <rect x="-25" y="340" width="50" height="20" fill="#4ECDC4" rx="2"/>
+  </g>
+</svg>

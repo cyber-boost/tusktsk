@@ -1,0 +1,151 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200" viewBox="0 0 200 200">
+  <title>TuskLang SDK Badge Table - 50x50 Integrated (4x2)</title>
+  <desc>A 4x2 grid of programming language badges for TuskLang SDKs with embedded badge content</desc>
+  
+  <defs>
+    <!-- Shared gradient definitions -->
+    <linearGradient id="badge-grad-4x2" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1" y2="1" gradientTransform="scale(91.5)">
+      <stop offset="0" style="stop-color:rgb(21.568627%,46.27451%,67.058824%);stop-opacity:1;"/>
+      <stop offset="0.5" style="stop-color:rgb(100%,83.137255%,23.137255%);stop-opacity:1;"/>
+      <stop offset="1" style="stop-color:rgb(18.823529%,41.176471%,59.607843%);stop-opacity:1;"/>
+    </linearGradient>
+    
+    <linearGradient id="inner-grad-4x2" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1" y2="1" gradientTransform="scale(71)">
+      <stop offset="0" style="stop-color:rgb(21.568627%,46.27451%,67.058824%);stop-opacity:1;"/>
+      <stop offset="0.5" style="stop-color:rgb(100%,83.137255%,23.137255%);stop-opacity:1;"/>
+      <stop offset="1" style="stop-color:rgb(18.823529%,41.176471%,59.607843%);stop-opacity:1;"/>
+    </linearGradient>
+    
+    <!-- Shared filters and masks -->
+    <filter id="alpha-4x2" filterUnits="objectBoundingBox" x="0%" y="0%" width="100%" height="100%">
+      <feColorMatrix type="matrix" in="SourceGraphic" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0"/>
+    </filter>
+    
+    <!-- Badge Template for 50x50 -->
+    <g id="badge-tmpl-4x2">
+      <mask id="mask0-4x2">
+        <g filter="url(#alpha-4x2)">
+          <rect x="0" y="0" width="100" height="100" style="fill:rgb(0%,0%,0%);fill-opacity:0.301961;stroke:none;"/>
+        </g>
+      </mask>
+      
+      <g mask="url(#mask0-4x2)">
+        <path style="fill:none;stroke-width:3;stroke-linecap:butt;stroke-linejoin:miter;stroke:url(#badge-grad-4x2);stroke-miterlimit:4;" d="M 95 50 C 95 25.148 74.852 5 50 5 C 25.148 5 5 25.148 5 50 C 5 74.852 25.148 95 50 95 C 74.852 95 95 74.852 95 50 Z"/>
+      </g>
+      
+      <path style="fill-rule:nonzero;fill:rgb(16.470589%,16.470589%,24.313726%);fill-opacity:1;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke:url(#inner-grad-4x2);stroke-miterlimit:4;" d="M 25 15 L 75 15 C 80.523 15 85 19.477 85 25 L 85 75 C 85 80.523 80.523 85 75 85 L 25 85 C 19.477 85 15 80.523 15 75 L 15 25 C 15 19.477 19.477 15 25 15 Z"/>
+      
+      <!-- Smile curves -->
+      <mask id="mask1-4x2">
+        <g filter="url(#alpha-4x2)">
+          <rect x="0" y="0" width="100" height="100" style="fill:rgb(0%,0%,0%);fill-opacity:0.698039;stroke:none;"/>
+        </g>
+      </mask>
+      
+      <g mask="url(#mask1-4x2)">
+        <path style="fill:none;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(21.568628%,46.27451%,67.058825%);stroke-opacity:1;stroke-miterlimit:4;" d="M 30 25 C 43.332 15 56.668 15 70 25"/>
+        <path style="fill:none;stroke-width:2;stroke-linecap:butt;stroke-linejoin:miter;stroke:rgb(100%,83.137256%,23.137255%);stroke-opacity:1;stroke-miterlimit:4;" d="M 30 75 C 43.332 85 56.668 85 70 75"/>
+      </g>
+    </g>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="200" height="200" fill="#f8f9fa"/>
+  
+  <!-- Grid lines for visual separation -->
+  <g stroke="#e9ecef" stroke-width="0.5">
+    <line x1="50" y1="0" x2="50" y2="200"/>
+    <line x1="100" y1="0" x2="100" y2="200"/>
+    <line x1="150" y1="0" x2="150" y2="200"/>
+    <line x1="0" y1="50" x2="200" y2="50"/>
+    <line x1="0" y1="100" x2="200" y2="100"/>
+    <line x1="0" y1="150" x2="200" y2="150"/>
+  </g>
+  
+  <!-- Badge Grid (4x2) -->
+  <!-- Row 1 -->
+  <!-- Bash Badge -->
+  <g transform="translate(0, 0) scale(0.5)">
+    <use xlink:href="#badge-tmpl-4x2"/>
+    <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffd43b">BASH</text>
+    <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="11" fill="#3776ac">.tsk</text>
+  </g>
+  
+  <!-- Go Badge -->
+  <g transform="translate(50, 0) scale(0.5)">
+    <use xlink:href="#badge-tmpl-4x2"/>
+    <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffd43b">GO</text>
+    <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="11" fill="#3776ac">.tsk</text>
+  </g>
+  
+  <!-- Java Badge -->
+  <g transform="translate(100, 0) scale(0.5)">
+    <use xlink:href="#badge-tmpl-4x2"/>
+    <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffd43b">JAVA</text>
+    <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="11" fill="#3776ac">.tsk</text>
+  </g>
+  
+  <!-- JS Badge -->
+  <g transform="translate(150, 0) scale(0.5)">
+    <use xlink:href="#badge-tmpl-4x2"/>
+    <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffd43b">JS</text>
+    <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="11" fill="#3776ac">.tsk</text>
+  </g>
+  
+  <!-- Row 2 -->
+  <!-- PHP Badge -->
+  <g transform="translate(0, 50) scale(0.5)">
+    <use xlink:href="#badge-tmpl-4x2"/>
+    <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffd43b">PHP</text>
+    <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="11" fill="#3776ac">.tsk</text>
+  </g>
+  
+  <!-- Python Badge -->
+  <g transform="translate(50, 50) scale(0.5)">
+    <use xlink:href="#badge-tmpl-4x2"/>
+    <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffd43b">PY</text>
+    <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="11" fill="#3776ac">.tsk</text>
+  </g>
+  
+  <!-- Ruby Badge -->
+  <g transform="translate(100, 50) scale(0.5)">
+    <use xlink:href="#badge-tmpl-4x2"/>
+    <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffd43b">RUBY</text>
+    <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="11" fill="#3776ac">.tsk</text>
+  </g>
+  
+  <!-- Rust Badge -->
+  <g transform="translate(150, 50) scale(0.5)">
+    <use xlink:href="#badge-tmpl-4x2"/>
+    <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="16" font-weight="bold" fill="#ffd43b">RUST</text>
+    <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="11" fill="#3776ac">.tsk</text>
+  </g>
+  
+  <!-- Row 3 - Future badges placeholder -->
+  <g transform="translate(0, 100)">
+    <rect width="50" height="50" fill="#f8f9fa" stroke="#dee2e6" stroke-width="0.5"/>
+    <text x="25" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#868e96">C#</text>
+  </g>
+  
+  <g transform="translate(50, 100)">
+    <rect width="50" height="50" fill="#f8f9fa" stroke="#dee2e6" stroke-width="0.5"/>
+    <text x="25" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#868e96">Swift</text>
+  </g>
+  
+  <g transform="translate(100, 100)">
+    <rect width="50" height="50" fill="#f8f9fa" stroke="#dee2e6" stroke-width="0.5"/>
+    <text x="25" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#868e96">Kotlin</text>
+  </g>
+  
+  <g transform="translate(150, 100)">
+    <rect width="50" height="50" fill="#f8f9fa" stroke="#dee2e6" stroke-width="0.5"/>
+    <text x="25" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#868e96">Scala</text>
+  </g>
+  
+  <!-- Row 4 - Empty -->
+  <g transform="translate(0, 150)">
+    <rect width="200" height="50" fill="#f0f2f5"/>
+    <text x="100" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-style="italic" fill="#868e96">More SDKs Coming Soon...</text>
+  </g>
+</svg>

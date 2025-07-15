@@ -1,0 +1,95 @@
+<svg width="800" height="500" viewBox="0 0 800 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="fujsenGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#ff6b6b;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#4ecdc4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ff6b6b;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="codeGradient" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" style="stop-color:#3776ac;stop-opacity:0.1" />
+      <stop offset="100%" style="stop-color:#ffd43b;stop-opacity:0.1" />
+    </linearGradient>
+    <pattern id="grid" width="40" height="40" patternUnits="userSpaceOnUse">
+      <path d="M 40 0 L 0 0 0 40" fill="none" stroke="#f0f0f0" stroke-width="1"/>
+    </pattern>
+    <filter id="shadow">
+      <feDropShadow dx="0" dy="2" stdDeviation="3" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="500" fill="#fafafa"/>
+  <rect width="800" height="500" fill="url(#grid)"/>
+  
+  <!-- Title -->
+  <text x="400" y="40" font-family="Arial, sans-serif" font-size="28" font-weight="bold" text-anchor="middle" fill="#2a2a3e">
+    🚀 Executable Configuration (FUJSEN)
+  </text>
+  
+  <!-- Main Code Block -->
+  <g transform="translate(400, 250)">
+    <rect x="-350" y="-150" width="700" height="300" fill="#2a2a3e" stroke="url(#fujsenGradient)" stroke-width="3" rx="15" filter="url(#shadow)"/>
+    
+    <!-- Code Content -->
+    <text x="-320" y="-120" font-family="monospace" font-size="14" fill="#ff6b6b">[payment]</text>
+    <text x="-320" y="-95" font-family="monospace" font-size="14" fill="#4ecdc4">process_fujsen: """</text>
+    
+    <text x="-280" y="-65" font-family="monospace" font-size="13" fill="#ffd43b">function process(amount, recipient) {</text>
+    <text x="-240" y="-40" font-family="monospace" font-size="13" fill="#fff">if (amount &lt;= 0) throw new Error("Invalid amount");</text>
+    <text x="-240" y="-15" font-family="monospace" font-size="13" fill="#fff"></text>
+    <text x="-240" y="10" font-family="monospace" font-size="13" fill="#fff">return {</text>
+    <text x="-200" y="35" font-family="monospace" font-size="13" fill="#4ecdc4">success: true,</text>
+    <text x="-200" y="60" font-family="monospace" font-size="13" fill="#4ecdc4">transactionId: 'tx_' + Date.now(),</text>
+    <text x="-200" y="85" font-family="monospace" font-size="13" fill="#4ecdc4">amount: amount,</text>
+    <text x="-200" y="110" font-family="monospace" font-size="13" fill="#4ecdc4">fee: amount * 0.025</text>
+    <text x="-240" y="135" font-family="monospace" font-size="13" fill="#fff">};</text>
+    <text x="-280" y="160" font-family="monospace" font-size="13" fill="#ffd43b">}</text>
+    
+    <text x="-320" y="185" font-family="monospace" font-size="14" fill="#4ecdc4">"""</text>
+  </g>
+  
+  <!-- Feature Boxes -->
+  <!-- Config File -->
+  <g transform="translate(150, 100)">
+    <rect x="-70" y="-25" width="140" height="50" fill="#fff" stroke="#3776ac" stroke-width="2" rx="10"/>
+    <text x="0" y="-3" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#3776ac">Config File</text>
+    <text x="0" y="15" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#666">.tsk format</text>
+  </g>
+  
+  <!-- Arrow -->
+  <path d="M 220 100 L 280 100" stroke="#ffd43b" stroke-width="3" marker-end="url(#arrowhead)"/>
+  
+  <!-- JavaScript -->
+  <g transform="translate(350, 100)">
+    <rect x="-70" y="-25" width="140" height="50" fill="#fff" stroke="#ffd43b" stroke-width="2" rx="10"/>
+    <text x="0" y="-3" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#ff6b6b">JavaScript</text>
+    <text x="0" y="15" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#666">Executable</text>
+  </g>
+  
+  <!-- Arrow -->
+  <path d="M 420 100 L 480 100" stroke="#4ecdc4" stroke-width="3" marker-end="url(#arrowhead2)"/>
+  
+  <!-- Runtime -->
+  <g transform="translate(550, 100)">
+    <rect x="-70" y="-25" width="140" height="50" fill="#fff" stroke="#4ecdc4" stroke-width="2" rx="10"/>
+    <text x="0" y="-3" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#4ecdc4">Runtime</text>
+    <text x="0" y="15" font-family="Arial, sans-serif" font-size="11" text-anchor="middle" fill="#666">Live Execution</text>
+  </g>
+  
+  <!-- Benefits -->
+  <g transform="translate(400, 450)">
+    <text x="-200" y="0" font-family="Arial, sans-serif" font-size="14" fill="#666">✓ Business Logic in Config</text>
+    <text x="50" y="0" font-family="Arial, sans-serif" font-size="14" fill="#666">✓ No Compilation Step</text>
+    <text x="-100" y="25" font-family="Arial, sans-serif" font-size="14" fill="#666">✓ Hot Reload Support</text>
+  </g>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#ffd43b" />
+    </marker>
+    <marker id="arrowhead2" markerWidth="10" markerHeight="7" refX="9" refY="3.5" orient="auto">
+      <polygon points="0 0, 10 3.5, 0 7" fill="#4ecdc4" />
+    </marker>
+  </defs>
+</svg>
