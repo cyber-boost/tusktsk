@@ -1,0 +1,71 @@
+# TuskLang Enhanced Sample for Go - All Syntax Styles
+# "We don't bow to any king" - Maximum flexibility!
+
+# Global variables (accessible everywhere)
+$app_name: "TuskLang Go Enhanced"
+$version: "2.0.0" 
+$environment: @env("APP_ENV", "development")
+
+# Section-style configuration
+[database]
+default: "sqlite"
+host: "localhost"
+port: 5432
+
+# Nested object with curly braces
+sqlite {
+    filename: "./tusklang.db"
+    timeout: 10.0
+    enabled: true
+}
+
+# Nested object with angle brackets (alternative syntax)
+postgresql >
+    host: "localhost"
+    port: 5432
+    database: "tusklang"
+    user: @env("DB_USER", "postgres")
+    password: @env("DB_PASSWORD", "")
+<
+
+# Arrays with different syntax
+features: ["parsing", "queries", "caching"]
+environments: ["dev", "staging", "prod"]
+
+# Conditional expressions
+debug_mode: $environment == "development" ? true : false
+max_connections: $environment == "production" ? 100 : 10
+
+# Range syntax
+port_range: 8000-9000
+
+# Date functions
+timestamp: @date("Y-m-d H:i:s")
+build_date: @date("c")
+
+# String concatenation
+full_name: $app_name + " v" + $version
+log_file: "/var/log/" + $app_name + ".log"
+
+# Cross-file communication (examples)
+shared_config: @config.tsk.get("shared_setting")
+cache_setting: @cache.tsk.set("ttl", "5m")
+
+# @ operators for advanced functionality  
+cache_config: @cache("5m", "expensive_operation")
+metrics_enabled: @metrics("requests", 1)
+optimized_workers: @optimize("worker_count", 4)
+learned_timeout: @learn("optimal_timeout", "30s")
+
+# Database queries (the killer feature!)
+user_count: @query("SELECT COUNT(*) FROM users")
+active_users: @query("SELECT * FROM users WHERE active = true")
+system_stats: @query("SELECT AVG(cpu_usage) FROM metrics WHERE date > '2024-01-01'")
+
+# Optional semicolons (for those who like them)
+setting_1: "value1";
+setting_2: "value2";
+
+# Comments everywhere
+admin_email: "admin@example.com"  # Production admin
+support_email: "support@example.com"  # Support team

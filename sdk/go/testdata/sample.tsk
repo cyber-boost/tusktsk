@@ -1,0 +1,12 @@
+# Sample TuskLang config for Go parser testing
+app_name: "TuskLang Go Demo"
+version: "0.1.0"
+database:
+  host: "localhost"
+  port: 5432
+  user: "admin"
+  password: "secret"
+features:
+  - logging
+  - metrics
+  - hot_reload 
