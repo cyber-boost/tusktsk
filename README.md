@@ -1,4 +1,4 @@
-![SVG 1](svg/git-svg/heartbeat.svg)
+![SVG 1](svg/git-svg/tsk-logo.svg)
 ![SVG 2](svg/git-svg/tusk-logo.svg)
 
 
@@ -37,7 +37,7 @@ TuskLang: The Configuration Language That Has a Heartbeat
 ```
 --- 
 
-![SVG 4](svg/git-svg/tsk-langs.svg)
+![SVG 4](svg/svg/og_simple_syntax.svg)
 
 ## ⚡ **Try It Right Now** (30 seconds)
 
@@ -107,7 +107,7 @@ tsk binary compile config.tsk
 
 ### **2. Database-Driven Configuration**
 
-![SVG 6](svg/realtime.svg)
+![SVG 6](svg/git-svg/realtime.svg)
 
 ```tsk
 # Real-time configuration that adapts to your data
@@ -269,7 +269,7 @@ tsk binary benchmark             # See the speed difference
 
 ![SVG 10](svg/git-svg/competition.svg)
 
-## 🏆 **TuskLang vs The Competition**
+## 🏆 **TuskLang vs The Others**
 
 | Feature |                     TuskLang | YAML | JSON | TOML | HCL |
 |------------------------------|---------|------|------|------|-----|
@@ -284,7 +284,7 @@ tsk binary benchmark             # See the speed difference
 
 ---
 
-![SVG 11](svg/git-svg/75x75-integrated-badge-table.svg)
+![SVG 11]
 
 
 ## 📦 **Installation Details**
@@ -549,7 +549,7 @@ which tsk
 
 
 
-![SVG 12](svg/realtime.svg)
+![SVG 12](svg/git-svg/og/og_readme_intelligent_infrastructure.svg)
 
 ---
 
@@ -647,8 +647,8 @@ cache >
 ```
 
 ###2
-![SVG 14](svg/realtime.svg)
-### **🗃️ Database Queries in Config - THE KILLER FEATURE**
+![SVG 14](svg/git-svg/og/og_readme_killer_feature.svg)
+### **🗃️ Database Queries in Config **
 ```tsk
 # Query your database directly - this changes EVERYTHING!
 user_limit: @query("SELECT max_users FROM plans WHERE active = 1")
@@ -798,9 +798,6 @@ connection_pool: @query("SELECT optimal_pool_size FROM performance_metrics LIMIT
 
 ---
 
-###9
-
-![SVG 20](svg/git-svg/readme-new/performance-benchmarks.svg)
 
 ## 📊 **Performance & Benchmarks**
 
@@ -1207,11 +1204,13 @@ TuskLang is licensed under the [Balanced Benefit License (BBL)](LICENSE). See [l
 
 *Choose your syntax. Query your data. Execute your logic.*
 
-
+---
 
 ![SVG 24](svg/powered-by-cb.svg)
-**Built by Bernie Gengel and his Beagle Buddy**
 
+---
+
+**Built by Bernie Gengel and his Beagle Buddy**
 
 
 </div> 

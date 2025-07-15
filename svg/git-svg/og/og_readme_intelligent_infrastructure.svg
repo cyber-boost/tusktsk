@@ -1,0 +1,106 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A1A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2A2A2A;stop-opacity:1" />
+    </linearGradient>
+
+    <linearGradient id="intelligentGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4ECDC4;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFE66D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF6B6B;stop-opacity:1" />
+    </linearGradient>
+
+    <filter id="pulse">
+      <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+
+  <!-- Central content -->
+  <g transform="translate(600, 315)">
+    
+    <!-- Small logo -->
+    <text x="0" y="-220" font-family="Courier New" font-size="28" font-weight="bold" text-anchor="middle">
+      <tspan fill="#FF6B6B">&lt;?</tspan>
+      <tspan fill="#4ECDC4">tusk</tspan>
+      <tspan fill="#FF6B6B">&gt;</tspan>
+    </text>
+
+    <!-- Main title -->
+    <text x="0" y="-180" font-family="Arial, sans-serif" font-size="28" font-weight="bold" text-anchor="middle" fill="#666">
+      This isn't just configuration - it's
+    </text>
+    
+    <text x="0" y="-140" font-family="Arial, sans-serif" font-size="42" font-weight="bold" text-anchor="middle" fill="url(#intelligentGradient)" filter="url(#pulse)">
+      INTELLIGENT INFRASTRUCTURE
+    </text>
+
+    <!-- Feature grid -->
+    <g transform="translate(0, -70)">
+      
+      <!-- Row 1 -->
+      <g transform="translate(-300, 0)">
+        <rect x="-80" y="-20" width="160" height="40" fill="#2A2A2A" stroke="#4ECDC4" stroke-width="1" rx="8"/>
+        <text x="0" y="-5" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#4ECDC4">Query databases</text>
+        <text x="0" y="10" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#FFFFFF">in real-time</text>
+      </g>
+
+      <g transform="translate(0, 0)">
+        <rect x="-80" y="-20" width="160" height="40" fill="#2A2A2A" stroke="#FFE66D" stroke-width="1" rx="8"/>
+        <text x="0" y="-5" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#FFE66D">Learn from</text>
+        <text x="0" y="10" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#FFFFFF">user behavior</text>
+      </g>
+
+      <g transform="translate(300, 0)">
+        <rect x="-80" y="-20" width="160" height="40" fill="#2A2A2A" stroke="#FF6B6B" stroke-width="1" rx="8"/>
+        <text x="0" y="-5" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#FF6B6B">Auto-scale</text>
+        <text x="0" y="10" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#FFFFFF">based on metrics</text>
+      </g>
+
+      <!-- Row 2 -->
+      <g transform="translate(-300, 70)">
+        <rect x="-80" y="-20" width="160" height="40" fill="#2A2A2A" stroke="#FF6B6B" stroke-width="1" rx="8"/>
+        <text x="0" y="-5" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#FF6B6B">Make intelligent</text>
+        <text x="0" y="10" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#FFFFFF">decisions</text>
+      </g>
+
+      <g transform="translate(0, 70)">
+        <rect x="-80" y="-20" width="160" height="40" fill="#2A2A2A" stroke="#4ECDC4" stroke-width="1" rx="8"/>
+        <text x="0" y="-5" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#4ECDC4">Cache expensive</text>
+        <text x="0" y="10" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#FFFFFF">operations</text>
+      </g>
+
+      <g transform="translate(300, 70)">
+        <rect x="-80" y="-20" width="160" height="40" fill="#2A2A2A" stroke="#FFE66D" stroke-width="1" rx="8"/>
+        <text x="0" y="-5" font-family="Arial, sans-serif" font-size="14" font-weight="bold" text-anchor="middle" fill="#FFE66D">Self-heal when</text>
+        <text x="0" y="10" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#FFFFFF">problems occur</text>
+      </g>
+
+    </g>
+
+    <!-- Mind blown emoji -->
+    <text x="0" y="100" font-family="Arial, sans-serif" font-size="48" text-anchor="middle">🤯</text>
+
+    <!-- Bottom text -->
+    <text x="0" y="150" font-family="Arial, sans-serif" font-size="26" font-weight="bold" text-anchor="middle" fill="#FFFFFF">
+      Your configuration files can now:
+    </text>
+    
+    <text x="0" y="180" font-family="Arial, sans-serif" font-size="20" text-anchor="middle" fill="#4ECDC4">
+      Monitor • Alert • Learn • Adapt • Scale • Heal
+    </text>
+
+    <text x="0" y="210" font-family="Arial, sans-serif" font-size="18" text-anchor="middle" fill="#FFE66D">
+      tusklang.org
+    </text>
+
+  </g>
+
+</svg>
