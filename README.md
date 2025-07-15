@@ -1,8 +1,11 @@
-![SVG 1](svg/git-svg/tsk-logo.svg)
-![SVG 2](svg/git-svg/tusk-logo.svg)
+![SVG 1](svg/git-svg/tusk-logo.svg)
+![SVG 2](svg/git-svg/tsk-logo.svg)
 
+---
 
-TuskLang: The Configuration Language That Has a Heartbeat 
+**TuskLang: The Configuration Language That Has a Heartbeat**
+
+---
 
 [![Version](https://img.shields.io/github/v/release/bgengs/tusklang?style=flat-square)](https://github.com/bgengs/tusklang/releases)
 [![License: BBL](https://img.shields.io/badge/License-BBL-yellow.svg?style=flat-square)](LICENSE)
@@ -37,7 +40,7 @@ TuskLang: The Configuration Language That Has a Heartbeat
 ```
 --- 
 
-![SVG 4](svg/svg/og_simple_syntax.svg)
+![SVG 4](svg/og_simple_syntax.svg)
 
 ## ⚡ **Try It Right Now** (30 seconds)
 
