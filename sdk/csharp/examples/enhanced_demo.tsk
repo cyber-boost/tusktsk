@@ -1,0 +1,107 @@
+# TuskLang Enhanced Sample for C# - All Syntax Styles
+# "We don't bow to any king" - Maximum flexibility for .NET developers!
+
+# Global variables (accessible everywhere)
+$app_name: "TuskLang C# Enhanced"
+$version: "2.0.0"
+$environment: @env("APP_ENV", "development")
+
+# Section-style configuration
+[database]
+default: "sqlserver"
+host: "localhost"
+port: 1433
+
+# Nested object with curly braces
+sqlserver {
+    server: "localhost"
+    database: "TuskLangDemo"
+    trusted_connection: true
+    connection_timeout: 30
+    command_timeout: 120
+}
+
+# Nested object with angle brackets (alternative syntax)
+postgresql >
+    host: "localhost"
+    port: 5432
+    database: "tusklang"
+    user: @env("DB_USER", "postgres")
+    password: @env("DB_PASSWORD", "")
+    ssl_mode: "prefer"
+<
+
+# Entity Framework configuration
+entity_framework {
+    lazy_loading: true
+    change_tracking: "proxies"
+    migrations: true
+}
+
+# Arrays with different syntax
+features: ["parsing", "queries", "entity-framework", "linq"]
+environments: ["dev", "staging", "prod"]
+
+# Conditional expressions
+debug_mode: $environment == "development" ? true : false
+max_connections: $environment == "production" ? 100 : 10
+log_level: $environment == "production" ? "Error" : "Debug"
+
+# Range syntax
+port_range: 8000-9000
+thread_pool: 1-32
+
+# Date functions
+timestamp: @date("Y-m-d H:i:s")
+build_date: @date("c")
+iso_date: @date("Y")
+
+# String concatenation
+full_name: $app_name + " v" + $version
+log_file: "C:\\Logs\\" + $app_name + ".log"
+api_endpoint: "https://api.example.com/" + $version + "/users"
+
+# Cross-file communication (examples)
+shared_config: @config.tsk.get("shared_setting")
+cache_setting: @cache.tsk.set("ttl", "5m")
+
+# @ operators for advanced functionality
+cache_config: @cache("5m", "expensive_operation")
+metrics_enabled: @metrics("requests", 1)
+optimized_workers: @optimize("worker_count", 4)
+learned_timeout: @learn("optimal_timeout", "30s")
+
+# Database queries (the killer feature!)
+user_count: @query("SELECT COUNT(*) FROM Users")
+active_users: @query("SELECT * FROM Users WHERE Active = 1")
+system_stats: @query("SELECT AVG(CpuUsage) FROM Metrics WHERE Date > '2024-01-01'")
+
+# .NET specific settings
+[dotnet]
+framework: "net8.0"
+runtime: "win-x64"
+
+# ASP.NET Core settings
+aspnet_core >
+    environment: $environment
+    urls: "https://localhost:5001;http://localhost:5000"
+    detailed_errors: $environment == "development" ? true : false
+    hosting_startup_assemblies: ["TuskLang.Hosting"]
+<
+
+# Dependency Injection
+dependency_injection {
+    scoped: ["IUserService", "IEmailService"]
+    singleton: ["IConfiguration", "ILogger"]
+    transient: ["IHttpClient"]
+}
+
+# Optional semicolons (for those who like them)
+setting_1: "value1";
+setting_2: "value2";
+setting_3: "value3";
+
+# Comments everywhere
+admin_email: "admin@example.com"  # Production admin
+support_email: "support@example.com"  # Support team
+nuget_source: "https://api.nuget.org/v3/index.json"  # NuGet package source

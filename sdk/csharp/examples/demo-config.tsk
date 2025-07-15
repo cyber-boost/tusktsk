@@ -1,0 +1,179 @@
+# TuskLang C# SDK Demo Configuration
+# This file demonstrates all features available in the C# implementation
+
+[application]
+name = "TuskLang C# Demo"
+version = "1.0.0"
+environment = "@env('APP_ENV')"
+debug = true
+timestamp = "@date('yyyy-MM-dd HH:mm:ss')"
+
+[server]
+host = "localhost"
+port = 8080
+timeout = 30
+cors_origins = ["http://localhost:3000", "https://app.example.com"]
+
+[database]
+type = "sqlite"
+connection = "@env('DB_CONNECTION')"
+pool_size = 10
+migrations = true
+
+[features]
+redis = "@feature('redis')"
+postgresql = "@feature('postgresql')"
+azure = "@feature('azure')"
+unity = "@feature('unity')"
+
+[calculator]
+add_fujsen = """
+function add(a, b) {
+    return a + b;
+}
+"""
+
+multiply_fujsen = """
+function multiply(a, b) {
+    return a * b;
+}
+"""
+
+validate_fujsen = """
+function validate(amount) {
+    return amount > 0 && amount <= 1000000;
+}
+"""
+
+[processor]
+transform_fujsen = """
+function transform(data, options) {
+    var result = {
+        processed: true,
+        timestamp: new Date().toISOString(),
+        records: data.length,
+        data: []
+    };
+    
+    data.forEach(function(item, index) {
+        result.data.push({
+            id: item.id || index,
+            value: item.value * (options.multiplier || 1),
+            status: 'processed',
+            metadata: {
+                original_value: item.value,
+                processed_at: new Date().toISOString()
+            }
+        });
+    });
+    
+    return result;
+}
+"""
+
+validate_fujsen = """
+function validate(data) {
+    if (!Array.isArray(data)) {
+        throw new Error('Data must be an array');
+    }
+    
+    return data.every(function(item) {
+        return item && typeof item.value === 'number' && item.value >= 0;
+    });
+}
+"""
+
+[monitoring]
+track_fujsen = """
+function track(operation, data, duration) {
+    return {
+        operation: operation,
+        duration: duration,
+        timestamp: Date.now(),
+        success: duration < 5000,
+        data_size: Array.isArray(data) ? data.length : 1,
+        metrics: {
+            avg_duration: duration,
+            max_duration: duration,
+            min_duration: duration
+        }
+    };
+}
+"""
+
+[unity]
+player_speed = 5.5
+player_health = 100
+gravity = -9.81
+music_volume = 0.7
+
+damage_calc_fujsen = """
+function calculateDamage(attack, defense, weapon) {
+    var baseDamage = attack * weapon.power;
+    var reduction = defense * 0.1;
+    return Math.max(1, baseDamage - reduction);
+}
+"""
+
+ai_behavior_fujsen = """
+function decideAction(player, enemy) {
+    if (player.health < 30) {
+        return 'retreat';
+    } else if (enemy.health < 20) {
+        return 'attack';
+    } else {
+        return 'defend';
+    }
+}
+"""
+
+[azure]
+storage_connection = "@env('AZURE_STORAGE_CONNECTION')"
+blob_container = "data-container"
+max_retries = 3
+timeout = 30
+
+azure_process_fujsen = """
+function process(data) {
+    return {
+        processed: true,
+        timestamp: new Date().toISOString(),
+        data: data.map(item => ({
+            id: item.id,
+            value: item.value * 2,
+            status: 'processed'
+        }))
+    };
+}
+"""
+
+[flexchain]
+network = "testnet"
+rpc_url = "https://testnet.flexchain.org"
+
+balance_fujsen = "@flex('balance', '0x1234567890abcdef')"
+transfer_fujsen = "@flex('transfer', 100, '0x1234567890abcdef', '0xfedcba0987654321')"
+stake_fujsen = "@flex('stake', 500, 'validator1')"
+status_fujsen = "@flex('status')"
+
+[contract]
+name = "PaymentProcessor"
+version = "1.0.0"
+
+process_fujsen = """
+function process(amount, recipient) {
+    if (amount <= 0) throw new Error("Invalid amount");
+    
+    return {
+        success: true,
+        transactionId: 'tx_' + Date.now(),
+        amount: amount,
+        recipient: recipient,
+        fee: amount * 0.01
+    };
+}
+"""
+
+validate_fujsen = """
+(amount) => amount > 0 && amount <= 1000000
+""" 
