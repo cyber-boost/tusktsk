@@ -6,8 +6,8 @@ import (
 	"path/filepath"
 
 	"github.com/spf13/cobra"
-	"github.com/tuskphp/tusklang-go"
-	"github.com/tuskphp/tusklang-go/peanut"
+	"tusklang-go"
+	"tusklang-go/peanut"
 )
 
 var (

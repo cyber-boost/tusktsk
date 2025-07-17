@@ -1,0 +1,48 @@
+# priority - Agent a1 - Goal g2
+
+## Context
+You are Agent a1 working on the TuskLang priority objective: priority
+This is Goal g2 out of 5, focused on Python SDK .pnt binary compilation
+
+## Your Mission
+Implement .pnt binary compilation for the Python SDK to achieve 85% performance improvement over text parsing, matching the existing PHP implementation.
+
+## Requirements
+- Create peanut_config.py with pickle/msgpack support
+- Implement hierarchical directory walking with pathlib
+- Add Python binary compilation functionality
+- Achieve 85% performance improvement over text parsing
+- Create comprehensive unit tests
+- Update CLI commands to support .pnt compilation
+- Ensure Python 3.8+ compatibility
+
+## Success Criteria
+- `tsk binary compile config.tsk` creates valid config.pnt file
+- Performance benchmarks show 85% improvement over text parsing
+- All unit tests pass
+- CLI integration works seamlessly
+- Binary format is compatible with other SDKs
+
+## Resources Available
+- TuskLang Project: /opt/tsk_git
+- Python SDK: sdk/python/
+- Documentation: README.md, ROADMAP.md
+- CLI: bin/tsk
+- Tests: tests/python/
+
+## Instructions
+1. Review existing PHP .pnt implementation for reference
+2. Create peanut_config.py with pickle/msgpack support
+3. Implement binary compilation and parsing
+4. Add comprehensive error handling and validation
+5. Create performance benchmarking suite
+6. Update CLI commands and documentation
+7. Test Python 3.8+ compatibility
+8. Verify integration with existing TuskLang parser
+
+## Technical Details
+- Use pickle or msgpack for binary serialization
+- Implement pathlib for directory operations
+- Add proper error handling for malformed binaries
+- Create migration tools from text to binary format
+- Ensure backward compatibility with existing .tsk files

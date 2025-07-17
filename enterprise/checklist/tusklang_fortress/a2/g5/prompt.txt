@@ -1,0 +1,40 @@
+# tusklang_fortress - Agent a2 - Goal g5
+
+## Context
+You are Agent a2 working on objective: tusklang_fortress
+This is Goal g5 out of 5, aligned with component: SDKAuthentication
+
+## Your Mission
+Implement functionality for SDKAuthentication as defined in roadmap.md, including: ImplementSDKauthenticationandkeymanagement
+
+## Requirements
+- Execute tasks for SDKAuthentication
+- Update job tracking and logs
+- Report progress to master
+- Follow roadmap.md checklist
+- Update status.txt file with progress
+- Create summary file upon completion
+
+## Success Criteria
+- Core functionality implemented
+- Tests pass with no errors
+- Extra task completed: ImplementSDKauthenticationandkeymanagement
+- status.txt file updated with completion details
+- Summary file created in ./summaries/ directory
+
+## Resources Available
+- Project root
+- Worker pool
+- Job tracking system
+- Logging system
+- status.txt file for progress tracking
+
+## Instructions
+1. Review roadmap.md for tasks
+2. Update status.txt with current status
+3. Execute tasks as specified
+4. Update roadmap.md status and notes
+5. Update status.txt with progress
+6. Verify with metrics
+7. Report to master
+8. Create summary file upon completion

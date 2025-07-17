@@ -1,0 +1,48 @@
+# Registry Authentication System
+# Agent A3 - Goal 2: Registry Authentication
+
+# Authentication Methods
+jwt_enabled = true
+oauth2_enabled = true
+api_key_auth = true
+session_based_auth = true
+
+# JWT Configuration
+jwt_secret = "tusklang_registry_secret_2025"
+jwt_expiration = 3600
+jwt_refresh_enabled = true
+jwt_refresh_expiration = 86400
+
+# OAuth2 Providers
+oauth2_providers = ["github", "gitlab", "google", "microsoft"]
+oauth2_client_id = "tusklang_registry_client"
+oauth2_redirect_uri = "https://registry.tusklang.org/auth/callback"
+
+# API Key Management
+api_key_length = 64
+api_key_prefix = "tsk_"
+api_key_expiration = 365
+api_key_rotation = true
+
+# Session Management
+session_timeout = 1800
+session_cleanup_interval = 300
+session_storage = "redis"
+session_encryption = true
+
+# Access Control
+role_based_access = true
+permission_levels = ["read", "write", "admin", "super_admin"]
+user_groups = ["developers", "maintainers", "admins"]
+
+# Security Features
+rate_limiting = true
+brute_force_protection = true
+ip_whitelisting = true
+two_factor_auth = true
+
+# Audit Logging
+audit_logging = true
+login_attempts_logged = true
+permission_changes_logged = true
+session_events_logged = true 

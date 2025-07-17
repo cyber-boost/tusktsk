@@ -1,0 +1,4 @@
+# Minimal configuration example
+name: "simple-app"
+port: 8080
+debug: true

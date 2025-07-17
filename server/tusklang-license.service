@@ -1,0 +1,18 @@
+[Unit]
+Description=TuskLang License Server
+After=network.target
+
+[Service]
+Type=simple
+User=www-data
+WorkingDirectory=/opt/tsk_git/server
+Environment=NODE_ENV=production
+ExecStart=/usr/bin/node /opt/tsk_git/server/server.js
+Restart=always
+RestartSec=10
+StandardOutput=syslog
+StandardError=syslog
+SyslogIdentifier=tusklang-license
+
+[Install]
+WantedBy=multi-user.target

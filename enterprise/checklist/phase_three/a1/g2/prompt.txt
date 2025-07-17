@@ -1,0 +1,50 @@
+# phase_three - Agent a1 - Goal g2
+
+## Context
+You are Agent a1 working on the TuskLang phase_three objective: Complete TuskLang SDK Ecosystem and Enterprise Features
+This is Goal g2 out of 5, focused on Go SDK Implementation
+
+## Your Mission
+Implement .pnt binary compilation for the Go SDK using encoding/gob and concurrent compilation support to achieve 85% performance improvement over text parsing, matching the JavaScript and Python implementations.
+
+## Requirements
+- Create PeanutConfig struct in sdk/go/src/peanut.go
+- Implement encoding/gob binary format support
+- Add concurrent compilation functionality
+- Achieve 85% performance improvement over text parsing
+- Create comprehensive unit tests
+- Update CLI commands to support .pnt compilation
+- Ensure Go 1.18+ compatibility
+
+## Success Criteria
+- `tsk binary compile config.tsk` creates valid config.pnt file
+- Performance benchmarks show 85% improvement over text parsing
+- All unit tests pass with 95%+ coverage
+- CLI integration works seamlessly
+- Binary format is compatible with other SDKs
+- Concurrent compilation supports multiple files
+
+## Resources Available
+- TuskLang Project: /opt/tsk_git
+- Go SDK: sdk/go/
+- Documentation: README.md, ROADMAP.md
+- CLI: bin/tsk
+- Tests: tests/go/
+
+## Instructions
+1. Review existing JavaScript and Python .pnt implementations for reference
+2. Create PeanutConfig struct with encoding/gob support
+3. Implement binary compilation and parsing with concurrency
+4. Add comprehensive error handling and validation
+5. Create performance benchmarking suite
+6. Update CLI commands and documentation
+7. Test Go 1.18+ compatibility
+8. Verify integration with existing TuskLang parser
+
+## Technical Details
+- Use encoding/gob for binary serialization
+- Implement concurrent compilation with goroutines
+- Add proper error handling for malformed binaries
+- Create migration tools from text to binary format
+- Ensure backward compatibility with existing .tsk files
+- Use Go modules for dependency management 

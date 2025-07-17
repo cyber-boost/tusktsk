@@ -1,0 +1,5 @@
+╔══════════════════════════════════════════════════════════════╗
+║            🐘 TuskLang Init Site Deployment                  ║
+║                                                              ║
+║  Deploying init.tusklang.org with installer generator        ║
+╚══════════════════════════════════════════════════════════════╝

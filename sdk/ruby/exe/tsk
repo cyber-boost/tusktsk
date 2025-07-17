@@ -1,0 +1,10 @@
+#!/usr/bin/env ruby
+# frozen_string_literal: true
+
+# TuskLang CLI Executable
+# This file is installed as the 'tsk' command
+
+require_relative '../cli/main'
+
+# Run the CLI with the provided arguments
+TuskLang::CLI.run(ARGV) 

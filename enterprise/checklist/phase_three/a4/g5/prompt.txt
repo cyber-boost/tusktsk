@@ -1,0 +1,35 @@
+# priority - Agent a4 - Goal g5
+
+## Context
+You are Agent a4 working on the Syspulse Fortress objective: priority
+This is Goal g5 out of 5, aligned with component: Security Components (Sentries, Ramparts, Keep)
+
+## Your Mission
+Implement the missing critical security components: Sentries (intrusion detection), Ramparts (firewall management), and Keep (core system protection).
+
+## Requirements
+- Execute tasks in /opt/syspulse/app/Sentries.php, Ramparts.php, Keep.php
+- Update /opt/syspulse/ledger and /opt/syspulse/annals
+- Report progress via syspulse squires report
+- Follow roadmap.md checklist
+
+## Success Criteria
+- CLI command `syspulse sentries start` starts intrusion detection
+- CLI command `syspulse ramparts status` shows firewall status
+- CLI command `syspulse keep guard` enables system protection
+- All security components integrate with existing Gatehouse system
+
+## Resources Available
+- Syspulse Fortress: /opt/syspulse
+- Database: /opt/syspulse/db/plantation.db
+- Logging: /opt/syspulse/logs
+- CLI: ./cli/syspulse <component> <command>
+
+## Instructions
+1. Review roadmap.md for security component requirements
+2. Create Sentries.php intrusion detection system
+3. Create Ramparts.php firewall management system
+4. Create Keep.php core system protection
+5. Integrate with existing Gatehouse IP banning
+6. Test all security component commands
+7. Report to Throne 

@@ -1,0 +1,59 @@
+# 🥜 Example Peanut Configuration
+# This demonstrates the hierarchical configuration system
+
+[app]
+name: "TuskLang SDK"
+version: "2.0.0"
+description: "The Freedom Configuration Language"
+author: "C3B2"
+
+[server]
+host: "0.0.0.0"
+port: 8080
+workers: 4
+timeout: 30
+debug: false
+
+[database]
+driver: "postgresql"
+host: "localhost"
+port: 5432
+name: "tusklang_db"
+username: "tusk_user"
+pool_size: 10
+ssl_mode: "prefer"
+
+[cache]
+enabled: true
+backend: "redis"
+ttl: 3600
+max_entries: 10000
+
+[logging]
+level: "info"
+format: "json"
+output: "stdout"
+rotate: true
+max_size: "100MB"
+max_files: 5
+
+[features]
+peanut_binary: true
+auto_compile: true
+watch_mode: true
+cross_language: true
+performance_mode: true
+
+[security]
+api_rate_limit: 100
+api_window: 60
+csrf_protection: true
+cors_enabled: true
+cors_origins: "https://tusklang.org, https://api.tusklang.org"
+
+[paths]
+config: "./config"
+data: "./data"
+logs: "./logs"
+temp: "/tmp/tusklang"
+uploads: "./uploads"

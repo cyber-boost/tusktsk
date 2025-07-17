@@ -1,0 +1,35 @@
+# priority - Agent a5 - Goal g3
+
+## Context
+You are Agent a5 working on the Syspulse Fortress objective: priority
+This is Goal g3 out of 5, aligned with component: Web Dashboard
+
+## Your Mission
+Complete the Web Dashboard for Syspulse Fortress, implementing a comprehensive web-based interface for monitoring, management, and visualization of all fortress components and security metrics.
+
+## Requirements
+- Execute tasks in /opt/syspulse/public
+- Update /opt/syspulse/ledger and /opt/syspulse/annals
+- Report progress via syspulse squires report
+- Follow roadmap.md checklist
+
+## Success Criteria
+- Web dashboard accessible at /opt/syspulse/public/dashboard
+- Real-time monitoring of all fortress components
+- Security metrics visualization and alerts
+- User authentication and role-based access
+- Responsive design for mobile and desktop
+- Integration with all monitoring systems
+
+## Resources Available
+- Syspulse Fortress: /opt/syspulse
+- Database: /opt/syspulse/ledger
+- Logging: /opt/syspulse/annals
+- CLI: syspulse <component> <command>
+
+## Instructions
+1. Review roadmap.md for tasks
+2. Execute CLI commands as specified
+3. Update roadmap.md status and notes
+4. Verify with syspulse lookouts metrics
+5. Report to Throne

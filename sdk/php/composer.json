@@ -1,17 +1,17 @@
 {
-    "name": "tusklang/tusklang",
-    "description": "🥜 TuskLang Enhanced - The Freedom Configuration Language for PHP",
+    "name": "tusktsk/tusktsk",
+    "description": "🥜 TuskTsk Enhanced - The Freedom Configuration Language for PHP",
     "type": "library",
-    "keywords": ["configuration", "parser", "tusklang", "tsk", "config", "database-queries", "flexible-syntax"],
-    "homepage": "https://github.com/tuskphp/tusklang",
+    "keywords": ["configuration", "parser", "tusktsk", "tsk", "config", "database-queries", "flexible-syntax"],
+    "homepage": "https://tuskt.sk",
     "license": "MIT",
     "version": "2.0.0",
     
     "authors": [
         {
-            "name": "C3B2",
+            "name": "Cyberboost LLC",
             "email": "team@tusklang.org",
-            "homepage": "https://tusklang.org"
+            "homepage": "https://tuskt.sk"
         }
     ],
     
@@ -29,12 +29,14 @@
     "suggest": {
         "mongodb/mongodb": "Required for MongoDB adapter support",
         "predis/predis": "Required for Redis adapter support (alternative to php-redis extension)",
-        "ext-redis": "Native PHP Redis extension (alternative to predis/predis)"
+        "ext-redis": "Native PHP Redis extension (alternative to predis/predis)",
+        "ext-msgpack": "MessagePack extension for binary peanut config support (85% faster)"
     },
     
     "autoload": {
         "psr-4": {
-            "TuskLang\\Enhanced\\": "src/"
+            "TuskTsk\\Enhanced\\": "src/",
+            "TuskTsk\\": "src/"
         },
         "files": [
             "src/functions.php"
@@ -43,7 +45,7 @@
     
     "autoload-dev": {
         "psr-4": {
-            "TuskLang\\Enhanced\\Tests\\": "tests/"
+            "TuskTsk\\Enhanced\\Tests\\": "tests/"
         }
     },
     
@@ -69,12 +71,12 @@
         "branch-alias": {
             "dev-main": "2.0-dev"
         },
-        "tusklang": {
+        "tusktsk": {
             "peanut-locations": [
                 "./peanut.tsk",
                 "../peanut.tsk",
-                "/etc/tusklang/peanut.tsk",
-                "~/.config/tusklang/peanut.tsk"
+                "/etc/tusktsk/peanut.tsk",
+                "~/.config/tusktsk/peanut.tsk"
             ],
             "features": [
                 "flexible-syntax",
@@ -85,24 +87,24 @@
                 "conditional-expressions",
                 "range-syntax",
                 "date-functions",
-                "environment-variables"
+                "environment-variables",
+                "binary-peanut-config"
             ],
             "legal": {
-                "license": "https://tusklang.org/license",
-                "privacy-policy": "https://tusklang.org/privacy-policy",
-                "terms-and-conditions": "https://tusklang.org/terms-and-conditions"
+                "license": "https://tuskt.sk/license",
+                "privacy-policy": "https://tuskt.sk/privacy-policy",
+                "terms-and-conditions": "https://tuskt.sk/terms-and-conditions"
             }
         }
     },
     
     "bin": [
-        "bin/tusklang"
+        "bin/tusktsk"
     ],
     
     "support": {
-        "issues": "https://github.com/tuskphp/tusklang/issues",
-        "source": "https://github.com/tuskphp/tusklang",
-        "docs": "https://docs.tusklang.org"
-    },
-    
+        "issues": "https://github.com/cyber-boost/tusktsk/issues",
+        "source": "https://github.com/cyber-boost/tusktsk",
+        "docs": "https://tuskt.sk/docs"
+    }
 }

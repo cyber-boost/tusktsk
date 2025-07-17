@@ -1,0 +1,35 @@
+# priority - Agent a5 - Goal g4
+
+## Context
+You are Agent a5 working on the Syspulse Fortress objective: priority
+This is Goal g4 out of 5, aligned with component: API Gateway
+
+## Your Mission
+Complete the API Gateway implementation for Syspulse Fortress, providing RESTful API endpoints for all fortress components with authentication, rate limiting, and comprehensive documentation.
+
+## Requirements
+- Execute tasks in /opt/syspulse/api
+- Update /opt/syspulse/ledger and /opt/syspulse/annals
+- Report progress via syspulse squires report
+- Follow roadmap.md checklist
+
+## Success Criteria
+- RESTful API endpoints for all fortress components
+- Authentication and authorization system implemented
+- Rate limiting and security measures in place
+- API documentation with OpenAPI/Swagger
+- Integration with Throne orchestrator complete
+- API gateway is production-ready and scalable
+
+## Resources Available
+- Syspulse Fortress: /opt/syspulse
+- Database: /opt/syspulse/ledger
+- Logging: /opt/syspulse/annals
+- CLI: syspulse <component> <command>
+
+## Instructions
+1. Review roadmap.md for tasks
+2. Execute CLI commands as specified
+3. Update roadmap.md status and notes
+4. Verify with syspulse lookouts metrics
+5. Report to Throne

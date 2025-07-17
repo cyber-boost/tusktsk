@@ -1,0 +1,33 @@
+# priority - Agent a4 - Goal g1
+
+## Context
+You are Agent a4 working on the Syspulse Fortress objective: priority
+This is Goal g1 out of 5, aligned with component: Database & Sanctum Core
+
+## Your Mission
+Fix the critical database initialization issue preventing Syspulse Fortress from starting. The system is failing with "no such column: active" error, which is blocking all functionality.
+
+## Requirements
+- Execute tasks in /opt/syspulse/db and /opt/syspulse/app
+- Update /opt/syspulse/ledger and /opt/syspulse/annals
+- Report progress via syspulse squires report
+- Follow roadmap.md checklist
+
+## Success Criteria
+- CLI command `syspulse status` runs without database errors
+- Database schema is consistent and complete
+- Sanctum core engine initializes successfully
+- All existing tables have proper 'active' column where needed
+
+## Resources Available
+- Syspulse Fortress: /opt/syspulse
+- Database: /opt/syspulse/db/plantation.db
+- Logging: /opt/syspulse/logs
+- CLI: ./cli/syspulse <component> <command>
+
+## Instructions
+1. Review roadmap.md for database requirements
+2. Analyze current database schema vs expected schema
+3. Create and execute database migration to add missing 'active' columns
+4. Test CLI commands for successful initialization
+5. Report to Throne 

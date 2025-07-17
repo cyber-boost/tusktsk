@@ -1,0 +1,34 @@
+# priority - Agent a5 - Goal g2
+
+## Context
+You are Agent a5 working on the Syspulse Fortress objective: priority
+This is Goal g2 out of 5, aligned with component: CLI Interface
+
+## Your Mission
+Complete the CLI Interface enhancement for Syspulse Fortress, implementing advanced command-line functionality with comprehensive help system, command completion, and integration with all fortress components.
+
+## Requirements
+- Execute tasks in /opt/syspulse/cli
+- Update /opt/syspulse/ledger and /opt/syspulse/annals
+- Report progress via syspulse squires report
+- Follow roadmap.md checklist
+
+## Success Criteria
+- CLI command `syspulse --help` displays comprehensive help
+- All component commands are accessible via CLI
+- Command completion and auto-suggestions work
+- Integration with Throne orchestrator is seamless
+- CLI interface is production-ready and user-friendly
+
+## Resources Available
+- Syspulse Fortress: /opt/syspulse
+- Database: /opt/syspulse/ledger
+- Logging: /opt/syspulse/annals
+- CLI: syspulse <component> <command>
+
+## Instructions
+1. Review roadmap.md for tasks
+2. Execute CLI commands as specified
+3. Update roadmap.md status and notes
+4. Verify with syspulse lookouts metrics
+5. Report to Throne

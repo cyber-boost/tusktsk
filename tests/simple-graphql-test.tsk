@@ -1,0 +1,3 @@
+# Simple GraphQL Test
+[data]
+users: @graphql("{ users { id name } }") 

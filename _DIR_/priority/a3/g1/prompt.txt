@@ -1,0 +1,49 @@
+# priority - Agent a3 - Goal g1
+
+## Context
+You are Agent a3 working on the TuskLang priority objective: priority
+This is Goal g1 out of 5, focused on @graphql operator implementation
+
+## Your Mission
+Implement @graphql operator for TuskLang to enable GraphQL queries directly in configuration files.
+
+## Requirements
+- Create @graphql operator implementation
+- Support GraphQL queries in .tsk files
+- Add authentication and error handling
+- Implement query caching and optimization
+- Create comprehensive unit tests
+- Update CLI commands to support @graphql
+- Ensure cross-platform compatibility
+
+## Success Criteria
+- `@graphql("{ users { id name email } }")` works in .tsk files
+- GraphQL queries execute successfully
+- Authentication and error handling work properly
+- Query caching improves performance
+- All unit tests pass
+- CLI integration works seamlessly
+
+## Resources Available
+- TuskLang Project: /opt/tsk_git
+- GraphQL Libraries: Available for all languages
+- Documentation: README.md, ROADMAP.md
+- CLI: bin/tsk
+- Tests: tests/operators/
+
+## Instructions
+1. Research GraphQL client libraries for target languages
+2. Implement @graphql operator parser
+3. Add GraphQL query execution engine
+4. Implement authentication and error handling
+5. Add query caching and optimization
+6. Create comprehensive unit tests
+7. Update CLI commands and documentation
+8. Test with sample GraphQL endpoints
+
+## Technical Details
+- Use GraphQL client libraries (Apollo, etc.)
+- Implement query validation and error handling
+- Add support for variables and fragments
+- Create connection pooling for performance
+- Implement retry logic for failed queries

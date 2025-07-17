@@ -1,0 +1,52 @@
+# phase_three - Agent a1 - Goal g4
+
+## Context
+You are Agent a1 working on the TuskLang phase_three objective: Complete TuskLang SDK Ecosystem and Enterprise Features
+This is Goal g4 out of 5, focused on Java SDK Implementation
+
+## Your Mission
+Implement .pnt binary compilation for the Java SDK using custom serialization with Spring Boot integration to achieve 85% performance improvement over text parsing, providing enterprise-ready Java support.
+
+## Requirements
+- Create PeanutConfig class in sdk/java/src/main/java/org/tusklang/PeanutConfig.java
+- Implement custom binary serialization
+- Add Spring Boot integration support
+- Achieve 85% performance improvement over text parsing
+- Create comprehensive unit tests
+- Update CLI commands to support .pnt compilation
+- Ensure Java 11+ compatibility
+
+## Success Criteria
+- `tsk binary compile config.tsk` creates valid config.pnt file
+- Performance benchmarks show 85% improvement over text parsing
+- All unit tests pass with 95%+ coverage
+- CLI integration works seamlessly
+- Binary format is compatible with other SDKs
+- Spring Boot integration works for enterprise applications
+
+## Resources Available
+- TuskLang Project: /opt/tsk_git
+- Java SDK: sdk/java/
+- Documentation: README.md, ROADMAP.md
+- CLI: bin/tsk
+- Tests: tests/java/
+
+## Instructions
+1. Review existing JavaScript, Python, Go, and Rust .pnt implementations for reference
+2. Create PeanutConfig class with custom serialization
+3. Implement binary compilation and parsing
+4. Add Spring Boot integration and autoconfiguration
+5. Create comprehensive error handling and validation
+6. Create performance benchmarking suite
+7. Update CLI commands and documentation
+8. Test Java 11+ compatibility
+9. Verify integration with existing TuskLang parser
+
+## Technical Details
+- Use custom binary serialization for optimal performance
+- Implement Spring Boot autoconfiguration
+- Add proper error handling for malformed binaries
+- Create migration tools from text to binary format
+- Ensure backward compatibility with existing .tsk files
+- Use Maven/Gradle for dependency management
+- Target enterprise Java applications 

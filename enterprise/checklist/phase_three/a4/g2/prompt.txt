@@ -1,0 +1,34 @@
+# priority - Agent a4 - Goal g2
+
+## Context
+You are Agent a4 working on the Syspulse Fortress objective: priority
+This is Goal g2 out of 5, aligned with component: Squires Worker System
+
+## Your Mission
+Implement the missing worker system and job execution functionality. Currently workers exist in database but are idle with no job assignment or execution capabilities.
+
+## Requirements
+- Execute tasks in /opt/syspulse/app/Squires.php
+- Update /opt/syspulse/ledger and /opt/syspulse/annals
+- Report progress via syspulse squires report
+- Follow roadmap.md checklist
+
+## Success Criteria
+- CLI command `syspulse throne squires status` shows active workers
+- Workers can be assigned and execute jobs
+- Job queue system is functional
+- Worker communication and heartbeat system works
+
+## Resources Available
+- Syspulse Fortress: /opt/syspulse
+- Database: /opt/syspulse/db/plantation.db
+- Logging: /opt/syspulse/logs
+- CLI: ./cli/syspulse <component> <command>
+
+## Instructions
+1. Review roadmap.md for worker system requirements
+2. Implement job queue system in database
+3. Create worker task execution engine
+4. Implement worker communication and heartbeat
+5. Test worker job assignment and execution
+6. Report to Throne 

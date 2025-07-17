@@ -10,8 +10,8 @@ import (
 	"time"
 
 	"github.com/spf13/cobra"
-	"github.com/tuskphp/tusklang-go"
-	"github.com/tuskphp/tusklang-go/peanut"
+	"tusklang-go"
+	"tusklang-go/peanut"
 )
 
 // Database Commands

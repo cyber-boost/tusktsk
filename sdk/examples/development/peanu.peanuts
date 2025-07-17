@@ -1,0 +1,24 @@
+# Development Environment Override
+# This file cascades on top of parent configurations
+
+[server]
+port: 3000
+debug: true
+hot_reload: true
+
+[database]
+host: "localhost"
+name: "tusklang_dev"
+username: "dev_user"
+
+[logging]
+level: "debug"
+format: "pretty"
+
+[features]
+performance_mode: false
+dev_tools: true
+
+[security]
+api_rate_limit: 1000
+csrf_protection: false

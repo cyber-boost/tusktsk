@@ -19,12 +19,12 @@ from tsk_enhanced import TuskLangEnhanced
 from peanut_config import PeanutConfig
 from adapters import SQLiteAdapter, PostgreSQLAdapter, MongoDBAdapter, RedisAdapter
 
-from .commands import (
+from cli.commands import (
     db_commands, dev_commands, test_commands, service_commands,
     cache_commands, config_commands, binary_commands
 )
-from .commands import ai_commands, utility_commands, peanuts_commands, css_commands, license_commands
-from .utils import output_formatter, error_handler, config_loader
+from cli.commands import ai_commands, utility_commands, peanuts_commands, css_commands, license_commands
+from cli.utils import output_formatter, error_handler, config_loader
 
 
 class TuskLangCLI:

@@ -1,0 +1,47 @@
+# TuskLang Package Registry API
+# Central package management system
+
+[registry]
+name: "TuskLang Package Registry"
+version: "1.0.0"
+base_url: "https://tusklang.org/packages"
+cdn_url: "https://cdn.tusklang.org"
+
+[api]
+endpoints {
+    upload: "/api/v1/packages/upload"
+    download: "/api/v1/packages/download"
+    search: "/api/v1/packages/search"
+    metadata: "/api/v1/packages/metadata"
+    versions: "/api/v1/packages/versions"
+    dependencies: "/api/v1/packages/dependencies"
+}
+
+[security]
+signing_required: true
+verification_enabled: true
+rate_limit: 1000
+rate_window: "1h"
+
+[storage]
+database: "postgresql://registry:tusklang@localhost/tusklang_registry"
+cache: "redis://localhost:6379/1"
+file_storage: "/var/registry/packages"
+backup_path: "/var/registry/backups"
+
+[cdn]
+edge_nodes: [
+    "us-east-1.tusklang.org",
+    "us-west-2.tusklang.org", 
+    "eu-west-1.tusklang.org",
+    "ap-southeast-1.tusklang.org"
+]
+sync_interval: "5m"
+compression: true
+
+[features]
+dependency_resolution: true
+version_management: true
+search_indexing: true
+analytics: true
+webhooks: true 

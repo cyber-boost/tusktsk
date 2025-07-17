@@ -1,0 +1,40 @@
+# tusklang_fortress - Agent a1 - Goal g8
+
+## Context
+You are Agent a1 working on objective: tusklang_fortress
+This is Goal g8 out of 5, aligned with component: LoadBalancing
+
+## Your Mission
+Implement functionality for LoadBalancing as defined in roadmap.md, including: Setuploadbalancingandfailover
+
+## Requirements
+- Execute tasks for LoadBalancing
+- Update job tracking and logs
+- Report progress to master
+- Follow roadmap.md checklist
+- Update status.txt file with progress
+- Create summary file upon completion
+
+## Success Criteria
+- Core functionality implemented
+- Tests pass with no errors
+- Extra task completed: Setuploadbalancingandfailover
+- status.txt file updated with completion details
+- Summary file created in ./summaries/ directory
+
+## Resources Available
+- Project root
+- Worker pool
+- Job tracking system
+- Logging system
+- status.txt file for progress tracking
+
+## Instructions
+1. Review roadmap.md for tasks
+2. Update status.txt with current status
+3. Execute tasks as specified
+4. Update roadmap.md status and notes
+5. Update status.txt with progress
+6. Verify with metrics
+7. Report to master
+8. Create summary file upon completion

@@ -1,0 +1,52 @@
+# phase_three - Agent a1 - Goal g3
+
+## Context
+You are Agent a1 working on the TuskLang phase_three objective: Complete TuskLang SDK Ecosystem and Enterprise Features
+This is Goal g3 out of 5, focused on Rust SDK Implementation
+
+## Your Mission
+Implement .pnt binary compilation for the Rust SDK using zero-copy serde format with WASM support to achieve 85% performance improvement over text parsing, creating the fastest implementation in the TuskLang ecosystem.
+
+## Requirements
+- Create PeanutConfig struct in sdk/rust/src/peanut.rs
+- Implement zero-copy binary format with serde
+- Add WASM compilation support
+- Achieve 85% performance improvement over text parsing
+- Create comprehensive unit tests
+- Update CLI commands to support .pnt compilation
+- Ensure Rust 1.70+ compatibility
+
+## Success Criteria
+- `tsk binary compile config.tsk` creates valid config.pnt file
+- Performance benchmarks show 85% improvement over text parsing
+- All unit tests pass with 95%+ coverage
+- CLI integration works seamlessly
+- Binary format is compatible with other SDKs
+- WASM compilation works for browser environments
+
+## Resources Available
+- TuskLang Project: /opt/tsk_git
+- Rust SDK: sdk/rust/
+- Documentation: README.md, ROADMAP.md
+- CLI: bin/tsk
+- Tests: tests/rust/
+
+## Instructions
+1. Review existing JavaScript, Python, and Go .pnt implementations for reference
+2. Create PeanutConfig struct with serde serialization
+3. Implement zero-copy binary compilation and parsing
+4. Add WASM target compilation support
+5. Create comprehensive error handling and validation
+6. Create performance benchmarking suite
+7. Update CLI commands and documentation
+8. Test Rust 1.70+ compatibility
+9. Verify integration with existing TuskLang parser
+
+## Technical Details
+- Use serde for binary serialization with zero-copy optimization
+- Implement WASM compilation with wasm-pack
+- Add proper error handling for malformed binaries
+- Create migration tools from text to binary format
+- Ensure backward compatibility with existing .tsk files
+- Use Cargo for dependency management
+- Target fastest implementation in the ecosystem 

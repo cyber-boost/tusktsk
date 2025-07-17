@@ -1,0 +1,38 @@
+# Production Environment Override
+# This file cascades on top of parent configurations
+
+[server]
+host: "app.tusklang.org"
+port: 443
+workers: 16
+timeout: 10
+ssl_enabled: true
+ssl_cert: "/etc/ssl/certs/tusklang.crt"
+ssl_key: "/etc/ssl/private/tusklang.key"
+
+[database]
+host: "db-cluster.tusklang.internal"
+ssl_mode: "require"
+pool_size: 50
+connection_timeout: 5
+
+[cache]
+backend: "redis-cluster"
+ttl: 7200
+max_entries: 100000
+
+[logging]
+level: "warn"
+output: "file"
+path: "/var/log/tusklang/app.log"
+
+[features]
+performance_mode: true
+dev_tools: false
+
+[security]
+api_rate_limit: 50
+api_window: 300
+cors_origins: "https://tusklang.org"
+hsts_enabled: true
+hsts_max_age: 31536000

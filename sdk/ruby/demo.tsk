@@ -1,0 +1,418 @@
+# TuskLang Ruby SDK Demo Configuration
+# Demonstrates Rails, Jekyll, DevOps, and Smart Contract features
+
+[app]
+name = "TuskLang Ruby Demo"
+version = "1.0.0"
+description = "Comprehensive demo of TuskLang Ruby SDK features"
+author = "TuskLang Team"
+license = "MIT"
+
+[rails]
+# Rails application configuration
+environment = "@env('RAILS_ENV')"
+database_url = "@env('DATABASE_URL')"
+secret_key_base = "@env('SECRET_KEY_BASE')"
+debug_mode = true
+
+# Database configuration
+[database]
+adapter = "postgresql"
+host = "localhost"
+port = 5432
+database = "tusk_demo"
+username = "@env('DB_USERNAME')"
+password = "@env('DB_PASSWORD')"
+pool = 5
+timeout = 5000
+
+# API configuration
+[api]
+base_url = "https://api.tuskdemo.com"
+version = "v1"
+timeout = 30
+retries = 3
+rate_limit = 1000
+
+# Processing functions
+[processing]
+transform_data_fujsen = """
+function transformData(data) {
+  return {
+    processed: true,
+    timestamp: new Date().toISOString(),
+    count: data.length,
+    items: data.map(item => ({
+      id: item.id,
+      name: item.name.toUpperCase(),
+      value: item.value * 2,
+      status: 'processed',
+      metadata: {
+        originalValue: item.value,
+        processedAt: new Date().toISOString()
+      }
+    }))
+  };
+}
+"""
+
+validate_input_fujsen = """
+function validateInput(input) {
+  const errors = [];
+  
+  if (!input.name || input.name.length < 2) {
+    errors.push('Name must be at least 2 characters');
+  }
+  
+  if (!input.email || !input.email.includes('@')) {
+    errors.push('Valid email is required');
+  }
+  
+  if (input.age && (input.age < 0 || input.age > 150)) {
+    errors.push('Age must be between 0 and 150');
+  }
+  
+  return {
+    valid: errors.length === 0,
+    errors: errors
+  };
+}
+"""
+
+[jekyll]
+# Jekyll static site configuration
+site_title = "TuskLang Demo Site"
+site_description = "A demonstration of TuskLang with Jekyll"
+base_url = "https://demo.tusklang.org"
+author_name = "TuskLang Team"
+author_email = "team@tusklang.org"
+
+# Build configuration
+[build]
+destination = "_site"
+plugins = ["jekyll-feed", "jekyll-seo-tag", "jekyll-sitemap"]
+markdown = "kramdown"
+highlighter = "rouge"
+
+# Content generation
+[content]
+generate_posts_fujsen = """
+function generatePosts() {
+  const posts = [
+    {
+      title: "Getting Started with TuskLang",
+      date: "2024-01-15",
+      slug: "getting-started",
+      category: "tutorial",
+      tags: ["tusk", "configuration", "beginner"],
+      excerpt: "Learn how to get started with TuskLang configuration language.",
+      content: "This is the full content of the getting started post..."
+    },
+    {
+      title: "Advanced FUJSEN Functions",
+      date: "2024-01-16", 
+      slug: "advanced-fujsen",
+      category: "advanced",
+      tags: ["fujsen", "functions", "advanced"],
+      excerpt: "Explore advanced FUJSEN function capabilities.",
+      content: "This post covers advanced FUJSEN function patterns..."
+    },
+    {
+      title: "Rails Integration Guide",
+      date: "2024-01-17",
+      slug: "rails-integration",
+      category: "integration",
+      tags: ["rails", "ruby", "integration"],
+      excerpt: "Integrate TuskLang with your Rails application.",
+      content: "Learn how to use TuskLang in Rails applications..."
+    }
+  ];
+  
+  return posts.map(post => ({
+    ...post,
+    url: `/posts/${post.slug}/`,
+    full_url: `https://demo.tusklang.org/posts/${post.slug}/`
+  }));
+}
+"""
+
+generate_categories_fujsen = """
+function generateCategories() {
+  return [
+    {
+      name: "Tutorial",
+      slug: "tutorial",
+      description: "Step-by-step guides and tutorials",
+      post_count: 5
+    },
+    {
+      name: "Advanced", 
+      slug: "advanced",
+      description: "Advanced topics and techniques",
+      post_count: 3
+    },
+    {
+      name: "Integration",
+      slug: "integration", 
+      description: "Framework and platform integrations",
+      post_count: 4
+    }
+  ];
+}
+"""
+
+[devops]
+# DevOps automation configuration
+environment = "@env('DEPLOY_ENV')"
+region = "us-west-2"
+instance_type = "t3.micro"
+
+# Deployment functions
+[deploy]
+prepare_deployment_fujsen = """
+function prepareDeployment(context) {
+  const environment = context.environment || 'staging';
+  const branch = context.branch || 'main';
+  
+  const configs = {
+    production: {
+      target: 'prod-server-1',
+      database: 'prod-db',
+      cache: 'prod-redis',
+      rollback: true,
+      health_check: true
+    },
+    staging: {
+      target: 'staging-server-1', 
+      database: 'staging-db',
+      cache: 'staging-redis',
+      rollback: false,
+      health_check: true
+    },
+    development: {
+      target: 'dev-server-1',
+      database: 'dev-db', 
+      cache: 'dev-redis',
+      rollback: false,
+      health_check: false
+    }
+  };
+  
+  const config = configs[environment] || configs.staging;
+  
+  return {
+    environment: environment,
+    branch: branch,
+    target: config.target,
+    steps: [
+      { name: 'Backup database', command: `pg_dump ${config.database}` },
+      { name: 'Pull latest code', command: `git pull origin ${branch}` },
+      { name: 'Install dependencies', command: 'bundle install' },
+      { name: 'Run migrations', command: 'bundle exec rails db:migrate' },
+      { name: 'Precompile assets', command: 'bundle exec rails assets:precompile' },
+      { name: 'Restart services', command: 'systemctl restart rails-app' }
+    ],
+    rollback: config.rollback,
+    health_check: config.health_check,
+    notifications: {
+      slack: `#deployments`,
+      email: `devops@tusklang.org`
+    }
+  };
+}
+"""
+
+# Monitoring functions
+[monitoring]
+check_health_fujsen = """
+function checkHealth() {
+  const services = ['web', 'database', 'cache', 'queue'];
+  const checks = services.map(service => ({
+    service: service,
+    status: Math.random() > 0.1 ? 'healthy' : 'degraded',
+    response_time: Math.floor(Math.random() * 100) + 10,
+    uptime: 99.5 + Math.random() * 0.5
+  }));
+  
+  const overall_status = checks.every(check => check.status === 'healthy') ? 'healthy' : 'degraded';
+  
+  return {
+    status: overall_status,
+    timestamp: new Date().toISOString(),
+    services: checks,
+    metrics: {
+      cpu_usage: Math.random() * 30 + 20,
+      memory_usage: Math.random() * 40 + 30,
+      disk_usage: Math.random() * 20 + 10
+    }
+  };
+}
+"""
+
+[smart_contracts]
+# DeFi Liquidity Pool Contract
+[pool]
+name = "FLEX/USDT Liquidity Pool"
+token_a = "FLEX"
+token_b = "USDT"
+reserve_a = 1000000
+reserve_b = 500000
+fee_rate = 0.003
+total_supply = 10000
+
+# Swap function
+swap_fujsen = """
+function swap(amountIn, tokenIn) {
+  const k = 1000000 * 500000; // Constant product
+  const fee = amountIn * 0.003;
+  const amountInWithFee = amountIn - fee;
+  
+  let amountOut, newReserveA, newReserveB;
+  
+  if (tokenIn === 'FLEX') {
+    amountOut = (amountInWithFee * 500000) / (1000000 + amountInWithFee);
+    newReserveA = 1000000 + amountIn;
+    newReserveB = 500000 - amountOut;
+  } else {
+    amountOut = (amountInWithFee * 1000000) / (500000 + amountInWithFee);
+    newReserveA = 1000000 - amountOut;
+    newReserveB = 500000 + amountIn;
+  }
+  
+  const priceImpact = (amountIn / (tokenIn === 'FLEX' ? 1000000 : 500000)) * 100;
+  
+  return {
+    success: true,
+    amountIn: amountIn,
+    amountOut: amountOut,
+    fee: fee,
+    priceImpact: priceImpact,
+    newReserveA: newReserveA,
+    newReserveB: newReserveB,
+    transactionId: 'tx_' + Date.now()
+  };
+}
+"""
+
+# Add liquidity function
+add_liquidity_fujsen = """
+function addLiquidity(amountA, amountB) {
+  const totalSupply = 10000;
+  const liquidity = Math.min(
+    amountA * totalSupply / 1000000,
+    amountB * totalSupply / 500000
+  );
+  
+  if (liquidity <= 0) {
+    return {
+      success: false,
+      error: 'Insufficient liquidity'
+    };
+  }
+  
+  return {
+    success: true,
+    liquidity: liquidity,
+    lpTokens: liquidity,
+    amountA: amountA,
+    amountB: amountB,
+    transactionId: 'tx_' + Date.now()
+  };
+}
+"""
+
+# Remove liquidity function
+remove_liquidity_fujsen = """
+function removeLiquidity(lpTokens) {
+  const totalSupply = 10000;
+  const ratio = lpTokens / totalSupply;
+  
+  const amountA = 1000000 * ratio;
+  const amountB = 500000 * ratio;
+  
+  return {
+    success: true,
+    lpTokens: lpTokens,
+    amountA: amountA,
+    amountB: amountB,
+    transactionId: 'tx_' + Date.now()
+  };
+}
+"""
+
+# Payment Processing Contract
+[payment]
+name = "Payment Processor"
+version = "1.0.0"
+fee_rate = 0.025
+max_amount = 100000
+
+process_payment_fujsen = """
+function processPayment(amount, recipient, paymentMethod) {
+  if (amount <= 0) {
+    return {
+      success: false,
+      error: 'Invalid amount'
+    };
+  }
+  
+  if (amount > 100000) {
+    return {
+      success: false,
+      error: 'Amount exceeds maximum limit'
+    };
+  }
+  
+  const fee = amount * 0.025;
+  const netAmount = amount - fee;
+  
+  return {
+    success: true,
+    transactionId: 'pay_' + Date.now(),
+    amount: amount,
+    fee: fee,
+    netAmount: netAmount,
+    recipient: recipient,
+    paymentMethod: paymentMethod,
+    timestamp: new Date().toISOString(),
+    status: 'completed'
+  };
+}
+"""
+
+validate_payment_fujsen = """
+function validatePayment(payment) {
+  const errors = [];
+  
+  if (!payment.amount || payment.amount <= 0) {
+    errors.push('Invalid amount');
+  }
+  
+  if (!payment.recipient) {
+    errors.push('Recipient is required');
+  }
+  
+  if (!payment.paymentMethod) {
+    errors.push('Payment method is required');
+  }
+  
+  const validMethods = ['credit_card', 'bank_transfer', 'crypto'];
+  if (!validMethods.includes(payment.paymentMethod)) {
+    errors.push('Invalid payment method');
+  }
+  
+  return {
+    valid: errors.length === 0,
+    errors: errors
+  };
+}
+"""
+
+[operators]
+# @ Operator examples
+date_format = "@date('%Y-%m-%d %H:%M:%S')"
+cache_key = "@cache('10m', 'api_data')"
+api_endpoint = "@request('https://api.tuskdemo.com/v1/data')"
+user_count = "@Query('users').equalTo('status', 'active').count()"
+flex_balance = "@flex('balance', '0x1234567890abcdef')"
+flex_transfer = "@flex('transfer', 100, '0x1234567890abcdef', '0xfedcba0987654321')" 

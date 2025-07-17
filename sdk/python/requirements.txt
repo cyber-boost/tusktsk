@@ -2,6 +2,9 @@
 # ===========================================
 # Optional dependencies for database support
 
+# Binary compilation support
+msgpack>=1.0.0
+
 # SQLite (built into Python)
 # No additional packages required
 

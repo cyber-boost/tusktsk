@@ -3,17 +3,17 @@
 
 ---
 
-**TuskLang: The Configuration Language That Has a Heartbeat**
+**Tusk: The Configuration Language That Has a Heartbeat**
 
 ---
 
-[![Version](https://img.shields.io/github/v/release/bgengs/tusklang?style=flat-square)](https://github.com/bgengs/tusklang/releases)
+[![Version](https://img.shields.io/github/v/release/cyber-boost/tusktsk?style=flat-square)](https://github.com/cyber-boost/tusktsk/releases)
 [![License: BBL](https://img.shields.io/badge/License-BBL-yellow.svg?style=flat-square)](LICENSE)
-[![Website](https://img.shields.io/badge/website-tusklang.org-blue?style=flat-square)](https://tusklang.org)
+[![Website](https://img.shields.io/badge/website-tuskt.sk-blue?style=flat-square)](https://tuskt.sk)
 
 > **Configuration with a Heartbeat** - The only configuration language that adapts to YOUR preferred syntax
 
-**Tired of being forced into rigid configuration formats?** TuskLang breaks the rules. Use `[]`, `{}`, or `<>` syntax - your choice. Query databases directly in config files. Execute functions with @ operators. Cross-reference between files. All while maintaining the simplicity you expect from a config language.
+**Tired of being forced into rigid configuration formats?**Tusk breaks the rules. Use `[]`, `{}`, or `<>` syntax - your choice. Query databases directly in config files. Execute functions with @ operators. Cross-reference between files. All while maintaining the simplicity you expect from a config language.
 
 ![SVG 3](svg/git-svg/architecture.svg)
 
@@ -22,7 +22,7 @@
 
 ```
 ┌─────────────────┐    ┌──────────────────┐    ┌─────────────────┐
-│   .tsk Files    │───▶│   TuskLang SDK   │───▶│  Your App/API   │
+│   .tsk Files    │───▶│  Tusk SDK   │───▶│  Your App/API   │
 │                 │    │                  │    │                 │
 │ • peanu.tsk     │    │ • Parser         │    │ • Type Safety   │
 │ • secrets.tsk   │    │ • @ Operators    │    │ • Hot Reload    │
@@ -47,33 +47,33 @@
 **🚀 One-Line Install Magic**
 ```bash
 # Pick your poison:
-curl -sSL php.tusklang.org | bash        # PHP
-curl -sSL js.tusklang.org | bash         # JavaScript/Node.js  
-curl -sSL python.tusklang.org | bash     # Python
-curl -sSL go.tusklang.org | bash         # Go
-curl -sSL rust.tusklang.org | bash       # Rust
-curl -sSL java.tusklang.org | bash       # Java
-curl -sSL csharp.tusklang.org | bash     # C#
-curl -sSL ruby.tusklang.org | bash       # Ruby
+curl -sSL php.tuskt.sk | bash        # PHP
+curl -sSL js.tuskt.sk | bash         # JavaScript/Node.js  
+curl -sSL python.tuskt.sk | bash     # Python
+curl -sSL go.tuskt.sk | bash         # Go
+curl -sSL rust.tuskt.sk | bash       # Rust
+curl -sSL java.tuskt.sk | bash       # Java
+curl -sSL csharp.tuskt.sk | bash     # C#
+curl -sSL ruby.tuskt.sk | bash       # Ruby
 ```
 
 **📦 Direct Downloads**
 ```bash
-wget php.tusklang.org/dist/latest.tar.gz
-wget js.tusklang.org/dist/latest.tar.gz
-wget python.tusklang.org/dist/latest.tar.gz
-wget go.tusklang.org/dist/latest.tar.gz
-wget rust.tusklang.org/dist/latest.tar.gz
-wget java.tusklang.org/dist/latest.tar.gz
-wget csharp.tusklang.org/dist/latest.tar.gz
-wget ruby.tusklang.org/dist/latest.tar.gz
+wget php.tuskt.sk/dist/latest.tar.gz
+wget js.tuskt.sk/dist/latest.tar.gz
+wget python.tuskt.sk/dist/latest.tar.gz
+wget go.tuskt.sk/dist/latest.tar.gz
+wget rust.tuskt.sk/dist/latest.tar.gz
+wget java.tuskt.sk/dist/latest.tar.gz
+wget csharp.tuskt.sk/dist/latest.tar.gz
+wget ruby.tuskt.sk/dist/latest.tar.gz
 
 # Then extract and install
 tar -xzf latest.tar.gz && ./install.sh
 ```
 
 **🎛️ Custom Install Wizard**  
-→ **[init.tusklang.org](https://init.tusklang.org)** ← Beautiful web installer 
+→ **[init.tuskt.sk](https://init.tuskt.sk)** ← web installer 
 
 --- 
 
@@ -86,7 +86,7 @@ tar -xzf latest.tar.gz && ./install.sh
 ```tsk
 # config.tsk - Write in your preferred syntax
 [app]
-name: "TuskLang  Demo"
+name: "tusktsk  Demo"
 version: @env("VERSION", ".0")
 
 database {
@@ -131,7 +131,7 @@ instances: current_load > 80 ? 10 : 5
 # peanut.tsk - Global configuration hub
 globals {
     api_version: "v2"
-    company: "TuskLang Corp"
+    company: "tusktsk Corp"
     region: @env("AWS_REGION", "us-east-1")
 }
 
@@ -144,7 +144,7 @@ region: @peanut.get("globals.region")
 
 ## 💡 **Revolutionary Features**
 
-### **@ Operators - The Secret Sauce**
+### **@ Operators**
 
 ![SVG 8](svg/git-svg/readme-new/operators-secret-sauce.svg)
 
@@ -185,7 +185,7 @@ function transform(data) {
 
 ---
 
-##  **Why Developers Are Switching to TuskLang**
+##  **Why Developers Are Switching to Tusk**
 
 ### **"Finally, a config language that doesn't treat me like a child"**
 
@@ -193,7 +193,7 @@ function transform(data) {
 
 ### **"The syntax flexibility means our entire team can use their preferred style"**
 
-### **"TuskLang saved my sanity - no more YAML indentation hell"**
+### **"Tusk saved my sanity - no more YAML indentation hell"**
 
 ### **"Database queries in config files? GENIUS. Why didn't anyone think of this before?"**
 
@@ -272,9 +272,9 @@ tsk binary benchmark             # See the speed difference
 
 ![SVG 10](svg/git-svg/competition.svg)
 
-## 🏆 **TuskLang vs The Others**
+## 🏆 **Tusk vs The Others**
 
-| Feature |                     TuskLang | YAML | JSON | TOML | HCL |
+| Feature |                    Tusk | YAML | JSON | TOML | HCL |
 |------------------------------|---------|------|------|------|-----|
 | **Syntax Flexibility**       | ✅      | ❌   | ❌    | ❌   | ❌  |
 | **Database Queries**         | ✅      | ❌    | ❌   | ❌   | ❌  |
@@ -294,21 +294,21 @@ tsk binary benchmark             # See the speed difference
 
 ### **Recommended: Official Installers**
 
-Each language has its own optimized installer at [lang].tusklang.org:
+Each language has its own optimized installer at [lang].tuskt.sk:
 
 <details>
 <summary><strong>🐘 PHP Installation</strong></summary>
 
 ```bash
 # Method 1: Quick install (recommended)
-curl -sSL php.tusklang.org | bash
+curl -sSL php.tuskt.sk | bash
 
 # Method 2: Direct download
-wget https://php.tusklang.org/dist/latest.tar.gz
+wget https://php.tuskt.sk/dist/latest.tar.gz
 tar -xzf latest.tar.gz && ./install.sh
 
 # Method 3: Custom install wizard
-# Visit https://init.tusklang.org and select PHP
+# Visit https://init.tuskt.sk and select PHP
 
 # What the installer does:
 # ✓ Downloads latest PHP SDK with .pnt support
@@ -328,14 +328,14 @@ tsk doctor  # System compatibility check
 
 ```bash
 # Method 1: Quick install (recommended)
-curl -sSL js.tusklang.org | bash
+curl -sSL js.tuskt.sk | bash
 
 # Method 2: Direct download
-wget https://js.tusklang.org/dist/latest.tar.gz
+wget https://js.tuskt.sk/dist/latest.tar.gz
 tar -xzf latest.tar.gz && ./install.sh
 
 # Method 3: Custom install wizard
-# Visit https://init.tusklang.org and select JavaScript
+# Visit https://init.tuskt.sk and select JavaScript
 
 # What the installer does:
 # ✓ Installs via npm with native bindings
@@ -346,7 +346,7 @@ tar -xzf latest.tar.gz && ./install.sh
 
 # Verify installation
 tsk --version
-npm list -g tusklang
+npm list -g tusktsk
 ```
 </details>
 
@@ -355,14 +355,14 @@ npm list -g tusklang
 
 ```bash
 # Method 1: Quick install (recommended)
-curl -sSL python.tusklang.org | bash
+curl -sSL python.tuskt.sk | bash
 
 # Method 2: Direct download
-wget https://python.tusklang.org/dist/latest.tar.gz
+wget https://python.tuskt.sk/dist/latest.tar.gz
 tar -xzf latest.tar.gz && ./install.sh
 
 # Method 3: Custom install wizard
-# Visit https://init.tusklang.org and select Python
+# Visit https://init.tuskt.sk and select Python
 
 # What the installer does:
 # ✓ Creates virtual environment
@@ -373,7 +373,7 @@ tar -xzf latest.tar.gz && ./install.sh
 
 # Verify installation
 tsk --version
-python -c "import tusklang; print(tusklang.__version__)"
+python -c "import tusktsk; print(tusktsk.__version__)"
 ```
 </details>
 
@@ -382,14 +382,14 @@ python -c "import tusklang; print(tusklang.__version__)"
 
 ```bash
 # Method 1: Quick install (recommended)
-curl -sSL go.tusklang.org | bash
+curl -sSL go.tuskt.sk | bash
 
 # Method 2: Direct download
-wget https://go.tusklang.org/dist/latest.tar.gz
+wget https://go.tuskt.sk/dist/latest.tar.gz
 tar -xzf latest.tar.gz && ./install.sh
 
 # Method 3: Custom install wizard
-# Visit https://init.tusklang.org and select Go
+# Visit https://init.tuskt.sk and select Go
 
 # What the installer does:
 # ✓ Downloads pre-compiled binaries
@@ -409,14 +409,14 @@ go version -m $(which tsk)
 
 ```bash
 # Method 1: Quick install (recommended)
-curl -sSL rust.tusklang.org | bash
+curl -sSL rust.tuskt.sk | bash
 
 # Method 2: Direct download
-wget https://rust.tusklang.org/dist/latest.tar.gz
+wget https://rust.tuskt.sk/dist/latest.tar.gz
 tar -xzf latest.tar.gz && ./install.sh
 
 # Method 3: Custom install wizard
-# Visit https://init.tusklang.org and select Rust
+# Visit https://init.tuskt.sk and select Rust
 
 # What the installer does:
 # ✓ Downloads pre-compiled Rust binaries
@@ -436,14 +436,14 @@ cargo --version
 
 ```bash
 # Method 1: Quick install (recommended)
-curl -sSL java.tusklang.org | bash
+curl -sSL java.tuskt.sk | bash
 
 # Method 2: Direct download
-wget https://java.tusklang.org/dist/latest.tar.gz
+wget https://java.tuskt.sk/dist/latest.tar.gz
 tar -xzf latest.tar.gz && ./install.sh
 
 # Method 3: Custom install wizard
-# Visit https://init.tusklang.org and select Java
+# Visit https://init.tuskt.sk and select Java
 
 # What the installer does:
 # ✓ Downloads JAR and native libraries
@@ -454,7 +454,7 @@ tar -xzf latest.tar.gz && ./install.sh
 
 # Verify installation
 tsk --version
-java -cp "$(tsk --classpath)" org.tusklang.Version
+java -cp "$(tsk --classpath)" org.tusktsk.Version
 ```
 </details>
 
@@ -463,14 +463,14 @@ java -cp "$(tsk --classpath)" org.tusklang.Version
 
 ```bash
 # Method 1: Quick install (recommended)
-curl -sSL csharp.tusklang.org | bash
+curl -sSL csharp.tuskt.sk | bash
 
 # Method 2: Direct download
-wget https://csharp.tusklang.org/dist/latest.tar.gz
+wget https://csharp.tuskt.sk/dist/latest.tar.gz
 tar -xzf latest.tar.gz && ./install.sh
 
 # Method 3: Custom install wizard
-# Visit https://init.tusklang.org and select C#
+# Visit https://init.tuskt.sk and select C#
 
 # What the installer does:
 # ✓ Downloads .NET assemblies
@@ -490,14 +490,14 @@ dotnet --info
 
 ```bash
 # Method 1: Quick install (recommended)
-curl -sSL ruby.tusklang.org | bash
+curl -sSL ruby.tuskt.sk | bash
 
 # Method 2: Direct download
-wget https://ruby.tusklang.org/dist/latest.tar.gz
+wget https://ruby.tuskt.sk/dist/latest.tar.gz
 tar -xzf latest.tar.gz && ./install.sh
 
 # Method 3: Custom install wizard
-# Visit https://init.tusklang.org and select Ruby
+# Visit https://init.tuskt.sk and select Ruby
 
 # What the installer does:
 # ✓ Downloads Ruby gem and native extensions
@@ -508,7 +508,7 @@ tar -xzf latest.tar.gz && ./install.sh
 
 # Verify installation
 tsk --version
-gem list tusklang
+gem list tusktsk
 ```
 </details>
 
@@ -517,14 +517,14 @@ gem list tusklang
 
 ```bash
 # Method 1: Quick install (recommended)
-curl -sSL bash.tusklang.org | bash
+curl -sSL bash.tuskt.sk | bash
 
 # Method 2: Direct download
-wget https://bash.tusklang.org/dist/latest.tar.gz
+wget https://bash.tuskt.sk/dist/latest.tar.gz
 tar -xzf latest.tar.gz && ./install.sh
 
 # Method 3: Custom install wizard
-# Visit https://init.tusklang.org and select Bash
+# Visit https://init.tuskt.sk and select Bash
 
 # What the installer does:
 # ✓ Downloads pure Bash implementation
@@ -541,7 +541,7 @@ which tsk
 
 ### **🎛️ Custom Install Wizard**  
 
-**[init.tusklang.org](https://init.tusklang.org)** - Beautiful web installer with:
+**[init.tuskt.sk](https://init.tuskt.sk)** - Beautiful web installer with:
 - ✅ Language detection
 - ✅ Environment analysis  
 - ✅ Custom configuration options
@@ -556,15 +556,15 @@ which tsk
 
 ---
 
-## 🎯 **What Makes TuskLang Revolutionary**
+## 🎯 **What MakesTusk Revolutionary**
 
 ### **🔥 Configuration Files That Actually DO Things**
 
-Forget static configuration. TuskLang configs are **alive**, **intelligent**, and **connected** to your entire infrastructure:
+Forget static configuration.Tusk configs are **alive**, **intelligent**, and **connected** to your entire infrastructure:
 
 ```tsk
 # This isn't just configuration - it's INTELLIGENT INFRASTRUCTURE
-app_name: "TuskLang Production"
+app_name: "tusktsk Production"
 environment: @env("NODE_ENV", "development")
 
 # Real-time auto-scaling based on actual metrics
@@ -668,15 +668,15 @@ worker_count: @query("SELECT CEIL(AVG(cpu_usage) / 20) FROM server_metrics WHERE
 show_new_ui: @query("SELECT enabled FROM ab_tests WHERE test_name = 'new_ui' AND user_segment = ?", [user_segment])
 ```
 
-![SVG 15](svg/git-svg/readme-new/cross-file-communication.svg)
+![SVG 15](svg/git-svg/og_cross_file_detailed.svg)
 
 ### **🔗 Cross-File Communication & peanut.tsk Magic**
 ```tsk
 # peanut.tsk - Global configuration accessible everywhere
 globals {
     api_key: @env("API_KEY")
-    base_url: "https://api.tusklang.org"
-    company: "TuskLang Corp"
+    base_url: "https://api.tuskt.sk"
+    company: "tusktsk Corp"
 }
 
 # main.tsk - Reference globals from anywhere  
@@ -751,7 +751,7 @@ function process(amount, recipient) {
 ## 🏢 **Real-World Use Cases**
 
 
-![SVG 17](svg/git-svg/readme-new/game-development-usecase.svg)
+![SVG 17](svg/git-svg/og_game_development.svg)
 ### **🎮 Game Development** 
 ```tsk
 [player]
@@ -766,7 +766,7 @@ function calculateDamage(attack, defense, weapon) {
 """
 ```
 
-![SVG 18](svg/git-svg/readme-new/devops-cicd-usecase.svg)
+![SVG 18](svg/git-svg/og_devops_cicd.svg)
 
 ### **☁️ DevOps & CI/CD**
 ```tsk
@@ -787,7 +787,7 @@ function getBuildSteps(environment) {
 """
 ```
 
-![SVG 19](svg/git-svg/readme-new/microservices-usecase.svg)
+![SVG 19](svg/git-svg/og_microservices.svg)
 ### **🌐 Microservices**
 ```tsk
 [services]
@@ -826,32 +826,32 @@ connection_pool: @query("SELECT optimal_pool_size FROM performance_metrics LIMIT
 
 ---
 
-![SVG 22](svg/git-svg/readme-new/community-support.svg)
+![SVG 22](svg/git-svg/og_community_support.svg)
 
 ## 🤝 **Community & Support**
 
 ### **📞 Get Help**
-- 📧 **Email**: support@tusklang.org
-- 🐛 **Issues**: [GitHub Issues](https://github.com/bgengs/tusklang/issues)
-- 📖 **Docs**: [Official Documentation](https://tusklang.org)
+- 📧 **Email**: hello@tuskt.sk
+- 🐛 **Issues**: [GitHub Issues](https://github.com/cyber-boost/tusktsk/issues)
+- 📖 **Docs**: [Official Documentation](https://tuskt.sk)
 
 ### **🤝 Contributing**
 We welcome contributions! See our [Contributing Guide](CONTRIBUTING.md) to get started.
 
-- 🐛 **Found a bug?** [Open an issue](https://github.com/bgengs/tusklang/issues)
-- 💡 **Have an idea?** [Start a discussion](https://github.com/bgengs/tusklang/discussions)
-- 🔧 **Want to code?** [Check open issues](https://github.com/bgengs/tusklang/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
+- 🐛 **Found a bug?** [Open an issue](https://github.com/cyber-boost/tusktsk/issues)
+- 💡 **Have an idea?** [Start a discussion](https://github.com/cyber-boost/tusktsk/discussions)
+- 🔧 **Want to code?** [Check open issues](https://github.com/cyber-boost/tusktsk/issues?q=is%3Aopen+is%3Aissue+label%3A%22good+first+issue%22)
 
 ### **🏆 Contributors**
-Thanks to our amazing contributors! [See all contributors →](https://github.com/bgengs/tusklang/graphs/contributors)
+Thanks to our amazing contributors! [See all contributors →](https://github.com/cyber-boost/tusktsk/graphs/contributors)
 
 ---
 
-> **"Configuration with a Heartbeat"** - The roadmap to making TuskLang the universal configuration standard
+> **"Configuration with a Heartbeat"** - The roadmap to makingTusk the universal configuration standard
 
 ## 📅 Overview
 
-This roadmap outlines the next 50 critical features and improvements for TuskLang, focusing on completing the ecosystem, enhancing enterprise capabilities, and ensuring production readiness across all supported languages.
+This roadmap outlines the next 50 critical features and improvements for tusktsk, focusing on completing the ecosystem, enhancing enterprise capabilities, and ensuring production readiness across all supported languages.
 
 **Last Updated:** July 13 2025  
 **Version:** 2.0 Roadmap
@@ -915,45 +915,45 @@ The peanut (.pnt) binary compilation system currently exists only in PHP. This p
 
 ### Package Management Infrastructure (10-20)
 
-Establish TuskLang as a first-class citizen in all major package ecosystems.
+EstablishTusk as a first-class citizen in all major package ecosystems.
 
-- [ ] **10. Package Registry** - Build tusklang.org/packages
-  - Central registry for TuskLang packages
+- [ ] **10. Package Registry** - Build tuskt.sk/packages
+  - Central registry forTusk packages
   - Version management and dependency resolution
   - CDN distribution with global edge nodes
 
 - [ ] **11. npm** - JavaScript SDK publication
-  - Official @tusklang/core package
+  - Official @tusktsk/core package
   - TypeScript definitions included
   - Weekly release cycle
 
 - [ ] **12. PyPI** - Python SDK publication
-  - tusklang package with wheels
+  -Tusk package with wheels
   - Python 3.8+ support
   - Type hints included
 
 - [ ] **13. pkg.go.dev** - Go SDK listing
-  - github.com/tusklang/go module
+  - github.com/tusktsk/go module
   - Comprehensive godoc
   - Example code included
 
 - [ ] **14. crates.io** - Rust SDK publication
-  - tusklang crate
+  -Tusk crate
   - no_std support
   - WASM target included
 
 - [ ] **15. Maven Central** - Java SDK release
-  - org.tusklang:tusklang artifact
+  - org.tusktsk:tusktsk artifact
   - Gradle and Maven support
   - Android compatibility
 
 - [ ] **16. NuGet** - C# SDK publication
-  - TuskLang package
+  -Tusk package
   - .NET Standard 2.0+
   - Source Link support
 
 - [ ] **17. RubyGems** - Ruby SDK release
-  - tusklang gem
+  -Tusk gem
   - Ruby 2.7+ support
   - Rails generator included
 
@@ -978,7 +978,7 @@ Establish TuskLang as a first-class citizen in all major package ecosystems.
 
 ### Missing @ Operators Across SDKs (21-30)
 
-Extend TuskLang's @ operator system with modern integration patterns.
+Extend Tusk's @ operator system with modern integration patterns.
 
 - [ ] **21. @graphql** - GraphQL query support
   ```tsk
@@ -1192,7 +1192,7 @@ We welcome contributions! Priority areas:
 
 ## 📜 **License**
 
-TuskLang is licensed under the [Balanced Benefit License (BBL)](LICENSE). See [license.html](license.html) for details or read the full [BBL Software License](legal/bbl_software_license.md).
+Tusk is licensed under the [Balanced Benefit License (BBL)](LICENSE). See [license.html](license.html) for details or read the full [BBL Software License](legal/bbl_software_license.md).
 
 
 ---
@@ -1201,7 +1201,7 @@ TuskLang is licensed under the [Balanced Benefit License (BBL)](LICENSE). See [l
 
 ### **Ready to break free from configuration constraints?**
 
-**[📥 Download TuskLang](https://github.com/bgengs/tusklang/releases)** • **[📖 Read the Docs](https://tusklang.org)** • **[🌐 Website](https://tusklang.org)**
+**[📥 Download Tusk](https://github.com/cyber-boost/tusktsk/releases)** • **[📖 Read the Docs](https://tuskt.sk)** • **[🌐 Website](https://tuskt.sk)**
 
 ---
 

@@ -1,0 +1,52 @@
+# priority - Agent a5 - Goal g1
+
+## Context
+You are Agent a5 working on the TuskLang priority objective: priority
+This is Goal g1 out of 5, focused on Kubernetes Operator
+
+## Your Mission
+Implement Kubernetes Operator for TuskLang to enable cloud-native deployment and management.
+
+## Requirements
+- Create ConfigMap management system
+- Implement secret rotation functionality
+- Add CRD (Custom Resource Definition) support
+- Create operator deployment manifests
+- Implement reconciliation logic
+- Add monitoring and logging
+- Create comprehensive unit tests
+- Ensure production readiness
+
+## Success Criteria
+- ConfigMap management works correctly
+- Secret rotation functions properly
+- CRD support operational
+- Operator deployment successful
+- Reconciliation logic works
+- Monitoring and logging functional
+- All unit tests pass
+- Production deployment ready
+
+## Resources Available
+- TuskLang Project: /opt/tsk_git
+- Kubernetes SDK: Available for all languages
+- Documentation: README.md, ROADMAP.md
+- CLI: bin/tsk
+- Tests: tests/k8s/
+
+## Instructions
+1. Research Kubernetes operator frameworks
+2. Design CRD schema for TuskLang resources
+3. Implement ConfigMap management
+4. Add secret rotation functionality
+5. Create reconciliation logic
+6. Build operator deployment manifests
+7. Add monitoring and logging
+8. Test in Kubernetes cluster
+
+## Technical Details
+- Use Kubernetes operator SDK
+- Implement CRD for TuskLang configurations
+- Add ConfigMap and Secret management
+- Create reconciliation loops
+- Implement health checks and monitoring

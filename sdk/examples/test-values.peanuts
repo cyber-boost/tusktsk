@@ -1,0 +1,64 @@
+# Test configuration for validating parsers
+# Contains all supported data types
+
+# Strings
+string_simple: hello
+string_quoted: "hello world"
+string_single: 'single quoted'
+string_escaped: "line1\nline2\ttab"
+string_unicode: "Hello 世界 🥜"
+string_empty: ""
+
+# Numbers
+int_positive: 42
+int_negative: -42
+int_zero: 0
+int_large: 2147483647
+float_simple: 3.14
+float_negative: -3.14
+float_scientific: 1.23e-4
+float_zero: 0.0
+
+# Booleans
+bool_true: true
+bool_false: false
+bool_yes: yes
+bool_no: no
+
+# Null
+null_value: null
+nil_value: nil
+none_value: none
+
+# Arrays
+array_simple: 1, 2, 3
+array_mixed: 1, "two", 3.0, true
+array_strings: apple, banana, cherry
+array_nested: [1, 2], [3, 4], [5, 6]
+
+# Special characters
+special_path: /usr/local/bin
+special_url: https://example.com/path?query=value
+special_regex: ^[a-zA-Z0-9]+$
+special_email: user@example.com
+
+[section_test]
+nested_string: "in section"
+nested_number: 123
+nested_bool: true
+
+[deep.nested.section]
+value: "deeply nested"
+level: 3
+
+[arrays]
+ports: 8080, 8081, 8082
+hosts: localhost, 127.0.0.1, 0.0.0.0
+flags: true, false, true, true
+
+[types]
+# This section tests type coercion
+string_number: "123"
+number_string: 123
+bool_string: "true"
+string_bool: true

@@ -1,0 +1,86 @@
+# Complex TuskLang Configuration
+# Demonstrates advanced features
+
+[metadata]
+schema_version: "2.0"
+created_at: "2024-07-14"
+environment: "${TUSK_ENV:-development}"
+
+[server]
+host: "${SERVER_HOST:-localhost}"
+port: ${SERVER_PORT:-8080}
+workers: ${WORKERS:-4}
+features: {
+    websocket: true
+    http2: true
+    compression: ["gzip", "brotli"]
+}
+
+[database]
+connections: {
+    primary: {
+        driver: "postgresql"
+        host: "${DB_HOST:-localhost}"
+        port: 5432
+        pool: {
+            min: 2
+            max: 10
+            idle_timeout: 300
+        }
+    }
+    replica: {
+        driver: "postgresql"
+        host: "${DB_REPLICA_HOST:-localhost}"
+        port: 5433
+        read_only: true
+    }
+}
+
+[services]
+api: {
+    endpoints: [
+        { path: "/health", method: "GET", public: true }
+        { path: "/api/*", method: "*", auth: "jwt" }
+    ]
+    middleware: ["cors", "compression", "ratelimit"]
+}
+
+microservices: {
+    auth: { url: "http://auth-service:3001", timeout: 5 }
+    email: { url: "http://email-service:3002", timeout: 10 }
+    storage: { url: "http://storage-service:3003", timeout: 30 }
+}
+
+[monitoring]
+metrics: {
+    enabled: true
+    provider: "prometheus"
+    port: 9090
+    path: "/metrics"
+}
+
+alerts: [
+    { 
+        name: "high_cpu"
+        threshold: 80
+        duration: "5m"
+        action: "email"
+    }
+    {
+        name: "low_memory"
+        threshold: 20
+        duration: "1m"
+        action: "slack"
+    }
+]
+
+[deployment]
+strategy: "rolling"
+max_surge: 2
+max_unavailable: 1
+health_check: {
+    path: "/health"
+    interval: 10
+    timeout: 5
+    retries: 3
+}

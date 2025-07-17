@@ -1,6 +1,6 @@
 #!/usr/bin/env python3
 """
-TuskLang Python SDK Setup
+TuskTsk Python SDK Setup
 """
 from setuptools import setup, find_packages
 import pathlib
@@ -11,13 +11,13 @@ here = pathlib.Path(__file__).parent.resolve()
 long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
-    name="tusklang",
+    name="tusktsk",
     version="2.0.0",
-    description="TuskLang - Configuration with a Heartbeat. Query databases, use any syntax, never bow to any king!",
+    description="TuskTsk - Configuration with a Heartbeat. Query databases, use any syntax, never bow to any king!",
     long_description=long_description,
     long_description_content_type="text/markdown",
-    url="https://github.com/tusklang/python",
-    author="TuskLang Team",
+    url="https://github.com/cyber-boost/tusktsk",
+    author="Cyberboost LLC",
     author_email="zoo@phptu.sk",
     classifiers=[
         "Development Status :: 5 - Production/Stable",
@@ -32,7 +32,7 @@ setup(
         "Programming Language :: Python :: 3.11",
         "Programming Language :: Python :: 3.12",
     ],
-    keywords="configuration, config, tusklang, tusk, database, query, dynamic",
+    keywords="configuration, config, tusktsk, tusk, database, query, dynamic",
     package_dir={"": "."},
     py_modules=["tsk", "tsk_enhanced", "peanut_config"],
     packages=find_packages(where="."),
@@ -57,8 +57,9 @@ setup(
         ],
     },
     project_urls={
-        "Bug Reports": "https://github.com/tusklang/python/issues",
-        "Documentation": "https://tusklang.org/docs/python",
-        "Source": "https://github.com/tusklang/python",
+        "Bug Reports": "https://github.com/cyber-boost/tusktsk/issues",
+        "Documentation": "https://tuskt.sk/docs/python",
+        "Source": "https://github.com/cyber-boost/tusktsk",
+        "Homepage": "https://tuskt.sk",
     },
 )

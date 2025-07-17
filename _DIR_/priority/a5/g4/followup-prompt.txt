@@ -1,0 +1,27 @@
+# Follow-up: priority - Agent a5 - Goal g4
+
+## Post-Completion Actions
+1. **Verification**
+   - Test functionality with syspulse lookouts metrics
+   - Ensure integration with /opt/syspulse/<component>
+   - Check for regressions via syspulse keep integrity
+
+2. **Documentation**
+   - Update /opt/syspulse/courtyard/README.md
+   - Document CLI commands in /opt/syspulse/edicts
+   - Log results in /opt/syspulse/annals
+
+3. **Integration**
+   - Update syspulse throne coordinate
+   - Ensure compatibility with Sanctum services
+   - Update CLI help text
+
+4. **Cleanup**
+   - Remove temporary files
+   - Optimize code in /opt/syspulse/<component>
+   - Update /opt/syspulse/ledger schema
+
+5. **Reporting**
+   - Mark goal completed in roadmap.md
+   - Report via syspulse throne squires report
+   - Suggest improvements in /opt/syspulse/suggestions.md

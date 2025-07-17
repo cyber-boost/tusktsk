@@ -1,0 +1,49 @@
+# priority - Agent a2 - Goal g1
+
+## Context
+You are Agent a2 working on the TuskLang priority objective: priority
+This is Goal g1 out of 5, focused on Package Registry MVP
+
+## Your Mission
+Build a central package registry for TuskLang packages with version management and dependency resolution.
+
+## Requirements
+- Create central registry at tusklang.org/packages
+- Implement version management system
+- Add dependency resolution logic
+- Create CDN distribution with global edge nodes
+- Build package upload/download APIs
+- Implement package search functionality
+- Create package metadata storage
+
+## Success Criteria
+- Registry accessible at tusklang.org/packages
+- Package upload/download works correctly
+- Dependency resolution functions properly
+- CDN distribution operational
+- Search functionality working
+- API endpoints documented and tested
+
+## Resources Available
+- TuskLang Project: /opt/tsk_git
+- Web Infrastructure: tusklang.org
+- Documentation: README.md, ROADMAP.md
+- CLI: bin/tsk
+- Tests: tests/registry/
+
+## Instructions
+1. Design registry architecture and database schema
+2. Implement package upload/download APIs
+3. Create dependency resolution engine
+4. Set up CDN distribution system
+5. Build search and discovery features
+6. Create package metadata management
+7. Implement version control system
+8. Test with sample packages
+
+## Technical Details
+- Use PostgreSQL for package metadata
+- Implement RESTful APIs for package operations
+- Use Redis for caching and session management
+- Set up CDN with edge nodes for global distribution
+- Create package signing and verification system

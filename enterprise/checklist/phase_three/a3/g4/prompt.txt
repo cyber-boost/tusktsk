@@ -1,0 +1,57 @@
+# phase_three - Agent a3 - Goal g4
+
+## Context
+You are Agent a3 working on the TuskLang phase_three objective: Complete TuskLang SDK Ecosystem and Enterprise Features
+This is Goal g4 out of 5, focused on Monitoring Stack Implementation
+
+## Your Mission
+Implement a comprehensive monitoring stack for TuskLang applications that provides real-time metrics, alerting, and observability across all deployments and languages.
+
+## Requirements
+- Create centralized metrics collection system
+- Implement distributed tracing across languages
+- Set up real-time alerting and notification system
+- Create performance monitoring and profiling
+- Implement log aggregation and analysis
+- Set up health check monitoring
+- Create custom TuskLang-specific metrics
+- Implement dashboard and visualization system
+
+## Success Criteria
+- All TuskLang applications report metrics in real-time
+- Distributed tracing works across language boundaries
+- Alerts trigger within 30 seconds of issues
+- Performance bottlenecks are automatically detected
+- Log analysis provides actionable insights
+- Health checks maintain 99.9% uptime
+- Custom metrics track TuskLang-specific operations
+- Dashboards provide comprehensive system view
+
+## Resources Available
+- TuskLang Project: /opt/tsk_git
+- Prometheus: Metrics collection available
+- Grafana: Dashboard and visualization
+- Jaeger: Distributed tracing
+- ELK Stack: Log aggregation available
+- AlertManager: Alerting system
+
+## Instructions
+1. Set up Prometheus metrics collection
+2. Implement distributed tracing with Jaeger
+3. Create custom TuskLang metrics
+4. Set up Grafana dashboards
+5. Implement alerting with AlertManager
+6. Create log aggregation with ELK stack
+7. Set up performance profiling
+8. Implement health check monitoring
+9. Create monitoring documentation
+
+## Technical Details
+- Use Prometheus for metrics collection
+- Implement OpenTelemetry for tracing
+- Create custom metrics for TuskLang operations
+- Set up Grafana dashboards for visualization
+- Implement alerting rules and thresholds
+- Create log parsing and analysis
+- Add performance profiling tools
+- Implement synthetic monitoring 

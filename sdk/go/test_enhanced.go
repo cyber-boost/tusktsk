@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	
-	"github.com/tuskphp/tusklang-go"
+	"tusklang-go"
 )
 
 func main() {

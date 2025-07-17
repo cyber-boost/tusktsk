@@ -66,7 +66,7 @@ def _handle_binary_compile(args: Any, formatter: OutputFormatter, error_handler:
         
         # Compile to binary
         peanut_config = PeanutConfig()
-        binary_path = file_path.with_suffix('.tskb')
+        binary_path = file_path.with_suffix('.pnt')
         
         peanut_config.compile_to_binary(data, str(binary_path))
         
@@ -99,8 +99,8 @@ def _handle_binary_execute(args: Any, formatter: OutputFormatter, error_handler:
     if not file_path.exists():
         return error_handler.handle_file_not_found(str(file_path))
     
-    if file_path.suffix not in ['.tskb', '.pnt']:
-        formatter.error("File must have .tskb or .pnt extension")
+    if file_path.suffix not in ['.pnt']:
+        formatter.error("File must have .pnt extension")
         return ErrorHandler.INVALID_ARGS
     
     formatter.loading(f"Executing binary file: {file_path}")
@@ -186,7 +186,7 @@ def _handle_binary_benchmark(args: Any, formatter: OutputFormatter, error_handle
         
         # Compile to binary
         peanut_config = PeanutConfig()
-        binary_path = file_path.with_suffix('.tskb')
+        binary_path = file_path.with_suffix('.pnt')
         peanut_config.compile_to_binary(data, str(binary_path))
         
         # Benchmark binary loading

@@ -1,10 +1,10 @@
 package peanut
 
 import (
+	"time"
+	"testing"
 	"os"
 	"path/filepath"
-	"strings"
-	"testing"
 	"time"
 )
 

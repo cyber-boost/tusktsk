@@ -1,0 +1,76 @@
+# Follow-Up: tusklang_fortress - Agent a4 - Goal g9
+
+## Mission
+Agent a4, your goal (g9) is critical to the objective: tusklang_fortress. The clock's ticking, and we're not here to hold your hand. Get your ass in gear, execute the tasks in ./checklist/tusklang_fortress/a4/g9/roadmap.md, and deliver results NOW. No slacking, no excuses. Keep ALL files in ./checklist/tusklang_fortress/a4/g9. If you drop the ball, the master will reassign your work before you can blink.
+
+## CRITICAL STATUS TRACKING REQUIREMENTS
+- Update ./checklist/tusklang_fortress/a4/g9/status.txt with EVERY progress update
+- Mark status changes: Not Started → In Progress → Completed
+- Record start date, completion date, and time spent
+- Document any blockers or issues
+- Create summary file in ./summaries/ directory upon completion
+
+## Post-Completion Actions
+1. **Verification: Prove It Works**
+   - Test functionality against prompt.txt success criteria.
+   - Run integration tests with dependent components listed in roadmap.md.
+   - Check for regressions with system integrity checks.
+   - Validate performance metrics using available monitoring tools.
+   - Log test results. If it's not logged, it didn't happen.
+
+2. **Documentation: No Half-Assed Write-Ups**
+   - Add detailed code comments in the relevant component files.
+   - Update user documentation in the project's main README.
+   - Document any CLI commands or configurations in the designated template directory.
+   - Record deviations in roadmap.md "Notes".
+   - Submit docs for review. Sloppy work gets you sidelined.
+
+3. **Integration: Make It Seamless**
+   - Update the master orchestrator to sync with other components.
+   - Ensure compatibility with dependent services.
+   - Update CLI or interface help text.
+   - Verify no conflicts with other agents' goals (check roadmap.md Dependencies).
+   - Update the project's main README.
+
+4. **Cleanup: Leave No Trace**
+   - Remove temporary files from the component directory.
+   - Optimize code for performance and resource usage.
+   - Update any database schemas if required.
+   - Log cleanup actions. No mess, no mercy.
+
+5. **Reporting: Shout It From the Rooftops**
+   - Mark goal as "Completed" in ./checklist/tusklang_fortress/a4/g9/roadmap.md.
+   - Update status.txt with completion details and final metrics.
+   - Create summary file in ./summaries/ directory with format: YYYY-MM-DD-agent-category.txt
+   - Report to the master controller with full details.
+   - Update job tracking with output and completion time.
+   - Suggest optimizations in a designated suggestions file.
+   - Log final status. No report, no credit.
+
+## Operational Guidelines
+- **Urgency**: Move like your life depends on it. For critical issues, you've got until 2025-07-16 01:20 AM EDT.
+- **Path Discipline**: ALL files (roadmap.md, prompt.txt, followup-prompt.txt, status.txt) MUST stay in ./checklist/tusklang_fortress/a4/g9. Files elsewhere get you fired.
+- **Precision**: Follow roadmap.md and prompt.txt to the letter. No shortcuts.
+- **Accountability**: Log every action. If it's not logged, it didn't happen.
+- **Status Updates**: Update status.txt with EVERY change. No exceptions.
+- **Resources**: Coordinate resource access to avoid conflicts.
+- **Security**: Validate all changes to prevent unauthorized access.
+
+## Success Criteria
+- All roadmap.md checklist items marked [x].
+- Tests pass with zero errors.
+- Documentation is complete and clear.
+- Integration is flawless, no regressions.
+- Goal completed within estimated duration.
+- status.txt file updated with completion details.
+- Summary file created in ./summaries/ directory.
+
+## Instructions
+1. Verify functionality NOW. Run tests and log results.
+2. Document everything. No vague nonsense.
+3. Integrate with the system. Make it bulletproof.
+4. Clean up your mess. No trace left behind.
+5. Update status.txt with completion details.
+6. Create summary file in ./summaries/ directory.
+7. Report completion to the master and log status.
+Get to work. The whip's cracking, and we're watching.

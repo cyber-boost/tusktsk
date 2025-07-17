@@ -1,0 +1,35 @@
+# priority - Agent a4 - Goal g3
+
+## Context
+You are Agent a4 working on the Syspulse Fortress objective: priority
+This is Goal g3 out of 5, aligned with component: Citadel Daemon Controller
+
+## Your Mission
+Implement the missing Citadel main daemon controller that orchestrates all fortress components and provides the central management interface.
+
+## Requirements
+- Execute tasks in /opt/syspulse/app/Citadel.php
+- Update /opt/syspulse/ledger and /opt/syspulse/annals
+- Report progress via syspulse squires report
+- Follow roadmap.md checklist
+
+## Success Criteria
+- CLI command `syspulse citadel start` starts the main daemon
+- CLI command `syspulse citadel status` shows fortress status
+- Citadel coordinates all components (Throne, Squires, Sanctum, etc.)
+- Daemon runs as background service with proper logging
+
+## Resources Available
+- Syspulse Fortress: /opt/syspulse
+- Database: /opt/syspulse/db/plantation.db
+- Logging: /opt/syspulse/logs
+- CLI: ./cli/syspulse <component> <command>
+
+## Instructions
+1. Review roadmap.md for Citadel requirements
+2. Create Citadel.php main controller class
+3. Implement daemon lifecycle management
+4. Create component coordination system
+5. Add systemd service integration
+6. Test Citadel start/stop/status commands
+7. Report to Throne 

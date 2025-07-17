@@ -1,0 +1,52 @@
+# Secure API Endpoints Configuration
+# Agent A3 - Goal 2: Registry Authentication
+
+# API Base Configuration
+api_version = "v1"
+base_url = "https://registry.tusklang.org/api"
+rate_limit_window = 3600
+max_requests_per_window = 1000
+
+# Authentication Endpoints
+auth_endpoints = {
+    "login": "/auth/login",
+    "logout": "/auth/logout",
+    "refresh": "/auth/refresh",
+    "register": "/auth/register",
+    "verify": "/auth/verify",
+    "reset_password": "/auth/reset-password"
+}
+
+# Package Management Endpoints
+package_endpoints = {
+    "search": "/packages/search",
+    "info": "/packages/{name}",
+    "versions": "/packages/{name}/versions",
+    "download": "/packages/{name}/download",
+    "publish": "/packages/publish",
+    "update": "/packages/{name}/update",
+    "delete": "/packages/{name}/delete"
+}
+
+# User Management Endpoints
+user_endpoints = {
+    "profile": "/users/profile",
+    "api_keys": "/users/api-keys",
+    "permissions": "/users/permissions",
+    "organizations": "/users/organizations"
+}
+
+# Security Headers
+security_headers = {
+    "X-Content-Type-Options": "nosniff",
+    "X-Frame-Options": "DENY",
+    "X-XSS-Protection": "1; mode=block",
+    "Strict-Transport-Security": "max-age=31536000; includeSubDomains",
+    "Content-Security-Policy": "default-src 'self'"
+}
+
+# CORS Configuration
+cors_enabled = true
+cors_origins = ["https://tusklang.org", "https://registry.tusklang.org"]
+cors_methods = ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+cors_headers = ["Authorization", "Content-Type", "X-API-Key"] 

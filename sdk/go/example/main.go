@@ -5,7 +5,7 @@ import (
 	"log"
 	"os"
 
-	"github.com/tusklang/tusklang-go"
+	"tusklang-go"
 )
 
 // AppConfig represents the application configuration structure

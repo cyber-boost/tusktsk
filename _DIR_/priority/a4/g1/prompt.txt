@@ -1,0 +1,51 @@
+# priority - Agent a4 - Goal g1
+
+## Context
+You are Agent a4 working on the TuskLang priority objective: priority
+This is Goal g1 out of 5, focused on OAuth2/OIDC Integration
+
+## Your Mission
+Implement OAuth2/OIDC integration for TuskLang to enable enterprise authentication and authorization.
+
+## Requirements
+- Implement standard OAuth2 flows
+- Add PKCE support for security
+- Create token management system
+- Implement user authentication
+- Add role-based access control
+- Create comprehensive unit tests
+- Update CLI commands to support OAuth2
+- Ensure enterprise security standards
+
+## Success Criteria
+- OAuth2 authentication flows work correctly
+- PKCE implementation is secure
+- Token management functions properly
+- User authentication integrates seamlessly
+- Role-based access control operational
+- All unit tests pass
+- Enterprise security standards met
+
+## Resources Available
+- TuskLang Project: /opt/tsk_git
+- OAuth2 Libraries: Available for all languages
+- Documentation: README.md, ROADMAP.md
+- CLI: bin/tsk
+- Tests: tests/auth/
+
+## Instructions
+1. Research OAuth2/OIDC libraries for target languages
+2. Implement OAuth2 authentication flows
+3. Add PKCE support for enhanced security
+4. Create token management and refresh system
+5. Implement user authentication integration
+6. Add role-based access control
+7. Create comprehensive unit tests
+8. Update CLI commands and documentation
+
+## Technical Details
+- Use OAuth2/OIDC libraries (Auth0, etc.)
+- Implement PKCE for public clients
+- Add token refresh and management
+- Create user session management
+- Implement role-based permissions

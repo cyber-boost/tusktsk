@@ -1,0 +1,14 @@
+BBL (Balanced Benefit License) - Version 1.0
+
+Copyright (c) 2024-2025 CyberBoost LLC. All rights reserved.
+
+This software is licensed under the BBL (Balanced Benefit License).
+
+SUMMARY:
+- Free for small entities (under $100K annual revenue)
+- Commercial license required for larger organizations
+- Contributors may receive profit sharing
+
+For complete license terms, visit: https://tusklang.org/license
+
+Contact: hello@tusklang.org

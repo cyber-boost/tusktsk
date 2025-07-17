@@ -1,0 +1,36 @@
+# priority - Agent a5 - Goal g5
+
+## Context
+You are Agent a5 working on the Syspulse Fortress objective: priority
+This is Goal g5 out of 5, aligned with component: Documentation System
+
+## Your Mission
+Complete the Documentation System for Syspulse Fortress, providing comprehensive user guides, API documentation, deployment guides, and developer resources for all fortress components.
+
+## Requirements
+- Execute tasks in /opt/syspulse/docs
+- Update /opt/syspulse/ledger and /opt/syspulse/annals
+- Report progress via syspulse squires report
+- Follow roadmap.md checklist
+
+## Success Criteria
+- Complete user documentation for all fortress components
+- API documentation with examples and tutorials
+- Deployment and configuration guides
+- Developer onboarding materials
+- Troubleshooting and FAQ sections
+- Documentation is searchable and well-organized
+- All documentation is production-ready and user-friendly
+
+## Resources Available
+- Syspulse Fortress: /opt/syspulse
+- Database: /opt/syspulse/ledger
+- Logging: /opt/syspulse/annals
+- CLI: syspulse <component> <command>
+
+## Instructions
+1. Review roadmap.md for tasks
+2. Execute CLI commands as specified
+3. Update roadmap.md status and notes
+4. Verify with syspulse lookouts metrics
+5. Report to Throne

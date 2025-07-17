@@ -1,0 +1,35 @@
+# priority - Agent a4 - Goal g4
+
+## Context
+You are Agent a4 working on the Syspulse Fortress objective: priority
+This is Goal g4 out of 5, aligned with component: Oracles AI/ML Intelligence
+
+## Your Mission
+Implement the missing Oracles AI/ML intelligence system for threat detection, pattern analysis, and automated security responses.
+
+## Requirements
+- Execute tasks in /opt/syspulse/app/Oracles.php
+- Update /opt/syspulse/ledger and /opt/syspulse/annals
+- Report progress via syspulse squires report
+- Follow roadmap.md checklist
+
+## Success Criteria
+- CLI command `syspulse oracles analyze` performs threat analysis
+- CLI command `syspulse oracles predict` predicts potential attacks
+- AI models can detect anomalies in system behavior
+- Intelligence feeds provide actionable security insights
+
+## Resources Available
+- Syspulse Fortress: /opt/syspulse
+- Database: /opt/syspulse/db/plantation.db
+- Logging: /opt/syspulse/logs
+- CLI: ./cli/syspulse <component> <command>
+
+## Instructions
+1. Review roadmap.md for Oracles requirements
+2. Create Oracles.php AI/ML controller class
+3. Implement threat pattern analysis algorithms
+4. Create anomaly detection system
+5. Add intelligence feed integration
+6. Test AI model training and deployment
+7. Report to Throne 

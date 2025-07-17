@@ -1,0 +1,62 @@
+# 🥜 Universal TuskLang Configuration
+# This file is automatically loaded by enhanced parsers
+
+# Global settings
+$app_name: "TuskLang Java"
+$version: "2.0.0"
+$environment: @env("TUSKLANG_ENV", "development")
+
+# Database configuration
+database {
+    default_driver: "postgresql"
+    pool_size: @optimize("db_pool_size", 10)
+    
+    connections {
+        postgresql: "jdbc:postgresql://localhost:5432/tusklang"
+        mysql: "jdbc:mysql://localhost:3306/tusklang"
+        h2: "jdbc:h2:mem:tusklang;DB_CLOSE_DELAY=-1"
+    }
+}
+
+# Feature flags
+features {
+    cache_enabled: @learn("cache_enabled", true)
+    metrics_enabled: true
+    query_logging: @env("TUSKLANG_QUERY_LOG", "false")
+    
+    experimental {
+        jit_compilation: false
+        async_operators: @optimize("async_ops", false)
+    }
+}
+
+# @ Operator defaults
+operators {
+    cache_ttl: "5m"
+    metrics_interval: "1m"
+    learn_threshold: 0.8
+    optimize_iterations: 100
+}
+
+# Logging configuration
+logging {
+    level: @env("LOG_LEVEL", "info")
+    format: "json"
+    output: @env("LOG_OUTPUT", "stdout")
+    
+    levels [debug, info, warn, error]
+}
+
+# Server settings (if applicable)
+server {
+    host: @env("SERVER_HOST", "localhost")
+    port: @env("SERVER_PORT", "8080")
+    workers: @optimize("worker_count", 4)
+}
+
+# Development tools
+development {
+    debug_mode: true
+    hot_reload: @learn("hot_reload_enabled", true)
+    verbose_errors: true
+}

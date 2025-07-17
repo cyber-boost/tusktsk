@@ -1,0 +1,20 @@
+#!/bin/bash
+# Manual SSL setup for lic.tusklang.org
+
+echo "🔒 Setting up SSL for lic.tusklang.org"
+echo ""
+echo "Since automatic setup failed, please run this command manually:"
+echo ""
+echo "sudo certbot --nginx -d lic.tusklang.org"
+echo ""
+echo "When prompted:"
+echo "1. Select account 3 (ubuntu-32gb-ash-1)"
+echo "2. Agree to redirect HTTP to HTTPS"
+echo ""
+echo "After SSL is set up, the license server will be available at:"
+echo "https://lic.tusklang.org"
+echo ""
+echo "Current status:"
+echo "✅ License server is running on port 3000"
+echo "✅ Nginx is configured and proxying correctly"
+echo "⏳ SSL certificate needs to be configured"
