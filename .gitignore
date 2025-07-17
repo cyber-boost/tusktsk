@@ -1,0 +1,251 @@
+# TuskLang Public Repository - Updated .gitignore
+# Date: July 16, 2025
+
+# =============================================================================
+# SENSITIVE DATA & CREDENTIALS
+# =============================================================================
+# Database credentials and connection strings
+*.env
+.env.*
+config/database.php
+config/credentials.php
+config/secrets.php
+
+# License system credentials
+server/.env
+server/config/database.php
+server/logs/
+server/emergency-shutdown.json
+server/grace-period.json
+
+# OAuth2 secrets and tokens
+lib/TuskAuth.php
+config/oauth2.php
+config/auth.php
+
+# API keys and secrets
+config/api_keys.php
+config/keys.php
+*.key
+*.pem
+*.p12
+
+# =============================================================================
+# BUILD ARTIFACTS & TEMPORARY FILES
+# =============================================================================
+# Node.js
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn-integrity
+
+# Python
+__pycache__/
+*.py[cod]
+*$py.class
+*.so
+.Python
+build/
+develop-eggs/
+dist/
+downloads/
+eggs/
+.eggs/
+lib/
+lib64
+parts/
+sdist/
+var/
+wheels/
+*.egg-info/
+.installed.cfg
+*.egg
+MANIFEST
+
+# PHP
+vendor/
+composer.lock
+*.log
+*.cache
+
+# Rust
+target/
+Cargo.lock
+*.rlib
+*.rmeta
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+*.test
+*.out
+go.work
+
+# Java
+*.class
+*.jar
+*.war
+*.ear
+*.nar
+hs_err_pid*
+
+# C#
+*.dll
+*.exe
+*.pdb
+*.obj
+*.cache
+bin/
+obj/
+
+# =============================================================================
+# DEVELOPMENT & IDE FILES
+# =============================================================================
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+.project
+.classpath
+.settings/
+*.sublime-project
+*.sublime-workspace
+
+# =============================================================================
+# OS GENERATED FILES
+# =============================================================================
+.DS_Store
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# =============================================================================
+# LOGS & DEBUG FILES
+# =============================================================================
+*.log
+logs/
+debug/
+tmp/
+temp/
+*.tmp
+*.temp
+
+# =============================================================================
+# TEST FILES & COVERAGE
+# =============================================================================
+coverage/
+.coverage
+*.coverage
+.pytest_cache/
+.tox/
+.cache
+nosetests.xml
+coverage.xml
+*.cover
+.hypothesis/
+
+# =============================================================================
+# DEPLOYMENT & CONFIGURATION
+# =============================================================================
+# Server configurations
+nginx/
+server/nginx/
+server/ssl/
+server/certs/
+
+# Docker
+Dockerfile
+docker-compose.yml
+.dockerignore
+
+# Kubernetes
+*.yaml
+*.yml
+k8/
+kubernetes/
+
+# =============================================================================
+# PACKAGE REGISTRY & DISTRIBUTION
+# =============================================================================
+# Registry data
+registry/data/
+registry/packages/
+registry/cache/
+registry/logs/
+
+# Distribution artifacts
+dist/
+build/
+packages/
+releases/
+
+# =============================================================================
+# MONITORING & ANALYTICS
+# =============================================================================
+monitoring/data/
+monitoring/logs/
+monitoring/alerts/
+prometheus/data/
+grafana/data/
+
+# =============================================================================
+# BACKUP & RECOVERY
+# =============================================================================
+backup/
+backups/
+*.backup
+*.bak
+*.old
+
+# =============================================================================
+# DOCUMENTATION BUILD
+# =============================================================================
+docs/_build/
+docs/build/
+site/
+_site/
+
+# =============================================================================
+# MISCELLANEOUS
+# =============================================================================
+# Git
+.git/
+.gitignore.bak
+
+# Archives
+*.tar
+*.tar.gz
+*.zip
+*.rar
+*.7z
+
+# Database files
+*.db
+*.sqlite
+*.sqlite3
+
+# =============================================================================
+# EXCLUDED DIRECTORIES (COMMENTED OUT - UNCOMMENT IF NEEDED)
+# =============================================================================
+# Uncomment these if you want to exclude entire directories
+# sdk/
+# docs/
+# cheat-sheet/
+admin/
+universe/
+z_archive/
+.claude/
+CLAUDE.md
+gitTrick.sh
+master.txt
+/admin 
