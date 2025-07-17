@@ -1,0 +1,49 @@
+[package]
+name = "tusklang-rust"
+version = "2.0.0"
+edition = "2021"
+description = "TuskLang - Next-generation configuration language parser for Rust"
+long-description = "TuskLang is a powerful configuration language that combines intuitive syntax with advanced features like @ operators, making infrastructure automation smarter and more efficient"
+license = "BBL-1.0"
+authors = ["Bernard Stepgen Gengel II <hello@tuskt.sk>"]
+repository = "https://github.com/cyber-boost/tusktsk"
+homepage = "https://tuskt.sk"
+documentation = "https://docs.tuskt.sk"
+readme = "README.md"
+keywords = ["tusklang", "config", "parser", "dsl", "automation"]
+categories = ["config", "parsing", "development-tools"]
+rust-version = "1.70"
+
+[dependencies]
+serde = { version = "1.0", features = ["derive"] }
+serde_json = "1.0"
+serde_yaml = "0.9"
+clap = { version = "4.0", features = ["derive"] }
+anyhow = "1.0"
+thiserror = "1.0"
+colored = "2.0"
+regex = "1.0"
+walkdir = "2.3"
+
+[dev-dependencies]
+criterion = "0.5"
+proptest = "1.3"
+test-case = "3.1"
+
+[[bench]]
+name = "parser_bench"
+harness = false
+
+[profile.release]
+opt-level = 3
+lto = true
+codegen-units = 1
+panic = "abort"
+
+[profile.dev]
+opt-level = 0
+debug = true
+
+[package.metadata.docs.rs]
+all-features = true
+rustdoc-args = ["--cfg", "docsrs"] 

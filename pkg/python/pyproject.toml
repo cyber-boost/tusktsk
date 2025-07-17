@@ -1,0 +1,85 @@
+[build-system]
+requires = ["setuptools>=61.0", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "tusklang"
+version = "2.0.0"
+description = "Next-generation configuration language with built-in intelligence and @ operators"
+readme = "README.md"
+license = {text = "BBL-1.0"}
+authors = [
+    {name = "Bernard Stepgen Gengel II", email = "hello@tuskt.sk"}
+]
+maintainers = [
+    {name = "Bernard Stepgen Gengel II", email = "hello@tuskt.sk"}
+]
+keywords = ["tusklang", "config", "dsl", "automation", "devops", "infrastructure"]
+classifiers = [
+    "Development Status :: 5 - Production/Stable",
+    "Intended Audience :: Developers",
+    "License :: Other/Proprietary License",
+    "Operating System :: OS Independent",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.8",
+    "Programming Language :: Python :: 3.9",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Topic :: Software Development :: Libraries :: Python Modules",
+    "Topic :: System :: Systems Administration",
+    "Topic :: Utilities"
+]
+requires-python = ">=3.8"
+dependencies = [
+    "pyyaml>=6.0",
+    "click>=8.0",
+    "rich>=13.0"
+]
+
+[project.optional-dependencies]
+dev = [
+    "pytest>=7.0",
+    "pytest-cov>=4.0",
+    "black>=23.0",
+    "isort>=5.0",
+    "flake8>=6.0",
+    "mypy>=1.0"
+]
+
+[project.urls]
+Homepage = "https://tuskt.sk"
+Documentation = "https://docs.tuskt.sk"
+Repository = "https://github.com/cyber-boost/tusktsk"
+"Bug Tracker" = "https://github.com/cyber-boost/tusktsk/issues"
+"Support" = "https://github.com/cyber-boost/tusktsk/issues"
+
+[project.scripts]
+tusk = "tusklang.cli:main"
+
+[tool.setuptools.packages.find]
+where = ["src"]
+
+[tool.setuptools.package-data]
+"*" = ["*.tsk", "*.pnt"]
+
+[tool.black]
+line-length = 88
+target-version = ['py38']
+
+[tool.isort]
+profile = "black"
+multi_line_output = 3
+
+[tool.mypy]
+python_version = "3.8"
+warn_return_any = true
+warn_unused_configs = true
+disallow_untyped_defs = true
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+python_files = ["test_*.py"]
+python_classes = ["Test*"]
+python_functions = ["test_*"]
+addopts = "--cov=tusklang --cov-report=html --cov-report=term-missing" 
