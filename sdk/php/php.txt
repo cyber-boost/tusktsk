@@ -1,0 +1,10 @@
+🐘 PHP SDK - TuskTsk Configuration Language
+
+• PHP 8.0+ support with Composer integration
+• CLI tools: `tusk`, `tusk-fujsen` commands
+• Laravel/Symfony service providers included
+• Database ORM adapters: Eloquent, Doctrine, PDO
+• Binary .pnt compilation for 60% performance boost
+• PSR-4 autoloading and PSR-12 code standards
+• Built-in validation and sanitization
+• composer require tusktsk/tusktsk
