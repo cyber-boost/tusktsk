@@ -1,0 +1,452 @@
+# 🐘 TuskGraphQL Operator Demo
+# ============================
+# "Making GraphQL queries as simple as elephant memory"
+# 
+# This file demonstrates the powerful @graphql operator
+# that enables GraphQL queries directly in TuskLang configuration files.
+
+# GraphQL Configuration
+[graphql]
+endpoint: "https://api.example.com/graphql"
+timeout: 30
+cache_ttl: 300
+auth_token: env("GRAPHQL_TOKEN", "demo-token")
+
+# API Configuration
+[api]
+base_url: "https://api.example.com"
+version: "v2"
+environment: env("NODE_ENV", "development")
+
+# Basic GraphQL Queries
+[queries]
+# Simple query to get users
+users: @graphql("{ users { id name email } }")
+
+# Query with variables
+user_by_id: @graphql("
+    query GetUser($id: ID!) {
+        user(id: $id) {
+            id
+            name
+            email
+            profile {
+                avatar
+                bio
+            }
+        }
+    }
+", {"id": "123"})
+
+# Query with custom endpoint
+external_users: @graphql("{ users { id name } }", {}, {"endpoint": "https://external-api.com/graphql"})
+
+# Complex nested query
+user_posts: @graphql("
+    query GetUserPosts($userId: ID!) {
+        user(id: $userId) {
+            id
+            name
+            posts {
+                id
+                title
+                content
+                comments {
+                    id
+                    text
+                    author {
+                        id
+                        name
+                    }
+                }
+            }
+        }
+    }
+", {"userId": "456"})
+
+# GraphQL Mutations
+[mutations]
+# Create user mutation
+create_user: @graphql("
+    mutation CreateUser($name: String!, $email: String!) {
+        createUser(input: { name: $name, email: $email }) {
+            id
+            name
+            email
+            createdAt
+        }
+    }
+", {"name": "John Doe", "email": "john@example.com"})
+
+# Update user mutation
+update_user: @graphql("
+    mutation UpdateUser($id: ID!, $name: String) {
+        updateUser(id: $id, input: { name: $name }) {
+            id
+            name
+            email
+            updatedAt
+        }
+    }
+", {"id": "123", "name": "Jane Doe"})
+
+# Delete user mutation
+delete_user: @graphql("
+    mutation DeleteUser($id: ID!) {
+        deleteUser(id: $id) {
+            success
+            message
+        }
+    }
+", {"id": "789"})
+
+# Real-time Data with Subscriptions
+[subscriptions]
+# User activity subscription
+user_activity: @graphql("
+    subscription UserActivity($userId: ID!) {
+        userActivity(userId: $userId) {
+            type
+            timestamp
+            data
+        }
+    }
+", {"userId": "123"})
+
+# Live notifications
+notifications: @graphql("
+    subscription Notifications {
+        notifications {
+            id
+            type
+            message
+            timestamp
+        }
+    }
+")
+
+# Advanced Features
+[advanced]
+# Query with fragments
+user_with_fragments: @graphql("
+    query GetUserWithFragments($id: ID!) {
+        user(id: $id) {
+            ...UserFields
+            ...UserProfileFields
+        }
+    }
+    
+    fragment UserFields on User {
+        id
+        name
+        email
+    }
+    
+    fragment UserProfileFields on User {
+        profile {
+            avatar
+            bio
+            location
+        }
+    }
+", {"id": "123"})
+
+# Query with aliases
+aliased_query: @graphql("
+    query GetUsersWithAliases {
+        activeUsers: users(active: true) {
+            id
+            name
+        }
+        inactiveUsers: users(active: false) {
+            id
+            name
+        }
+    }
+")
+
+# Query with directives
+directive_query: @graphql("
+    query GetUsersWithDirectives($includeEmail: Boolean!) {
+        users {
+            id
+            name
+            email @include(if: $includeEmail)
+            profile @skip(if: false) {
+                avatar
+                bio
+            }
+        }
+    }
+", {"includeEmail": true})
+
+# Integration Examples
+[integration]
+# Combine with other TuskLang operators
+user_count: @graphql("{ users { id } }").length
+active_users: @graphql("{ users(active: true) { id name } }")
+recent_posts: @graphql("{ posts(first: 10) { id title } }")
+
+# Use with environment variables
+production_users: @graphql("{ users { id name } }", {}, {"endpoint": env("PROD_GRAPHQL_ENDPOINT")})
+staging_users: @graphql("{ users { id name } }", {}, {"endpoint": env("STAGING_GRAPHQL_ENDPOINT")})
+
+# Use with file references
+schema_info: @graphql(file("schema.graphql"))
+
+# Performance Optimization
+[performance]
+# Cached queries
+cached_users: @cache("5m", @graphql("{ users { id name } }"))
+cached_posts: @cache("10m", @graphql("{ posts { id title content } }"))
+
+# Paginated queries
+paginated_users: @graphql("
+    query GetPaginatedUsers($first: Int!, $after: String) {
+        users(first: $first, after: $after) {
+            edges {
+                node {
+                    id
+                    name
+                    email
+                }
+                cursor
+            }
+            pageInfo {
+                hasNextPage
+                hasPreviousPage
+                startCursor
+                endCursor
+            }
+        }
+    }
+", {"first": 20, "after": null})
+
+# Error Handling Examples
+[error_handling]
+# Query with fallback
+safe_user_query: @graphql("{ user(id: \"123\") { id name } }") || {"user": {"id": "fallback", "name": "Unknown User"}}
+
+# Conditional queries
+conditional_data: env("ENVIRONMENT") == "production" ? 
+    @graphql("{ productionData { id value } }") : 
+    @graphql("{ developmentData { id value } }")
+
+# Business Logic Examples
+[business]
+# User analytics
+user_stats: @graphql("
+    query GetUserStats {
+        userStats {
+            totalUsers
+            activeUsers
+            newUsersThisMonth
+            averageSessionDuration
+        }
+    }
+")
+
+# E-commerce data
+product_inventory: @graphql("
+    query GetProductInventory($categoryId: ID) {
+        products(categoryId: $categoryId) {
+            id
+            name
+            price
+            stock
+            category {
+                id
+                name
+            }
+        }
+    }
+", {"categoryId": "electronics"})
+
+# Order processing
+recent_orders: @graphql("
+    query GetRecentOrders($limit: Int!) {
+        orders(first: $limit, orderBy: { field: CREATED_AT, direction: DESC }) {
+            id
+            total
+            status
+            customer {
+                id
+                name
+                email
+            }
+            items {
+                id
+                quantity
+                product {
+                    id
+                    name
+                    price
+                }
+            }
+        }
+    }
+", {"limit": 50})
+
+# Configuration Examples
+[config]
+# Feature flags
+feature_flags: @graphql("
+    query GetFeatureFlags($userId: ID!) {
+        featureFlags(userId: $userId) {
+            name
+            enabled
+            rolloutPercentage
+        }
+    }
+", {"userId": env("USER_ID", "default")})
+
+# User preferences
+user_preferences: @graphql("
+    query GetUserPreferences($userId: ID!) {
+        user(id: $userId) {
+            preferences {
+                theme
+                language
+                notifications {
+                    email
+                    push
+                    sms
+                }
+            }
+        }
+    }
+", {"userId": env("USER_ID")})
+
+# System configuration
+system_config: @graphql("
+    query GetSystemConfig {
+        systemConfig {
+            maintenanceMode
+            apiVersion
+            rateLimits {
+                requests
+                window
+            }
+            features {
+                name
+                enabled
+            }
+        }
+    }
+")
+
+# Monitoring and Analytics
+[monitoring]
+# Performance metrics
+performance_metrics: @graphql("
+    query GetPerformanceMetrics($timeRange: TimeRange!) {
+        performanceMetrics(timeRange: $timeRange) {
+            responseTime
+            errorRate
+            throughput
+            uptime
+        }
+    }
+", {"timeRange": {"start": "2024-01-01", "end": "2024-01-31"}})
+
+# Error tracking
+error_logs: @graphql("
+    query GetErrorLogs($severity: ErrorSeverity, $limit: Int!) {
+        errorLogs(severity: $severity, first: $limit) {
+            id
+            message
+            stackTrace
+            timestamp
+            severity
+            user {
+                id
+                name
+            }
+        }
+    }
+", {"severity": "ERROR", "limit": 100})
+
+# Usage analytics
+usage_analytics: @graphql("
+    query GetUsageAnalytics($period: AnalyticsPeriod!) {
+        usageAnalytics(period: $period) {
+            totalRequests
+            uniqueUsers
+            popularQueries {
+                query
+                count
+            }
+            errors {
+                type
+                count
+            }
+        }
+    }
+", {"period": "LAST_30_DAYS"})
+
+# Security and Authentication
+[security]
+# User permissions
+user_permissions: @graphql("
+    query GetUserPermissions($userId: ID!) {
+        user(id: $userId) {
+            permissions {
+                resource
+                actions
+                granted
+            }
+            roles {
+                id
+                name
+                permissions {
+                    resource
+                    actions
+                }
+            }
+        }
+    }
+", {"userId": env("CURRENT_USER_ID")})
+
+# Audit logs
+audit_logs: @graphql("
+    query GetAuditLogs($userId: ID, $action: String, $limit: Int!) {
+        auditLogs(userId: $userId, action: $action, first: $limit) {
+            id
+            action
+            resource
+            userId
+            timestamp
+            ipAddress
+            userAgent
+            details
+        }
+    }
+", {"userId": null, "action": "LOGIN", "limit": 50})
+
+# Session management
+active_sessions: @graphql("
+    query GetActiveSessions($userId: ID!) {
+        user(id: $userId) {
+            activeSessions {
+                id
+                device
+                location
+                lastActivity
+                ipAddress
+            }
+        }
+    }
+", {"userId": env("CURRENT_USER_ID")})
+
+# Comments and Documentation
+# This file demonstrates the full power of the @graphql operator
+# Key features:
+# - Direct GraphQL queries in configuration files
+# - Support for queries, mutations, and subscriptions
+# - Variable binding and parameter passing
+# - Authentication and endpoint configuration
+# - Caching and performance optimization
+# - Error handling and fallbacks
+# - Integration with other TuskLang operators
+# - Real-world business logic examples
+# - Security and monitoring capabilities 

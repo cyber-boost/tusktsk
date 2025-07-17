@@ -1,0 +1,128 @@
+<?php
+// This is a .tsk file that's actually PHP (for now)
+// Until we set up proper .tsk handling in nginx
+
+require_once dirname(__DIR__) . '/../reference/TuskLang.php';
+use TuskPHP\Utils\TuskLang;
+
+// Define the TuskLang content
+$tskContent = <<<'TSK'
+# Hello TuskLang Configuration
+app_name = "Hello from TuskLang"
+message = "🐘 TuskLang is running!"
+version = "1.0.0"
+
+# Dynamic values
+timestamp = php(date('Y-m-d H:i:s'))
+random = php(rand(1, 100))
+php_version = php(PHP_VERSION)
+TSK;
+
+// Parse it
+$parser = new TuskLang();
+$config = $parser->parse($tskContent);
+
+// Output HTML
+?>
+<!DOCTYPE html>
+<html>
+<head>
+    <title><?= $config['app_name'] ?></title>
+    <style>
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+        }
+        .card {
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            text-align: center;
+            max-width: 500px;
+        }
+        .elephant {
+            font-size: 80px;
+            margin: 20px 0;
+        }
+        h1 {
+            color: #333;
+            margin: 0 0 20px 0;
+        }
+        .info {
+            background: #f8f9fa;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+            text-align: left;
+        }
+        .info-row {
+            display: flex;
+            justify-content: space-between;
+            margin: 10px 0;
+            padding: 5px 0;
+            border-bottom: 1px solid #eee;
+        }
+        .info-row:last-child {
+            border-bottom: none;
+        }
+        .label {
+            font-weight: 600;
+            color: #666;
+        }
+        .value {
+            color: #333;
+        }
+        .note {
+            margin-top: 30px;
+            color: #666;
+            font-size: 14px;
+        }
+        code {
+            background: #f5f5f5;
+            padding: 2px 5px;
+            border-radius: 3px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="card">
+        <div class="elephant">🐘</div>
+        <h1><?= $config['message'] ?></h1>
+        
+        <div class="info">
+            <div class="info-row">
+                <span class="label">App Name:</span>
+                <span class="value"><?= $config['app_name'] ?></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Version:</span>
+                <span class="value"><?= $config['version'] ?></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Timestamp:</span>
+                <span class="value"><?= $config['timestamp'] ?></span>
+            </div>
+            <div class="info-row">
+                <span class="label">Random Number:</span>
+                <span class="value"><?= $config['random'] ?></span>
+            </div>
+            <div class="info-row">
+                <span class="label">PHP Version:</span>
+                <span class="value"><?= $config['php_version'] ?></span>
+            </div>
+        </div>
+        
+        <p class="note">
+            This <code>.tsk</code> file is being executed directly!<br>
+            <small>File: /test/hello-simple.tsk</small>
+        </p>
+    </div>
+</body>
+</html>

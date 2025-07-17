@@ -1,0 +1,22 @@
+# Test GraphQL Integration
+[api]
+endpoint: "http://127.0.0.1:8080/graphql"
+
+[data]
+users: @graphql("{ users { id name email } }")
+user_count: @graphql("{ users { id } }").length
+
+[test]
+simple_query: @graphql("{ users { id name } }")
+complex_query: @graphql("
+    query GetUserWithPosts($userId: ID!) {
+        user(id: $userId) {
+            id
+            name
+            posts {
+                id
+                title
+            }
+        }
+    }
+", {"userId": "123"}) 
