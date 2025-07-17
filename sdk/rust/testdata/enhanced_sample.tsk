@@ -1,0 +1,92 @@
+# TuskLang Enhanced Sample for Rust - All Syntax Styles  
+# "We don't bow to any king" - Maximum flexibility with ultra-fast parsing!
+
+# Global variables (accessible everywhere)
+$app_name: "TuskLang Rust Enhanced"
+$version: "2.0.0"
+$environment: @env("APP_ENV", "development")
+
+# Section-style configuration
+[database]
+default: "sqlite"
+host: "localhost"
+port: 5432
+
+# Nested object with curly braces
+sqlite {
+    filename: "./tusklang.db"
+    timeout: 10.0
+    enabled: true
+    pool_size: 20
+}
+
+# Nested object with angle brackets (alternative syntax)
+postgresql >
+    host: "localhost"
+    port: 5432
+    database: "tusklang"
+    user: @env("DB_USER", "postgres")
+    password: @env("DB_PASSWORD", "")
+    max_connections: 100
+<
+
+# Arrays with different syntax
+features: ["parsing", "queries", "caching", "wasm"]
+environments: ["dev", "staging", "prod"]
+
+# Conditional expressions
+debug_mode: $environment == "development" ? true : false
+max_connections: $environment == "production" ? 100 : 10
+log_level: $environment == "production" ? "error" : "debug"
+
+# Range syntax
+port_range: 8000-9000
+worker_range: 1-16
+
+# Date functions
+timestamp: @date("Y-m-d H:i:s")
+build_date: @date("c")
+iso_date: @date("Y")
+
+# String concatenation
+full_name: $app_name + " v" + $version
+log_file: "/var/log/" + $app_name + ".log"
+api_endpoint: "https://api.example.com/" + $version + "/users"
+
+# Cross-file communication (examples)
+shared_config: @config.tsk.get("shared_setting")
+cache_setting: @cache.tsk.set("ttl", "5m")
+
+# @ operators for advanced functionality
+cache_config: @cache("5m", "expensive_operation")
+metrics_enabled: @metrics("requests", 1)
+optimized_workers: @optimize("worker_count", 4)
+learned_timeout: @learn("optimal_timeout", "30s")
+
+# Database queries (the killer feature!)
+user_count: @query("SELECT COUNT(*) FROM users")
+active_users: @query("SELECT * FROM users WHERE active = true")
+system_stats: @query("SELECT AVG(cpu_usage) FROM metrics WHERE date > '2024-01-01'")
+
+# Rust-specific performance settings
+[performance]
+zero_copy: true
+memory_efficient: true
+wasm_compatible: true
+
+# WebAssembly settings
+wasm >
+    memory_limit: "16MB"
+    stack_size: "1MB"
+    enable_simd: true
+<
+
+# Optional semicolons (for those who like them)
+setting_1: "value1";
+setting_2: "value2";
+setting_3: "value3";
+
+# Comments everywhere
+admin_email: "admin@example.com"  # Production admin
+support_email: "support@example.com"  # Support team
+rust_channel: "stable"  # Rust toolchain channel
