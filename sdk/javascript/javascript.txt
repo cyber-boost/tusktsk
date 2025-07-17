@@ -1,0 +1,10 @@
+⚡ JavaScript SDK - TuskTsk Configuration Language
+
+• Node.js and browser support with npm package
+• CLI tools: `tusk`, `tusk-dev` commands  
+• Real-time config updates with WebSocket support
+• Binary .pnt compilation for 70% faster parsing
+• React/Vue/Angular integration components
+• Express/Fastify middleware ready
+• TypeScript definitions included
+• npm install tusktsk
