@@ -1,0 +1,112 @@
+# TuskLang Enhanced Sample for Ruby - All Syntax Styles
+# "We don't bow to any king" - Maximum flexibility with Ruby elegance!
+
+# Global variables (accessible everywhere)
+$app_name: "TuskLang Ruby Enhanced"
+$version: "2.0.0"
+$environment: @env("RAILS_ENV", "development")
+
+# Section-style configuration  
+[database]
+default: "postgresql"
+host: "localhost"
+port: 5432
+
+# Nested object with curly braces
+postgresql {
+    adapter: "postgresql"
+    database: "tusklang_development"
+    username: @env("DB_USER", "postgres")
+    password: @env("DB_PASSWORD", "")
+    host: "localhost"
+    port: 5432
+    pool: 20
+    timeout: 5000
+}
+
+# Nested object with angle brackets (alternative syntax)
+redis >
+    host: "localhost"
+    port: 6379
+    db: 0
+    timeout: 1
+    reconnect_attempts: 3
+    url: @env("REDIS_URL", "redis://localhost:6379/0")
+<
+
+# ActiveRecord configuration
+active_record {
+    logger_level: "debug"
+    migration_error: "page_load" 
+    dump_schema_after_migration: false
+    legacy_connection_handling: false
+}
+
+# Arrays with different syntax
+features: ["parsing", "queries", "activerecord", "sidekiq"]
+environments: ["dev", "staging", "prod"]
+
+# Conditional expressions
+debug_mode: $environment == "development" ? true : false
+max_connections: $environment == "production" ? 100 : 10
+log_level: $environment == "production" ? "error" : "debug"
+
+# Range syntax
+port_range: 3000-3999
+worker_range: 1-8
+
+# Date functions
+timestamp: @date("Y-m-d H:i:s")
+build_date: @date("c") 
+iso_date: @date("Y")
+
+# String concatenation
+full_name: $app_name + " v" + $version
+log_file: "/var/log/" + $app_name + ".log"
+api_endpoint: "https://api.example.com/" + $version + "/users"
+
+# Cross-file communication (examples)
+shared_config: @config.tsk.get("shared_setting")
+cache_setting: @cache.tsk.set("ttl", "5m")
+
+# @ operators for advanced functionality
+cache_config: @cache("5m", "expensive_operation")
+metrics_enabled: @metrics("requests", 1)
+optimized_workers: @optimize("worker_count", 4)
+learned_timeout: @learn("optimal_timeout", "30s")
+
+# Database queries (the killer feature!)
+user_count: @query("SELECT COUNT(*) FROM users")
+active_users: @query("SELECT * FROM users WHERE active = true")
+system_stats: @query("SELECT AVG(cpu_usage) FROM metrics WHERE created_at > '2024-01-01'")
+
+# Rails specific settings
+[rails]
+application_name: $app_name
+secret_key_base: @env("SECRET_KEY_BASE", "development_secret")
+log_level: $log_level
+
+# Sidekiq configuration
+sidekiq >
+    redis_url: @redis.url
+    concurrency: $environment == "production" ? 25 : 5
+    verbose: $environment == "development" ? true : false
+    queues: ["default", "mailers", "active_storage_analysis"]
+<
+
+# Action Cable settings
+action_cable {
+    adapter: "redis"
+    url: @redis.url
+    channel_prefix: $app_name + "_" + $environment
+}
+
+# Optional semicolons (for those who like them)
+setting_1: "value1";
+setting_2: "value2";
+setting_3: "value3";
+
+# Comments everywhere
+admin_email: "admin@example.com"  # Production admin
+support_email: "support@example.com"  # Support team
+gem_source: "https://rubygems.org"  # RubyGems source
