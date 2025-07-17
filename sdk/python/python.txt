@@ -1,0 +1,10 @@
+🐍 Python SDK - TuskTsk Configuration Language
+
+• Full Python 3.8+ support with native integration
+• CLI tools: `tusk`, `tusk-peanut` commands
+• Database adapters: SQLite, PostgreSQL, MongoDB, Redis
+• Binary .pnt compilation for 85% performance boost
+• Cross-platform: Windows, Linux, macOS
+• Django/Flask integration ready
+• Async/await support for modern Python apps
+• pip install tusktsk
