@@ -1,0 +1,304 @@
+# 🐘 TuskLang: The Ultimate Freedom Configuration
+# ===============================================
+# "We don't bow to any king" - Use ANY syntax you love!
+# 
+# This file demonstrates EVERY feature of TuskLang Enhanced
+# Mix and match syntax styles - total freedom of expression!
+
+# ========================================
+# GLOBAL VARIABLES - Available everywhere
+# ========================================
+$company: "TuskPHP Enterprises"
+$environment: @env("APP_ENV", "production")
+$base_port: 8000
+$api_version: "v2"
+$current_year: @date('Y')
+
+# ========================================
+# TOP LEVEL CONFIGURATION (Flat style)
+# ========================================
+app_name: $company + " API"
+version: "2.0.0"
+environment: $environment
+launched: @date('Y-m-d H:i:s')
+copyright: "© " + $current_year + " " + $company
+
+# Optional semicolons - your choice!
+debug: false;
+maintenance_mode: false
+
+# Ranges for flexible configuration
+port_range: 8000-9000
+worker_range: 1-100
+memory_range: 128-2048  # MB
+
+# ========================================
+# METHOD 1: SQUARE BRACKETS [TOML Style]
+# ========================================
+[application]
+name: $company
+tagline: "Making configuration beautiful"
+# Section-local variable (no $ prefix)
+internal_version: "2.0.0-beta"
+# Reference section variable
+display_version: internal_version
+# Mix with global
+full_name: $company + " " + internal_version
+
+[database]
+# Primary database with all features
+primary_host: @env("DB_HOST", "localhost")
+primary_port: @env("DB_PORT", 5432)
+primary_name: @env("DB_NAME", "tuskphp_" + $environment)
+
+# Smart configuration based on environment
+max_connections: $environment == "production" ? 100 : 10
+pool_timeout: @optimize("db_pool_timeout", 30)
+
+# Query-driven configuration (THE KILLER FEATURE!)
+active_users: @query("SELECT COUNT(*) FROM users WHERE last_seen > NOW() - INTERVAL '1 day'")
+db_size: @query("SELECT pg_database_size(current_database())")
+slow_queries: @query("SELECT COUNT(*) FROM pg_stat_statements WHERE mean_time > 1000")
+
+# Auto-tune based on load
+optimal_connections: @learn("db_connections", max_connections)
+
+# ========================================
+# METHOD 2: ANGLE BRACKETS <New Style>
+# ========================================
+server>
+    # Mix globals and locals
+    host: "0.0.0.0"
+    port: $base_port
+    workers: @optimize("worker_count", 4)
+    
+    # Nested angle brackets
+    ssl>
+        enabled: $environment == "production"
+        cert: @file("/etc/ssl/certs/server.crt")
+        key: @file("/etc/ssl/private/server.key")
+        force_https: true
+    <
+    
+    # Performance tuning
+    performance>
+        request_timeout: @learn("optimal_timeout", 30)
+        max_request_size: "10MB"
+        compression: true
+        cache_static: @cache("24h", true)
+    <
+<
+
+# ========================================
+# METHOD 3: CURLY BRACES {JSON-ish Style}
+# ========================================
+cache {
+    # Redis configuration
+    driver: "redis"
+    host: @env("REDIS_HOST", "localhost")
+    port: @env("REDIS_PORT", 6379)
+    
+    # Intelligent caching
+    default_ttl: @optimize("cache_ttl", "5m")
+    
+    # Cache warming from database
+    preload_keys: @query("SELECT key FROM cache_warmup WHERE active = true")
+    
+    # Nested object
+    pools {
+        sessions: { ttl: "2h", prefix: "sess:" }
+        api: { ttl: @learn("api_cache_ttl", "10m"), prefix: "api:" }
+        static: { ttl: "24h", prefix: "static:" }
+    }
+}
+
+# ========================================
+# CROSS-FILE COMMUNICATION
+# ========================================
+[external_configs]
+# Read from other .tsk files
+api_keys: @secrets.tsk.get('api.keys')
+feature_flags: @features.tsk.get('enabled')
+rate_limits: @limits.tsk.get('api.rate_limits')
+
+# Write to other files (updates them!)
+last_startup: @metrics.tsk.set('startup.timestamp', @date('c'))
+startup_count: @metrics.tsk.set('startup.count', @metrics.tsk.get('startup.count') + 1)
+
+# ========================================
+# ADVANCED FEATURES MIX
+# ========================================
+[monitoring]
+# Section variable
+alert_threshold: 90
+
+# Conditional logic with section vars
+alerts_enabled: alert_threshold > 0
+
+# Database-driven monitoring
+high_cpu_servers: @query("SELECT hostname FROM metrics WHERE cpu_usage > ?", alert_threshold)
+memory_warnings: @query("SELECT COUNT(*) FROM metrics WHERE memory_usage > 80")
+
+# Intelligent thresholds
+optimal_threshold: @learn("alert_threshold", alert_threshold)
+
+# Complex nested structure mixing all styles
+notification_channels>
+    email {
+        enabled: true
+        recipients: @query("SELECT email FROM users WHERE role = 'admin'")
+        smtp_host: @env("SMTP_HOST", "localhost")
+    }
+    
+    slack>
+        enabled: @feature("slack_notifications")
+        webhook: @secrets.tsk.get('slack.webhook')
+        channels: ["#alerts", "#" + $environment]
+    <
+    
+    pagerduty: {
+        enabled: $environment == "production"
+        api_key: @secrets.tsk.get('pagerduty.key')
+        severity: alert_threshold > 95 ? "critical" : "warning"
+    }
+<
+
+# ========================================
+# API CONFIGURATION WITH QUERIES
+# ========================================
+[api]
+base_path: "/api/" + $api_version
+# Local variables
+prefix: "tusk_"
+timeout: 30
+
+# Endpoints with database state
+endpoints: {
+    health: base_path + "/health"
+    status: base_path + "/status"
+    metrics: base_path + "/metrics"
+}
+
+# Rate limiting based on user plan
+rate_limits>
+    # Default for anonymous
+    anonymous: 100
+    
+    # Database-driven limits per plan
+    basic: @query("SELECT rate_limit FROM plans WHERE name = 'basic'")
+    premium: @query("SELECT rate_limit FROM plans WHERE name = 'premium'")
+    enterprise: @query("SELECT rate_limit FROM plans WHERE name = 'enterprise'")
+    
+    # Smart rate limiting
+    adaptive: @optimize("rate_limit", 1000)
+<
+
+# Feature flags from database
+features: @query("SELECT name, enabled FROM feature_flags WHERE enabled = true")
+
+# ========================================
+# DEPLOYMENT & SCALING
+# ========================================
+deployment>
+    # Environment-specific
+    replicas: $environment == "production" ? 5 : 1
+    
+    # Auto-scaling based on metrics
+    auto_scale>
+        enabled: true
+        min_replicas: 2
+        max_replicas: @query("SELECT CEIL(COUNT(*) / 1000.0) FROM active_sessions")
+        
+        # CPU-based scaling
+        target_cpu: 70
+        current_cpu: @metrics("average_cpu_usage")
+        scale_up: current_cpu > target_cpu
+        
+        # Predictive scaling
+        predicted_load: @learn("traffic_pattern", @metrics("requests_per_second"))
+        preemptive_scale: predicted_load > 1000
+    <
+    
+    # Health checks
+    health_check {
+        endpoint: "/health"
+        interval: "30s"
+        timeout: "5s"
+        healthy_threshold: 2
+        unhealthy_threshold: 3
+    }
+<
+
+# ========================================
+# LOGGING WITH INTELLIGENCE
+# ========================================
+[logging]
+# Base configuration
+level: $environment == "production" ? "warning" : "debug"
+format: "json"
+
+# Dynamic log routing
+outputs>
+    file: {
+        enabled: true
+        path: "/var/log/tuskphp/" + $environment + ".log"
+        rotation: "daily"
+        retention: @optimize("log_retention_days", 30)
+    }
+    
+    elasticsearch>
+        enabled: @feature("centralized_logging")
+        hosts: @query("SELECT host FROM elasticsearch_nodes WHERE active = true")
+        index: "tuskphp-" + $environment + "-" + @date('Y.m')
+    <
+    
+    # Only log errors in production
+    console: {
+        enabled: $environment != "production"
+        format: "pretty"
+    }
+<
+
+# Log sampling based on load
+sampling_rate: @optimize("log_sampling", {
+    debug: 0.1,      # 10% of debug logs
+    info: 0.5,       # 50% of info logs
+    warning: 1.0,    # 100% of warnings
+    error: 1.0       # 100% of errors
+})
+
+# ========================================
+# EXPERIMENTAL FEATURES
+# ========================================
+[experimental]
+# AI-powered configuration
+ai_optimization: @learn("config_performance", {
+    cache_size: "auto",
+    worker_count: "auto",
+    gc_threshold: "auto"
+})
+
+# Blockchain configuration hash
+config_hash: @blockchain("config_hash", @hash($.))
+immutable_settings: @blockchain("settings", {
+    company: $company,
+    launched: launched,
+    version: version
+})
+
+# Quantum-ready encryption (just kidding... or are we?)
+quantum_safe: @feature("quantum_encryption")
+
+# ========================================
+# THE FREEDOM MANIFESTO
+# ========================================
+[manifesto]
+philosophy: "We don't bow to any king"
+flexibility: "Use [], use >, use {}, or mix them all"
+power: "Query your database, optimize automatically, learn from usage"
+simplicity: "Flat when possible, nested when needed"
+intelligence: "Your config thinks, adapts, and improves"
+
+# The future of configuration is here
+# TuskLang: Where configuration meets intelligence
+# 🐘 Never forget, never compromise, always evolve!

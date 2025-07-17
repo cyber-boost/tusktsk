@@ -1,0 +1,83 @@
+#!api
+# 🔊 Echo API Endpoint
+# ===================
+# Demonstrates request handling and response types
+
+# Extract request data
+method: @request.method
+body: @request.body
+query_params: @request.query
+headers: @request.headers
+ip: @request.ip
+user_agent: @request.user_agent
+
+# Handle different response formats based on query parameter
+format: @request.query.format || "json"
+
+# JSON response (default)
+json_response: @json({
+    echo: "Hello from FUJSEN!",
+    request: {
+        method: method,
+        body: body,
+        query: query_params,
+        headers: headers,
+        ip: ip,
+        user_agent: user_agent
+    },
+    server: {
+        timestamp: @request.timestamp,
+        powered_by: "FUJSEN/TuskLang",
+        cached_at: @cache("1m", php(time()))
+    },
+    intelligence: {
+        optimized_response: @optimize("response_size", 1024),
+        learned_preference: @learn("user_format", format),
+        metrics_recorded: @metrics("echo_requests", 1)
+    }
+})
+
+# HTML response
+html_response: @render("
+<!DOCTYPE html>
+<html>
+<head>
+    <title>FUJSEN Echo</title>
+    <style>
+        body { font-family: Arial, sans-serif; margin: 40px; }
+        .container { max-width: 800px; margin: 0 auto; }
+        .header { color: #333; border-bottom: 2px solid #007acc; padding-bottom: 10px; }
+        .data { background: #f5f5f5; padding: 20px; border-radius: 8px; margin: 20px 0; }
+        pre { background: #333; color: #fff; padding: 15px; border-radius: 5px; overflow-x: auto; }
+    </style>
+</head>
+<body>
+    <div class='container'>
+        <h1 class='header'>🔊 FUJSEN Echo API</h1>
+        <div class='data'>
+            <h2>Request Details</h2>
+            <p><strong>Method:</strong> {{method}}</p>
+            <p><strong>IP:</strong> {{ip}}</p>
+            <p><strong>User Agent:</strong> {{user_agent}}</p>
+            <h3>Headers</h3>
+            <pre>{{headers}}</pre>
+            <h3>Query Parameters</h3>
+            <pre>{{query}}</pre>
+            <h3>Body</h3>
+            <pre>{{body}}</pre>
+        </div>
+        <p><em>Powered by FUJSEN/TuskLang</em></p>
+    </div>
+</body>
+</html>
+", {
+    method: method,
+    ip: ip,
+    user_agent: user_agent,
+    headers: php(json_encode(headers, JSON_PRETTY_PRINT)),
+    query: php(json_encode(query_params, JSON_PRETTY_PRINT)),
+    body: body || "(empty)"
+})
+
+# Return appropriate response based on format
+format == "html" ? html_response : json_response 

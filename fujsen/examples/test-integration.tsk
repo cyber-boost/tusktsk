@@ -1,0 +1,41 @@
+# 🚀 FUJSEN Integration Test - Hour 2
+# ===================================
+# Testing all new @ operators in a .tsk file
+
+project: "FUJSEN Integration Test"
+timestamp: php(time())
+
+# Test basic cache operator
+cached_time: @cache("5m", php(time()))
+
+# Test metrics operator (store a value)
+cpu_usage: @metrics("cpu_usage", 75.5)
+
+# Test metrics operator (retrieve a value)
+current_cpu: @metrics("cpu_usage")
+
+# Test learn operator with default
+optimal_workers: @learn("optimal_workers", 4)
+
+# Test optimize operator  
+cache_efficiency: @optimize("cache_size", 0.75)
+
+# Test environment variable with fallback
+debug_mode: @DEBUG_MODE || false
+
+# Test peanuts integration
+app_name: peanuts("app.name")
+
+# Configuration that adapts
+performance: {
+    workers: optimal_workers
+    cache_size: cache_efficiency
+    debug: debug_mode
+}
+
+# Status information
+status: {
+    cached_at: cached_time
+    cpu_load: current_cpu
+    timestamp: timestamp
+} 

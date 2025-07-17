@@ -1,0 +1,139 @@
+# 🐘 TuskLang Enhanced Demo - Freedom of Choice!
+# =============================================
+# "We don't bow to any king" - Use ANY syntax you prefer
+
+# Global variables with $
+$app_name: "TuskPHP Enhanced"
+$version: "2.0"
+$global_port: 8080
+
+# Top-level flat configuration (the TuskLang way)
+app_name: $app_name
+version: $version
+debug: true
+port: $global_port
+
+# Optional semicolons - your choice!
+timeout: 30;
+cache_ttl: "5m";
+
+# Ranges
+port_range: 8000-9000
+worker_range: 1-10
+
+# Date formatting
+current_year: @date('Y')
+timestamp: @date('Y-m-d H:i:s')
+iso_date: @date('c')
+
+# Method 1: Square brackets (TOML style)
+[database]
+host: @env("DB_HOST", "localhost")
+port: 5432
+name: "myapp_db"
+# Section-local variable (no $)
+connection_string: "postgresql://localhost:5432/myapp"
+max_connections: @optimize("db_connections", 20)
+
+# Method 2: Angle brackets (NEW!)
+server>
+    host: "0.0.0.0"
+    port: $global_port
+    workers: 4
+    # Local variable in this section
+    base_url: "http://localhost:8080"
+    url: base_url  # References section-local variable
+<
+
+# Method 3: Curly braces (if you must)
+cache {
+    driver: "redis"
+    host: @env("REDIS_HOST", "localhost")
+    port: 6379
+    ttl: @cache("1h", @query("SELECT cache_ttl FROM config"))
+}
+
+# Cross-file communication
+[external_config]
+# Get values from other .tsk files
+api_key: @api.tsk.get('secret_key')
+db_config: @database.tsk.get('production.host')
+shared_setting: @config.tsk.get('app.name')
+
+# Set values in other files
+update_port: @config.tsk.set('port', 9000)
+
+# Advanced section with all features
+[api]
+# Section variables (no $ prefix)
+base_path: "/api/v1"
+timeout: 30
+
+# Use section variable
+health_endpoint: base_path + "/health"
+
+# Mix global and local
+full_url: $app_name + " API at " + base_path
+
+# Dynamic configuration with queries
+rate_limit: @query("SELECT rate_limit FROM plans WHERE user_id = ?", @user.id)
+allowed_ips: @query("SELECT ip FROM whitelist WHERE active = true")
+
+# Intelligent caching
+user_count: @cache("5m", @query("SELECT COUNT(*) FROM users"))
+metrics: @metrics("api_requests", 1)
+
+# Self-optimizing configuration
+optimal_batch_size: @optimize("batch_size", 100)
+learned_timeout: @learn("request_timeout", 30)
+
+# Feature flags from database
+features: @query("SELECT name FROM features WHERE enabled = true")
+
+# Another angle bracket example
+logging>
+    level: @env("LOG_LEVEL", "info")
+    file: "/var/log/app.log"
+    # Conditional based on environment
+    verbose: @env("APP_ENV") == "development" ? true : false
+    
+    # Nested angle brackets work too!
+    rotation>
+        enabled: true
+        max_size: "100MB"
+        max_files: 10
+    <
+<
+
+# Mixed syntax in one file - total freedom!
+[monitoring]
+enabled: true
+
+alerts>
+    email: @env("ALERT_EMAIL", "admin@example.com")
+    slack_webhook: @env("SLACK_WEBHOOK")
+    threshold: 90
+<
+
+performance {
+    track_queries: true
+    slow_query_threshold: 1000
+    optimization_level: @learn("perf_level", "balanced")
+}
+
+# Arrays and complex structures
+[features]
+enabled: ["auth", "api", "websocket", "cache"]
+experimental: [@feature("ml_predictions"), @feature("auto_scaling")]
+
+# Metadata about other services
+[services]
+dependencies: [
+    {name: "postgres", version: "14", required: true},
+    {name: "redis", version: "7", required: false},
+    {name: "elasticsearch", version: "8", required: false}
+]
+
+# The beauty of TuskLang - it adapts to YOU!
+# Use [], use >, use {}, or mix them all
+# We don't dictate - we liberate!

@@ -1,0 +1,60 @@
+#!api
+# 🔥 System Status API
+# ===================
+# Real-time system health and performance metrics
+
+# System uptime and performance
+uptime: @cache("30s", php(shell_exec("uptime")))
+memory_usage: @metrics("memory_usage", php(memory_get_usage(true)))
+peak_memory: @metrics("peak_memory", php(memory_get_peak_usage(true)))
+
+# Database health checks
+db_status: @cache("1m", @Query("users").limit(1).count() >= 0 ? "healthy" : "error")
+db_response_time: @metrics("db_response_time", php(microtime(true)))
+
+# Cache performance metrics
+cache_hits: @learn("cache_hits", 0)
+cache_misses: @learn("cache_misses", 0)
+cache_ratio: cache_hits / (cache_hits + cache_misses + 1) * 100
+
+# API usage statistics
+api_requests: @metrics("api_requests", 1)
+avg_response_time: @learn("avg_response_time", 50)
+
+# Intelligent system optimization
+optimal_cache_ttl: @optimize("cache_ttl", 300)
+recommended_memory: @optimize("memory_limit", memory_usage)
+
+# Build comprehensive status response
+@json({
+    status: "operational",
+    timestamp: @request.timestamp,
+    system: {
+        uptime: uptime,
+        memory: {
+            current: memory_usage,
+            peak: peak_memory,
+            recommended: recommended_memory
+        },
+        cache: {
+            hits: cache_hits,
+            misses: cache_misses,
+            hit_ratio: cache_ratio,
+            optimal_ttl: optimal_cache_ttl
+        }
+    },
+    database: {
+        status: db_status,
+        response_time: db_response_time
+    },
+    api: {
+        total_requests: api_requests,
+        avg_response_time: avg_response_time,
+        current_load: @request.headers.connection || "keep-alive"
+    },
+    environment: {
+        powered_by: "FUJSEN/TuskLang",
+        version: "1.0.0-sprint",
+        request_id: @request.headers.x-request-id || php(uniqid())
+    }
+}) 
