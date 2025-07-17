@@ -1,0 +1,68 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFrameworks>net6.0;net8.0</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <PackageId>TuskTsk</PackageId>
+    <Version>2.0.1</Version>
+    <Authors>Cyberboost LLC</Authors>
+    <Company>Cyberboost LLC</Company>
+    <Description>🔹 TuskTsk Enhanced - The Freedom Configuration Language for C# with maximum syntax flexibility</Description>
+    <PackageTags>configuration;tsk;tusktsk;csharp;dotnet;parser;flexible-syntax;database-queries</PackageTags>
+    <PackageLicenseExpression>BBL</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageProjectUrl>https://tuskt.sk</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/cyber-boost/tusktsk</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <OutputType>Exe</OutputType>
+    <PublishSingleFile>true</PublishSingleFile>
+    <SelfContained>false</SelfContained>
+    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
+    <PackageReference Include="System.CodeDom" Version="6.0.0" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
+    <PackageReference Include="MessagePack" Version="2.5.140" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <None Include="README.md" Pack="true" PackagePath="/" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Compile Include="TSK.cs" />
+    <Compile Include="TSKParser.cs" />
+    <Compile Include="TSKParserEnhanced.cs" />
+    <Compile Include="CLIEnhanced.cs" />
+    <Compile Include="ShellStorage.cs" />
+    <Compile Include="PeanutConfig.cs" />
+    <Compile Include="TuskLangTests.cs" />
+    <Compile Include="CLI/Program.cs" />
+    <Compile Include="CLI/Commands/DatabaseCommands.cs" />
+    <Compile Include="CLI/Commands/DevelopmentCommands.cs" />
+    <Compile Include="CLI/Commands/TestingCommands.cs" />
+    <Compile Include="CLI/Commands/ServiceCommands.cs" />
+    <Compile Include="CLI/Commands/CacheCommands.cs" />
+    <Compile Include="CLI/Commands/ConfigCommands.cs" />
+    <Compile Include="CLI/Commands/BinaryCommands.cs" />
+    <Compile Include="CLI/Commands/AiCommands.cs" />
+    <Compile Include="CLI/Commands/UtilityCommands.cs" />
+    <Compile Include="CLI/Commands/PeanutsCommands.cs" />
+    <Compile Include="CLI/Commands/CssCommands.cs" />
+    <Compile Include="CLI/Commands/ProjectCommands.cs" />
+    <Compile Include="CLI/Commands/LicenseCommands.cs" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <Folder Include="tests\" />
+    <Folder Include="examples\" />
+  </ItemGroup>
+
+</Project> 

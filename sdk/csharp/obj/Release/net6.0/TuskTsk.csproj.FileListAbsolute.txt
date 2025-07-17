@@ -1,0 +1,6 @@
+/opt/tsk_git/sdk/csharp/obj/Release/net6.0/TuskTsk.csproj.AssemblyReference.cache
+/opt/tsk_git/sdk/csharp/obj/Release/net6.0/TuskTsk.GeneratedMSBuildEditorConfig.editorconfig
+/opt/tsk_git/sdk/csharp/obj/Release/net6.0/TuskTsk.AssemblyInfoInputs.cache
+/opt/tsk_git/sdk/csharp/obj/Release/net6.0/TuskTsk.AssemblyInfo.cs
+/opt/tsk_git/sdk/csharp/obj/Release/net6.0/TuskTsk.csproj.CoreCompileInputs.cache
+/opt/tsk_git/sdk/csharp/obj/Release/net6.0/TuskTsk.sourcelink.json

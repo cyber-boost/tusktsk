@@ -1,0 +1,6 @@
+/opt/tsk_git/sdk-pnt-test/csharp/obj/Debug/net8.0/TuskLang.CSharp.csproj.AssemblyReference.cache
+/opt/tsk_git/sdk-pnt-test/csharp/obj/Debug/net8.0/TuskLang.CSharp.GeneratedMSBuildEditorConfig.editorconfig
+/opt/tsk_git/sdk-pnt-test/csharp/obj/Debug/net8.0/TuskLang.CSharp.AssemblyInfoInputs.cache
+/opt/tsk_git/sdk-pnt-test/csharp/obj/Debug/net8.0/TuskLang.CSharp.AssemblyInfo.cs
+/opt/tsk_git/sdk-pnt-test/csharp/obj/Debug/net8.0/TuskLang.CSharp.csproj.CoreCompileInputs.cache
+/opt/tsk_git/sdk-pnt-test/csharp/obj/Debug/net8.0/TuskLang.CSharp.sourcelink.json

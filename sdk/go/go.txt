@@ -1,0 +1,10 @@
+🐹 Go SDK - TuskTsk Configuration Language
+
+• Go 1.19+ support with zero external dependencies
+• CLI tools: `tusk`, `tusk-peanut` binaries
+• Concurrent-safe config parsing and updates
+• Binary .pnt compilation for 90% performance boost
+• Gin/Echo/Fiber middleware support
+• Memory-efficient with garbage collection optimization
+• Cross-platform builds: Linux, Windows, macOS
+• go get github.com/cyber-boost/tusktsk/sdk/go
