@@ -1,0 +1,72 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="200" height="200" viewBox="0 0 200 200">
+  <title>TuskLang SDK Badge Table - 50x50</title>
+  <desc>A 4x2 grid of programming language badges for TuskLang SDKs</desc>
+  
+  <!-- Background -->
+  <rect width="200" height="200" fill="#f8f9fa"/>
+  
+  <!-- Grid lines for visual separation -->
+  <g stroke="#e9ecef" stroke-width="0.5">
+    <line x1="50" y1="0" x2="50" y2="200"/>
+    <line x1="100" y1="0" x2="100" y2="200"/>
+    <line x1="150" y1="0" x2="150" y2="200"/>
+    <line x1="0" y1="50" x2="200" y2="50"/>
+    <line x1="0" y1="100" x2="200" y2="100"/>
+    <line x1="0" y1="150" x2="200" y2="150"/>
+  </g>
+  
+  <!-- Badge Grid (4x2) -->
+  <!-- Row 1 -->
+  <g transform="translate(0, 0)">
+    <image xlink:href="./50x50-tsk/bash-badge.svg" width="50" height="50"/>
+  </g>
+  <g transform="translate(50, 0)">
+    <image xlink:href="./50x50-tsk/go-badge.svg" width="50" height="50"/>
+  </g>
+  <g transform="translate(100, 0)">
+    <image xlink:href="./50x50-tsk/java-badge.svg" width="50" height="50"/>
+  </g>
+  <g transform="translate(150, 0)">
+    <image xlink:href="./50x50-tsk/js-badge.svg" width="50" height="50"/>
+  </g>
+  
+  <!-- Row 2 -->
+  <g transform="translate(0, 50)">
+    <image xlink:href="./50x50-tsk/php-badge.svg" width="50" height="50"/>
+  </g>
+  <g transform="translate(50, 50)">
+    <image xlink:href="./50x50-tsk/python-badge.svg" width="50" height="50"/>
+  </g>
+  <g transform="translate(100, 50)">
+    <image xlink:href="./50x50-tsk/ruby-badge.svg" width="50" height="50"/>
+  </g>
+  <g transform="translate(150, 50)">
+    <image xlink:href="./50x50-tsk/rust-badge.svg" width="50" height="50"/>
+  </g>
+  
+  <!-- Row 3 - Future badges placeholder -->
+  <g transform="translate(0, 100)">
+    <rect width="50" height="50" fill="#f8f9fa" stroke="#dee2e6" stroke-width="0.5"/>
+    <text x="25" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#868e96">C#</text>
+  </g>
+  <g transform="translate(50, 100)">
+    <rect width="50" height="50" fill="#f8f9fa" stroke="#dee2e6" stroke-width="0.5"/>
+    <text x="25" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#868e96">Swift</text>
+  </g>
+  <g transform="translate(100, 100)">
+    <rect width="50" height="50" fill="#f8f9fa" stroke="#dee2e6" stroke-width="0.5"/>
+    <text x="25" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#868e96">Kotlin</text>
+  </g>
+  <g transform="translate(150, 100)">
+    <rect width="50" height="50" fill="#f8f9fa" stroke="#dee2e6" stroke-width="0.5"/>
+    <text x="25" y="30" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#868e96">Dart</text>
+  </g>
+  
+  <!-- Row 4 - Info -->
+  <g transform="translate(0, 150)">
+    <rect width="200" height="50" fill="#2a2a3e"/>
+    <text x="100" y="20" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" font-weight="bold" fill="#ffd43b">TuskLang SDKs</text>
+    <text x="100" y="35" text-anchor="middle" font-family="Arial, sans-serif" font-size="8" fill="#3776ac">Strong. Secure. Scalable.</text>
+  </g>
+</svg>

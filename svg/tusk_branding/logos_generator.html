@@ -1,0 +1,450 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tusk Programming Language Branding Assets</title>
+    <style>
+        :root {
+            --tusk-teal: #4ECDC4;
+            --tusk-red: #FF6B6B;
+            --tusk-yellow: #FFE66D;
+            --tusk-brown: #8B4513;
+            --tusk-tan: #DEB887;
+            --tusk-dark: #2A2A3E;
+            --tusk-darker: #0F0F1E;
+            --tusk-light: #F7F7F7;
+            --tusk-gradient: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            --tusk-gradient-warm: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 50%, #FFE66D 100%);
+        }
+
+        body {
+            margin: 0;
+            padding: 20px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tusk-darker);
+            color: var(--tusk-light);
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+            background: var(--tusk-gradient-warm);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .subtitle {
+            text-align: center;
+            margin-bottom: 40px;
+            opacity: 0.8;
+        }
+
+        .assets-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 30px;
+            margin-bottom: 40px;
+        }
+
+        .asset-card {
+            background: var(--tusk-dark);
+            border-radius: 16px;
+            padding: 20px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease, box-shadow 0.3s ease;
+        }
+
+        .asset-card:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 12px 40px rgba(0,0,0,0.4);
+        }
+
+        .asset-preview {
+            width: 100%;
+            height: 256px;
+            border-radius: 12px;
+            overflow: hidden;
+            margin-bottom: 15px;
+            position: relative;
+            background: var(--tusk-darker);
+        }
+
+        .language-label {
+            font-size: 1.2rem;
+            font-weight: 600;
+            margin-bottom: 5px;
+            color: var(--tusk-teal);
+        }
+
+        .language-ext {
+            font-size: 0.9rem;
+            opacity: 0.7;
+            margin-bottom: 10px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .download-btn {
+            width: 100%;
+            padding: 12px 20px;
+            background: var(--tusk-gradient-warm);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            font-size: 1rem;
+        }
+
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 4px 20px rgba(78, 205, 196, 0.5);
+        }
+
+        canvas {
+            width: 100%;
+            height: 100%;
+            border-radius: 12px;
+        }
+
+        .instructions {
+            background: var(--tusk-dark);
+            padding: 30px;
+            border-radius: 16px;
+            margin-top: 40px;
+        }
+
+        .instructions h2 {
+            color: var(--tusk-yellow);
+            margin-bottom: 15px;
+        }
+
+        .instructions p {
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .color-palette {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+            flex-wrap: wrap;
+        }
+
+        .color-swatch {
+            width: 80px;
+            height: 40px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 0.7rem;
+            color: white;
+            font-weight: 600;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>Tusk Programming Language Assets</h1>
+        <p class="subtitle">1024x1024 Branding for Each Language Deployment</p>
+
+        <div class="assets-grid" id="assetsGrid">
+            <!-- Assets will be dynamically generated here -->
+        </div>
+
+        <div class="instructions">
+            <h2>Brand Guidelines</h2>
+            <p>These branding assets are tailored for each programming language deployment of Tusk. Each design features:</p>
+            <ul>
+                <li>The core <?tusk> logo with proper syntax highlighting</li>
+                <li>Language-specific code snippets and patterns</li>
+                <li>Consistent use of brand colors with language-appropriate accents</li>
+                <li>File extensions and language identifiers</li>
+            </ul>
+            
+            <h3>Brand Colors</h3>
+            <div class="color-palette">
+                <div class="color-swatch" style="background: var(--tusk-teal);">Teal</div>
+                <div class="color-swatch" style="background: var(--tusk-red);">Red</div>
+                <div class="color-swatch" style="background: var(--tusk-yellow); color: var(--tusk-dark);">Yellow</div>
+                <div class="color-swatch" style="background: var(--tusk-brown);">Brown</div>
+                <div class="color-swatch" style="background: var(--tusk-tan); color: var(--tusk-dark);">Tan</div>
+                <div class="color-swatch" style="background: var(--tusk-dark);">Dark</div>
+                <div class="color-swatch" style="background: var(--tusk-gradient);">Gradient</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const languages = [
+            {
+                name: 'PHP',
+                ext: '.php',
+                color: '#8892BF',
+                snippet: '<?php\n  echo "Hello, Tusk!";\n?>',
+                tagline: 'Server-side scripting made elegant'
+            },
+            {
+                name: 'JavaScript',
+                ext: '.js',
+                color: '#F7DF1E',
+                snippet: 'const tusk = () => {\n  console.log("Hello, Tusk!");\n};',
+                tagline: 'Dynamic web experiences'
+            },
+            {
+                name: 'Bash',
+                ext: '.sh',
+                color: '#4EAA25',
+                snippet: '#!/bin/bash\necho "Hello, Tusk!"',
+                tagline: 'Shell scripting simplified'
+            },
+            {
+                name: 'Go',
+                ext: '.go',
+                color: '#00ADD8',
+                snippet: 'package main\n\nfunc main() {\n  fmt.Println("Hello, Tusk!")\n}',
+                tagline: 'Concurrent and efficient'
+            },
+            {
+                name: 'Python',
+                ext: '.py',
+                color: '#3776AB',
+                snippet: 'def tusk():\n    print("Hello, Tusk!")',
+                tagline: 'Readable and powerful'
+            },
+            {
+                name: 'C#',
+                ext: '.cs',
+                color: '#239120',
+                snippet: 'class Tusk {\n  static void Main() {\n    Console.WriteLine("Hello!");\n  }\n}',
+                tagline: 'Enterprise-ready development'
+            },
+            {
+                name: 'Rust',
+                ext: '.rs',
+                color: '#CE422B',
+                snippet: 'fn main() {\n    println!("Hello, Tusk!");\n}',
+                tagline: 'Memory-safe systems programming'
+            },
+            {
+                name: 'Ruby',
+                ext: '.rb',
+                color: '#CC342D',
+                snippet: 'class Tusk\n  def greet\n    puts "Hello, Tusk!"\n  end\nend',
+                tagline: 'Developer happiness first'
+            },
+            {
+                name: 'Java',
+                ext: '.java',
+                color: '#007396',
+                snippet: 'public class Tusk {\n  public static void main(String[] args) {\n    System.out.println("Hello!");\n  }\n}',
+                tagline: 'Write once, run anywhere'
+            }
+        ];
+
+        function createBrandingAsset(canvas, language) {
+            const ctx = canvas.getContext('2d');
+            const size = 1024;
+            canvas.width = size;
+            canvas.height = size;
+
+            // Create gradient background
+            const gradient = ctx.createLinearGradient(0, 0, size, size);
+            gradient.addColorStop(0, '#0F0F1E');
+            gradient.addColorStop(0.5, '#2A2A3E');
+            gradient.addColorStop(1, '#0F0F1E');
+            ctx.fillStyle = gradient;
+            ctx.fillRect(0, 0, size, size);
+
+            // Add code-like grid pattern
+            ctx.globalAlpha = 0.05;
+            ctx.strokeStyle = language.color;
+            ctx.lineWidth = 1;
+            
+            // Vertical lines (like code editor)
+            for (let i = 80; i < size; i += 40) {
+                ctx.beginPath();
+                ctx.moveTo(i, 0);
+                ctx.lineTo(i, size);
+                ctx.stroke();
+            }
+            
+            // Horizontal lines
+            for (let i = 0; i < size; i += 30) {
+                ctx.beginPath();
+                ctx.moveTo(0, i);
+                ctx.lineTo(size, i);
+                ctx.stroke();
+            }
+            ctx.globalAlpha = 1;
+
+            // Add language-specific color accent in corners
+            const accentGrad = ctx.createRadialGradient(0, 0, 0, 0, 0, 400);
+            accentGrad.addColorStop(0, language.color + '40');
+            accentGrad.addColorStop(1, 'transparent');
+            ctx.fillStyle = accentGrad;
+            ctx.fillRect(0, 0, size, size);
+
+            const accentGrad2 = ctx.createRadialGradient(size, size, 0, size, size, 400);
+            accentGrad2.addColorStop(0, language.color + '40');
+            accentGrad2.addColorStop(1, 'transparent');
+            ctx.fillStyle = accentGrad2;
+            ctx.fillRect(0, 0, size, size);
+
+            // Draw main logo with proper positioning
+            ctx.font = 'bold 140px Courier New, monospace';
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            const logoY = size * 0.35;
+            
+            // Measure text widths for proper positioning
+            ctx.font = 'bold 140px Courier New, monospace';
+            const tuskWidth = ctx.measureText('tusk').width;
+            const bracketWidth = ctx.measureText('<?').width;
+            
+            // Draw shadow
+            ctx.fillStyle = 'rgba(0, 0, 0, 0.5)';
+            const shadowOffset = 6;
+            ctx.fillText('<?', size/2 - tuskWidth/2 - bracketWidth/2 + shadowOffset, logoY + shadowOffset);
+            ctx.fillText('tusk', size/2 + shadowOffset, logoY + shadowOffset);
+            ctx.fillText('>', size/2 + tuskWidth/2 + bracketWidth/2 + shadowOffset, logoY + shadowOffset);
+            
+            // Draw brackets
+            ctx.fillStyle = '#FF6B6B';
+            ctx.fillText('<?', size/2 - tuskWidth/2 - bracketWidth/2, logoY);
+            ctx.fillText('>', size/2 + tuskWidth/2 + bracketWidth/2, logoY);
+            
+            // Draw "tusk" in teal
+            ctx.fillStyle = '#4ECDC4';
+            ctx.fillText('tusk', size/2, logoY);
+
+            // Language name
+            ctx.font = 'bold 72px -apple-system, Arial, sans-serif';
+            ctx.fillStyle = language.color;
+            ctx.fillText(language.name, size/2, size * 0.5);
+
+            // File extension
+            ctx.font = '48px Courier New, monospace';
+            ctx.fillStyle = '#FFE66D';
+            ctx.fillText(language.ext, size/2, size * 0.58);
+
+            // Tagline
+            ctx.font = '32px -apple-system, Arial, sans-serif';
+            ctx.fillStyle = '#F7F7F7';
+            ctx.globalAlpha = 0.8;
+            ctx.fillText(language.tagline, size/2, size * 0.68);
+            ctx.globalAlpha = 1;
+
+            // Code snippet preview (stylized)
+            ctx.font = '20px Courier New, monospace';
+            ctx.textAlign = 'left';
+            ctx.fillStyle = language.color + '60';
+            const lines = language.snippet.split('\n');
+            const startY = size * 0.78;
+            const lineHeight = 28;
+            
+            lines.forEach((line, index) => {
+                if (index < 3) { // Only show first 3 lines
+                    ctx.fillText(line, size * 0.15, startY + (index * lineHeight));
+                }
+            });
+
+            // Add some decorative code elements
+            ctx.globalAlpha = 0.1;
+            ctx.fillStyle = language.color;
+            ctx.font = '16px Courier New, monospace';
+            const codeElements = ['function', 'class', 'const', 'import', 'export', 'return', 'if', 'for'];
+            
+            for (let i = 0; i < 15; i++) {
+                const x = Math.random() * size;
+                const y = Math.random() * size;
+                const element = codeElements[Math.floor(Math.random() * codeElements.length)];
+                ctx.fillText(element, x, y);
+            }
+            ctx.globalAlpha = 1;
+
+            // Add language icon/symbol hint
+            ctx.textAlign = 'center';
+            ctx.font = 'bold 280px Arial, sans-serif';
+            ctx.globalAlpha = 0.05;
+            ctx.fillStyle = language.color;
+            
+            // Language-specific symbols
+            const symbols = {
+                'PHP': '$',
+                'JavaScript': '{ }',
+                'Bash': '#',
+                'Go': 'go',
+                'Python': '>>>',
+                'C#': '#',
+                'Rust': '&',
+                'Ruby': '@',
+                'Java': ';'
+            };
+            
+            ctx.fillText(symbols[language.name] || language.name[0], size/2, size * 0.85);
+            ctx.globalAlpha = 1;
+        }
+
+        function downloadCanvas(canvas, filename) {
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = filename;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        }
+
+        // Generate assets
+        const assetsGrid = document.getElementById('assetsGrid');
+        
+        languages.forEach(lang => {
+            const card = document.createElement('div');
+            card.className = 'asset-card';
+            
+            const preview = document.createElement('div');
+            preview.className = 'asset-preview';
+            
+            const canvas = document.createElement('canvas');
+            preview.appendChild(canvas);
+            
+            const label = document.createElement('div');
+            label.className = 'language-label';
+            label.textContent = lang.name;
+            
+            const ext = document.createElement('div');
+            ext.className = 'language-ext';
+            ext.textContent = `Extension: ${lang.ext}`;
+            
+            const downloadBtn = document.createElement('button');
+            downloadBtn.className = 'download-btn';
+            downloadBtn.textContent = `Download ${lang.name} Asset`;
+            downloadBtn.onclick = () => downloadCanvas(canvas, `tusk-${lang.name.toLowerCase()}-1024x1024.png`);
+            
+            card.appendChild(preview);
+            card.appendChild(label);
+            card.appendChild(ext);
+            card.appendChild(downloadBtn);
+            
+            assetsGrid.appendChild(card);
+            
+            // Create the branding asset
+            createBrandingAsset(canvas, lang);
+        });
+    </script>
+</body>
+</html>

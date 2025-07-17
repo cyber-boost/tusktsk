@@ -1,0 +1,66 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A1A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2A2A2A;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+
+  <!-- Central content -->
+  <g transform="translate(600, 315)">
+    
+    <!-- Small logo -->
+    <text x="0" y="-150" font-family="Courier New" font-size="32" font-weight="bold" text-anchor="middle">
+      <tspan fill="#FF6B6B">&lt;?</tspan>
+      <tspan fill="#4ECDC4">tusk</tspan>
+      <tspan fill="#FF6B6B">&gt;</tspan>
+    </text>
+
+    <!-- Main message -->
+    <text x="0" y="-80" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="#FFFFFF">
+      Your Syntax
+    </text>
+    
+    <text x="0" y="-30" font-family="Arial, sans-serif" font-size="48" font-weight="bold" text-anchor="middle" fill="#4ECDC4">
+      Your Rules
+    </text>
+
+    <!-- Syntax examples -->
+    <g transform="translate(0, 40)">
+      <!-- Square brackets -->
+      <g transform="translate(-200, 0)">
+        <rect x="-80" y="-30" width="160" height="60" fill="#2A2A2A" stroke="#FF6B6B" stroke-width="2" rx="8"/>
+        <text x="0" y="-5" font-family="Consolas, monospace" font-size="18" text-anchor="middle" fill="#FF6B6B">[database]</text>
+        <text x="0" y="15" font-family="Consolas, monospace" font-size="14" text-anchor="middle" fill="#9CDCFE">host: "localhost"</text>
+      </g>
+
+      <!-- Curly braces -->
+      <g transform="translate(0, 0)">
+        <rect x="-80" y="-30" width="160" height="60" fill="#2A2A2A" stroke="#4ECDC4" stroke-width="2" rx="8"/>
+        <text x="0" y="-5" font-family="Consolas, monospace" font-size="18" text-anchor="middle" fill="#4ECDC4">server {</text>
+        <text x="0" y="15" font-family="Consolas, monospace" font-size="14" text-anchor="middle" fill="#9CDCFE">port: 8080</text>
+      </g>
+
+      <!-- Angle brackets -->
+      <g transform="translate(200, 0)">
+        <rect x="-80" y="-30" width="160" height="60" fill="#2A2A2A" stroke="#FFE66D" stroke-width="2" rx="8"/>
+        <text x="0" y="-5" font-family="Consolas, monospace" font-size="18" text-anchor="middle" fill="#FFE66D">cache &gt;</text>
+        <text x="0" y="15" font-family="Consolas, monospace" font-size="14" text-anchor="middle" fill="#9CDCFE">ttl: "5m"</text>
+      </g>
+    </g>
+
+    <!-- Bottom text -->
+    <text x="0" y="150" font-family="Arial, sans-serif" font-size="24" text-anchor="middle" fill="#FFFFFF">
+      Use [], {}, or &lt;&gt; - whatever you prefer
+    </text>
+
+    <text x="0" y="180" font-family="Arial, sans-serif" font-size="18" text-anchor="middle" fill="#FFE66D">
+      tusklang.org
+    </text>
+
+  </g>
+
+</svg>

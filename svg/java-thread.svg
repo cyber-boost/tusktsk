@@ -1,0 +1,36 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>Java Threading</title>
+  <desc>Java threading and concurrent processes representation</desc>
+  
+  <!-- Background -->
+  <rect x="8" y="8" width="48" height="48" rx="4" fill="#2A2A3E" stroke="#F89820" stroke-width="2"/>
+  
+  <!-- Multiple thread lines -->
+  <g stroke="#ED8B00" stroke-width="2" fill="none">
+    <!-- Thread 1 -->
+    <path d="M 12 20 L 52 20" opacity="0.8"/>
+    <path d="M 12 28 L 52 28" opacity="0.8"/>
+    <path d="M 12 36 L 52 36" opacity="0.8"/>
+    <path d="M 12 44 L 52 44" opacity="0.8"/>
+  </g>
+  
+  <!-- Concurrent arrows -->
+  <g fill="#F89820">
+    <polygon points="48,18 52,20 48,22" opacity="0.9"/>
+    <polygon points="48,26 52,28 48,30" opacity="0.9"/>
+    <polygon points="48,34 52,36 48,38" opacity="0.9"/>
+    <polygon points="48,42 52,44 48,46" opacity="0.9"/>
+  </g>
+  
+  <!-- Thread keyword indicator -->
+  <text x="32" y="14" font-family="Courier New" font-size="6" text-anchor="middle" fill="#F89820" font-weight="bold">Thread</text>
+  
+  <!-- Process indicators -->
+  <circle cx="16" cy="20" r="1.5" fill="#007396"/>
+  <circle cx="16" cy="28" r="1.5" fill="#007396"/>
+  <circle cx="16" cy="36" r="1.5" fill="#007396"/>
+  <circle cx="16" cy="44" r="1.5" fill="#007396"/>
+  
+  <!-- Thread names -->
+  <text x="32" y="52" font-family="Courier New" font-size="6" text-anchor="middle" fill="#ED8B00">Concurrent</text>
+</svg> 

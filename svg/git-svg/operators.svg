@@ -1,0 +1,111 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <!-- Gradients -->
+    <linearGradient id="operatorGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4ECDC4;stop-opacity:1" />
+    </linearGradient>
+    
+    <linearGradient id="glowGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FFE66D;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#FF6B6B;stop-opacity:0.8" />
+    </linearGradient>
+
+    <!-- Glow filter -->
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Title -->
+  <text x="400" y="50" font-family="Arial, sans-serif" font-size="36" font-weight="bold" text-anchor="middle" fill="#1A1A1A">
+    @ Operators - The Secret Sauce
+  </text>
+
+  <!-- Central @ Symbol -->
+  <g transform="translate(400, 300)">
+    <circle cx="0" cy="0" r="80" fill="none" stroke="url(#operatorGradient)" stroke-width="4" opacity="0.3">
+      <animate attributeName="r" values="80;90;80" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <text x="0" y="20" font-family="Arial, sans-serif" font-size="80" font-weight="bold" text-anchor="middle" fill="url(#operatorGradient)" filter="url(#glow)">@</text>
+  </g>
+
+  <!-- Operator Nodes -->
+  <!-- @query -->
+  <g transform="translate(200, 150)">
+    <circle cx="0" cy="0" r="50" fill="#F8F9FA" stroke="#FF6B6B" stroke-width="2"/>
+    <text x="0" y="5" font-family="monospace" font-size="14" text-anchor="middle" fill="#FF6B6B">@query</text>
+    <text x="0" y="20" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#1A1A1A">Database</text>
+    <line x1="35" y1="35" x2="150" y2="120" stroke="#FF6B6B" stroke-width="1" opacity="0.5"/>
+  </g>
+
+  <!-- @env -->
+  <g transform="translate(600, 150)">
+    <circle cx="0" cy="0" r="50" fill="#F8F9FA" stroke="#4ECDC4" stroke-width="2"/>
+    <text x="0" y="5" font-family="monospace" font-size="14" text-anchor="middle" fill="#4ECDC4">@env</text>
+    <text x="0" y="20" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#1A1A1A">Environment</text>
+    <line x1="-35" y1="35" x2="-150" y2="120" stroke="#4ECDC4" stroke-width="1" opacity="0.5"/>
+  </g>
+
+  <!-- @cache -->
+  <g transform="translate(100, 300)">
+    <circle cx="0" cy="0" r="50" fill="#F8F9FA" stroke="#FFE66D" stroke-width="2"/>
+    <text x="0" y="5" font-family="monospace" font-size="14" text-anchor="middle" fill="#FFE66D">@cache</text>
+    <text x="0" y="20" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#1A1A1A">Caching</text>
+    <line x1="50" y1="0" x2="220" y2="0" stroke="#FFE66D" stroke-width="1" opacity="0.5"/>
+  </g>
+
+  <!-- @date -->
+  <g transform="translate(700, 300)">
+    <circle cx="0" cy="0" r="50" fill="#F8F9FA" stroke="#FF6B6B" stroke-width="2"/>
+    <text x="0" y="5" font-family="monospace" font-size="14" text-anchor="middle" fill="#FF6B6B">@date</text>
+    <text x="0" y="20" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#1A1A1A">Time/Date</text>
+    <line x1="-50" y1="0" x2="-220" y2="0" stroke="#FF6B6B" stroke-width="1" opacity="0.5"/>
+  </g>
+
+  <!-- @learn -->
+  <g transform="translate(200, 450)">
+    <circle cx="0" cy="0" r="50" fill="#F8F9FA" stroke="#4ECDC4" stroke-width="2"/>
+    <text x="0" y="5" font-family="monospace" font-size="14" text-anchor="middle" fill="#4ECDC4">@learn</text>
+    <text x="0" y="20" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#1A1A1A">ML/AI</text>
+    <line x1="35" y1="-35" x2="150" y2="-120" stroke="#4ECDC4" stroke-width="1" opacity="0.5"/>
+  </g>
+
+  <!-- @optimize -->
+  <g transform="translate(600, 450)">
+    <circle cx="0" cy="0" r="50" fill="#F8F9FA" stroke="#FFE66D" stroke-width="2"/>
+    <text x="0" y="5" font-family="monospace" font-size="14" text-anchor="middle" fill="#FFE66D">@optimize</text>
+    <text x="0" y="20" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#1A1A1A">Performance</text>
+    <line x1="-35" y1="-35" x2="-150" y2="-120" stroke="#FFE66D" stroke-width="1" opacity="0.5"/>
+  </g>
+
+  <!-- @metrics -->
+  <g transform="translate(400, 500)">
+    <circle cx="0" cy="0" r="50" fill="#F8F9FA" stroke="#FF6B6B" stroke-width="2"/>
+    <text x="0" y="5" font-family="monospace" font-size="14" text-anchor="middle" fill="#FF6B6B">@metrics</text>
+    <text x="0" y="20" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#1A1A1A">Monitoring</text>
+    <line x1="0" y1="-50" x2="0" y2="-150" stroke="#FF6B6B" stroke-width="1" opacity="0.5"/>
+  </g>
+
+  <!-- @php -->
+  <g transform="translate(400, 100)">
+    <circle cx="0" cy="0" r="50" fill="#F8F9FA" stroke="#4ECDC4" stroke-width="2"/>
+    <text x="0" y="5" font-family="monospace" font-size="14" text-anchor="middle" fill="#4ECDC4">@php</text>
+    <text x="0" y="20" font-family="Arial, sans-serif" font-size="10" text-anchor="middle" fill="#1A1A1A">Execute</text>
+    <line x1="0" y1="50" x2="0" y2="150" stroke="#4ECDC4" stroke-width="1" opacity="0.5"/>
+  </g>
+
+  <!-- Animated particles -->
+  <circle r="2" fill="#FFE66D" opacity="0.8">
+    <animateMotion dur="5s" repeatCount="indefinite">
+      <mpath href="#operatorPath"/>
+    </animateMotion>
+  </circle>
+
+  <!-- Path for animation -->
+  <path id="operatorPath" d="M 400 200 Q 500 300 400 400 Q 300 300 400 200" fill="none" stroke="none"/>
+</svg> 

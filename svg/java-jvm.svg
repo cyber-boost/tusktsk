@@ -1,0 +1,32 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>Java JVM</title>
+  <desc>Java Virtual Machine runtime environment</desc>
+  
+  <!-- Background -->
+  <rect x="8" y="8" width="48" height="48" rx="4" fill="#2A2A3E" stroke="#F89820" stroke-width="2"/>
+  
+  <!-- JVM container -->
+  <rect x="12" y="16" width="40" height="32" rx="3" fill="#007396" opacity="0.2" stroke="#007396" stroke-width="2"/>
+  
+  <!-- JVM layers -->
+  <rect x="16" y="20" width="32" height="4" rx="1" fill="#F89820" opacity="0.7"/>
+  <text x="32" y="23" font-family="Courier New" font-size="5" text-anchor="middle" fill="#2A2A3E" font-weight="bold">Application</text>
+  
+  <rect x="16" y="26" width="32" height="4" rx="1" fill="#ED8B00" opacity="0.7"/>
+  <text x="32" y="29" font-family="Courier New" font-size="5" text-anchor="middle" fill="#2A2A3E" font-weight="bold">JVM</text>
+  
+  <rect x="16" y="32" width="32" height="4" rx="1" fill="#007396" opacity="0.7"/>
+  <text x="32" y="35" font-family="Courier New" font-size="5" text-anchor="middle" fill="#2A2A3E" font-weight="bold">OS</text>
+  
+  <rect x="16" y="38" width="32" height="4" rx="1" fill="#4ECDC4" opacity="0.7"/>
+  <text x="32" y="41" font-family="Courier New" font-size="5" text-anchor="middle" fill="#2A2A3E" font-weight="bold">Hardware</text>
+  
+  <!-- JVM indicators -->
+  <circle cx="14" cy="22" r="1" fill="#F89820"/>
+  <circle cx="14" cy="28" r="1" fill="#ED8B00"/>
+  <circle cx="14" cy="34" r="1" fill="#007396"/>
+  <circle cx="14" cy="40" r="1" fill="#4ECDC4"/>
+  
+  <!-- JVM name -->
+  <text x="32" y="48" font-family="Courier New" font-size="6" text-anchor="middle" fill="#007396">JVM</text>
+</svg> 

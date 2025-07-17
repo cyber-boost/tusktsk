@@ -1,0 +1,26 @@
+<svg class="badge-svg" viewBox="0 0 200 200" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                        <linearGradient id="rustGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                            <stop offset="0%" style="stop-color:#CE422B;stop-opacity:1"/>
+                            <stop offset="50%" style="stop-color:#F74C00;stop-opacity:1"/>
+                            <stop offset="100%" style="stop-color:#B94700;stop-opacity:1"/>
+                        </linearGradient>
+                        <filter id="rustGlow">
+                            <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+                            <feMerge> 
+                                <feMergeNode in="coloredBlur"/>
+                                <feMergeNode in="SourceGraphic"/>
+                            </feMerge>
+                        </filter>
+                    </defs>
+                    <circle cx="100" cy="100" r="90" fill="none" stroke="url(#rustGradient)" stroke-width="3" opacity="0.3"/>
+                    <rect x="30" y="30" width="140" height="140" rx="20" fill="#2A2A3E" stroke="url(#rustGradient)" stroke-width="2"/>
+                    <text x="100" y="115" font-family="Arial Black" font-size="28" font-weight="900" text-anchor="middle" fill="#F74C00">RS</text>
+                    <text x="100" y="150" font-family="Courier New" font-size="16" text-anchor="middle" fill="#CE422B">.tsk</text>
+                    <path d="M 60 50 Q 100 20 140 50" stroke="#CE422B" stroke-width="2" fill="none" opacity="0.7"/>
+                    <path d="M 60 150 Q 100 180 140 150" stroke="#F74C00" stroke-width="2" fill="none" opacity="0.7"/>
+                    <circle cx="50" cy="60" r="3" fill="#F74C00" filter="url(#rustGlow)"/>
+                    <circle cx="150" cy="60" r="3" fill="#CE422B" filter="url(#rustGlow)"/>
+                    <circle cx="50" cy="140" r="3" fill="#B94700" filter="url(#rustGlow)"/>
+                    <circle cx="150" cy="140" r="3" fill="#F74C00" filter="url(#rustGlow)"/>
+                </svg>

@@ -1,0 +1,45 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>Deployment</title>
+  <desc>Go deployment pipeline and CI/CD process</desc>
+  
+  <!-- Background -->
+  <rect x="8" y="8" width="48" height="48" rx="4" fill="#2A2A3E" stroke="#00ADD8" stroke-width="2"/>
+  
+  <!-- Pipeline stages -->
+  <g stroke="#5DC9E2" stroke-width="2" fill="none">
+    <path d="M 12 20 L 52 20" opacity="0.8"/>
+    <path d="M 12 32 L 52 32" opacity="0.8"/>
+    <path d="M 12 44 L 52 44" opacity="0.8"/>
+  </g>
+  
+  <!-- Stage 1: Build -->
+  <rect x="14" y="16" width="8" height="8" rx="2" fill="#00ADD8" opacity="0.3" stroke="#00ADD8" stroke-width="1"/>
+  <text x="18" y="21" font-family="Courier New" font-size="4" text-anchor="middle" fill="#007D9C" font-weight="bold">Build</text>
+  
+  <!-- Stage 2: Test -->
+  <rect x="28" y="16" width="8" height="8" rx="2" fill="#5DC9E2" opacity="0.3" stroke="#5DC9E2" stroke-width="1"/>
+  <text x="32" y="21" font-family="Courier New" font-size="4" text-anchor="middle" fill="#007D9C" font-weight="bold">Test</text>
+  
+  <!-- Stage 3: Deploy -->
+  <rect x="42" y="16" width="8" height="8" rx="2" fill="#4ECDC4" opacity="0.3" stroke="#4ECDC4" stroke-width="1"/>
+  <text x="46" y="21" font-family="Courier New" font-size="4" text-anchor="middle" fill="#007D9C" font-weight="bold">Deploy</text>
+  
+  <!-- Progress indicators -->
+  <circle cx="18" cy="32" r="2" fill="#00ADD8"/>
+  <circle cx="32" cy="32" r="2" fill="#5DC9E2"/>
+  <circle cx="46" cy="32" r="2" fill="#4ECDC4"/>
+  
+  <!-- Deployment arrows -->
+  <g fill="#00ADD8">
+    <polygon points="26,30 30,32 26,34" opacity="0.9"/>
+    <polygon points="40,30 44,32 40,34" opacity="0.9"/>
+  </g>
+  
+  <!-- Server deployment -->
+  <rect x="20" y="40" width="24" height="12" rx="2" fill="#5DC9E2" opacity="0.2" stroke="#5DC9E2" stroke-width="1.5"/>
+  <text x="32" y="46" font-family="Courier New" font-size="5" text-anchor="middle" fill="#007D9C" font-weight="bold">Production</text>
+  <text x="32" y="50" font-family="Courier New" font-size="4" text-anchor="middle" fill="#007D9C">Server</text>
+  
+  <!-- Status indicators -->
+  <text x="32" y="16" font-family="Courier New" font-size="4" text-anchor="middle" fill="#4ECDC4" font-weight="bold">✓ Pipeline</text>
+</svg> 

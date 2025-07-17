@@ -1,0 +1,35 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>Testing</title>
+  <desc>Go testing unit tests and benchmarks with checkmarks and timing</desc>
+  
+  <!-- Background -->
+  <rect x="8" y="8" width="48" height="48" rx="4" fill="#2A2A3E" stroke="#00ADD8" stroke-width="2"/>
+  
+  <!-- Test container -->
+  <rect x="12" y="16" width="40" height="32" rx="3" fill="#5DC9E2" opacity="0.2" stroke="#5DC9E2" stroke-width="2"/>
+  
+  <!-- Test keyword -->
+  <text x="32" y="26" font-family="Courier New" font-size="8" text-anchor="middle" fill="#00ADD8" font-weight="bold">Test</text>
+  
+  <!-- Test cases -->
+  <g stroke="#007D9C" stroke-width="1.5" fill="none">
+    <path d="M 16 32 L 48 32" opacity="0.8"/>
+    <path d="M 16 38 L 48 38" opacity="0.8"/>
+    <path d="M 16 44 L 48 44" opacity="0.8"/>
+  </g>
+  
+  <!-- Checkmarks for passed tests -->
+  <g fill="#00ADD8">
+    <path d="M 18 30 L 22 34 L 26 30" stroke="#00ADD8" stroke-width="1.5" fill="none"/>
+    <path d="M 18 36 L 22 40 L 26 36" stroke="#00ADD8" stroke-width="1.5" fill="none"/>
+    <path d="M 18 42 L 22 46 L 26 42" stroke="#00ADD8" stroke-width="1.5" fill="none"/>
+  </g>
+  
+  <!-- Test names -->
+  <text x="30" y="34" font-family="Courier New" font-size="5" fill="#007D9C" font-weight="bold">TestAdd</text>
+  <text x="30" y="40" font-family="Courier New" font-size="5" fill="#007D9C" font-weight="bold">TestSub</text>
+  <text x="30" y="46" font-family="Courier New" font-size="5" fill="#007D9C" font-weight="bold">Benchmark</text>
+  
+  <!-- Timing indicator -->
+  <text x="50" y="46" font-family="Courier New" font-size="4" fill="#00ADD8" font-weight="bold">1.2ms</text>
+</svg> 

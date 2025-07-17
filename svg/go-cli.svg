@@ -1,0 +1,28 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>CLI Tools</title>
+  <desc>Go command line interface tools</desc>
+  
+  <!-- Background -->
+  <rect x="8" y="8" width="48" height="48" rx="4" fill="#2A2A3E" stroke="#00ADD8" stroke-width="2"/>
+  
+  <!-- Terminal window -->
+  <rect x="12" y="16" width="40" height="32" rx="3" fill="#2A2A3E" stroke="#5DC9E2" stroke-width="2"/>
+  
+  <!-- Terminal header -->
+  <rect x="12" y="16" width="40" height="8" rx="3" fill="#5DC9E2" opacity="0.3"/>
+  
+  <!-- Terminal buttons -->
+  <circle cx="18" cy="20" r="1.5" fill="#FF6B6B"/>
+  <circle cx="22" cy="20" r="1.5" fill="#FFE66D"/>
+  <circle cx="26" cy="20" r="1.5" fill="#4ECDC4"/>
+  
+  <!-- Command prompt -->
+  <text x="16" y="30" font-family="Courier New" font-size="6" fill="#00ADD8" font-weight="bold">$ go run main.go</text>
+  <text x="16" y="38" font-family="Courier New" font-size="6" fill="#5DC9E2">Hello, Go!</text>
+  <text x="16" y="46" font-family="Courier New" font-size="6" fill="#00ADD8" font-weight="bold">$ go build</text>
+  
+  <!-- Cursor -->
+  <rect x="48" y="44" width="2" height="6" fill="#00ADD8" opacity="0.8">
+    <animate attributeName="opacity" values="0.8;0;0.8" dur="1s" repeatCount="indefinite"/>
+  </rect>
+</svg> 

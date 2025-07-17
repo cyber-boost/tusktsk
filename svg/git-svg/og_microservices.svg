@@ -1,0 +1,177 @@
+<svg width="1200" height="630" viewBox="0 0 1200 630" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="bgGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#1A1A1A;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#2A2A2A;stop-opacity:1" />
+    </linearGradient>
+
+    <linearGradient id="microGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#4ECDC4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF6B6B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+
+  <!-- Background -->
+  <rect width="1200" height="630" fill="url(#bgGradient)"/>
+
+  <!-- Central content -->
+  <g transform="translate(600, 315)">
+    
+    <!-- Small logo -->
+    <text x="0" y="-250" font-family="Courier New" font-size="24" font-weight="bold" text-anchor="middle">
+      <tspan fill="#FF6B6B">&lt;?</tspan>
+      <tspan fill="#4ECDC4">tusk</tspan>
+      <tspan fill="#FF6B6B">&gt;</tspan>
+    </text>
+
+    <!-- Microservices title with network icon -->
+    <text x="-50" y="-220" font-family="Arial, sans-serif" font-size="32" font-weight="bold" text-anchor="middle" fill="url(#microGradient)">
+      🌐 Microservices
+    </text>
+
+    <!-- Code editor window -->
+    <g transform="translate(0, -150)">
+      <rect x="-450" y="0" width="900" height="250" fill="#1E1E1E" stroke="#4ECDC4" stroke-width="2" rx="8"/>
+      
+      <!-- Title bar -->
+      <rect x="-450" y="0" width="900" height="30" fill="#37373D" rx="8"/>
+      <rect x="-450" y="22" width="900" height="8" fill="#37373D"/>
+      
+      <!-- Window controls -->
+      <circle cx="-420" cy="15" r="4" fill="#FF5F57"/>
+      <circle cx="-405" cy="15" r="4" fill="#FFBD2E"/>
+      <circle cx="-390" cy="15" r="4" fill="#28CA42"/>
+      
+      <!-- File name -->
+      <text x="-360" y="20" font-family="Arial, sans-serif" font-size="12" fill="#CCCCCC">microservices.tsk</text>
+      
+      <!-- Line numbers -->
+      <g transform="translate(-430, 45)">
+        <text x="0" y="15" font-family="Consolas, monospace" font-size="12" fill="#6A9955">1</text>
+        <text x="0" y="30" font-family="Consolas, monospace" font-size="12" fill="#6A9955">2</text>
+        <text x="0" y="45" font-family="Consolas, monospace" font-size="12" fill="#6A9955">3</text>
+        <text x="0" y="60" font-family="Consolas, monospace" font-size="12" fill="#6A9955">4</text>
+        <text x="0" y="75" font-family="Consolas, monospace" font-size="12" fill="#6A9955">5</text>
+        <text x="0" y="90" font-family="Consolas, monospace" font-size="12" fill="#6A9955">6</text>
+        <text x="0" y="105" font-family="Consolas, monospace" font-size="12" fill="#6A9955">7</text>
+        <text x="0" y="120" font-family="Consolas, monospace" font-size="12" fill="#6A9955">8</text>
+        <text x="0" y="135" font-family="Consolas, monospace" font-size="12" fill="#6A9955">9</text>
+        <text x="0" y="150" font-family="Consolas, monospace" font-size="12" fill="#6A9955">10</text>
+        <text x="0" y="165" font-family="Consolas, monospace" font-size="12" fill="#6A9955">11</text>
+        <text x="0" y="180" font-family="Consolas, monospace" font-size="12" fill="#6A9955">12</text>
+      </g>
+
+      <!-- Code content -->
+      <g transform="translate(-410, 45)">
+        <!-- Services section -->
+        <text x="0" y="15" font-family="Consolas, monospace" font-size="14" fill="#C586C0">[</text>
+        <text x="12" y="15" font-family="Consolas, monospace" font-size="14" fill="#9CDCFE">services</text>
+        <text x="84" y="15" font-family="Consolas, monospace" font-size="14" fill="#C586C0">]</text>
+        
+        <text x="0" y="30" font-family="Consolas, monospace" font-size="14" fill="#9CDCFE">auth_service</text>
+        <text x="108" y="30" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">:</text>
+        <text x="120" y="30" font-family="Consolas, monospace" font-size="14" fill="#DCDCAA">@service_discovery</text>
+        <text x="240" y="30" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">.</text>
+        <text x="246" y="30" font-family="Consolas, monospace" font-size="14" fill="#9CDCFE">tsk</text>
+        <text x="270" y="30" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">.</text>
+        <text x="276" y="30" font-family="Consolas, monospace" font-size="14" fill="#DCDCAA">get</text>
+        <text x="300" y="30" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">(</text>
+        <text x="306" y="30" font-family="Consolas, monospace" font-size="14" fill="#CE9178">"auth"</text>
+        <text x="342" y="30" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">,</text>
+        <text x="354" y="30" font-family="Consolas, monospace" font-size="14" fill="#CE9178">"endpoint"</text>
+        <text x="414" y="30" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">)</text>
+        
+        <text x="0" y="45" font-family="Consolas, monospace" font-size="14" fill="#9CDCFE">user_service</text>
+        <text x="108" y="45" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">:</text>
+        <text x="120" y="45" font-family="Consolas, monospace" font-size="14" fill="#DCDCAA">@service_discovery</text>
+        <text x="240" y="45" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">.</text>
+        <text x="246" y="45" font-family="Consolas, monospace" font-size="14" fill="#9CDCFE">tsk</text>
+        <text x="270" y="45" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">.</text>
+        <text x="276" y="45" font-family="Consolas, monospace" font-size="14" fill="#DCDCAA">get</text>
+        <text x="300" y="45" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">(</text>
+        <text x="306" y="45" font-family="Consolas, monospace" font-size="14" fill="#CE9178">"user"</text>
+        <text x="342" y="45" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">,</text>
+        <text x="354" y="45" font-family="Consolas, monospace" font-size="14" fill="#CE9178">"endpoint"</text>
+        <text x="414" y="45" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">)</text>
+        
+        <text x="0" y="60" font-family="Consolas, monospace" font-size="14" fill="#9CDCFE">payment_service</text>
+        <text x="132" y="60" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">:</text>
+        <text x="144" y="60" font-family="Consolas, monospace" font-size="14" fill="#DCDCAA">@service_discovery</text>
+        <text x="264" y="60" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">.</text>
+        <text x="270" y="60" font-family="Consolas, monospace" font-size="14" fill="#9CDCFE">tsk</text>
+        <text x="294" y="60" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">.</text>
+        <text x="300" y="60" font-family="Consolas, monospace" font-size="14" fill="#DCDCAA">get</text>
+        <text x="324" y="60" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">(</text>
+        <text x="330" y="60" font-family="Consolas, monospace" font-size="14" fill="#CE9178">"payment"</text>
+        <text x="390" y="60" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">,</text>
+        <text x="402" y="60" font-family="Consolas, monospace" font-size="14" fill="#CE9178">"endpoint"</text>
+        <text x="462" y="60" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">)</text>
+        
+        <!-- Database section -->
+        <text x="0" y="90" font-family="Consolas, monospace" font-size="14" fill="#C586C0">[</text>
+        <text x="12" y="90" font-family="Consolas, monospace" font-size="14" fill="#9CDCFE">database</text>
+        <text x="84" y="90" font-family="Consolas, monospace" font-size="14" fill="#C586C0">]</text>
+        
+        <text x="0" y="105" font-family="Consolas, monospace" font-size="14" fill="#9CDCFE">connection_pool</text>
+        <text x="144" y="105" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">:</text>
+        <text x="156" y="105" font-family="Consolas, monospace" font-size="14" fill="#DCDCAA">@query</text>
+        <text x="204" y="105" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">(</text>
+        
+        <text x="0" y="120" font-family="Consolas, monospace" font-size="12" fill="#CE9178">    "SELECT optimal_pool_size FROM performance_metrics LIMIT 1"</text>
+        
+        <text x="0" y="135" font-family="Consolas, monospace" font-size="14" fill="#D4D4D4">)</text>
+      </g>
+    </g>
+
+    <!-- Visual service connections -->
+    <g transform="translate(0, 120)">
+      <!-- Service nodes -->
+      <g transform="translate(-250, 0)">
+        <rect x="-40" y="-15" width="80" height="30" fill="#2A2A2A" stroke="#4ECDC4" stroke-width="2" rx="15"/>
+        <text x="0" y="5" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#4ECDC4">Auth Service</text>
+      </g>
+      
+      <g transform="translate(0, 0)">
+        <rect x="-40" y="-15" width="80" height="30" fill="#2A2A2A" stroke="#FFE66D" stroke-width="2" rx="15"/>
+        <text x="0" y="5" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#FFE66D">User Service</text>
+      </g>
+      
+      <g transform="translate(250, 0)">
+        <rect x="-50" y="-15" width="100" height="30" fill="#2A2A2A" stroke="#FF6B6B" stroke-width="2" rx="15"/>
+        <text x="0" y="5" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#FF6B6B">Payment Service</text>
+      </g>
+      
+      <!-- Connection lines -->
+      <line x1="-210" y1="0" x2="-40" y2="0" stroke="#4ECDC4" stroke-width="2" opacity="0.6"/>
+      <line x1="40" y1="0" x2="200" y2="0" stroke="#FFE66D" stroke-width="2" opacity="0.6"/>
+      
+      <!-- Database -->
+      <g transform="translate(0, 60)">
+        <ellipse cx="0" cy="-10" rx="30" ry="6" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+        <rect x="-30" y="-10" width="60" height="20" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+        <ellipse cx="0" cy="10" rx="30" ry="6" fill="none" stroke="#FFFFFF" stroke-width="2"/>
+        <text x="0" y="30" font-family="Arial, sans-serif" font-size="12" text-anchor="middle" fill="#FFFFFF">Database</text>
+      </g>
+      
+      <!-- Connection lines to database -->
+      <line x1="-250" y1="15" x2="-30" y2="50" stroke="#4ECDC4" stroke-width="2" opacity="0.4"/>
+      <line x1="0" y1="15" x2="0" y2="50" stroke="#FFE66D" stroke-width="2" opacity="0.4"/>
+      <line x1="250" y1="15" x2="30" y2="50" stroke="#FF6B6B" stroke-width="2" opacity="0.4"/>
+    </g>
+
+    <!-- Features highlight -->
+    <text x="0" y="200" font-family="Arial, sans-serif" font-size="24" font-weight="bold" text-anchor="middle" fill="#FFFFFF">
+      Service Discovery + Dynamic Connections 🔗
+    </text>
+    
+    <text x="0" y="230" font-family="Arial, sans-serif" font-size="18" text-anchor="middle" fill="#4ECDC4">
+      Auto-discovery • Load balancing • Smart pooling • Real-time metrics
+    </text>
+
+    <text x="0" y="260" font-family="Arial, sans-serif" font-size="18" text-anchor="middle" fill="#FFE66D">
+      tusklang.org
+    </text>
+
+  </g>
+
+</svg>

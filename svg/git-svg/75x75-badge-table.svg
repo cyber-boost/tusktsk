@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="300" height="300" viewBox="0 0 300 300">
+  <title>TuskLang SDK Badge Table - 75x75</title>
+  <desc>A 3x3 grid of programming language badges for TuskLang SDKs</desc>
+  
+  <!-- Background -->
+  <rect width="300" height="300" fill="#f8f9fa"/>
+  
+  <!-- Grid lines for visual separation -->
+  <g stroke="#e9ecef" stroke-width="1">
+    <line x1="100" y1="0" x2="100" y2="300"/>
+    <line x1="200" y1="0" x2="200" y2="300"/>
+    <line x1="0" y1="100" x2="300" y2="100"/>
+    <line x1="0" y1="200" x2="300" y2="200"/>
+  </g>
+  
+  <!-- Badge Grid (3x3) with padding -->
+  <!-- Row 1 -->
+  <g transform="translate(12.5, 12.5)">
+    <image xlink:href="./bash-badge.svg" width="75" height="75"/>
+  </g>
+  <g transform="translate(112.5, 12.5)">
+    <image xlink:href="./go-badge.svg" width="75" height="75"/>
+  </g>
+  <g transform="translate(212.5, 12.5)">
+    <image xlink:href="./java-badge.svg" width="75" height="75"/>
+  </g>
+  
+  <!-- Row 2 -->
+  <g transform="translate(12.5, 112.5)">
+    <image xlink:href="./js-badge.svg" width="75" height="75"/>
+  </g>
+  <g transform="translate(112.5, 112.5)">
+    <image xlink:href="./php-badge.svg" width="75" height="75"/>
+  </g>
+  <g transform="translate(212.5, 112.5)">
+    <image xlink:href="./python-badge.svg" width="75" height="75"/>
+  </g>
+  
+  <!-- Row 3 -->
+  <g transform="translate(12.5, 212.5)">
+    <image xlink:href="./ruby-badge.svg" width="75" height="75"/>
+  </g>
+  <g transform="translate(112.5, 212.5)">
+    <image xlink:href="./rust-badge.svg" width="75" height="75"/>
+  </g>
+  <!-- Last cell empty - could add C# badge later -->
+  <g transform="translate(212.5, 212.5)">
+    <rect width="75" height="75" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1" rx="5"/>
+    <text x="37.5" y="42.5" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#868e96">C#</text>
+  </g>
+</svg>

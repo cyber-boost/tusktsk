@@ -1,0 +1,25 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>Java Mascot</title>
+  <desc>Simplified Java Duke mascot icon</desc>
+  
+  <!-- Duke's hat -->
+  <ellipse cx="32" cy="20" rx="18" ry="8" fill="#F89820" stroke="#ED8B00" stroke-width="1.5"/>
+  <rect x="20" y="20" width="24" height="6" fill="#F89820" stroke="#ED8B00" stroke-width="1.5"/>
+  
+  <!-- Duke's head -->
+  <ellipse cx="32" cy="32" rx="16" ry="18" fill="#F89820" stroke="#ED8B00" stroke-width="1.5"/>
+  
+  <!-- Eyes -->
+  <circle cx="26" cy="28" r="2" fill="#007396"/>
+  <circle cx="38" cy="28" r="2" fill="#007396"/>
+  
+  <!-- Nose -->
+  <ellipse cx="32" cy="34" rx="1.5" ry="1" fill="#ED8B00"/>
+  
+  <!-- Body -->
+  <ellipse cx="32" cy="52" rx="12" ry="8" fill="#F89820" stroke="#ED8B00" stroke-width="1.5"/>
+  
+  <!-- Arms -->
+  <ellipse cx="18" cy="44" rx="3" ry="8" fill="#F89820" stroke="#ED8B00" stroke-width="1.5"/>
+  <ellipse cx="46" cy="44" rx="3" ry="8" fill="#F89820" stroke="#ED8B00" stroke-width="1.5"/>
+</svg> 

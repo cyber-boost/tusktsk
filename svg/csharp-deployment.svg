@@ -1,0 +1,46 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>C# Deployment</title>
+  <desc>C# deployment pipeline and CI/CD representation</desc>
+  
+  <!-- Development -->
+  <rect x="4" y="8" width="16" height="16" rx="3" fill="#2A2A3E" stroke="#239120" stroke-width="2"/>
+  <text x="12" y="18" font-family="Courier New" font-size="6" text-anchor="middle" fill="#239120" font-weight="bold">Dev</text>
+  
+  <!-- Testing -->
+  <rect x="24" y="8" width="16" height="16" rx="3" fill="#2A2A3E" stroke="#68217A" stroke-width="2"/>
+  <text x="32" y="18" font-family="Courier New" font-size="6" text-anchor="middle" fill="#68217A" font-weight="bold">Test</text>
+  
+  <!-- Production -->
+  <rect x="44" y="8" width="16" height="16" rx="3" fill="#2A2A3E" stroke="#239120" stroke-width="2"/>
+  <text x="52" y="18" font-family="Courier New" font-size="6" text-anchor="middle" fill="#239120" font-weight="bold">Prod</text>
+  
+  <!-- Pipeline arrows -->
+  <path d="M 20 16 L 24 16" stroke="#239120" stroke-width="2" fill="none" marker-end="url(#arrowhead)"/>
+  <path d="M 40 16 L 44 16" stroke="#68217A" stroke-width="2" fill="none" marker-end="url(#arrowhead2)"/>
+  
+  <!-- Deployment stages -->
+  <rect x="8" y="32" width="48" height="24" rx="3" fill="#2A2A3E" stroke="#68217A" stroke-width="1"/>
+  
+  <!-- Stage indicators -->
+  <circle cx="16" cy="40" r="2" fill="#239120"/>
+  <text x="16" y="50" font-family="Courier New" font-size="6" text-anchor="middle" fill="#239120">Build</text>
+  
+  <circle cx="32" cy="40" r="2" fill="#68217A"/>
+  <text x="32" y="50" font-family="Courier New" font-size="6" text-anchor="middle" fill="#68217A">Deploy</text>
+  
+  <circle cx="48" cy="40" r="2" fill="#239120"/>
+  <text x="48" y="50" font-family="Courier New" font-size="6" text-anchor="middle" fill="#239120">Release</text>
+  
+  <!-- Progress line -->
+  <line x1="16" y1="40" x2="48" y2="40" stroke="#68217A" stroke-width="1" opacity="0.3"/>
+  
+  <!-- Arrow markers -->
+  <defs>
+    <marker id="arrowhead" markerWidth="6" markerHeight="4" refX="0" refY="2" orient="auto">
+      <polygon points="0 0, 6 2, 0 4" fill="#239120"/>
+    </marker>
+    <marker id="arrowhead2" markerWidth="6" markerHeight="4" refX="0" refY="2" orient="auto">
+      <polygon points="0 0, 6 2, 0 4" fill="#68217A"/>
+    </marker>
+  </defs>
+</svg> 

@@ -1,0 +1,31 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>Channels</title>
+  <desc>Go channels communication pipes between goroutines</desc>
+  
+  <!-- Background -->
+  <rect x="8" y="8" width="48" height="48" rx="4" fill="#2A2A3E" stroke="#00ADD8" stroke-width="2"/>
+  
+  <!-- Channel pipe -->
+  <rect x="20" y="24" width="24" height="8" rx="4" fill="none" stroke="#5DC9E2" stroke-width="2"/>
+  
+  <!-- Channel arrows -->
+  <g fill="#00ADD8">
+    <polygon points="44,26 48,28 44,30" opacity="0.9"/>
+    <polygon points="20,26 16,28 20,30" opacity="0.9"/>
+  </g>
+  
+  <!-- Goroutine 1 (sender) -->
+  <circle cx="12" cy="28" r="6" fill="#00ADD8" opacity="0.3" stroke="#00ADD8" stroke-width="1.5"/>
+  <text x="12" y="31" font-family="Courier New" font-size="6" text-anchor="middle" fill="#007D9C" font-weight="bold">G1</text>
+  
+  <!-- Goroutine 2 (receiver) -->
+  <circle cx="52" cy="28" r="6" fill="#5DC9E2" opacity="0.3" stroke="#5DC9E2" stroke-width="1.5"/>
+  <text x="52" y="31" font-family="Courier New" font-size="6" text-anchor="middle" fill="#007D9C" font-weight="bold">G2</text>
+  
+  <!-- Data flow indicators -->
+  <circle cx="24" cy="28" r="1.5" fill="#007D9C"/>
+  <circle cx="40" cy="28" r="1.5" fill="#007D9C"/>
+  
+  <!-- Channel keyword -->
+  <text x="32" y="16" font-family="Courier New" font-size="6" text-anchor="middle" fill="#00ADD8" font-weight="bold">chan</text>
+</svg> 

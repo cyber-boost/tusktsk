@@ -1,0 +1,39 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>Error Handling</title>
+  <desc>Go error handling patterns and propagation</desc>
+  
+  <!-- Background -->
+  <rect x="8" y="8" width="48" height="48" rx="4" fill="#2A2A3E" stroke="#00ADD8" stroke-width="2"/>
+  
+  <!-- Error flow -->
+  <g stroke="#5DC9E2" stroke-width="2" fill="none">
+    <path d="M 16 20 L 48 20" opacity="0.8"/>
+    <path d="M 16 32 L 48 32" opacity="0.8"/>
+    <path d="M 16 44 L 48 44" opacity="0.8"/>
+  </g>
+  
+  <!-- Error indicators -->
+  <g fill="#FF6B6B">
+    <circle cx="20" cy="20" r="3" opacity="0.8"/>
+    <circle cx="44" cy="20" r="3" opacity="0.8"/>
+    <circle cx="20" cy="32" r="3" opacity="0.8"/>
+    <circle cx="44" cy="32" r="3" opacity="0.8"/>
+    <circle cx="20" cy="44" r="3" opacity="0.8"/>
+    <circle cx="44" cy="44" r="3" opacity="0.8"/>
+  </g>
+  
+  <!-- Error arrows -->
+  <g fill="#FF6B6B">
+    <polygon points="42,18 46,20 42,22" opacity="0.9"/>
+    <polygon points="42,30 46,32 42,34" opacity="0.9"/>
+    <polygon points="42,42 46,44 42,46" opacity="0.9"/>
+  </g>
+  
+  <!-- Error handling keywords -->
+  <text x="32" y="16" font-family="Courier New" font-size="6" text-anchor="middle" fill="#FF6B6B" font-weight="bold">if err != nil</text>
+  
+  <!-- Error types -->
+  <text x="32" y="28" font-family="Courier New" font-size="5" text-anchor="middle" fill="#007D9C" font-weight="bold">return err</text>
+  <text x="32" y="40" font-family="Courier New" font-size="5" text-anchor="middle" fill="#007D9C" font-weight="bold">log.Fatal</text>
+  <text x="32" y="52" font-family="Courier New" font-size="5" text-anchor="middle" fill="#007D9C" font-weight="bold">panic</text>
+</svg> 

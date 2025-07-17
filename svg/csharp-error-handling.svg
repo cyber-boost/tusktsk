@@ -1,0 +1,28 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>C# Error Handling</title>
+  <desc>C# try-catch exception handling representation</desc>
+  
+  <!-- Try block -->
+  <rect x="8" y="8" width="48" height="20" rx="4" fill="#2A2A3E" stroke="#239120" stroke-width="2"/>
+  <text x="32" y="20" font-family="Courier New" font-size="8" text-anchor="middle" fill="#239120" font-weight="bold">try</text>
+  
+  <!-- Try content -->
+  <rect x="12" y="24" width="40" height="4" rx="1" fill="#239120" opacity="0.3"/>
+  <rect x="12" y="30" width="32" height="4" rx="1" fill="#239120" opacity="0.3"/>
+  
+  <!-- Catch block -->
+  <rect x="8" y="36" width="48" height="20" rx="4" fill="#2A2A3E" stroke="#68217A" stroke-width="2"/>
+  <text x="32" y="48" font-family="Courier New" font-size="8" text-anchor="middle" fill="#68217A" font-weight="bold">catch</text>
+  
+  <!-- Exception indicator -->
+  <circle cx="16" cy="44" r="2" fill="#68217A"/>
+  <text x="20" y="47" font-family="Courier New" font-size="6" fill="#68217A">Exception</text>
+  
+  <!-- Error flow arrow -->
+  <path d="M 32 28 L 32 36" stroke="#68217A" stroke-width="1" fill="none"/>
+  <path d="M 30 34 L 32 36 L 34 34" stroke="#68217A" stroke-width="1" fill="none"/>
+  
+  <!-- Error symbol -->
+  <circle cx="48" cy="44" r="3" fill="#68217A" opacity="0.8"/>
+  <text x="48" y="47" font-family="Arial" font-size="8" text-anchor="middle" fill="white" font-weight="bold">!</text>
+</svg> 

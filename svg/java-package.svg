@@ -1,0 +1,22 @@
+<svg viewBox="0 0 64 64" xmlns="http://www.w3.org/2000/svg">
+  <title>Java Package</title>
+  <desc>Java package/module container representation</desc>
+  
+  <!-- Package container -->
+  <rect x="8" y="12" width="48" height="40" rx="4" fill="#2A2A3E" stroke="#F89820" stroke-width="2"/>
+  
+  <!-- Package header -->
+  <rect x="8" y="12" width="48" height="12" rx="4" fill="#F89820" opacity="0.3"/>
+  
+  <!-- Package name -->
+  <text x="32" y="22" font-family="Courier New" font-size="8" text-anchor="middle" fill="#F89820" font-weight="bold">package</text>
+  
+  <!-- Package contents -->
+  <rect x="16" y="28" width="32" height="3" rx="1" fill="#ED8B00" opacity="0.7"/>
+  <rect x="16" y="34" width="24" height="3" rx="1" fill="#ED8B00" opacity="0.7"/>
+  <rect x="16" y="40" width="28" height="3" rx="1" fill="#ED8B00" opacity="0.7"/>
+  
+  <!-- Import indicator -->
+  <circle cx="12" cy="20" r="2" fill="#007396"/>
+  <circle cx="52" cy="20" r="2" fill="#007396"/>
+</svg> 

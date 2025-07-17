@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tusk Favicon - Minimal <?</title>
+    <style>
+        :root {
+            --tusk-teal: #4ECDC4;
+            --tusk-red: #FF6B6B;
+            --tusk-yellow: #FFE66D;
+            --tusk-dark: #2A2A3E;
+            --tusk-darker: #0F0F1E;
+            --tusk-light: #F7F7F7;
+        }
+
+        body {
+            margin: 0;
+            padding: 40px;
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+            background: var(--tusk-darker);
+            color: var(--tusk-light);
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        h1 {
+            text-align: center;
+            font-size: 2.5rem;
+            margin-bottom: 20px;
+            background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 50%, #FFE66D 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            background-clip: text;
+        }
+
+        .tagline {
+            text-align: center;
+            font-size: 1.5rem;
+            opacity: 0.8;
+            margin-bottom: 40px;
+            font-family: 'Courier New', monospace;
+        }
+
+        .tagline span {
+            color: #FF6B6B;
+        }
+
+        .favicon-showcase {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 40px;
+            width: 100%;
+            max-width: 1200px;
+            margin-bottom: 60px;
+        }
+
+        .favicon-card {
+            background: var(--tusk-dark);
+            border-radius: 16px;
+            padding: 30px;
+            text-align: center;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+            transition: transform 0.3s ease;
+        }
+
+        .favicon-card:hover {
+            transform: translateY(-5px);
+        }
+
+        .favicon-preview {
+            margin: 0 auto 20px;
+            border-radius: 8px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .size-label {
+            color: var(--tusk-teal);
+            font-weight: 600;
+            margin-bottom: 10px;
+        }
+
+        canvas {
+            border-radius: 8px;
+            box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+            image-rendering: -webkit-optimize-contrast;
+            image-rendering: crisp-edges;
+        }
+
+        .download-section {
+            text-align: center;
+            margin-top: 40px;
+        }
+
+        .download-btn {
+            padding: 16px 32px;
+            background: linear-gradient(135deg, #FF6B6B 0%, #4ECDC4 50%, #FFE66D 100%);
+            border: none;
+            border-radius: 8px;
+            color: white;
+            font-weight: 600;
+            font-size: 1.1rem;
+            cursor: pointer;
+            transition: all 0.3s ease;
+            margin: 10px;
+        }
+
+        .download-btn:hover {
+            transform: scale(1.05);
+            box-shadow: 0 6px 24px rgba(78, 205, 196, 0.5);
+        }
+
+        .description {
+            max-width: 600px;
+            margin: 0 auto 40px;
+            text-align: center;
+            line-height: 1.6;
+            opacity: 0.9;
+        }
+
+        .browser-preview {
+            background: #1a1a2e;
+            border-radius: 8px;
+            padding: 10px;
+            margin: 40px auto;
+            max-width: 600px;
+            box-shadow: 0 8px 32px rgba(0,0,0,0.3);
+        }
+
+        .browser-bar {
+            background: #16213e;
+            border-radius: 6px 6px 0 0;
+            padding: 10px;
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .browser-dots {
+            display: flex;
+            gap: 6px;
+        }
+
+        .dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+            background: #3a3a4e;
+        }
+
+        .url-bar {
+            flex: 1;
+            background: #0f0f1e;
+            border: none;
+            padding: 6px 12px;
+            border-radius: 4px;
+            color: #888;
+            font-family: monospace;
+        }
+
+        .tab-area {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            padding: 8px;
+            background: #1a1a2e;
+            border-bottom: 1px solid #2a2a3e;
+        }
+
+        .tab {
+            display: flex;
+            align-items: center;
+            gap: 6px;
+            background: #2a2a3e;
+            padding: 6px 12px;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .favicon-in-tab {
+            width: 16px;
+            height: 16px;
+        }
+
+        .variations {
+            display: flex;
+            gap: 40px;
+            margin: 40px auto;
+            justify-content: center;
+            flex-wrap: wrap;
+        }
+
+        .variation-card {
+            background: var(--tusk-dark);
+            padding: 20px;
+            border-radius: 12px;
+            text-align: center;
+        }
+
+        .variation-label {
+            color: var(--tusk-yellow);
+            font-size: 0.9rem;
+            margin-top: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>Tusk Favicon</h1>
+    <div class="tagline">Minimal. Powerful. <span><?</span></div>
+    
+    <p class="description">
+        Ultra-minimal favicon design using just the <? brackets. This creates an instantly recognizable icon that's 
+        crystal clear at any size and perfect for representing code-focused tools.
+    </p>
+
+    <div class="favicon-showcase">
+        <div class="favicon-card">
+            <div class="size-label">512×512 (Master)</div>
+            <div class="favicon-preview">
+                <canvas id="favicon-512" width="512" height="512"></canvas>
+            </div>
+        </div>
+        
+        <div class="favicon-card">
+            <div class="size-label">192×192</div>
+            <div class="favicon-preview">
+                <canvas id="favicon-192" width="192" height="192" style="width: 192px; height: 192px;"></canvas>
+            </div>
+        </div>
+        
+        <div class="favicon-card">
+            <div class="size-label">64×64</div>
+            <div class="favicon-preview">
+                <canvas id="favicon-64" width="64" height="64" style="width: 64px; height: 64px;"></canvas>
+            </div>
+        </div>
+        
+        <div class="favicon-card">
+            <div class="size-label">32×32</div>
+            <div class="favicon-preview">
+                <canvas id="favicon-32" width="32" height="32" style="width: 32px; height: 32px;"></canvas>
+            </div>
+        </div>
+        
+        <div class="favicon-card">
+            <div class="size-label">16×16</div>
+            <div class="favicon-preview">
+                <canvas id="favicon-16" width="16" height="16" style="width: 16px; height: 16px;"></canvas>
+            </div>
+        </div>
+    </div>
+
+    <div class="variations">
+        <div class="variation-card">
+            <canvas id="var-solid" width="128" height="128" style="width: 128px; height: 128px;"></canvas>
+            <div class="variation-label">Solid Background</div>
+        </div>
+        <div class="variation-card">
+            <canvas id="var-gradient" width="128" height="128" style="width: 128px; height: 128px;"></canvas>
+            <div class="variation-label">Gradient Background</div>
+        </div>
+        <div class="variation-card">
+            <canvas id="var-circle" width="128" height="128" style="width: 128px; height: 128px;"></canvas>
+            <div class="variation-label">Circle Background</div>
+        </div>
+    </div>
+
+    <div class="browser-preview">
+        <div class="browser-bar">
+            <div class="browser-dots">
+                <div class="dot" style="background: #ff5f57;"></div>
+                <div class="dot" style="background: #ffbd2e;"></div>
+                <div class="dot" style="background: #28ca42;"></div>
+            </div>
+            <input type="text" class="url-bar" value="https://tusk.dev" readonly>
+        </div>
+        <div class="tab-area">
+            <div class="tab">
+                <canvas class="favicon-in-tab" id="favicon-tab" width="16" height="16"></canvas>
+                <span>Tusk - Code with confidence</span>
+            </div>
+        </div>
+    </div>
+
+    <div class="download-section">
+        <button class="download-btn" onclick="downloadFavicon(512)">Download 512×512 PNG</button>
+        <button class="download-btn" onclick="downloadFavicon(192)">Download 192×192 PNG</button>
+        <button class="download-btn" onclick="downloadFavicon(32)">Download favicon.ico</button>
+    </div>
+
+    <script>
+        function createFavicon(canvas, size, variant = 'default') {
+            const ctx = canvas.getContext('2d');
+            ctx.imageSmoothingEnabled = true;
+            
+            // Clear canvas
+            ctx.clearRect(0, 0, size, size);
+            
+            // Background based on variant
+            if (variant === 'gradient') {
+                const gradient = ctx.createLinearGradient(0, 0, size, size);
+                gradient.addColorStop(0, '#0F0F1E');
+                gradient.addColorStop(1, '#2A2A3E');
+                ctx.fillStyle = gradient;
+                ctx.fillRect(0, 0, size, size);
+            } else if (variant === 'circle') {
+                // Dark background
+                ctx.fillStyle = '#0F0F1E';
+                ctx.fillRect(0, 0, size, size);
+                
+                // Circle
+                ctx.fillStyle = '#2A2A3E';
+                ctx.beginPath();
+                ctx.arc(size/2, size/2, size/2 - size*0.05, 0, Math.PI * 2);
+                ctx.fill();
+            } else {
+                // Solid dark background
+                ctx.fillStyle = '#0F0F1E';
+                ctx.fillRect(0, 0, size, size);
+            }
+            
+            // Font size calculation
+            let fontSize;
+            if (size <= 16) {
+                fontSize = size * 0.75;
+            } else if (size <= 32) {
+                fontSize = size * 0.7;
+            } else if (size <= 64) {
+                fontSize = size * 0.65;
+            } else {
+                fontSize = size * 0.6;
+            }
+            
+            // Set font
+            ctx.font = `bold ${fontSize}px Courier New, monospace`;
+            ctx.textAlign = 'center';
+            ctx.textBaseline = 'middle';
+            
+            // Add subtle shadow for larger sizes
+            if (size >= 64) {
+                ctx.fillStyle = 'rgba(0, 0, 0, 0.4)';
+                const shadowOffset = size * 0.02;
+                ctx.fillText('<?', size/2 + shadowOffset, size/2 + shadowOffset);
+            }
+            
+            // Draw main <?
+            ctx.fillStyle = '#FF6B6B';
+            ctx.fillText('<?', size/2, size/2);
+            
+            // Add subtle glow for larger sizes
+            if (size >= 192) {
+                ctx.shadowColor = '#FF6B6B';
+                ctx.shadowBlur = size * 0.05;
+                ctx.fillText('<?', size/2, size/2);
+                ctx.shadowBlur = 0;
+            }
+            
+            // Add corner accents for very large sizes
+            if (size >= 512 && variant === 'default') {
+                ctx.fillStyle = '#4ECDC4';
+                ctx.globalAlpha = 0.3;
+                const cornerSize = size * 0.06;
+                
+                // Top left corner
+                ctx.beginPath();
+                ctx.moveTo(0, cornerSize);
+                ctx.lineTo(0, 0);
+                ctx.lineTo(cornerSize, 0);
+                ctx.closePath();
+                ctx.fill();
+                
+                // Bottom right corner
+                ctx.beginPath();
+                ctx.moveTo(size, size - cornerSize);
+                ctx.lineTo(size, size);
+                ctx.lineTo(size - cornerSize, size);
+                ctx.closePath();
+                ctx.fill();
+                
+                ctx.globalAlpha = 1;
+            }
+        }
+
+        // Create all favicon sizes
+        const sizes = [512, 192, 64, 32, 16];
+        sizes.forEach(size => {
+            const canvas = document.getElementById(`favicon-${size}`);
+            if (canvas) {
+                createFavicon(canvas, size);
+            }
+        });
+        
+        // Create variations
+        createFavicon(document.getElementById('var-solid'), 128, 'solid');
+        createFavicon(document.getElementById('var-gradient'), 128, 'gradient');
+        createFavicon(document.getElementById('var-circle'), 128, 'circle');
+        
+        // Browser tab preview
+        const tabCanvas = document.getElementById('favicon-tab');
+        if (tabCanvas) {
+            createFavicon(tabCanvas, 16);
+        }
+
+        function downloadFavicon(size) {
+            const canvas = document.getElementById(`favicon-${size}`);
+            
+            canvas.toBlob(function(blob) {
+                const url = URL.createObjectURL(blob);
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = size === 32 ? 'favicon.png' : `tusk-favicon-${size}x${size}.png`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+            }, 'image/png');
+        }
+    </script>
+</body>
+</html>

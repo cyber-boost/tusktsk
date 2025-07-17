@@ -1,0 +1,76 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="sdkGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4ECDC4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#FF6B6B;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Title -->
+  <text x="400" y="40" font-family="Arial, sans-serif" font-size="28" font-weight="bold" text-anchor="middle" fill="#1A1A1A">TuskLang SDK Architecture</text>
+  
+  <!-- PHP at top center -->
+  <g transform="translate(400, 100)">
+    <rect x="-50" y="-25" width="100" height="50" fill="#F8F9FA" stroke="#4ECDC4" stroke-width="3" rx="25"/>
+    <text x="0" y="5" font-family="monospace" font-size="16" font-weight="bold" text-anchor="middle" fill="#4ECDC4">PHP</text>
+    <text x="0" y="-40" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#1A1A1A">Core Engine</text>
+    <line x1="0" y1="25" x2="0" y2="100" stroke="#4ECDC4" stroke-width="3"/>
+  </g>
+  
+  <!-- Core TuskLang -->
+  <g transform="translate(400, 300)">
+    <circle cx="0" cy="0" r="80" fill="#F8F9FA" stroke="url(#sdkGradient)" stroke-width="4"/>
+    <text x="0" y="0" font-family="Arial, sans-serif" font-size="18" font-weight="bold" text-anchor="middle" fill="#1A1A1A">TuskLang</text>
+    <text x="0" y="20" font-family="Arial, sans-serif" font-size="14" text-anchor="middle" fill="#4ECDC4">Parser/Engine</text>
+  </g>
+  
+  <!-- SDK Languages -->
+  <!-- JavaScript -->
+  <g transform="translate(200, 200)">
+    <rect x="-50" y="-25" width="100" height="50" fill="#F8F9FA" stroke="#FFE66D" stroke-width="2" rx="25"/>
+    <text x="0" y="5" font-family="monospace" font-size="14" text-anchor="middle" fill="#FFE66D">JavaScript</text>
+    <line x1="30" y1="25" x2="120" y2="60" stroke="#FFE66D" stroke-width="2" opacity="0.5"/>
+  </g>
+  
+  <!-- Python -->
+  <g transform="translate(600, 200)">
+    <rect x="-50" y="-25" width="100" height="50" fill="#F8F9FA" stroke="#4ECDC4" stroke-width="2" rx="25"/>
+    <text x="0" y="5" font-family="monospace" font-size="14" text-anchor="middle" fill="#4ECDC4">Python</text>
+    <line x1="-30" y1="25" x2="-120" y2="60" stroke="#4ECDC4" stroke-width="2" opacity="0.5"/>
+  </g>
+  
+  <!-- Go -->
+  <g transform="translate(150, 350)">
+    <rect x="-50" y="-25" width="100" height="50" fill="#F8F9FA" stroke="#FF6B6B" stroke-width="2" rx="25"/>
+    <text x="0" y="5" font-family="monospace" font-size="14" text-anchor="middle" fill="#FF6B6B">Go</text>
+    <line x1="50" y1="0" x2="170" y2="0" stroke="#FF6B6B" stroke-width="2" opacity="0.5"/>
+  </g>
+  
+  <!-- Rust -->
+  <g transform="translate(650, 350)">
+    <rect x="-50" y="-25" width="100" height="50" fill="#F8F9FA" stroke="#FFE66D" stroke-width="2" rx="25"/>
+    <text x="0" y="5" font-family="monospace" font-size="14" text-anchor="middle" fill="#FFE66D">Rust</text>
+    <line x1="-50" y1="0" x2="-170" y2="0" stroke="#FFE66D" stroke-width="2" opacity="0.5"/>
+  </g>
+  
+  <!-- Ruby (moved to where PHP was) -->
+  <g transform="translate(200, 450)">
+    <rect x="-50" y="-25" width="100" height="50" fill="#F8F9FA" stroke="#FF6B6B" stroke-width="2" rx="25"/>
+    <text x="0" y="5" font-family="monospace" font-size="14" text-anchor="middle" fill="#FF6B6B">Ruby</text>
+    <line x1="30" y1="-25" x2="150" y2="-100" stroke="#FF6B6B" stroke-width="2" opacity="0.5"/>
+  </g>
+  
+  <!-- Java -->
+  <g transform="translate(600, 450)">
+    <rect x="-50" y="-25" width="100" height="50" fill="#F8F9FA" stroke="#FFE66D" stroke-width="2" rx="25"/>
+    <text x="0" y="5" font-family="monospace" font-size="14" text-anchor="middle" fill="#FFE66D">Java</text>
+    <line x1="-30" y1="-25" x2="-150" y2="-100" stroke="#FFE66D" stroke-width="2" opacity="0.5"/>
+  </g>
+  
+  <!-- C# -->
+  <g transform="translate(400, 500)">
+    <rect x="-50" y="-25" width="100" height="50" fill="#F8F9FA" stroke="#4ECDC4" stroke-width="2" rx="25"/>
+    <text x="0" y="5" font-family="monospace" font-size="14" text-anchor="middle" fill="#4ECDC4">C#</text>
+    <line x1="0" y1="-25" x2="0" y2="-125" stroke="#4ECDC4" stroke-width="2" opacity="0.5"/>
+  </g>
+</svg> 

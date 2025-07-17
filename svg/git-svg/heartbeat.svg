@@ -1,0 +1,37 @@
+<svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="heartbeatGradient" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#FFE66D;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#4ECDC4;stop-opacity:1" />
+    </linearGradient>
+  </defs>
+  
+  <!-- Config file representation -->
+  <g transform="translate(400, 200)">
+    <rect x="-150" y="-100" width="300" height="200" fill="#F8F9FA" stroke="#4ECDC4" stroke-width="2" rx="10"/>
+    
+    <!-- Code lines -->
+    <line x1="-120" y1="-70" x2="-60" y2="-70" stroke="#FF6B6B" stroke-width="2"/>
+    <line x1="-50" y1="-70" x2="20" y2="-70" stroke="#4ECDC4" stroke-width="2"/>
+    <line x1="30" y1="-70" x2="80" y2="-70" stroke="#FFE66D" stroke-width="2"/>
+    
+    <line x1="-120" y1="-40" x2="-40" y2="-40" stroke="#4ECDC4" stroke-width="2"/>
+    <line x1="-30" y1="-40" x2="60" y2="-40" stroke="#FF6B6B" stroke-width="2"/>
+    
+    <line x1="-120" y1="-10" x2="-70" y2="-10" stroke="#FFE66D" stroke-width="2"/>
+    <line x1="-60" y1="-10" x2="40" y2="-10" stroke="#4ECDC4" stroke-width="2"/>
+    
+    <!-- Heartbeat line -->
+    <path d="M -200 0 L -150 0 L -140 -30 L -130 40 L -120 -50 L -110 60 L -100 -40 L -90 30 L -80 0 L 80 0 L 90 -30 L 100 40 L 110 -50 L 120 60 L 130 -40 L 140 30 L 150 0 L 200 0" 
+          fill="none" stroke="url(#heartbeatGradient)" stroke-width="3">
+      <animate attributeName="opacity" values="0.3;1;0.3" dur="1.5s" repeatCount="indefinite"/>
+    </path>
+    
+    <!-- Title -->
+    <text x="0" y="-130" font-family="Arial, sans-serif" font-size="32" font-weight="bold" text-anchor="middle" fill="#1A1A1A">Configuration with a Heartbeat</text>
+    
+    <!-- Subtitle -->
+    <text x="0" y="150" font-family="Arial, sans-serif" font-size="18" text-anchor="middle" fill="#4ECDC4">Alive • Intelligent • Connected</text>
+  </g>
+</svg>

@@ -1,0 +1,187 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<svg xmlns="http://www.w3.org/2000/svg" xmlns:xlink="http://www.w3.org/1999/xlink" width="520" height="320" viewBox="0 0 520 320">
+  <title>TuskLang SDK Badge Tables - Comparison</title>
+  <desc>Side-by-side comparison of 75x75 and 50x50 badge tables</desc>
+  
+  <defs>
+    <!-- Shared gradient definitions -->
+    <linearGradient id="badge-gradient-comp" gradientUnits="userSpaceOnUse" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" style="stop-color:rgb(21.568627%,46.27451%,67.058824%);stop-opacity:1;"/>
+      <stop offset="0.5" style="stop-color:rgb(100%,83.137255%,23.137255%);stop-opacity:1;"/>
+      <stop offset="1" style="stop-color:rgb(18.823529%,41.176471%,59.607843%);stop-opacity:1;"/>
+    </linearGradient>
+    
+    <!-- Shared filters -->
+    <filter id="alpha-comp" filterUnits="objectBoundingBox" x="0%" y="0%" width="100%" height="100%">
+      <feColorMatrix type="matrix" in="SourceGraphic" values="0 0 0 0 1 0 0 0 0 1 0 0 0 0 1 0 0 0 1 0"/>
+    </filter>
+    
+    <!-- Badge Template Universal -->
+    <g id="badge-universal">
+      <mask id="mask-universal">
+        <g filter="url(#alpha-comp)">
+          <rect x="0" y="0" width="100" height="100" style="fill:rgb(0%,0%,0%);fill-opacity:0.301961;stroke:none;"/>
+        </g>
+      </mask>
+      
+      <g mask="url(#mask-universal)">
+        <circle cx="50" cy="50" r="45" style="fill:none;stroke-width:3;stroke:url(#badge-gradient-comp);"/>
+      </g>
+      
+      <rect x="15" y="15" width="70" height="70" rx="10" style="fill:rgb(16.470589%,16.470589%,24.313726%);fill-opacity:1;stroke-width:2;stroke:url(#badge-gradient-comp);"/>
+      
+      <!-- Smile curves -->
+      <mask id="mask-smile">
+        <g filter="url(#alpha-comp)">
+          <rect x="0" y="0" width="100" height="100" style="fill:rgb(0%,0%,0%);fill-opacity:0.698039;stroke:none;"/>
+        </g>
+      </mask>
+      
+      <g mask="url(#mask-smile)">
+        <path style="fill:none;stroke-width:2;stroke:rgb(21.568628%,46.27451%,67.058825%);stroke-opacity:1;" d="M 30 25 C 40 15 60 15 70 25"/>
+        <path style="fill:none;stroke-width:2;stroke:rgb(100%,83.137256%,23.137255%);stroke-opacity:1;" d="M 30 75 C 40 85 60 85 70 75"/>
+      </g>
+    </g>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="520" height="320" fill="#f0f2f5"/>
+  
+  <!-- Title labels -->
+  <text x="150" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">75x75 Badge Table</text>
+  <text x="410" y="25" text-anchor="middle" font-family="Arial, sans-serif" font-size="14" font-weight="bold" fill="#333">50x50 Badge Table</text>
+  
+  <!-- 75x75 Table Container -->
+  <g transform="translate(10, 40)">
+    <rect width="280" height="270" fill="#ffffff" stroke="#ddd" stroke-width="1" rx="5"/>
+    
+    <!-- Grid -->
+    <g stroke="#e9ecef" stroke-width="0.5" transform="translate(10, 10)">
+      <line x1="85" y1="0" x2="85" y2="250"/>
+      <line x1="170" y1="0" x2="170" y2="250"/>
+      <line x1="0" y1="83.33" x2="255" y2="83.33"/>
+      <line x1="0" y1="166.67" x2="255" y2="166.67"/>
+    </g>
+    
+    <!-- Badges 75x75 -->
+    <g transform="translate(22.5, 22.5) scale(0.75)">
+      <use xlink:href="#badge-universal"/>
+      <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffd43b">BASH</text>
+      <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="12" fill="#3776ac">.tsk</text>
+    </g>
+    
+    <g transform="translate(107.5, 22.5) scale(0.75)">
+      <use xlink:href="#badge-universal"/>
+      <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffd43b">GO</text>
+      <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="12" fill="#3776ac">.tsk</text>
+    </g>
+    
+    <g transform="translate(192.5, 22.5) scale(0.75)">
+      <use xlink:href="#badge-universal"/>
+      <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffd43b">JAVA</text>
+      <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="12" fill="#3776ac">.tsk</text>
+    </g>
+    
+    <g transform="translate(22.5, 105.83) scale(0.75)">
+      <use xlink:href="#badge-universal"/>
+      <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffd43b">JS</text>
+      <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="12" fill="#3776ac">.tsk</text>
+    </g>
+    
+    <g transform="translate(107.5, 105.83) scale(0.75)">
+      <use xlink:href="#badge-universal"/>
+      <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffd43b">PHP</text>
+      <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="12" fill="#3776ac">.tsk</text>
+    </g>
+    
+    <g transform="translate(192.5, 105.83) scale(0.75)">
+      <use xlink:href="#badge-universal"/>
+      <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffd43b">PY</text>
+      <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="12" fill="#3776ac">.tsk</text>
+    </g>
+    
+    <g transform="translate(22.5, 189.17) scale(0.75)">
+      <use xlink:href="#badge-universal"/>
+      <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffd43b">RUBY</text>
+      <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="12" fill="#3776ac">.tsk</text>
+    </g>
+    
+    <g transform="translate(107.5, 189.17) scale(0.75)">
+      <use xlink:href="#badge-universal"/>
+      <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffd43b">RUST</text>
+      <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="12" fill="#3776ac">.tsk</text>
+    </g>
+    
+    <g transform="translate(192.5, 189.17)">
+      <rect width="75" height="75" fill="#f8f9fa" stroke="#dee2e6" stroke-width="1" rx="5"/>
+      <text x="37.5" y="42.5" text-anchor="middle" font-family="Arial, sans-serif" font-size="12" fill="#868e96">C#</text>
+    </g>
+  </g>
+  
+  <!-- 50x50 Table Container -->
+  <g transform="translate(300, 40)">
+    <rect width="210" height="210" fill="#ffffff" stroke="#ddd" stroke-width="1" rx="5"/>
+    
+    <!-- Grid -->
+    <g stroke="#e9ecef" stroke-width="0.5" transform="translate(10, 10)">
+      <line x1="63.33" y1="0" x2="63.33" y2="190"/>
+      <line x1="126.67" y1="0" x2="126.67" y2="190"/>
+      <line x1="0" y1="63.33" x2="190" y2="63.33"/>
+      <line x1="0" y1="126.67" x2="190" y2="126.67"/>
+    </g>
+    
+    <!-- Badges 50x50 -->
+    <g transform="translate(20, 20) scale(0.5)">
+      <use xlink:href="#badge-universal"/>
+      <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffd43b">BASH</text>
+      <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="12" fill="#3776ac">.tsk</text>
+    </g>
+    
+    <g transform="translate(83.33, 20) scale(0.5)">
+      <use xlink:href="#badge-universal"/>
+      <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffd43b">GO</text>
+      <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="12" fill="#3776ac">.tsk</text>
+    </g>
+    
+    <g transform="translate(146.67, 20) scale(0.5)">
+      <use xlink:href="#badge-universal"/>
+      <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffd43b">JAVA</text>
+      <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="12" fill="#3776ac">.tsk</text>
+    </g>
+    
+    <g transform="translate(20, 83.33) scale(0.5)">
+      <use xlink:href="#badge-universal"/>
+      <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffd43b">JS</text>
+      <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="12" fill="#3776ac">.tsk</text>
+    </g>
+    
+    <g transform="translate(83.33, 83.33) scale(0.5)">
+      <use xlink:href="#badge-universal"/>
+      <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffd43b">PHP</text>
+      <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="12" fill="#3776ac">.tsk</text>
+    </g>
+    
+    <g transform="translate(146.67, 83.33) scale(0.5)">
+      <use xlink:href="#badge-universal"/>
+      <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffd43b">PY</text>
+      <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="12" fill="#3776ac">.tsk</text>
+    </g>
+    
+    <g transform="translate(20, 146.67) scale(0.5)">
+      <use xlink:href="#badge-universal"/>
+      <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffd43b">RUBY</text>
+      <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="12" fill="#3776ac">.tsk</text>
+    </g>
+    
+    <g transform="translate(83.33, 146.67) scale(0.5)">
+      <use xlink:href="#badge-universal"/>
+      <text x="50" y="57" text-anchor="middle" font-family="Arial, sans-serif" font-size="20" font-weight="bold" fill="#ffd43b">RUST</text>
+      <text x="50" y="75" text-anchor="middle" font-family="monospace" font-size="12" fill="#3776ac">.tsk</text>
+    </g>
+    
+    <g transform="translate(146.67, 146.67)">
+      <rect width="50" height="50" fill="#f8f9fa" stroke="#dee2e6" stroke-width="0.8" rx="3.33"/>
+      <text x="25" y="28.33" text-anchor="middle" font-family="Arial, sans-serif" font-size="10" fill="#868e96">C#</text>
+    </g>
+  </g>
+</svg>
