@@ -1,0 +1,688 @@
+<h1>Reactive Programming</h1>
+
+<h2>Reactive Patterns with TuskLang in Bash</h2>
+<p>Implement reactive programming patterns including observables, computed values, and event-driven updates in bash.</p>
+
+<h3>reactive.tsk</h3>
+<pre>
+# Reactive state management
+state {
+    # Observable values
+    counter: @observable(0)
+    user: @observable(null)
+    theme: @observable("light")
+    
+    # Computed values
+    doubled: @computed(() => @state.counter * 2)
+    greeting: @computed(() => @state.user ? "Hello, ${@state.user.name}!" : "Welcome!")
+    isDark: @computed(() => @state.theme == "dark")
+    
+    # Watchers
+    counterWatcher: @watch(@state.counter, (newVal, oldVal) => {
+        @log("Counter changed from ${oldVal} to ${newVal}")
+        if (newVal > 10) {
+            @alert("Counter is getting high!")
+        }
+    })
+    
+    themeWatcher: @watch(@state.theme, (theme) => {
+        @updateCSS("theme", theme)
+        @savePreference("theme", theme)
+    })
+}
+
+# Reactive collections
+collections {
+    # Observable array
+    todos: @observableArray([])
+    
+    # Computed properties
+    completedTodos: @computed(() => 
+        @collections.todos.filter(todo => todo.completed)
+    )
+    
+    pendingCount: @computed(() => 
+        @collections.todos.filter(todo => !todo.completed).length
+    )
+    
+    # Array mutations
+    addTodo: @action((text) => {
+        @collections.todos.push({
+            id: @uuid(),
+            text: text,
+            completed: false,
+            created: @now()
+        })
+    })
+    
+    toggleTodo: @action((id) => {
+        const todo = @collections.todos.find(t => t.id == id)
+        if (todo) {
+            todo.completed = !todo.completed
+        }
+    })
+}
+
+# Event streams
+streams {
+    # Create event stream
+    clicks: @stream()
+    inputs: @stream()
+    
+    # Stream transformations
+    doubleClicks: @streams.clicks
+        .buffer(500)
+        .filter(clicks => clicks.length == 2)
+    
+    searchQuery: @streams.inputs
+        .debounce(300)
+        .map(event => event.target.value)
+        .distinctUntilChanged()
+    
+    # Combine streams
+    combined: @combineLatest(
+        @streams.clicks,
+        @streams.inputs,
+        (click, input) => ({ click, input })
+    )
+}
+
+# Reactive effects
+effects {
+    # Auto-save effect
+    autoSave: @effect(() => {
+        const data = {
+            counter: @state.counter,
+            todos: @collections.todos,
+            theme: @state.theme
+        }
+        @localStorage.set("app-state", @json(data))
+    })
+    
+    # API sync effect
+    syncEffect: @effect(() => {
+        if (@state.user) {
+            @debounce(1000, () => {
+                @api.post("/sync", {
+                    userId: @state.user.id,
+                    data: @collections.todos
+                })
+            })
+        }
+    })
+    
+    # Cleanup effects
+    timerEffect: @effect(() => {
+        const timer = @setInterval(() => {
+            @state.counter++
+        }, 1000)
+        
+        return () => @clearInterval(timer)
+    })
+}
+
+# Reactive bindings
+bindings {
+    # Two-way data binding
+    inputs: {
+        username: @bind(@state.user.name),
+        email: @bind(@state.user.email, {
+            validate: @validators.email,
+            transform: @transformers.lowercase
+        })
+    }
+    
+    # Conditional rendering
+    visibility: {
+        adminPanel: @show(@state.user.role == "admin"),
+        darkMode: @show(@state.isDark),
+        loading: @show(@state.isLoading)
+    }
+    
+    # Class bindings
+    classes: {
+        button: @class({
+            "btn": true,
+            "btn-primary": @state.theme == "light",
+            "btn-dark": @state.theme == "dark",
+            "btn-disabled": @state.isLoading
+        })
+    }
+}
+</pre>
+
+<h3>Bash Reactive Implementation</h3>
+<pre>
+#!/bin/bash
+
+# TuskLang Reactive Programming Library
+
+# Global reactive state
+declare -A REACTIVE_OBSERVABLES
+declare -A REACTIVE_COMPUTED
+declare -A REACTIVE_WATCHERS
+declare -A REACTIVE_EFFECTS
+declare -A REACTIVE_STREAMS
+declare -A REACTIVE_SUBSCRIPTIONS
+
+# Observable implementation
+tusk_observable() {
+    local name="$1"
+    local initial_value="$2"
+    
+    # Store initial value
+    REACTIVE_OBSERVABLES[$name]="$initial_value"
+    REACTIVE_WATCHERS[$name]=""
+    
+    # Create getter/setter functions
+    eval "tusk_get_$name() { echo \"\${REACTIVE_OBSERVABLES[$name]}\"; }"
+    eval "tusk_set_$name() { 
+        local old_val=\"\${REACTIVE_OBSERVABLES[$name]}\"
+        local new_val=\"\$1\"
+        REACTIVE_OBSERVABLES[$name]=\"\$new_val\"
+        tusk_notify_watchers '$name' \"\$new_val\" \"\$old_val\"
+        tusk_update_computed '$name'
+    }"
+}
+
+# Observable array implementation
+tusk_observable_array() {
+    local name="$1"
+    shift
+    local initial_values=("$@")
+    
+    # Store as JSON array
+    REACTIVE_OBSERVABLES[$name]=$(printf '%s\n' "${initial_values[@]}" | jq -R . | jq -s .)
+    
+    # Array methods
+    eval "tusk_${name}_push() {
+        local item=\"\$1\"
+        local current=\$(tusk_get_$name)
+        REACTIVE_OBSERVABLES[$name]=\$(echo \"\$current\" | jq --arg item \"\$item\" '. += [\$item]')
+        tusk_notify_watchers '$name' \"\${REACTIVE_OBSERVABLES[$name]}\" \"\$current\"
+    }"
+    
+    eval "tusk_${name}_filter() {
+        local filter=\"\$1\"
+        local current=\$(tusk_get_$name)
+        echo \"\$current\" | jq -c \"map(select(\$filter))\"
+    }"
+    
+    eval "tusk_${name}_map() {
+        local mapper=\"\$1\"
+        local current=\$(tusk_get_$name)
+        echo \"\$current\" | jq -c \"map(\$mapper)\"
+    }"
+}
+
+# Computed values
+tusk_computed() {
+    local name="$1"
+    local computation="$2"
+    
+    REACTIVE_COMPUTED[$name]="$computation"
+    
+    # Create getter
+    eval "tusk_get_$name() {
+        eval \"\${REACTIVE_COMPUTED[$name]}\"
+    }"
+    
+    # Initial computation
+    tusk_update_computed "$name"
+}
+
+# Update computed values
+tusk_update_computed() {
+    local trigger="$1"
+    
+    # Update all computed values that might depend on this trigger
+    for computed_name in "${!REACTIVE_COMPUTED[@]}"; do
+        local computation="${REACTIVE_COMPUTED[$computed_name]}"
+        
+        # Simple dependency detection (checks if computation references the trigger)
+        if [[ "$computation" =~ $trigger ]]; then
+            # Re-compute value
+            local old_val="${REACTIVE_OBSERVABLES[computed_$computed_name]}"
+            local new_val=$(eval "$computation")
+            REACTIVE_OBSERVABLES[computed_$computed_name]="$new_val"
+            
+            # Notify watchers of computed value change
+            tusk_notify_watchers "computed_$computed_name" "$new_val" "$old_val"
+        fi
+    done
+}
+
+# Watchers
+tusk_watch() {
+    local observable="$1"
+    local callback="$2"
+    
+    # Generate unique watcher ID
+    local watcher_id=$(date +%s%N)
+    
+    # Add to watchers list
+    if [ -z "${REACTIVE_WATCHERS[$observable]}" ]; then
+        REACTIVE_WATCHERS[$observable]="$watcher_id:$callback"
+    else
+        REACTIVE_WATCHERS[$observable]="${REACTIVE_WATCHERS[$observable]}|$watcher_id:$callback"
+    fi
+    
+    # Return watcher ID for unwatch
+    echo "$watcher_id"
+}
+
+# Notify watchers
+tusk_notify_watchers() {
+    local observable="$1"
+    local new_val="$2"
+    local old_val="$3"
+    
+    # Get watchers for this observable
+    local watchers="${REACTIVE_WATCHERS[$observable]}"
+    [ -z "$watchers" ] && return
+    
+    # Execute each watcher
+    IFS='|' read -ra watcher_list <<< "$watchers"
+    for watcher in "${watcher_list[@]}"; do
+        local callback="${watcher#*:}"
+        eval "$callback '$new_val' '$old_val'"
+    done
+}
+
+# Effects (auto-run functions)
+tusk_effect() {
+    local name="$1"
+    local effect_fn="$2"
+    
+    REACTIVE_EFFECTS[$name]="$effect_fn"
+    
+    # Run effect immediately
+    eval "$effect_fn"
+    
+    # TODO: Auto-rerun when dependencies change
+}
+
+# Event streams
+tusk_stream() {
+    local name="$1"
+    
+    REACTIVE_STREAMS[$name]=""
+    
+    # Create emit function
+    eval "tusk_emit_$name() {
+        local event=\"\$1\"
+        local timestamp=\$(date +%s%N)
+        
+        # Add to stream
+        if [ -z \"\${REACTIVE_STREAMS[$name]}\" ]; then
+            REACTIVE_STREAMS[$name]=\"\$timestamp:\$event\"
+        else
+            REACTIVE_STREAMS[$name]=\"\${REACTIVE_STREAMS[$name]}|\$timestamp:\$event\"
+        fi
+        
+        # Notify subscribers
+        tusk_notify_stream_subscribers '$name' \"\$event\"
+    }"
+}
+
+# Stream operators
+tusk_stream_debounce() {
+    local stream="$1"
+    local delay="$2"
+    local output_stream="${3:-${stream}_debounced}"
+    
+    # Create debounced stream
+    tusk_stream "$output_stream"
+    
+    # Debounce logic
+    local timer_var="DEBOUNCE_TIMER_$stream"
+    
+    tusk_stream_subscribe "$stream" "
+        [ -n \"\${!timer_var}\" ] && kill \${!timer_var} 2>/dev/null
+        (
+            sleep $delay
+            tusk_emit_$output_stream \"\$1\"
+        ) &
+        export $timer_var=\$!
+    "
+}
+
+tusk_stream_filter() {
+    local stream="$1"
+    local filter_fn="$2"
+    local output_stream="${3:-${stream}_filtered}"
+    
+    tusk_stream "$output_stream"
+    
+    tusk_stream_subscribe "$stream" "
+        if $filter_fn \"\$1\"; then
+            tusk_emit_$output_stream \"\$1\"
+        fi
+    "
+}
+
+tusk_stream_map() {
+    local stream="$1"
+    local map_fn="$2"
+    local output_stream="${3:-${stream}_mapped}"
+    
+    tusk_stream "$output_stream"
+    
+    tusk_stream_subscribe "$stream" "
+        local mapped=\$($map_fn \"\$1\")
+        tusk_emit_$output_stream \"\$mapped\"
+    "
+}
+
+# Stream subscription
+tusk_stream_subscribe() {
+    local stream="$1"
+    local handler="$2"
+    
+    local sub_id=$(date +%s%N)
+    
+    if [ -z "${REACTIVE_SUBSCRIPTIONS[$stream]}" ]; then
+        REACTIVE_SUBSCRIPTIONS[$stream]="$sub_id:$handler"
+    else
+        REACTIVE_SUBSCRIPTIONS[$stream]="${REACTIVE_SUBSCRIPTIONS[$stream]}|$sub_id:$handler"
+    fi
+    
+    echo "$sub_id"
+}
+
+tusk_notify_stream_subscribers() {
+    local stream="$1"
+    local event="$2"
+    
+    local subscribers="${REACTIVE_SUBSCRIPTIONS[$stream]}"
+    [ -z "$subscribers" ] && return
+    
+    IFS='|' read -ra sub_list <<< "$subscribers"
+    for sub in "${sub_list[@]}"; do
+        local handler="${sub#*:}"
+        eval "$handler '$event'"
+    done
+}
+
+# Two-way binding
+tusk_bind() {
+    local element="$1"
+    local observable="$2"
+    local options="$3"
+    
+    # Set initial value
+    local initial_val=$(tusk_get_$observable)
+    echo "[$element].value = '$initial_val'"
+    
+    # Watch for changes
+    tusk_watch "$observable" "echo '[$element].value = \$1'"
+    
+    # Return input handler
+    echo "[$element].oninput = () => tusk_set_$observable([$element].value)"
+}
+
+# Reactive utilities
+tusk_debounce() {
+    local delay="$1"
+    local func="$2"
+    shift 2
+    
+    local timer_var="DEBOUNCE_${RANDOM}"
+    
+    [ -n "${!timer_var}" ] && kill ${!timer_var} 2>/dev/null
+    
+    (
+        sleep "$delay"
+        $func "$@"
+    ) &
+    
+    export $timer_var=$!
+}
+
+tusk_throttle() {
+    local interval="$1"
+    local func="$2"
+    shift 2
+    
+    local last_run_var="THROTTLE_LAST_${func}"
+    local current_time=$(date +%s)
+    local last_run=${!last_run_var:-0}
+    
+    if [ $((current_time - last_run)) -ge "$interval" ]; then
+        export $last_run_var=$current_time
+        $func "$@"
+    fi
+}
+
+# Batch updates
+declare -a REACTIVE_BATCH_QUEUE
+REACTIVE_BATCH_MODE=0
+
+tusk_batch_updates() {
+    local updates="$1"
+    
+    REACTIVE_BATCH_MODE=1
+    REACTIVE_BATCH_QUEUE=()
+    
+    # Execute updates
+    eval "$updates"
+    
+    REACTIVE_BATCH_MODE=0
+    
+    # Process batched updates
+    for update in "${REACTIVE_BATCH_QUEUE[@]}"; do
+        eval "$update"
+    done
+}
+
+# Reactive store pattern
+tusk_create_store() {
+    local name="$1"
+    local initial_state="$2"
+    local reducers="$3"
+    
+    # Create state observable
+    tusk_observable "${name}_state" "$initial_state"
+    
+    # Create dispatch function
+    eval "tusk_${name}_dispatch() {
+        local action_type=\"\$1\"
+        local payload=\"\$2\"
+        
+        local current_state=\$(tusk_get_${name}_state)
+        local reducer=\"\${reducers[\$action_type]}\"
+        
+        if [ -n \"\$reducer\" ]; then
+            local new_state=\$(\$reducer \"\$current_state\" \"\$payload\")
+            tusk_set_${name}_state \"\$new_state\"
+        fi
+    }"
+    
+    # Create selector functions
+    eval "tusk_${name}_select() {
+        local selector=\"\$1\"
+        local state=\$(tusk_get_${name}_state)
+        echo \"\$state\" | jq -r \"\$selector\"
+    }"
+}
+</pre>
+
+<h3>Usage Example</h3>
+<pre>
+#!/bin/bash
+
+# Load reactive library
+source /usr/local/lib/tusklang-reactive.sh
+
+echo "=== Reactive State Management ==="
+
+# Create observables
+tusk_observable "counter" "0"
+tusk_observable "username" "guest"
+tusk_observable "theme" "light"
+
+# Create computed values
+tusk_computed "doubled" 'echo $(($(tusk_get_counter) * 2))'
+tusk_computed "greeting" '[[ "$(tusk_get_username)" != "guest" ]] && echo "Hello, $(tusk_get_username)!" || echo "Welcome, guest!"'
+tusk_computed "isDark" '[[ "$(tusk_get_theme)" == "dark" ]] && echo "true" || echo "false"'
+
+# Set up watchers
+echo -e "\n=== Setting up watchers ==="
+
+tusk_watch "counter" 'echo "Counter changed: $2 -> $1"'
+tusk_watch "doubled" 'echo "Doubled value is now: $1"'
+tusk_watch "theme" 'echo "Theme changed to: $1"'
+
+# Test reactive updates
+echo -e "\n=== Testing reactive updates ==="
+
+echo "Setting counter to 5..."
+tusk_set_counter 5
+
+echo -e "\nSetting username to 'John'..."
+tusk_set_username "John"
+echo "Greeting: $(tusk_get_greeting)"
+
+echo -e "\nSetting theme to 'dark'..."
+tusk_set_theme "dark"
+echo "Is dark mode: $(tusk_get_isDark)"
+
+# Observable arrays
+echo -e "\n=== Observable Arrays ==="
+
+tusk_observable_array "todos" '{"text":"Learn TuskLang","done":false}' '{"text":"Build app","done":false}'
+
+echo "Initial todos:"
+tusk_get_todos | jq '.'
+
+echo -e "\nAdding new todo..."
+tusk_todos_push '{"text":"Deploy to production","done":false}'
+tusk_get_todos | jq '.'
+
+echo -e "\nFiltering completed todos..."
+tusk_todos_filter '.done == true' | jq '.'
+
+# Event streams
+echo -e "\n=== Event Streams ==="
+
+# Create click stream
+tusk_stream "clicks"
+
+# Create debounced search stream
+tusk_stream "search"
+tusk_stream_debounce "search" 0.5 "search_debounced"
+
+# Subscribe to streams
+tusk_stream_subscribe "clicks" 'echo "Click event: $1"'
+tusk_stream_subscribe "search_debounced" 'echo "Searching for: $1"'
+
+# Emit events
+echo -e "\nEmitting click events..."
+tusk_emit_clicks "button1"
+tusk_emit_clicks "button2"
+
+echo -e "\nEmitting search events (will be debounced)..."
+tusk_emit_search "t"
+tusk_emit_search "tu"
+tusk_emit_search "tus"
+tusk_emit_search "tusk"
+sleep 1  # Wait for debounce
+
+# Reactive effects
+echo -e "\n=== Reactive Effects ==="
+
+# Auto-save effect
+tusk_effect "autosave" '
+    echo "Auto-saving state..."
+    cat > state.json <<EOF
+{
+    "counter": $(tusk_get_counter),
+    "username": "$(tusk_get_username)",
+    "theme": "$(tusk_get_theme)"
+}
+EOF
+'
+
+# Update state and see effect
+tusk_set_counter 10
+
+# Batch updates
+echo -e "\n=== Batch Updates ==="
+
+echo "Performing batch updates..."
+tusk_batch_updates '
+    tusk_set_counter 20
+    tusk_set_username "Alice"
+    tusk_set_theme "light"
+'
+
+# Store pattern
+echo -e "\n=== Store Pattern ==="
+
+# Define reducers
+declare -A todo_reducers
+todo_reducers[ADD_TODO]='
+    local state="$1"
+    local text="$2"
+    echo "$state" | jq --arg text "$text" ". + [{id: (length + 1), text: \$text, done: false}]"
+'
+todo_reducers[TOGGLE_TODO]='
+    local state="$1"
+    local id="$2"
+    echo "$state" | jq --arg id "$id" "map(if .id == (\$id | tonumber) then .done = (.done | not) else . end)"
+'
+
+# Create store
+tusk_create_store "todo" "[]" todo_reducers
+
+# Watch store changes
+tusk_watch "todo_state" 'echo "Todo state updated:"; echo "$1" | jq .'
+
+# Dispatch actions
+echo -e "\nDispatching ADD_TODO..."
+tusk_todo_dispatch "ADD_TODO" "Learn reactive programming"
+
+echo -e "\nDispatching ADD_TODO..."
+tusk_todo_dispatch "ADD_TODO" "Build reactive app"
+
+echo -e "\nCurrent todos:"
+tusk_todo_select "." | jq '.'
+
+echo -e "\nToggling first todo..."
+tusk_todo_dispatch "TOGGLE_TODO" "1"
+
+# Advanced reactive patterns
+echo -e "\n=== Advanced Patterns ==="
+
+# Combine multiple observables
+combine_user_theme() {
+    local user=$(tusk_get_username)
+    local theme=$(tusk_get_theme)
+    echo "User $user prefers $theme theme"
+}
+
+tusk_computed "userPreference" 'combine_user_theme'
+tusk_watch "userPreference" 'echo "Preference: $1"'
+
+# Trigger combined update
+tusk_set_username "Bob"
+
+# Throttled function
+echo -e "\n=== Throttling ==="
+
+throttled_log() {
+    echo "Throttled log: $1"
+}
+
+for i in {1..5}; do
+    tusk_throttle 2 throttled_log "Message $i"
+    sleep 0.5
+done
+
+# Cleanup
+rm -f state.json
+
+echo -e "\n=== Reactive system demonstration complete ==="
+</pre>
+
+<p>TuskLang's reactive programming in bash enables observables, computed values, watchers, event streams, and state management patterns for building reactive shell applications.</p>

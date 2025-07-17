@@ -1,0 +1,411 @@
+<h1>Advanced String Features</h1>
+
+<h2>String Manipulation and Templates in TuskLang</h2>
+<p>TuskLang provides powerful string handling capabilities for JavaScript applications including templates, heredocs, and interpolation.</p>
+
+<h3>strings.tsk</h3>
+<pre>
+# Basic strings
+title: "Welcome to TuskLang"
+subtitle: 'JavaScript Edition'
+unquoted: SimpleString
+
+# Multiline strings
+description: "This is a multiline string
+that preserves line breaks and
+can span multiple lines"
+
+# Heredoc syntax
+html_template: &lt;&lt;&lt;HTML
+&lt;!DOCTYPE html&gt;
+&lt;html&gt;
+&lt;head&gt;
+    &lt;title&gt;{{title}}&lt;/title&gt;
+&lt;/head&gt;
+&lt;body&gt;
+    &lt;h1&gt;{{heading}}&lt;/h1&gt;
+    &lt;ul&gt;
+        {{#each items}}
+        &lt;li&gt;{{this}}&lt;/li&gt;
+        {{/each}}
+    &lt;/ul&gt;
+&lt;/body&gt;
+&lt;/html&gt;
+HTML
+
+# SQL template
+query_template: &lt;&lt;&lt;SQL
+SELECT 
+    u.id,
+    u.name,
+    u.email,
+    COUNT(o.id) as order_count,
+    SUM(o.total) as total_spent
+FROM users u
+LEFT JOIN orders o ON u.id = o.user_id
+WHERE u.created_at >= :start_date
+    AND u.created_at <= :end_date
+    {{#if status}}
+    AND u.status = :status
+    {{/if}}
+GROUP BY u.id, u.name, u.email
+ORDER BY total_spent DESC
+LIMIT :limit
+SQL
+
+# JavaScript code template
+component_template: &lt;&lt;&lt;JS
+import React from 'react';
+
+export const {{componentName}} = ({ {{props}} }) => {
+    {{#if hasState}}
+    const [state, setState] = useState({{defaultState}});
+    {{/if}}
+    
+    return (
+        &lt;div className="{{className}}"&gt;
+            {{content}}
+        &lt;/div&gt;
+    );
+};
+
+export default {{componentName}};
+JS
+
+# String with escape sequences
+escaped: "Line 1\nLine 2\tTabbed\r\nWindows line"
+quotes: "She said \"Hello\" and he replied 'Hi'"
+unicode: "Unicode: \u{1F600} \u{1F44D}"
+path: "C:\\Users\\Admin\\Documents\\file.txt"
+
+# Template strings with variables
+greeting: "Hello, ${name}!"
+url: "${protocol}://${host}:${port}${path}"
+message: "You have ${count} new ${count === 1 ? 'message' : 'messages'}"
+
+# Raw strings (no escaping)
+raw_regex: r"\d{3}-\d{3}-\d{4}"
+raw_path: r"C:\Users\Admin\Documents"
+
+# String concatenation
+full_name: @concat(first_name, " ", last_name)
+file_path: @join("/", ["home", "user", "documents", filename])
+</pre>
+
+<h3>JavaScript String Handler</h3>
+<pre>
+class StringTuskLang {
+    constructor() {
+        this.templates = new Map();
+        this.stringFunctions = new Map([
+            ['concat', (...args) => args.join('')],
+            ['join', (separator, parts) => parts.join(separator)],
+            ['upper', (str) => str.toUpperCase()],
+            ['lower', (str) => str.toLowerCase()],
+            ['trim', (str) => str.trim()],
+            ['replace', (str, search, replace) => str.replace(search, replace)],
+            ['split', (str, separator) => str.split(separator)],
+            ['substring', (str, start, end) => str.substring(start, end)],
+            ['repeat', (str, count) => str.repeat(count)]
+        ]);
+    }
+    
+    parse(content) {
+        const lines = content.split('\n');
+        const result = {};
+        let current = result;
+        let heredoc = null;
+        
+        for (let i = 0; i < lines.length; i++) {
+            const line = lines[i];
+            
+            // Handle heredoc collection
+            if (heredoc) {
+                if (line.trim() === heredoc.delimiter) {
+                    current[heredoc.key] = this.processHeredoc(heredoc.content, heredoc.type);
+                    heredoc = null;
+                } else {
+                    heredoc.content += line + '\n';
+                }
+                continue;
+            }
+            
+            // Check for heredoc start
+            const heredocMatch = line.match(/^(\w+):\s*<<<(\w+)$/);
+            if (heredocMatch) {
+                const [, key, delimiter] = heredocMatch;
+                heredoc = { key, delimiter, content: '', type: delimiter.toLowerCase() };
+                continue;
+            }
+            
+            // Regular parsing
+            this.parseLine(line, current, result);
+        }
+        
+        return this.processStrings(result);
+    }
+    
+    parseLine(line, current, root) {
+        const trimmed = line.trim();
+        if (!trimmed || trimmed.startsWith('#')) return;
+        
+        // Handle key-value pairs
+        const separator = trimmed.includes(':') ? ':' : '=';
+        const sepIndex = trimmed.indexOf(separator);
+        
+        if (sepIndex > 0) {
+            const key = trimmed.substring(0, sepIndex).trim();
+            const value = trimmed.substring(sepIndex + 1).trim();
+            current[key] = this.parseStringValue(value);
+        }
+    }
+    
+    parseStringValue(value) {
+        // Raw strings (r"...")
+        if (value.startsWith('r"') && value.endsWith('"')) {
+            return value.slice(2, -1);
+        }
+        
+        // Regular quoted strings
+        if ((value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'"))) {
+            return this.unescapeString(value.slice(1, -1));
+        }
+        
+        // Template strings with ${...}
+        if (value.includes('${')) {
+            return this.createTemplate(value);
+        }
+        
+        // Function calls
+        if (value.startsWith('@')) {
+            return this.parseStringFunction(value);
+        }
+        
+        // Default
+        return value;
+    }
+    
+    unescapeString(str) {
+        return str
+            .replace(/\\n/g, '\n')
+            .replace(/\\t/g, '\t')
+            .replace(/\\r/g, '\r')
+            .replace(/\\"/g, '"')
+            .replace(/\\'/g, "'")
+            .replace(/\\\\/g, '\\')
+            .replace(/\\u\{([0-9a-fA-F]+)\}/g, (match, hex) => 
+                String.fromCodePoint(parseInt(hex, 16)));
+    }
+    
+    createTemplate(template) {
+        return (context) => {
+            return template.replace(/\${([^}]+)}/g, (match, expr) => {
+                // Handle ternary operators
+                if (expr.includes('?')) {
+                    return this.evalTernary(expr, context);
+                }
+                
+                // Handle property access
+                return this.evalExpression(expr, context);
+            });
+        };
+    }
+    
+    evalExpression(expr, context) {
+        try {
+            // Create a safe evaluation context
+            const func = new Function(...Object.keys(context), `return ${expr}`);
+            return func(...Object.values(context));
+        } catch (e) {
+            return context[expr] || '';
+        }
+    }
+    
+    evalTernary(expr, context) {
+        const [condition, truePart, falsePart] = expr.split(/[?:]/);
+        const evalCondition = this.evalExpression(condition.trim(), context);
+        return evalCondition 
+            ? this.evalExpression(truePart.trim(), context)
+            : this.evalExpression(falsePart.trim(), context);
+    }
+    
+    parseStringFunction(value) {
+        const match = value.match(/@(\w+)\((.+)\)/);
+        if (!match) return value;
+        
+        const [, funcName, args] = match;
+        const func = this.stringFunctions.get(funcName);
+        
+        if (!func) return value;
+        
+        // Parse arguments
+        const parsedArgs = this.parseArgs(args);
+        return func(...parsedArgs);
+    }
+    
+    parseArgs(argsStr) {
+        // Simple argument parser
+        const args = [];
+        let current = '';
+        let inQuotes = false;
+        let quoteChar = '';
+        
+        for (let i = 0; i < argsStr.length; i++) {
+            const char = argsStr[i];
+            
+            if ((char === '"' || char === "'") && !inQuotes) {
+                inQuotes = true;
+                quoteChar = char;
+            } else if (char === quoteChar && inQuotes) {
+                inQuotes = false;
+                args.push(current);
+                current = '';
+                i++; // Skip comma
+            } else if (char === ',' && !inQuotes) {
+                if (current.trim()) {
+                    args.push(this.parseValue(current.trim()));
+                }
+                current = '';
+            } else {
+                current += char;
+            }
+        }
+        
+        if (current.trim()) {
+            args.push(this.parseValue(current.trim()));
+        }
+        
+        return args;
+    }
+    
+    parseValue(value) {
+        if ((value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'"))) {
+            return value.slice(1, -1);
+        }
+        if (/^\d+$/.test(value)) return parseInt(value);
+        if (value === 'true') return true;
+        if (value === 'false') return false;
+        if (value === 'null') return null;
+        if (value.startsWith('[') && value.endsWith(']')) {
+            return JSON.parse(value);
+        }
+        return value;
+    }
+    
+    processHeredoc(content, type) {
+        // Remove last newline
+        if (content.endsWith('\n')) {
+            content = content.slice(0, -1);
+        }
+        
+        // Create a template function for heredocs
+        return {
+            type: 'heredoc',
+            subtype: type,
+            content,
+            render: (data) => this.renderTemplate(content, data)
+        };
+    }
+    
+    renderTemplate(template, data) {
+        let result = template;
+        
+        // Simple variable replacement {{var}}
+        result = result.replace(/\{\{(\w+)\}\}/g, (match, key) => {
+            return data[key] !== undefined ? data[key] : match;
+        });
+        
+        // Conditional blocks {{#if condition}}...{{/if}}
+        result = result.replace(/\{\{#if\s+(\w+)\}\}([\s\S]*?)\{\{\/if\}\}/g, 
+            (match, condition, content) => {
+                return data[condition] ? content : '';
+            });
+        
+        // Each loops {{#each array}}...{{/each}}
+        result = result.replace(/\{\{#each\s+(\w+)\}\}([\s\S]*?)\{\{\/each\}\}/g,
+            (match, arrayName, content) => {
+                const array = data[arrayName];
+                if (!Array.isArray(array)) return '';
+                
+                return array.map(item => {
+                    return content.replace(/\{\{this\}\}/g, item);
+                }).join('');
+            });
+        
+        return result;
+    }
+    
+    processStrings(obj) {
+        const processed = {};
+        
+        for (const [key, value] of Object.entries(obj)) {
+            if (typeof value === 'function') {
+                // Template function
+                processed[key] = value;
+            } else if (value && typeof value === 'object' && value.type === 'heredoc') {
+                // Heredoc object
+                processed[key] = value;
+            } else if (typeof value === 'object') {
+                // Recurse into objects
+                processed[key] = this.processStrings(value);
+            } else {
+                processed[key] = value;
+            }
+        }
+        
+        return processed;
+    }
+}
+
+// Usage example
+const parser = new StringTuskLang();
+const config = parser.parse(fs.readFileSync('strings.tsk', 'utf8'));
+
+// Basic strings
+console.log(config.title);           // "Welcome to TuskLang"
+console.log(config.escaped);         // "Line 1\nLine 2\tTabbed\r\nWindows line" (with actual newlines)
+
+// Template strings
+const greeting = config.greeting({ name: 'World' });
+console.log(greeting);               // "Hello, World!"
+
+const url = config.url({ 
+    protocol: 'https', 
+    host: 'example.com', 
+    port: 443, 
+    path: '/api' 
+});
+console.log(url);                    // "https://example.com:443/api"
+
+// Heredoc templates
+const htmlData = {
+    title: 'My Page',
+    heading: 'Welcome',
+    items: ['Item 1', 'Item 2', 'Item 3']
+};
+console.log(config.html_template.render(htmlData));
+
+// SQL template with conditions
+const sqlData = {
+    start_date: '2024-01-01',
+    end_date: '2024-12-31',
+    status: 'active',
+    limit: 10
+};
+console.log(config.query_template.render(sqlData));
+
+// Component template
+const componentData = {
+    componentName: 'UserCard',
+    props: 'name, email, avatar',
+    hasState: true,
+    defaultState: '{ loading: false }',
+    className: 'user-card',
+    content: '&lt;h3&gt;{name}&lt;/h3&gt;&lt;p&gt;{email}&lt;/p&gt;'
+};
+console.log(config.component_template.render(componentData));
+</pre>
+
+<p>TuskLang's advanced string features in JavaScript enable powerful templating, string manipulation, and content generation capabilities.</p>

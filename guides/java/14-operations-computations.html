@@ -1,0 +1,782 @@
+<h1>Operations and Computations for Java</h1>
+
+<h2>Mathematical Operations</h2>
+<pre>
+# Basic mathematical computations
+calculations: {
+    # Arithmetic operations
+    sum: 10 + 20 + 30
+    difference: 100 - 25
+    product: 12 * 8
+    quotient: 144 / 12
+    remainder: 17 % 5
+    
+    # Advanced mathematical operations using Java expressions
+    power: java("Math.pow(2, 10)")
+    square_root: java("Math.sqrt(144)")
+    logarithm: java("Math.log(100)")
+    sine: java("Math.sin(Math.PI / 6)")
+    cosine: java("Math.cos(0)")
+    
+    # Constants
+    pi: java("Math.PI")
+    e: java("Math.E")
+    golden_ratio: (1 + java("Math.sqrt(5)")) / 2
+}
+
+# Performance calculations
+performance: {
+    # System resource calculations
+    cpu_cores: java("Runtime.getRuntime().availableProcessors()")
+    max_memory_gb: java("Runtime.getRuntime().maxMemory() / (1024 * 1024 * 1024)")
+    
+    # Dynamic pool sizing based on resources
+    thread_pool_size: performance.cpu_cores * 2
+    connection_pool_size: java("Math.min(20, Math.max(5, " + performance.max_memory_gb + " * 2))")
+    
+    # Cache size calculations
+    cache_size_mb: java("Math.max(64, " + performance.max_memory_gb + " * 100)")
+    batch_size: performance.max_memory_gb > 4 ? 1000 : 500
+    
+    # Timeout calculations
+    base_timeout: 5000
+    read_timeout: performance.base_timeout * 2
+    write_timeout: performance.base_timeout * 3
+    connection_timeout: java("Math.max(1000, " + performance.base_timeout + " / 5)")
+}
+
+# Business calculations
+business: {
+    # Tax calculations
+    tax_rate: 0.08
+    base_price: 100.00
+    tax_amount: business.base_price * business.tax_rate
+    total_price: business.base_price + business.tax_amount
+    
+    # Discount calculations
+    discount_percentage: 15
+    discount_amount: business.base_price * (business.discount_percentage / 100)
+    discounted_price: business.base_price - business.discount_amount
+    
+    # Shipping calculations
+    shipping_base: 5.99
+    shipping_weight_factor: 0.50
+    item_weight: 2.5
+    shipping_cost: business.shipping_base + (business.item_weight * business.shipping_weight_factor)
+    
+    # Final order total
+    order_total: business.discounted_price + business.tax_amount + business.shipping_cost
+}
+</pre>
+
+<h2>Java Mathematical Operations Handler</h2>
+<pre>
+// MathematicalOperationsService.java
+@Service
+public class MathematicalOperationsService {
+    
+    private final ScriptEngine scriptEngine;
+    
+    public MathematicalOperationsService() {
+        ScriptEngineManager manager = new ScriptEngineManager();
+        this.scriptEngine = manager.getEngineByName("JavaScript");
+        
+        // Add Math constants and functions to the script context
+        try {
+            scriptEngine.eval("var Math = Java.type('java.lang.Math');");
+            scriptEngine.eval("var Runtime = Java.type('java.lang.Runtime');");
+        } catch (ScriptException e) {
+            throw new RuntimeException("Failed to initialize math operations", e);
+        }
+    }
+    
+    public Number evaluateExpression(String expression) {
+        try {
+            Object result = scriptEngine.eval(expression);
+            if (result instanceof Number) {
+                return (Number) result;
+            }
+            throw new IllegalArgumentException("Expression did not evaluate to a number: " + expression);
+        } catch (ScriptException e) {
+            throw new RuntimeException("Failed to evaluate mathematical expression: " + expression, e);
+        }
+    }
+    
+    public BigDecimal evaluateDecimalExpression(String expression) {
+        Number result = evaluateExpression(expression);
+        return BigDecimal.valueOf(result.doubleValue());
+    }
+    
+    public int evaluateIntExpression(String expression) {
+        Number result = evaluateExpression(expression);
+        return result.intValue();
+    }
+    
+    public double evaluateDoubleExpression(String expression) {
+        Number result = evaluateExpression(expression);
+        return result.doubleValue();
+    }
+    
+    // Business calculation methods
+    public BigDecimal calculateTax(BigDecimal baseAmount, BigDecimal taxRate) {
+        return baseAmount.multiply(taxRate).setScale(2, RoundingMode.HALF_UP);
+    }
+    
+    public BigDecimal calculateDiscount(BigDecimal baseAmount, BigDecimal discountPercentage) {
+        BigDecimal discountRate = discountPercentage.divide(BigDecimal.valueOf(100), 4, RoundingMode.HALF_UP);
+        return baseAmount.multiply(discountRate).setScale(2, RoundingMode.HALF_UP);
+    }
+    
+    public BigDecimal calculateShipping(BigDecimal baseShipping, BigDecimal weight, BigDecimal weightFactor) {
+        BigDecimal weightCost = weight.multiply(weightFactor);
+        return baseShipping.add(weightCost).setScale(2, RoundingMode.HALF_UP);
+    }
+    
+    // Performance calculation methods
+    public int calculateOptimalThreadPoolSize() {
+        int cpuCores = Runtime.getRuntime().availableProcessors();
+        return cpuCores * 2;
+    }
+    
+    public int calculateOptimalConnectionPoolSize() {
+        long maxMemoryGB = Runtime.getRuntime().maxMemory() / (1024 * 1024 * 1024);
+        return (int) Math.min(20, Math.max(5, maxMemoryGB * 2));
+    }
+    
+    public long calculateOptimalCacheSize() {
+        long maxMemoryGB = Runtime.getRuntime().maxMemory() / (1024 * 1024 * 1024);
+        return Math.max(64, maxMemoryGB * 100); // MB
+    }
+    
+    public int calculateOptimalBatchSize() {
+        long maxMemoryGB = Runtime.getRuntime().maxMemory() / (1024 * 1024 * 1024);
+        return maxMemoryGB > 4 ? 1000 : 500;
+    }
+}
+
+// CalculationConfig.java
+@ConfigurationProperties(prefix = "calculations")
+@Component
+public class CalculationConfig {
+    
+    private final MathematicalOperationsService mathService;
+    
+    // Basic calculations
+    private Integer sum;
+    private Integer difference;
+    private Integer product;
+    private Integer quotient;
+    private Integer remainder;
+    
+    // Advanced calculations
+    private Double power;
+    private Double squareRoot;
+    private Double logarithm;
+    private Double sine;
+    private Double cosine;
+    private Double pi;
+    private Double e;
+    private Double goldenRatio;
+    
+    public CalculationConfig(MathematicalOperationsService mathService) {
+        this.mathService = mathService;
+    }
+    
+    @PostConstruct
+    public void performCalculations() {
+        // Perform calculations after properties are loaded
+        computeAdvancedMath();
+    }
+    
+    private void computeAdvancedMath() {
+        if (power == null) {
+            power = mathService.evaluateDoubleExpression("Math.pow(2, 10)");
+        }
+        if (squareRoot == null) {
+            squareRoot = mathService.evaluateDoubleExpression("Math.sqrt(144)");
+        }
+        if (logarithm == null) {
+            logarithm = mathService.evaluateDoubleExpression("Math.log(100)");
+        }
+        if (sine == null) {
+            sine = mathService.evaluateDoubleExpression("Math.sin(Math.PI / 6)");
+        }
+        if (cosine == null) {
+            cosine = mathService.evaluateDoubleExpression("Math.cos(0)");
+        }
+        if (pi == null) {
+            pi = Math.PI;
+        }
+        if (e == null) {
+            e = Math.E;
+        }
+        if (goldenRatio == null) {
+            goldenRatio = (1 + Math.sqrt(5)) / 2;
+        }
+    }
+    
+    // Getters and setters
+    public Integer getSum() { return sum; }
+    public void setSum(Integer sum) { this.sum = sum; }
+    
+    public Integer getDifference() { return difference; }
+    public void setDifference(Integer difference) { this.difference = difference; }
+    
+    public Integer getProduct() { return product; }
+    public void setProduct(Integer product) { this.product = product; }
+    
+    public Integer getQuotient() { return quotient; }
+    public void setQuotient(Integer quotient) { this.quotient = quotient; }
+    
+    public Integer getRemainder() { return remainder; }
+    public void setRemainder(Integer remainder) { this.remainder = remainder; }
+    
+    public Double getPower() { return power; }
+    public Double getSquareRoot() { return squareRoot; }
+    public Double getLogarithm() { return logarithm; }
+    public Double getSine() { return sine; }
+    public Double getCosine() { return cosine; }
+    public Double getPi() { return pi; }
+    public Double getE() { return e; }
+    public Double getGoldenRatio() { return goldenRatio; }
+}
+</pre>
+
+<h2>String Operations and Transformations</h2>
+<pre>
+# String manipulation operations
+strings: {
+    # Basic string operations
+    app_name: "MyJavaApp"
+    version: "1.0.0"
+    
+    # String concatenation
+    full_title: strings.app_name + " v" + strings.version
+    welcome_message: "Welcome to " + strings.app_name
+    
+    # String transformations using Java expressions
+    uppercase_name: java("\"" + strings.app_name + "\".toUpperCase()")
+    lowercase_name: java("\"" + strings.app_name + "\".toLowerCase()")
+    reversed_name: java("new StringBuilder(\"" + strings.app_name + "\").reverse().toString()")
+    
+    # String length and substrings
+    name_length: java("\"" + strings.app_name + "\".length()")
+    short_name: java("\"" + strings.app_name + "\".substring(0, Math.min(5, \"" + strings.app_name + "\".length()))")
+    
+    # String replacement and formatting
+    sanitized_name: java("\"" + strings.app_name + "\".replaceAll(\"[^a-zA-Z0-9]\", \"_\")")
+    slug: java("\"" + strings.app_name + "\".toLowerCase().replaceAll(\"\\\\s+\", \"-\")")
+    
+    # Template strings
+    database_name: strings.sanitized_name + "_db_" + env("ENVIRONMENT", "dev")
+    log_file: "/var/log/" + strings.slug + "/" + env("ENVIRONMENT", "dev") + ".log"
+    
+    # JSON and URL encoding
+    json_encoded: java("java.net.URLEncoder.encode(\"" + strings.app_name + "\", \"UTF-8\")")
+    base64_encoded: java("java.util.Base64.getEncoder().encodeToString(\"" + strings.app_name + "\".getBytes())")
+}
+
+# Regular expression operations
+regex_operations: {
+    # Email validation pattern
+    email_pattern: "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$"
+    test_email: "user@example.com"
+    email_valid: java("\"" + regex_operations.test_email + "\".matches(\"" + regex_operations.email_pattern + "\")")
+    
+    # Phone number formatting
+    phone_input: "1234567890"
+    phone_formatted: java("\"" + regex_operations.phone_input + "\".replaceAll(\"(\\\\d{3})(\\\\d{3})(\\\\d{4})\", \"($1) $2-$3\")")
+    
+    # Extract numbers from string
+    version_string: "Version 1.2.3-beta"
+    version_numbers: java("java.util.Arrays.stream(\"" + regex_operations.version_string + "\".split(\"[^0-9.]\")).filter(s -> s.matches(\"\\\\d+(\\\\.\\\\d+)*\")).findFirst().orElse(\"0.0.0\")")
+}
+
+# File path operations
+file_operations: {
+    # Base paths
+    app_home: env("APP_HOME", java("System.getProperty(\"user.dir\")"))
+    
+    # Path construction
+    config_dir: file_operations.app_home + "/config"
+    log_dir: file_operations.app_home + "/logs"
+    data_dir: file_operations.app_home + "/data"
+    
+    # File name operations
+    log_filename: strings.slug + "_" + java("java.time.LocalDate.now().toString()") + ".log"
+    backup_filename: "backup_" + java("java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern(\"yyyyMMdd_HHmmss\"))") + ".sql"
+    
+    # Full file paths
+    main_log_file: file_operations.log_dir + "/" + file_operations.log_filename
+    backup_file: file_operations.data_dir + "/" + file_operations.backup_filename
+    
+    # Path normalization
+    normalized_config_path: java("java.nio.file.Paths.get(\"" + file_operations.config_dir + "\").normalize().toString()")
+}
+</pre>
+
+<h2>Java String Operations Service</h2>
+<pre>
+// StringOperationsService.java
+@Service
+public class StringOperationsService {
+    
+    private final Map&lt;String, Pattern&gt; compiledPatterns = new ConcurrentHashMap&lt;&gt;();
+    
+    // String transformation methods
+    public String toUpperCase(String input) {
+        return input != null ? input.toUpperCase() : null;
+    }
+    
+    public String toLowerCase(String input) {
+        return input != null ? input.toLowerCase() : null;
+    }
+    
+    public String reverse(String input) {
+        return input != null ? new StringBuilder(input).reverse().toString() : null;
+    }
+    
+    public String sanitize(String input) {
+        return input != null ? input.replaceAll("[^a-zA-Z0-9]", "_") : null;
+    }
+    
+    public String slugify(String input) {
+        if (input == null) return null;
+        return input.toLowerCase()
+                   .replaceAll("\\s+", "-")
+                   .replaceAll("[^a-z0-9-]", "")
+                   .replaceAll("-+", "-")
+                   .replaceAll("^-|-$", "");
+    }
+    
+    public String truncate(String input, int maxLength) {
+        if (input == null) return null;
+        return input.length() > maxLength ? input.substring(0, maxLength) : input;
+    }
+    
+    public String truncateWithEllipsis(String input, int maxLength) {
+        if (input == null) return null;
+        if (input.length() <= maxLength) return input;
+        return input.substring(0, maxLength - 3) + "...";
+    }
+    
+    // Encoding/Decoding methods
+    public String urlEncode(String input) {
+        try {
+            return input != null ? URLEncoder.encode(input, StandardCharsets.UTF_8) : null;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to URL encode string", e);
+        }
+    }
+    
+    public String urlDecode(String input) {
+        try {
+            return input != null ? URLDecoder.decode(input, StandardCharsets.UTF_8) : null;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to URL decode string", e);
+        }
+    }
+    
+    public String base64Encode(String input) {
+        return input != null ? Base64.getEncoder().encodeToString(input.getBytes(StandardCharsets.UTF_8)) : null;
+    }
+    
+    public String base64Decode(String input) {
+        try {
+            return input != null ? new String(Base64.getDecoder().decode(input), StandardCharsets.UTF_8) : null;
+        } catch (Exception e) {
+            throw new RuntimeException("Failed to Base64 decode string", e);
+        }
+    }
+    
+    // Regular expression methods
+    public boolean matches(String input, String pattern) {
+        if (input == null || pattern == null) return false;
+        
+        Pattern compiledPattern = compiledPatterns.computeIfAbsent(pattern, Pattern::compile);
+        return compiledPattern.matcher(input).matches();
+    }
+    
+    public String replace(String input, String pattern, String replacement) {
+        if (input == null || pattern == null || replacement == null) return input;
+        
+        Pattern compiledPattern = compiledPatterns.computeIfAbsent(pattern, Pattern::compile);
+        return compiledPattern.matcher(input).replaceAll(replacement);
+    }
+    
+    public List&lt;String&gt; extract(String input, String pattern) {
+        if (input == null || pattern == null) return Collections.emptyList();
+        
+        Pattern compiledPattern = compiledPatterns.computeIfAbsent(pattern, Pattern::compile);
+        Matcher matcher = compiledPattern.matcher(input);
+        
+        List&lt;String&gt; matches = new ArrayList&lt;&gt;();
+        while (matcher.find()) {
+            matches.add(matcher.group());
+        }
+        
+        return matches;
+    }
+    
+    public String extractFirst(String input, String pattern) {
+        List&lt;String&gt; matches = extract(input, pattern);
+        return matches.isEmpty() ? null : matches.get(0);
+    }
+    
+    // Formatting methods
+    public String formatPhoneNumber(String phoneNumber) {
+        if (phoneNumber == null) return null;
+        
+        String digits = phoneNumber.replaceAll("\\D", "");
+        if (digits.length() == 10) {
+            return String.format("(%s) %s-%s", 
+                digits.substring(0, 3),
+                digits.substring(3, 6),
+                digits.substring(6));
+        }
+        return phoneNumber; // Return original if not 10 digits
+    }
+    
+    public String formatCurrency(BigDecimal amount, String currencySymbol) {
+        if (amount == null) return null;
+        DecimalFormat formatter = new DecimalFormat("#,##0.00");
+        return currencySymbol + formatter.format(amount);
+    }
+    
+    public String formatFileSize(long bytes) {
+        if (bytes < 1024) return bytes + " B";
+        if (bytes < 1024 * 1024) return String.format("%.1f KB", bytes / 1024.0);
+        if (bytes < 1024 * 1024 * 1024) return String.format("%.1f MB", bytes / (1024.0 * 1024));
+        return String.format("%.1f GB", bytes / (1024.0 * 1024 * 1024));
+    }
+    
+    // Template processing
+    public String processTemplate(String template, Map&lt;String, Object&gt; variables) {
+        if (template == null) return null;
+        
+        String result = template;
+        for (Map.Entry&lt;String, Object&gt; entry : variables.entrySet()) {
+            String placeholder = "${" + entry.getKey() + "}";
+            String value = entry.getValue() != null ? entry.getValue().toString() : "";
+            result = result.replace(placeholder, value);
+        }
+        
+        return result;
+    }
+    
+    // Validation methods
+    public boolean isValidEmail(String email) {
+        return matches(email, "^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+    
+    public boolean isValidUrl(String url) {
+        return matches(url, "^https?:\\/\\/(www\\.)?[-a-zA-Z0-9@:%._\\+~#=]{1,256}\\.[a-zA-Z0-9()]{1,6}\\b([-a-zA-Z0-9()@:%_\\+.~#?&//=]*)$");
+    }
+    
+    public boolean isValidUuid(String uuid) {
+        return matches(uuid, "^[0-9a-fA-F]{8}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{4}-[0-9a-fA-F]{12}$");
+    }
+}
+</pre>
+
+<h2>Date and Time Operations</h2>
+<pre>
+# Date and time calculations
+datetime: {
+    # Current date and time
+    now: java("java.time.LocalDateTime.now()")
+    today: java("java.time.LocalDate.now()")
+    current_time: java("java.time.LocalTime.now()")
+    timestamp: java("java.time.Instant.now().getEpochSecond()")
+    
+    # Date arithmetic
+    yesterday: java("java.time.LocalDate.now().minusDays(1)")
+    tomorrow: java("java.time.LocalDate.now().plusDays(1)")
+    next_week: java("java.time.LocalDate.now().plusWeeks(1)")
+    last_month: java("java.time.LocalDate.now().minusMonths(1)")
+    next_year: java("java.time.LocalDate.now().plusYears(1)")
+    
+    # Time calculations
+    start_of_day: java("java.time.LocalDate.now().atStartOfDay()")
+    end_of_day: java("java.time.LocalDate.now().atTime(23, 59, 59)")
+    noon_today: java("java.time.LocalDate.now().atTime(12, 0)")
+    
+    # Duration calculations
+    one_hour: java("java.time.Duration.ofHours(1).toMillis()")
+    one_day: java("java.time.Duration.ofDays(1).toMillis()")
+    one_week: java("java.time.Duration.ofDays(7).toMillis()")
+    
+    # Date formatting
+    iso_date: java("java.time.LocalDate.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE)")
+    iso_datetime: java("java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ISO_LOCAL_DATE_TIME)")
+    custom_format: java("java.time.LocalDateTime.now().format(java.time.format.DateTimeFormatter.ofPattern(\"yyyy-MM-dd HH:mm:ss\"))")
+    
+    # Timezone operations
+    utc_now: java("java.time.ZonedDateTime.now(java.time.ZoneOffset.UTC)")
+    local_timezone: java("java.time.ZoneId.systemDefault().toString()")
+    
+    # Age calculations
+    birth_date: "1990-05-15"
+    age_years: java("java.time.Period.between(java.time.LocalDate.parse(\"" + datetime.birth_date + "\"), java.time.LocalDate.now()).getYears()")
+}
+
+# Business hours and scheduling
+schedule: {
+    # Business hours
+    business_start: "09:00"
+    business_end: "17:00"
+    
+    # Check if current time is within business hours
+    is_business_hours: java("java.time.LocalTime.now().isAfter(java.time.LocalTime.parse(\"" + schedule.business_start + "\")) && java.time.LocalTime.now().isBefore(java.time.LocalTime.parse(\"" + schedule.business_end + "\"))")
+    
+    # Weekend check
+    is_weekend: java("java.time.LocalDate.now().getDayOfWeek().getValue() >= 6")
+    
+    # Holiday check (simplified)
+    is_holiday: false  # Would be populated from holiday service
+    
+    # Working day check
+    is_working_day: !schedule.is_weekend && !schedule.is_holiday
+    
+    # Next business day calculation
+    next_business_day: schedule.is_working_day ? 
+                      datetime.tomorrow : 
+                      java("java.time.LocalDate.now().plusDays(java.time.LocalDate.now().getDayOfWeek().getValue() >= 6 ? 8 - java.time.LocalDate.now().getDayOfWeek().getValue() : 1)")
+}
+
+# Session and cache timeouts
+timeouts: {
+    # Base timeout in milliseconds
+    base_timeout: 30000
+    
+    # Different timeout calculations
+    session_timeout: timeouts.base_timeout * 60  # 30 minutes
+    cache_timeout: timeouts.base_timeout * 10    # 5 minutes
+    api_timeout: timeouts.base_timeout / 6       # 5 seconds
+    
+    # Timeout based on environment
+    environment: env("ENVIRONMENT", "development")
+    db_timeout: timeouts.environment == "production" ? timeouts.base_timeout : timeouts.base_timeout * 2
+    
+    # Dynamic timeout based on system load
+    cpu_count: java("Runtime.getRuntime().availableProcessors()")
+    load_timeout: timeouts.base_timeout / java("Math.max(1, " + timeouts.cpu_count + " / 2)")
+    
+    # Formatted timeout strings for Spring Boot
+    session_timeout_string: java("java.time.Duration.ofMillis(" + timeouts.session_timeout + ").toString()")
+    cache_timeout_string: java("java.time.Duration.ofMillis(" + timeouts.cache_timeout + ").toString()")
+}
+</pre>
+
+<h2>Java Date Time Operations Service</h2>
+<pre>
+// DateTimeOperationsService.java
+@Service
+public class DateTimeOperationsService {
+    
+    private static final DateTimeFormatter DEFAULT_DATE_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd");
+    private static final DateTimeFormatter DEFAULT_DATETIME_FORMAT = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
+    
+    // Current date/time methods
+    public LocalDateTime now() {
+        return LocalDateTime.now();
+    }
+    
+    public LocalDate today() {
+        return LocalDate.now();
+    }
+    
+    public LocalTime currentTime() {
+        return LocalTime.now();
+    }
+    
+    public long currentTimestamp() {
+        return Instant.now().getEpochSecond();
+    }
+    
+    public ZonedDateTime nowInTimezone(String timezone) {
+        return ZonedDateTime.now(ZoneId.of(timezone));
+    }
+    
+    // Date arithmetic methods
+    public LocalDate addDays(LocalDate date, long days) {
+        return date.plusDays(days);
+    }
+    
+    public LocalDate subtractDays(LocalDate date, long days) {
+        return date.minusDays(days);
+    }
+    
+    public LocalDateTime addHours(LocalDateTime dateTime, long hours) {
+        return dateTime.plusHours(hours);
+    }
+    
+    public LocalDateTime subtractHours(LocalDateTime dateTime, long hours) {
+        return dateTime.minusHours(hours);
+    }
+    
+    // Duration calculations
+    public long daysBetween(LocalDate start, LocalDate end) {
+        return ChronoUnit.DAYS.between(start, end);
+    }
+    
+    public long hoursBetween(LocalDateTime start, LocalDateTime end) {
+        return ChronoUnit.HOURS.between(start, end);
+    }
+    
+    public long minutesBetween(LocalDateTime start, LocalDateTime end) {
+        return ChronoUnit.MINUTES.between(start, end);
+    }
+    
+    public Duration durationBetween(LocalDateTime start, LocalDateTime end) {
+        return Duration.between(start, end);
+    }
+    
+    // Business logic methods
+    public boolean isBusinessDay(LocalDate date) {
+        DayOfWeek dayOfWeek = date.getDayOfWeek();
+        return dayOfWeek != DayOfWeek.SATURDAY && dayOfWeek != DayOfWeek.SUNDAY;
+    }
+    
+    public boolean isWithinBusinessHours(LocalTime time, LocalTime startTime, LocalTime endTime) {
+        return time.isAfter(startTime) && time.isBefore(endTime);
+    }
+    
+    public LocalDate nextBusinessDay(LocalDate date) {
+        LocalDate nextDay = date.plusDays(1);
+        while (!isBusinessDay(nextDay)) {
+            nextDay = nextDay.plusDays(1);
+        }
+        return nextDay;
+    }
+    
+    public LocalDate previousBusinessDay(LocalDate date) {
+        LocalDate prevDay = date.minusDays(1);
+        while (!isBusinessDay(prevDay)) {
+            prevDay = prevDay.minusDays(1);
+        }
+        return prevDay;
+    }
+    
+    // Age calculation
+    public int calculateAge(LocalDate birthDate) {
+        return Period.between(birthDate, LocalDate.now()).getYears();
+    }
+    
+    public int calculateAgeInMonths(LocalDate birthDate) {
+        Period period = Period.between(birthDate, LocalDate.now());
+        return period.getYears() * 12 + period.getMonths();
+    }
+    
+    // Formatting methods
+    public String formatDate(LocalDate date) {
+        return date.format(DEFAULT_DATE_FORMAT);
+    }
+    
+    public String formatDateTime(LocalDateTime dateTime) {
+        return dateTime.format(DEFAULT_DATETIME_FORMAT);
+    }
+    
+    public String formatDate(LocalDate date, String pattern) {
+        return date.format(DateTimeFormatter.ofPattern(pattern));
+    }
+    
+    public String formatDateTime(LocalDateTime dateTime, String pattern) {
+        return dateTime.format(DateTimeFormatter.ofPattern(pattern));
+    }
+    
+    public String formatDuration(Duration duration) {
+        long hours = duration.toHours();
+        long minutes = duration.toMinutesPart();
+        long seconds = duration.toSecondsPart();
+        
+        if (hours > 0) {
+            return String.format("%d:%02d:%02d", hours, minutes, seconds);
+        } else {
+            return String.format("%02d:%02d", minutes, seconds);
+        }
+    }
+    
+    // Parsing methods
+    public LocalDate parseDate(String dateString) {
+        return LocalDate.parse(dateString, DEFAULT_DATE_FORMAT);
+    }
+    
+    public LocalDateTime parseDateTime(String dateTimeString) {
+        return LocalDateTime.parse(dateTimeString, DEFAULT_DATETIME_FORMAT);
+    }
+    
+    public LocalDate parseDate(String dateString, String pattern) {
+        return LocalDate.parse(dateString, DateTimeFormatter.ofPattern(pattern));
+    }
+    
+    public LocalDateTime parseDateTime(String dateTimeString, String pattern) {
+        return LocalDateTime.parse(dateTimeString, DateTimeFormatter.ofPattern(pattern));
+    }
+    
+    // Timezone conversion methods
+    public ZonedDateTime convertTimezone(ZonedDateTime dateTime, String targetTimezone) {
+        return dateTime.withZoneSameInstant(ZoneId.of(targetTimezone));
+    }
+    
+    public ZonedDateTime localToUtc(LocalDateTime localDateTime, String sourceTimezone) {
+        ZonedDateTime zonedDateTime = localDateTime.atZone(ZoneId.of(sourceTimezone));
+        return zonedDateTime.withZoneSameInstant(ZoneOffset.UTC);
+    }
+    
+    public LocalDateTime utcToLocal(ZonedDateTime utcDateTime, String targetTimezone) {
+        return utcDateTime.withZoneSameInstant(ZoneId.of(targetTimezone)).toLocalDateTime();
+    }
+    
+    // Utility methods
+    public LocalDateTime startOfDay(LocalDate date) {
+        return date.atStartOfDay();
+    }
+    
+    public LocalDateTime endOfDay(LocalDate date) {
+        return date.atTime(23, 59, 59, 999999999);
+    }
+    
+    public LocalDateTime startOfMonth(LocalDate date) {
+        return date.withDayOfMonth(1).atStartOfDay();
+    }
+    
+    public LocalDateTime endOfMonth(LocalDate date) {
+        return date.withDayOfMonth(date.lengthOfMonth()).atTime(23, 59, 59, 999999999);
+    }
+    
+    public boolean isLeapYear(int year) {
+        return Year.isLeap(year);
+    }
+    
+    public int getDaysInMonth(int year, int month) {
+        return YearMonth.of(year, month).lengthOfMonth();
+    }
+    
+    // Scheduling utilities
+    public List&lt;LocalDate&gt; getBusinessDaysInRange(LocalDate start, LocalDate end) {
+        List&lt;LocalDate&gt; businessDays = new ArrayList&lt;&gt;();
+        LocalDate current = start;
+        
+        while (!current.isAfter(end)) {
+            if (isBusinessDay(current)) {
+                businessDays.add(current);
+            }
+            current = current.plusDays(1);
+        }
+        
+        return businessDays;
+    }
+    
+    public LocalDateTime getNextScheduledTime(LocalTime scheduledTime) {
+        LocalDateTime now = LocalDateTime.now();
+        LocalDateTime nextScheduled = LocalDate.now().atTime(scheduledTime);
+        
+        if (nextScheduled.isBefore(now)) {
+            nextScheduled = nextScheduled.plusDays(1);
+        }
+        
+        return nextScheduled;
+    }
+}
+</pre>

@@ -1,0 +1,506 @@
+<h1>Built-in Functions</h1>
+
+<h2>Core TuskLang Functions for JavaScript</h2>
+<p>TuskLang provides essential built-in functions for environment variables, file operations, and dynamic evaluations.</p>
+
+<h3>functions.tsk</h3>
+<pre>
+# Environment variables
+config {
+    # Basic env with defaults
+    node_env: env("NODE_ENV", "development")
+    port: env("PORT", 3000)
+    host: env("HOST", "localhost")
+    
+    # Database from environment
+    database_url: env("DATABASE_URL", "mongodb://localhost:27017/myapp")
+    redis_url: env("REDIS_URL", "redis://localhost:6379")
+    
+    # API keys (no defaults for security)
+    api_key: env("API_KEY")
+    secret_key: env("SECRET_KEY")
+    
+    # Feature flags
+    features: {
+        analytics: env("ENABLE_ANALYTICS", false)
+        debug: env("DEBUG", @var.config.node_env === "development")
+        cache: env("ENABLE_CACHE", true)
+    }
+}
+
+# File operations
+files {
+    # Read file contents
+    readme: file("./README.md")
+    license: file("./LICENSE")
+    
+    # Load and parse JSON
+    package_info: json("./package.json")
+    tsconfig: json("./tsconfig.json")
+    
+    # Load with fallback
+    custom_config: file("./custom.config.js", "module.exports = {}")
+    
+    # Dynamic file loading
+    locale: file("./locales/@{lang}.json", "./locales/en.json")
+}
+
+# JavaScript evaluation
+dynamic {
+    # Direct JS evaluation
+    timestamp: js("Date.now()")
+    random_id: js("Math.random().toString(36).substr(2, 9)")
+    uuid: js("crypto.randomUUID()")
+    
+    # Complex expressions
+    is_weekend: js("const day = new Date().getDay(); day === 0 || day === 6")
+    memory_usage: js("process.memoryUsage().heapUsed / 1024 / 1024")
+    
+    # Function definitions
+    formatters: {
+        date: js("(date) => new Date(date).toLocaleDateString()")
+        currency: js("(amount) => new Intl.NumberFormat('en-US', { style: 'currency', currency: 'USD' }).format(amount)")
+        percentage: js("(value) => (value * 100).toFixed(2) + '%'")
+    }
+}
+
+# Module imports
+modules {
+    # Import Node.js modules
+    path: require("path")
+    fs: require("fs/promises")
+    crypto: require("crypto")
+    
+    # Import local modules
+    utils: require("./src/utils")
+    database: require("./src/database")
+    
+    # Conditional imports
+    logger: @var.config.node_env === "production" 
+        ? require("./src/logger/production")
+        : require("./src/logger/development")
+}
+
+# URL building
+urls {
+    # Base URLs
+    api_base: url("https://api.example.com")
+    cdn_base: url("https://cdn.example.com")
+    
+    # Build with paths
+    api_users: url(@var.urls.api_base, "/v1/users")
+    api_posts: url(@var.urls.api_base, "/v1/posts")
+    
+    # With query parameters
+    search_url: url(@var.urls.api_base, "/search", {
+        q: @var.search_query,
+        page: @var.page,
+        limit: 20
+    })
+    
+    # Asset URLs
+    logo: url(@var.urls.cdn_base, "/images/logo.png")
+    stylesheet: url(@var.urls.cdn_base, "/css/main.css", { v: @var.version })
+}
+
+# Template functions
+templates {
+    # Simple template
+    greeting: template("Hello, {{name}}! Welcome to {{app}}.")
+    
+    # Multi-line template
+    email_body: template("
+        Dear {{user.name}},
+        
+        {{message}}
+        
+        Best regards,
+        {{sender.name}}
+        {{sender.title}}
+    ")
+    
+    # HTML template
+    page: template('
+        &lt;!DOCTYPE html&gt;
+        &lt;html&gt;
+        &lt;head&gt;
+            &lt;title&gt;{{title}}&lt;/title&gt;
+        &lt;/head&gt;
+        &lt;body&gt;
+            &lt;h1&gt;{{heading}}&lt;/h1&gt;
+            {{#if user}}
+                &lt;p&gt;Welcome, {{user.name}}!&lt;/p&gt;
+            {{else}}
+                &lt;p&gt;Please log in.&lt;/p&gt;
+            {{/if}}
+        &lt;/body&gt;
+        &lt;/html&gt;
+    ')
+}
+
+# Shell command execution
+shell {
+    # Simple commands
+    node_version: shell("node --version")
+    npm_version: shell("npm --version")
+    current_user: shell("whoami")
+    
+    # Commands with error handling
+    git_branch: shell("git branch --show-current", "main")
+    git_commit: shell("git rev-parse --short HEAD", "unknown")
+    
+    # Complex commands
+    disk_usage: shell("df -h | grep -E '^/dev/' | awk '{print $5}'")
+    process_count: shell("ps aux | wc -l")
+}
+
+# Data transformation
+transform {
+    # Parse functions
+    json_data: parse('{"name": "John", "age": 30}')
+    csv_data: parse("name,age\nJohn,30\nJane,25", "csv")
+    yaml_data: parse("name: John\nage: 30", "yaml")
+    
+    # Stringify functions
+    to_json: stringify(@var.data, "json")
+    to_csv: stringify(@var.data, "csv")
+    to_yaml: stringify(@var.data, "yaml")
+    to_xml: stringify(@var.data, "xml")
+}
+
+# Utility functions
+utils {
+    # Type checking
+    is_array: is(@var.value, "array")
+    is_object: is(@var.value, "object")
+    is_string: is(@var.value, "string")
+    is_number: is(@var.value, "number")
+    
+    # Data manipulation
+    merged: merge(@var.defaults, @var.overrides)
+    picked: pick(@var.object, ["id", "name", "email"])
+    omitted: omit(@var.object, ["password", "secret"])
+    
+    # Collections
+    unique_items: unique(@var.array)
+    flattened: flatten(@var.nested_array)
+    grouped: groupBy(@var.users, "role")
+}
+</pre>
+
+<h3>JavaScript Function Implementation</h3>
+<pre>
+const fs = require('fs');
+const path = require('path');
+const { execSync } = require('child_process');
+const crypto = require('crypto');
+
+class TuskLangFunctions {
+    constructor() {
+        this.functions = new Map();
+        this.registerBuiltinFunctions();
+    }
+    
+    registerBuiltinFunctions() {
+        // Environment variables
+        this.register('env', (name, defaultValue = undefined) => {
+            const value = process.env[name];
+            if (value !== undefined) {
+                // Type conversion
+                if (value === 'true') return true;
+                if (value === 'false') return false;
+                if (/^\d+$/.test(value)) return parseInt(value);
+                if (/^\d+\.\d+$/.test(value)) return parseFloat(value);
+                return value;
+            }
+            return defaultValue;
+        });
+        
+        // File operations
+        this.register('file', (filepath, fallback = null) => {
+            try {
+                return fs.readFileSync(path.resolve(filepath), 'utf8');
+            } catch (error) {
+                if (fallback !== null) return fallback;
+                throw error;
+            }
+        });
+        
+        this.register('json', (filepath, fallback = null) => {
+            try {
+                const content = fs.readFileSync(path.resolve(filepath), 'utf8');
+                return JSON.parse(content);
+            } catch (error) {
+                if (fallback !== null) return fallback;
+                throw error;
+            }
+        });
+        
+        // JavaScript evaluation
+        this.register('js', (code) => {
+            try {
+                // Create a safe context
+                const context = {
+                    Date, Math, JSON, crypto,
+                    process: {
+                        env: process.env,
+                        version: process.version,
+                        platform: process.platform,
+                        memoryUsage: process.memoryUsage
+                    }
+                };
+                
+                // Evaluate in function scope
+                const func = new Function(...Object.keys(context), `return ${code}`);
+                return func(...Object.values(context));
+            } catch (error) {
+                console.error('JS evaluation error:', error);
+                return null;
+            }
+        });
+        
+        // Module loading
+        this.register('require', (modulePath) => {
+            try {
+                // Handle built-in modules
+                if (!modulePath.startsWith('.') && !modulePath.startsWith('/')) {
+                    return require(modulePath);
+                }
+                // Handle relative paths
+                return require(path.resolve(modulePath));
+            } catch (error) {
+                console.error(`Failed to require module: ${modulePath}`, error);
+                return null;
+            }
+        });
+        
+        // URL building
+        this.register('url', (base, pathname = '', query = {}) => {
+            const url = new URL(pathname, base);
+            
+            // Add query parameters
+            Object.entries(query).forEach(([key, value]) => {
+                if (value !== null && value !== undefined) {
+                    url.searchParams.append(key, value);
+                }
+            });
+            
+            return url.toString();
+        });
+        
+        // Template function
+        this.register('template', (templateStr) => {
+            return (data = {}) => {
+                let result = templateStr;
+                
+                // Simple variable replacement
+                result = result.replace(/\{\{([^}]+)\}\}/g, (match, path) => {
+                    const value = this.getNestedValue(data, path.trim());
+                    return value !== undefined ? value : match;
+                });
+                
+                // Conditional blocks
+                result = result.replace(
+                    /\{\{#if\s+([^}]+)\}\}([\s\S]*?)(?:\{\{else\}\}([\s\S]*?))?\{\{\/if\}\}/g,
+                    (match, condition, truePart, falsePart = '') => {
+                        const value = this.getNestedValue(data, condition.trim());
+                        return value ? truePart : falsePart;
+                    }
+                );
+                
+                return result.trim();
+            };
+        });
+        
+        // Shell command execution
+        this.register('shell', (command, fallback = '') => {
+            try {
+                return execSync(command, { encoding: 'utf8' }).trim();
+            } catch (error) {
+                return fallback;
+            }
+        });
+        
+        // Parse functions
+        this.register('parse', (data, format = 'json') => {
+            switch (format) {
+                case 'json':
+                    return JSON.parse(data);
+                    
+                case 'csv':
+                    const lines = data.trim().split('\n');
+                    const headers = lines[0].split(',');
+                    return lines.slice(1).map(line => {
+                        const values = line.split(',');
+                        return headers.reduce((obj, header, i) => {
+                            obj[header] = values[i];
+                            return obj;
+                        }, {});
+                    });
+                    
+                case 'yaml':
+                    // Simple YAML parsing (would use a library in production)
+                    const yamlObj = {};
+                    data.split('\n').forEach(line => {
+                        const [key, value] = line.split(':').map(s => s.trim());
+                        if (key && value) {
+                            yamlObj[key] = this.parseValue(value);
+                        }
+                    });
+                    return yamlObj;
+                    
+                default:
+                    return data;
+            }
+        });
+        
+        // Stringify functions
+        this.register('stringify', (data, format = 'json') => {
+            switch (format) {
+                case 'json':
+                    return JSON.stringify(data, null, 2);
+                    
+                case 'csv':
+                    if (Array.isArray(data) && data.length > 0) {
+                        const headers = Object.keys(data[0]);
+                        const rows = data.map(obj => 
+                            headers.map(h => obj[h]).join(',')
+                        );
+                        return [headers.join(','), ...rows].join('\n');
+                    }
+                    return '';
+                    
+                case 'yaml':
+                    // Simple YAML stringification
+                    return Object.entries(data)
+                        .map(([key, value]) => `${key}: ${value}`)
+                        .join('\n');
+                        
+                case 'xml':
+                    // Simple XML stringification
+                    const toXml = (obj, rootName = 'root') => {
+                        let xml = `<${rootName}>`;
+                        for (const [key, value] of Object.entries(obj)) {
+                            if (typeof value === 'object') {
+                                xml += toXml(value, key);
+                            } else {
+                                xml += `<${key}>${value}</${key}>`;
+                            }
+                        }
+                        xml += `</${rootName}>`;
+                        return xml;
+                    };
+                    return toXml(data);
+                    
+                default:
+                    return String(data);
+            }
+        });
+        
+        // Type checking
+        this.register('is', (value, type) => {
+            switch (type) {
+                case 'array': return Array.isArray(value);
+                case 'object': return value !== null && typeof value === 'object' && !Array.isArray(value);
+                case 'string': return typeof value === 'string';
+                case 'number': return typeof value === 'number' && !isNaN(value);
+                case 'boolean': return typeof value === 'boolean';
+                case 'function': return typeof value === 'function';
+                case 'null': return value === null;
+                case 'undefined': return value === undefined;
+                default: return false;
+            }
+        });
+        
+        // Utility functions
+        this.register('merge', (...objects) => {
+            return Object.assign({}, ...objects);
+        });
+        
+        this.register('pick', (obj, keys) => {
+            return keys.reduce((result, key) => {
+                if (key in obj) result[key] = obj[key];
+                return result;
+            }, {});
+        });
+        
+        this.register('omit', (obj, keys) => {
+            const result = { ...obj };
+            keys.forEach(key => delete result[key]);
+            return result;
+        });
+        
+        this.register('unique', (array) => {
+            return [...new Set(array)];
+        });
+        
+        this.register('flatten', (array) => {
+            return array.flat(Infinity);
+        });
+        
+        this.register('groupBy', (array, key) => {
+            return array.reduce((groups, item) => {
+                const group = item[key];
+                groups[group] = groups[group] || [];
+                groups[group].push(item);
+                return groups;
+            }, {});
+        });
+    }
+    
+    register(name, handler) {
+        this.functions.set(name, handler);
+    }
+    
+    call(name, ...args) {
+        const func = this.functions.get(name);
+        if (!func) {
+            throw new Error(`Unknown function: ${name}`);
+        }
+        return func(...args);
+    }
+    
+    getNestedValue(obj, path) {
+        return path.split('.').reduce((current, key) => {
+            return current?.[key];
+        }, obj);
+    }
+    
+    parseValue(value) {
+        if (value === 'true') return true;
+        if (value === 'false') return false;
+        if (value === 'null') return null;
+        if (/^\d+$/.test(value)) return parseInt(value);
+        if (/^\d+\.\d+$/.test(value)) return parseFloat(value);
+        return value;
+    }
+}
+
+// Usage example
+const funcs = new TuskLangFunctions();
+
+// Environment variables
+console.log(funcs.call('env', 'NODE_ENV', 'development'));
+
+// File operations
+const packageInfo = funcs.call('json', './package.json');
+console.log(packageInfo.name);
+
+// JavaScript evaluation
+const uuid = funcs.call('js', 'crypto.randomUUID()');
+console.log(uuid);
+
+// Template rendering
+const greetingTemplate = funcs.call('template', 'Hello, {{name}}!');
+console.log(greetingTemplate({ name: 'World' }));
+
+// URL building
+const apiUrl = funcs.call('url', 'https://api.example.com', '/users', { page: 1, limit: 10 });
+console.log(apiUrl);
+
+// Utility functions
+const merged = funcs.call('merge', { a: 1 }, { b: 2 }, { c: 3 });
+console.log(merged); // { a: 1, b: 2, c: 3 }
+</pre>
+
+<p>TuskLang's built-in functions provide essential capabilities for JavaScript applications, from environment configuration to file operations and data transformations.</p>

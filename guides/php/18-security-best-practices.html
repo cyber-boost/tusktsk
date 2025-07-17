@@ -1,0 +1,689 @@
+<h1>Security Best Practices</h1>
+
+<h2>Securing TuskLang Configurations in PHP</h2>
+<p>Learn essential security practices for protecting sensitive configuration data, preventing injection attacks, and maintaining secure TuskLang deployments.</p>
+
+<h3>Input Validation and Sanitization</h3>
+<pre>
+&lt;?php
+namespace TuskLang\Security;
+
+class ConfigValidator {
+    private array $allowedFunctions = [
+        'env', 'date', 'file', 'json', 'cache', 'query'
+    ];
+    
+    private array $dangerousPatterns = [
+        '/eval\s*\(/',           // eval() calls
+        '/exec\s*\(/',           // exec() calls
+        '/system\s*\(/',         // system() calls
+        '/shell_exec\s*\(/',     // shell_exec() calls
+        '/passthru\s*\(/',       // passthru() calls
+        '/file_get_contents\s*\(http/', // Remote file inclusion
+        '/include\s*\(/',        // Include statements
+        '/require\s*\(/',        // Require statements
+        '/<\?php/',              // PHP code injection
+        '/\$\{.*\}/',            // Variable interpolation
+    ];
+    
+    public function validateContent(string $content): array {
+        $errors = [];
+        
+        // Check for dangerous patterns
+        foreach ($this->dangerousPatterns as $pattern) {
+            if (preg_match($pattern, $content)) {
+                $errors[] = "Potentially dangerous pattern detected: $pattern";
+            }
+        }
+        
+        // Validate @ operators
+        if (preg_match_all('/@(\w+)\s*\(/', $content, $matches)) {
+            foreach ($matches[1] as $func) {
+                if (!in_array($func, $this->allowedFunctions)) {
+                    $errors[] = "Unauthorized function: @$func";
+                }
+            }
+        }
+        
+        // Check for SQL injection in @query calls
+        if (preg_match_all('/@query\s*\(\s*["\']([^"\']*)["\']/s', $content, $matches)) {
+            foreach ($matches[1] as $sql) {
+                if ($this->containsSQLInjection($sql)) {
+                    $errors[] = "Potential SQL injection in query: $sql";
+                }
+            }
+        }
+        
+        return $errors;
+    }
+    
+    private function containsSQLInjection(string $sql): bool {
+        $suspiciousPatterns = [
+            '/\bunion\b.*\bselect\b/i',    // UNION attacks
+            '/\bdrop\b.*\btable\b/i',      // DROP TABLE
+            '/\bdelete\b.*\bfrom\b/i',     // DELETE FROM
+            '/\binsert\b.*\binto\b/i',     // INSERT INTO
+            '/\bupdate\b.*\bset\b/i',      // UPDATE SET
+            '/--;/',                       // SQL comments
+            '/\/\*.*\*\//s',              // Multi-line comments
+            '/\bor\b.*[=<>]/i',           // OR injection
+            '/\band\b.*[=<>]/i',          // AND injection
+        ];
+        
+        foreach ($suspiciousPatterns as $pattern) {
+            if (preg_match($pattern, $sql)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    public function sanitizeValue($value) {
+        if (is_string($value)) {
+            // Remove potential XSS
+            $value = htmlspecialchars($value, ENT_QUOTES, 'UTF-8');
+            
+            // Remove null bytes
+            $value = str_replace("\0", '', $value);
+            
+            // Limit length
+            if (strlen($value) > 10000) {
+                throw new \Exception('Configuration value too long');
+            }
+        }
+        
+        return $value;
+    }
+}
+</pre>
+
+<h3>Secure File Handling</h3>
+<pre>
+&lt;?php
+namespace TuskLang\Security;
+
+class SecureFileHandler {
+    private array $allowedPaths = [];
+    private string $basePath;
+    
+    public function __construct(string $basePath, array $allowedPaths = []) {
+        $this->basePath = realpath($basePath);
+        $this->allowedPaths = array_map('realpath', $allowedPaths);
+    }
+    
+    public function validateFilePath(string $path): bool {
+        $realPath = realpath($path);
+        
+        if (!$realPath) {
+            return false;
+        }
+        
+        // Check if file is within allowed paths
+        $allowed = false;
+        
+        // Check base path
+        if (strpos($realPath, $this->basePath) === 0) {
+            $allowed = true;
+        }
+        
+        // Check additional allowed paths
+        foreach ($this->allowedPaths as $allowedPath) {
+            if (strpos($realPath, $allowedPath) === 0) {
+                $allowed = true;
+                break;
+            }
+        }
+        
+        if (!$allowed) {
+            throw new \Exception("File access denied: $path");
+        }
+        
+        // Check file extension
+        $extension = pathinfo($realPath, PATHINFO_EXTENSION);
+        if (!in_array($extension, ['tsk', 'json', 'yaml', 'yml'])) {
+            throw new \Exception("Invalid file type: $extension");
+        }
+        
+        return true;
+    }
+    
+    public function secureFileRead(string $path): string {
+        $this->validateFilePath($path);
+        
+        if (!is_readable($path)) {
+            throw new \Exception("File not readable: $path");
+        }
+        
+        $content = file_get_contents($path);
+        
+        if ($content === false) {
+            throw new \Exception("Failed to read file: $path");
+        }
+        
+        // Validate content size
+        if (strlen($content) > 1024 * 1024) { // 1MB limit
+            throw new \Exception("Configuration file too large: $path");
+        }
+        
+        return $content;
+    }
+}
+
+// Usage in file() function
+class SecureTuskLangEnhanced extends TuskLangEnhanced {
+    private SecureFileHandler $fileHandler;
+    
+    public function __construct(string $basePath = null) {
+        parent::__construct();
+        
+        $basePath = $basePath ?? getcwd();
+        $this->fileHandler = new SecureFileHandler($basePath, [
+            '/etc/tusklang',
+            '/usr/local/etc/tusklang'
+        ]);
+    }
+    
+    protected function processFileFunction(string $path): array {
+        $content = $this->fileHandler->secureFileRead($path);
+        return $this->parse($content);
+    }
+}
+</pre>
+
+<h3>Environment Variable Security</h3>
+<pre>
+&lt;?php
+namespace TuskLang\Security;
+
+class SecureEnvironment {
+    private array $sensitiveKeys = [
+        'password', 'secret', 'key', 'token', 'auth',
+        'private', 'credential', 'api_key', 'database_url'
+    ];
+    
+    private array $allowedEnvVars = [];
+    
+    public function __construct(array $allowedEnvVars = []) {
+        $this->allowedEnvVars = $allowedEnvVars;
+    }
+    
+    public function getEnvironmentVariable(string $key, $default = null) {
+        // Whitelist approach - only allow specified variables
+        if (!empty($this->allowedEnvVars) && !in_array($key, $this->allowedEnvVars)) {
+            throw new \Exception("Environment variable not allowed: $key");
+        }
+        
+        // Check for suspicious key names
+        if ($this->isSuspiciousKey($key)) {
+            error_log("Suspicious environment variable accessed: $key");
+        }
+        
+        $value = $_ENV[$key] ?? getenv($key) ?: $default;
+        
+        // Don't log sensitive values
+        if ($this->isSensitive($key)) {
+            error_log("Sensitive environment variable accessed: $key");
+        } else {
+            error_log("Environment variable accessed: $key = $value");
+        }
+        
+        return $value;
+    }
+    
+    private function isSensitive(string $key): bool {
+        $lowercaseKey = strtolower($key);
+        
+        foreach ($this->sensitiveKeys as $sensitiveKey) {
+            if (strpos($lowercaseKey, $sensitiveKey) !== false) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    private function isSuspiciousKey(string $key): bool {
+        // Check for path traversal attempts
+        if (strpos($key, '../') !== false || strpos($key, '..\\') !== false) {
+            return true;
+        }
+        
+        // Check for command injection attempts
+        if (preg_match('/[;&|`$\(\)]/', $key)) {
+            return true;
+        }
+        
+        return false;
+    }
+    
+    public function maskSensitiveValue(string $key, $value): string {
+        if ($this->isSensitive($key)) {
+            return '***REDACTED***';
+        }
+        
+        return (string)$value;
+    }
+}
+</pre>
+
+<h3>Database Security</h3>
+<pre>
+&lt;?php
+namespace TuskLang\Security;
+
+class SecureDatabaseHandler {
+    private PDO $connection;
+    private array $allowedTables = [];
+    private array $allowedOperations = ['SELECT'];
+    
+    public function __construct(PDO $connection, array $config = []) {
+        $this->connection = $connection;
+        $this->allowedTables = $config['allowed_tables'] ?? [];
+        $this->allowedOperations = $config['allowed_operations'] ?? ['SELECT'];
+    }
+    
+    public function executeSecureQuery(string $sql, array $params = []): array {
+        // Validate SQL statement
+        $this->validateSQL($sql);
+        
+        // Prepare and execute
+        try {
+            $stmt = $this->connection->prepare($sql);
+            $stmt->execute($params);
+            
+            // Log query execution
+            error_log("TuskLang query executed: " . $this->sanitizeSQL($sql));
+            
+            return $stmt->fetchAll(PDO::FETCH_ASSOC);
+            
+        } catch (\PDOException $e) {
+            error_log("TuskLang query error: " . $e->getMessage());
+            throw new \Exception("Database query failed");
+        }
+    }
+    
+    private function validateSQL(string $sql): void {
+        // Check operation type
+        $operation = strtoupper(trim(explode(' ', $sql)[0]));
+        
+        if (!in_array($operation, $this->allowedOperations)) {
+            throw new \Exception("SQL operation not allowed: $operation");
+        }
+        
+        // Check for dangerous statements
+        $dangerousPatterns = [
+            '/\bDROP\b/i',
+            '/\bDELETE\b/i',
+            '/\bUPDATE\b/i',
+            '/\bINSERT\b/i',
+            '/\bALTER\b/i',
+            '/\bCREATE\b/i',
+            '/\bTRUNCATE\b/i',
+            '/\bEXEC\b/i',
+            '/\bSP_/i',
+            '/\bxp_/i',
+        ];
+        
+        foreach ($dangerousPatterns as $pattern) {
+            if (preg_match($pattern, $sql)) {
+                throw new \Exception("Dangerous SQL pattern detected");
+            }
+        }
+        
+        // Validate table access if whitelist is configured
+        if (!empty($this->allowedTables)) {
+            $this->validateTableAccess($sql);
+        }
+        
+        // Check for common injection patterns
+        if (preg_match('/\b(union|or|and)\b.*[=<>]/i', $sql)) {
+            throw new \Exception("Potential SQL injection detected");
+        }
+    }
+    
+    private function validateTableAccess(string $sql): void {
+        // Extract table names from SQL
+        preg_match_all('/\bFROM\s+(\w+)/i', $sql, $fromMatches);
+        preg_match_all('/\bJOIN\s+(\w+)/i', $sql, $joinMatches);
+        
+        $tables = array_merge($fromMatches[1] ?? [], $joinMatches[1] ?? []);
+        
+        foreach ($tables as $table) {
+            if (!in_array($table, $this->allowedTables)) {
+                throw new \Exception("Table access not allowed: $table");
+            }
+        }
+    }
+    
+    private function sanitizeSQL(string $sql): string {
+        // Remove sensitive data for logging
+        return preg_replace('/\b(password|secret|key)\s*=\s*[\'"][^\'"]*[\'"]/', 
+                          '$1=***', $sql);
+    }
+}
+</pre>
+
+<h3>Configuration Encryption at Rest</h3>
+<pre>
+&lt;?php
+namespace TuskLang\Security;
+
+class ConfigEncryption {
+    private string $encryptionKey;
+    private string $algorithm = 'aes-256-gcm';
+    
+    public function __construct(string $encryptionKey) {
+        if (strlen($encryptionKey) < 32) {
+            throw new \Exception('Encryption key must be at least 32 characters');
+        }
+        $this->encryptionKey = $encryptionKey;
+    }
+    
+    public function encryptSensitiveFields(array $config): array {
+        $sensitiveFields = [
+            'database.password',
+            'api.secret_key',
+            'mail.password',
+            'oauth.client_secret',
+            'jwt.secret'
+        ];
+        
+        foreach ($sensitiveFields as $field) {
+            $value = $this->getNestedValue($config, $field);
+            if ($value !== null) {
+                $encrypted = $this->encrypt($value);
+                $this->setNestedValue($config, $field, '@encrypted:' . $encrypted);
+            }
+        }
+        
+        return $config;
+    }
+    
+    public function decryptSensitiveFields(array $config): array {
+        array_walk_recursive($config, function(&$value) {
+            if (is_string($value) && strpos($value, '@encrypted:') === 0) {
+                $encrypted = substr($value, 11);
+                $value = $this->decrypt($encrypted);
+            }
+        });
+        
+        return $config;
+    }
+    
+    private function encrypt(string $data): string {
+        $iv = random_bytes(16);
+        $tag = '';
+        
+        $encrypted = openssl_encrypt(
+            $data,
+            $this->algorithm,
+            $this->encryptionKey,
+            0,
+            $iv,
+            $tag
+        );
+        
+        if ($encrypted === false) {
+            throw new \Exception('Encryption failed');
+        }
+        
+        return base64_encode($iv . $tag . $encrypted);
+    }
+    
+    private function decrypt(string $data): string {
+        $data = base64_decode($data);
+        
+        $iv = substr($data, 0, 16);
+        $tag = substr($data, 16, 16);
+        $encrypted = substr($data, 32);
+        
+        $decrypted = openssl_decrypt(
+            $encrypted,
+            $this->algorithm,
+            $this->encryptionKey,
+            0,
+            $iv,
+            $tag
+        );
+        
+        if ($decrypted === false) {
+            throw new \Exception('Decryption failed');
+        }
+        
+        return $decrypted;
+    }
+    
+    private function getNestedValue(array $array, string $path) {
+        $keys = explode('.', $path);
+        $value = $array;
+        
+        foreach ($keys as $key) {
+            if (!is_array($value) || !isset($value[$key])) {
+                return null;
+            }
+            $value = $value[$key];
+        }
+        
+        return $value;
+    }
+    
+    private function setNestedValue(array &$array, string $path, $value): void {
+        $keys = explode('.', $path);
+        $current = &$array;
+        
+        foreach ($keys as $i => $key) {
+            if ($i === count($keys) - 1) {
+                $current[$key] = $value;
+            } else {
+                if (!isset($current[$key]) || !is_array($current[$key])) {
+                    $current[$key] = [];
+                }
+                $current = &$current[$key];
+            }
+        }
+    }
+}
+</pre>
+
+<h3>Access Control and Permissions</h3>
+<pre>
+&lt;?php
+namespace TuskLang\Security;
+
+class AccessControl {
+    private array $permissions = [];
+    private ?string $currentUser = null;
+    
+    public function __construct() {
+        $this->currentUser = $this->getCurrentUser();
+    }
+    
+    public function setPermissions(array $permissions): void {
+        $this->permissions = $permissions;
+    }
+    
+    public function checkConfigAccess(string $configPath): bool {
+        if (!$this->currentUser) {
+            return false;
+        }
+        
+        $userPerms = $this->permissions[$this->currentUser] ?? [];
+        
+        // Check if user has access to this config file
+        foreach ($userPerms as $allowedPath) {
+            if (fnmatch($allowedPath, $configPath)) {
+                return true;
+            }
+        }
+        
+        return false;
+    }
+    
+    public function checkFunctionAccess(string $function): bool {
+        if (!$this->currentUser) {
+            return false;
+        }
+        
+        $userPerms = $this->permissions[$this->currentUser] ?? [];
+        $functions = $userPerms['functions'] ?? [];
+        
+        return in_array($function, $functions) || in_array('*', $functions);
+    }
+    
+    private function getCurrentUser(): ?string {
+        // Get user from various sources
+        if (isset($_SERVER['PHP_AUTH_USER'])) {
+            return $_SERVER['PHP_AUTH_USER'];
+        }
+        
+        if (isset($_SESSION['user_id'])) {
+            return $_SESSION['user_id'];
+        }
+        
+        // CLI context
+        if (php_sapi_name() === 'cli') {
+            return get_current_user();
+        }
+        
+        return null;
+    }
+}
+
+// Permission configuration
+$accessControl = new AccessControl();
+$accessControl->setPermissions([
+    'admin' => [
+        'configs' => ['*'],
+        'functions' => ['*']
+    ],
+    'developer' => [
+        'configs' => ['config/app/*', 'config/dev/*'],
+        'functions' => ['env', 'date', 'file', 'cache']
+    ],
+    'readonly' => [
+        'configs' => ['config/public/*'],
+        'functions' => ['env', 'date']
+    ]
+]);
+</pre>
+
+<h3>Security Configuration</h3>
+<pre>
+# Security configuration
+security {
+    # File access restrictions
+    file_access {
+        base_path: "/var/www/app"
+        allowed_paths: [
+            "/etc/tusklang",
+            "/usr/local/etc/tusklang"
+        ]
+        allowed_extensions: ["tsk", "json", "yaml"]
+        max_file_size: "1MB"
+    }
+    
+    # Environment variable restrictions
+    env_access {
+        whitelist_mode: true
+        allowed_vars: [
+            "APP_*",
+            "DB_*",
+            "CACHE_*",
+            "LOG_*"
+        ]
+        log_access: true
+    }
+    
+    # Database security
+    database {
+        allowed_operations: ["SELECT"]
+        allowed_tables: ["users", "settings", "features"]
+        query_timeout: 30
+        max_results: 1000
+    }
+    
+    # Encryption settings
+    encryption {
+        algorithm: "aes-256-gcm"
+        key_rotation: true
+        key_rotation_interval: "30d"
+    }
+    
+    # Audit logging
+    audit {
+        enabled: true
+        log_file: "/var/log/tusklang-audit.log"
+        log_level: "info"
+        include_values: false  # Don't log sensitive values
+    }
+}
+</pre>
+
+<h3>Security Monitoring</h3>
+<pre>
+&lt;?php
+namespace TuskLang\Security;
+
+class SecurityMonitor {
+    private string $logFile;
+    
+    public function __construct(string $logFile = '/var/log/tusklang-security.log') {
+        $this->logFile = $logFile;
+    }
+    
+    public function logSecurityEvent(string $event, array $context = []): void {
+        $entry = [
+            'timestamp' => date('Y-m-d H:i:s'),
+            'event' => $event,
+            'user' => $this->getCurrentUser(),
+            'ip' => $_SERVER['REMOTE_ADDR'] ?? 'cli',
+            'context' => $context
+        ];
+        
+        $logLine = json_encode($entry) . "\n";
+        file_put_contents($this->logFile, $logLine, FILE_APPEND | LOCK_EX);
+        
+        // Send alerts for critical events
+        if ($this->isCriticalEvent($event)) {
+            $this->sendAlert($entry);
+        }
+    }
+    
+    private function isCriticalEvent(string $event): bool {
+        $criticalEvents = [
+            'unauthorized_file_access',
+            'sql_injection_attempt',
+            'dangerous_function_call',
+            'encryption_failure'
+        ];
+        
+        return in_array($event, $criticalEvents);
+    }
+    
+    private function sendAlert(array $entry): void {
+        // Send email/Slack/webhook alert
+        error_log("CRITICAL SECURITY EVENT: " . json_encode($entry));
+    }
+    
+    private function getCurrentUser(): string {
+        return $_SERVER['PHP_AUTH_USER'] ?? $_SESSION['user_id'] ?? get_current_user();
+    }
+}
+</pre>
+
+<h3>Best Practices Checklist</h3>
+<ul>
+    <li>✅ Validate and sanitize all configuration input</li>
+    <li>✅ Use whitelist approach for allowed functions and files</li>
+    <li>✅ Encrypt sensitive configuration values at rest</li>
+    <li>✅ Implement proper access controls and permissions</li>
+    <li>✅ Use prepared statements for all database queries</li>
+    <li>✅ Log security events and monitor for anomalies</li>
+    <li>✅ Regularly rotate encryption keys</li>
+    <li>✅ Audit configuration access and modifications</li>
+    <li>✅ Use secure file handling with path validation</li>
+    <li>✅ Implement rate limiting for configuration parsing</li>
+    <li>✅ Keep TuskLang parser updated with security patches</li>
+    <li>✅ Use environment-specific security configurations</li>
+</ul>

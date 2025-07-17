@@ -1,0 +1,181 @@
+<h1>Getting Started with TuskLang in Python</h1>
+
+<h2>Basic TuskLang Configuration</h2>
+<p>TuskLang provides a clean alternative to JSON and YAML for Python applications, with enhanced features and better type safety.</p>
+
+<h3>config.tsk</h3>
+<pre>
+# Application configuration
+name: "My Python App"
+version: "1.0.0"
+port: 8000
+
+# Server settings
+server {
+    host: "localhost"
+    port: env("PORT", 8000)
+    workers: 4
+    timeout: 30
+}
+
+# Database configuration
+database {
+    engine: "postgresql"
+    host: env("DB_HOST", "localhost")
+    port: env("DB_PORT", 5432)
+    name: env("DB_NAME", "myapp")
+    user: env("DB_USER", "postgres")
+    password: env("DB_PASSWORD", "")
+}
+
+# Redis cache
+cache {
+    host: env("REDIS_HOST", "localhost")
+    port: env("REDIS_PORT", 6379)
+    db: 0
+}
+</pre>
+
+<h3>Python Usage</h3>
+<pre>
+import os
+import re
+from typing import Dict, Any, Optional
+from dataclasses import dataclass
+
+@dataclass
+class ServerConfig:
+    host: str
+    port: int
+    workers: int
+    timeout: int
+
+@dataclass
+class DatabaseConfig:
+    engine: str
+    host: str
+    port: int
+    name: str
+    user: str
+    password: str
+
+@dataclass
+class CacheConfig:
+    host: str
+    port: int
+    db: int
+
+@dataclass
+class Config:
+    name: str
+    version: str
+    port: int
+    server: ServerConfig
+    database: DatabaseConfig
+    cache: CacheConfig
+
+class TuskLangParser:
+    def __init__(self):
+        self.config = {}
+        self.current_section = None
+    
+    def parse_file(self, filename: str) -> Config:
+        """Parse TuskLang file and return Config object."""
+        with open(filename, 'r') as f:
+            content = f.read()
+        return self.parse(content)
+    
+    def parse(self, content: str) -> Config:
+        """Parse TuskLang content string."""
+        lines = content.split('\n')
+        parsed_data = {}
+        current_section = None
+        
+        for line in lines:
+            line = line.strip()
+            
+            # Skip empty lines and comments
+            if not line or line.startswith('#'):
+                continue
+            
+            # Handle section headers
+            if line.endswith('{'):
+                current_section = line[:-1].strip()
+                parsed_data[current_section] = {}
+                continue
+            
+            # Handle section closing
+            if line == '}':
+                current_section = None
+                continue
+            
+            # Handle key-value pairs
+            if ':' in line:
+                key, value = line.split(':', 1)
+                key = key.strip()
+                value = value.strip()
+                
+                # Process env() function
+                if value.startswith('env('):
+                    value = self._parse_env_function(value)
+                
+                # Remove quotes
+                if value.startswith('"') and value.endswith('"'):
+                    value = value[1:-1]
+                
+                # Convert to appropriate type
+                value = self._convert_value(value)
+                
+                if current_section:
+                    parsed_data[current_section][key] = value
+                else:
+                    parsed_data[key] = value
+        
+        return self._build_config(parsed_data)
+    
+    def _parse_env_function(self, value: str) -> str:
+        """Parse env("VAR", "default") function."""
+        match = re.match(r'env\("([^"]+)"(?:,\s*"([^"]*)")?\)', value)
+        if match:
+            env_var = match.group(1)
+            default_val = match.group(2) or ""
+            return os.getenv(env_var, default_val)
+        return value
+    
+    def _convert_value(self, value: str) -> Any:
+        """Convert string value to appropriate Python type."""
+        if value.isdigit():
+            return int(value)
+        if value.lower() in ('true', 'false'):
+            return value.lower() == 'true'
+        try:
+            return float(value)
+        except ValueError:
+            return value
+    
+    def _build_config(self, data: Dict[str, Any]) -> Config:
+        """Build Config object from parsed data."""
+        return Config(
+            name=data.get('name', ''),
+            version=data.get('version', ''),
+            port=data.get('port', 8000),
+            server=ServerConfig(**data.get('server', {})),
+            database=DatabaseConfig(**data.get('database', {})),
+            cache=CacheConfig(**data.get('cache', {}))
+        )
+
+# Example usage
+def main():
+    parser = TuskLangParser()
+    config = parser.parse_file('config.tsk')
+    
+    print(f"App: {config.name} v{config.version}")
+    print(f"Port: {config.port}")
+    print(f"Server: {config.server.host}:{config.server.port}")
+    print(f"Database: {config.database.engine} on {config.database.host}")
+
+if __name__ == "__main__":
+    main()
+</pre>
+
+<p>TuskLang simplifies configuration management in Python applications with clean syntax and environment variable support.</p>

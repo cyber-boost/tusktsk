@@ -1,0 +1,388 @@
+<h1>@ Operators</h1>
+
+<h2>TuskLang @ Operators in PHP</h2>
+<p>@ operators are the killer feature of TuskLang, enabling dynamic configuration with database queries, caching, machine learning, and more.</p>
+
+<h3>Core @ Operators</h3>
+<pre>
+# Environment variables
+api_key: @env("API_KEY", "default-key")
+debug_mode: @env("DEBUG", false)
+port: @env("PORT", 8080)
+
+# Database queries - THE killer feature!
+user_count: @query("SELECT COUNT(*) FROM users")
+active_features: @query("SELECT * FROM features WHERE enabled = 1")
+settings: @query("SELECT key, value FROM config")
+
+# Caching for performance
+expensive_data: @cache("5m", @query("SELECT * FROM analytics"))
+user_stats: @cache("1h", calculate_user_statistics())
+api_response: @cache("30s", fetch_external_api())
+
+# Date and time
+current_time: @date("Y-m-d H:i:s")
+tomorrow: @date("Y-m-d", "+1 day")
+timestamp: @date("U")
+</pre>
+
+<h3>Advanced @ Operators</h3>
+<pre>
+# Machine learning optimization
+optimal_batch_size: @optimize("batch_size", 100)
+cache_size: @optimize("cache_mb", 512)
+
+# Learning from patterns
+user_preference: @learn("theme_preference", "light")
+popular_feature: @learn("most_used_feature", "dashboard")
+
+# Metrics tracking
+request_count: @metrics("api_requests", 1)
+error_rate: @metrics("error_rate", 0.01)
+response_time: @metrics("avg_response_ms", 250)
+
+# Cross-file references
+db_config: @file("database.tsk")
+api_settings: @file("config/api.tsk").endpoints
+
+# PHP code execution
+random_id: @php("uniqid()")
+server_load: @php("sys_getloadavg()[0]")
+memory_used: @php("memory_get_usage(true) / 1024 / 1024")
+</pre>
+
+<h3>PHP Implementation</h3>
+<pre>
+&lt;?php
+namespace TuskLang\Operators;
+
+use TuskLang\TuskLangEnhanced;
+use TuskLang\Cache\CacheManager;
+use TuskLang\ML\Optimizer;
+use TuskLang\Metrics\MetricsCollector;
+
+class AtOperatorProcessor {
+    private ?PDO $db = null;
+    private CacheManager $cache;
+    private Optimizer $optimizer;
+    private MetricsCollector $metrics;
+    
+    public function __construct() {
+        $this->cache = new CacheManager();
+        $this->optimizer = new Optimizer();
+        $this->metrics = new MetricsCollector();
+    }
+    
+    public function process(string $operator, array $args): mixed {
+        // Match operator and process
+        return match($this->getOperatorName($operator)) {
+            'env' => $this->processEnv($args),
+            'query' => $this->processQuery($args),
+            'cache' => $this->processCache($args),
+            'date' => $this->processDate($args),
+            'optimize' => $this->processOptimize($args),
+            'learn' => $this->processLearn($args),
+            'metrics' => $this->processMetrics($args),
+            'file' => $this->processFile($args),
+            'php' => $this->processPhp($args),
+            default => throw new \Exception("Unknown operator: $operator")
+        };
+    }
+    
+    private function processEnv(array $args): mixed {
+        [$key, $default] = $args + [null, null];
+        return $_ENV[$key] ?? getenv($key) ?: $default;
+    }
+    
+    private function processQuery(array $args): mixed {
+        $sql = $args[0];
+        $params = $args[1] ?? [];
+        
+        if (!$this->db) {
+            $this->connectDatabase();
+        }
+        
+        $stmt = $this->db->prepare($sql);
+        $stmt->execute($params);
+        
+        // Detect query type
+        if (stripos($sql, 'SELECT COUNT') === 0) {
+            return $stmt->fetchColumn();
+        }
+        
+        if (stripos($sql, 'SELECT') === 0) {
+            $results = $stmt->fetchAll(PDO::FETCH_ASSOC);
+            return count($results) === 1 ? $results[0] : $results;
+        }
+        
+        return $stmt->rowCount();
+    }
+    
+    private function processCache(array $args): mixed {
+        [$ttl, $value] = $args;
+        
+        // Parse TTL (5m, 1h, 24h, etc)
+        $seconds = $this->parseTTL($ttl);
+        
+        // Generate cache key
+        $key = md5(json_encode($value));
+        
+        return $this->cache->remember($key, $seconds, function() use ($value) {
+            // If value is another @ operator, process it
+            if (is_string($value) && strpos($value, '@') === 0) {
+                return $this->process($value, []);
+            }
+            return $value;
+        });
+    }
+    
+    private function processDate(array $args): string {
+        $format = $args[0] ?? 'Y-m-d H:i:s';
+        $modifier = $args[1] ?? null;
+        
+        $date = new \DateTime();
+        if ($modifier) {
+            $date->modify($modifier);
+        }
+        
+        return $date->format($format);
+    }
+    
+    private function processOptimize(array $args): mixed {
+        [$parameter, $initial] = $args;
+        
+        // Use ML to optimize parameter
+        return $this->optimizer->optimize($parameter, $initial);
+    }
+    
+    private function processLearn(array $args): mixed {
+        [$key, $default] = $args;
+        
+        // Learn from historical patterns
+        return $this->optimizer->learn($key, $default);
+    }
+    
+    private function processMetrics(array $args): mixed {
+        [$metric, $value] = $args;
+        
+        // Track metric
+        $this->metrics->track($metric, $value);
+        
+        return $value;
+    }
+    
+    private function parseTTL(string $ttl): int {
+        preg_match('/(\d+)([smhd])/', $ttl, $matches);
+        $value = (int)$matches[1];
+        $unit = $matches[2];
+        
+        return match($unit) {
+            's' => $value,
+            'm' => $value * 60,
+            'h' => $value * 3600,
+            'd' => $value * 86400,
+            default => $value
+        };
+    }
+}
+</pre>
+
+<h3>Real-World Examples</h3>
+<pre>
+# E-commerce configuration
+pricing {
+    # Dynamic pricing based on inventory
+    base_price: 99.99
+    current_stock: @query("SELECT quantity FROM inventory WHERE sku = 'TSK-001'")
+    
+    # Surge pricing when stock is low
+    multiplier: current_stock < 10 ? 1.5 : 1.0
+    final_price: base_price * multiplier
+    
+    # Cache expensive calculations
+    competitor_price: @cache("1h", @query("SELECT MIN(price) FROM competitor_prices WHERE sku = 'TSK-001'"))
+}
+
+# Feature flags with A/B testing
+features {
+    # Database-driven feature flags
+    new_checkout: @query("SELECT enabled FROM features WHERE name = 'new_checkout_flow'")
+    
+    # ML-optimized features
+    recommendation_engine: @learn("best_recommendation_algorithm", "collaborative")
+    
+    # Cached user segments
+    user_segment: @cache("5m", @query("SELECT segment FROM user_segments WHERE user_id = ?", [user_id]))
+}
+
+# Performance monitoring
+monitoring {
+    # Real-time metrics
+    current_cpu: @php("sys_getloadavg()[0]")
+    memory_usage: @php("round(memory_get_usage(true) / 1024 / 1024, 2)")
+    
+    # Database performance
+    slow_queries: @query("SELECT COUNT(*) FROM mysql.slow_log WHERE start_time > DATE_SUB(NOW(), INTERVAL 5 MINUTE)")
+    
+    # Auto-scaling decisions
+    scale_up: current_cpu > 0.8 || memory_usage > 512
+}
+</pre>
+
+<h3>Nested @ Operators</h3>
+<pre>
+# Operators can be nested for complex logic
+config {
+    # Cache the result of a query
+    settings: @cache("10m", @query("SELECT * FROM app_settings"))
+    
+    # Use environment variable in query
+    user_data: @query("SELECT * FROM users WHERE role = ?", [@env("DEFAULT_ROLE", "user")])
+    
+    # Optimize based on metrics
+    cache_ttl: @optimize("cache_ttl", @metrics("avg_response_time", 100))
+    
+    # Learn from cached data
+    popular_category: @learn("category", @cache("1h", @query("SELECT category FROM orders GROUP BY category ORDER BY COUNT(*) DESC LIMIT 1")))
+}
+</pre>
+
+<h3>Custom @ Operators</h3>
+<pre>
+&lt;?php
+// Register custom @ operators
+class CustomOperators {
+    public static function register(AtOperatorProcessor $processor): void {
+        // @redis operator
+        $processor->addOperator('redis', function($args) {
+            $redis = new Redis();
+            $redis->connect('localhost', 6379);
+            
+            [$command, ...$params] = $args;
+            return $redis->$command(...$params);
+        });
+        
+        // @http operator for API calls
+        $processor->addOperator('http', function($args) {
+            [$method, $url, $data] = $args + ['GET', '', null];
+            
+            $ch = curl_init($url);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_CUSTOMREQUEST, $method);
+            
+            if ($data) {
+                curl_setopt($ch, CURLOPT_POSTFIELDS, json_encode($data));
+                curl_setopt($ch, CURLOPT_HTTPHEADER, ['Content-Type: application/json']);
+            }
+            
+            $response = curl_exec($ch);
+            curl_close($ch);
+            
+            return json_decode($response, true);
+        });
+        
+        // @encrypt operator
+        $processor->addOperator('encrypt', function($args) {
+            [$value, $key] = $args;
+            return openssl_encrypt($value, 'AES-256-CBC', $key, 0, substr($key, 0, 16));
+        });
+        
+        // @validate operator
+        $processor->addOperator('validate', function($args) {
+            [$value, $rule] = $args;
+            
+            return match($rule) {
+                'email' => filter_var($value, FILTER_VALIDATE_EMAIL) !== false,
+                'url' => filter_var($value, FILTER_VALIDATE_URL) !== false,
+                'ip' => filter_var($value, FILTER_VALIDATE_IP) !== false,
+                default => false
+            };
+        });
+    }
+}
+
+// Usage in config
+$config = '
+api {
+    # Redis operations
+    cache_version: @redis("get", "api:version")
+    rate_limit: @redis("get", "rate:limit:default")
+    
+    # HTTP API calls  
+    weather: @http("GET", "https://api.weather.com/current")
+    
+    # Encryption
+    secret_key: @encrypt("my-secret", @env("ENCRYPTION_KEY"))
+    
+    # Validation
+    email_valid: @validate("user@example.com", "email")
+}
+';
+</pre>
+
+<h3>Error Handling</h3>
+<pre>
+# Graceful error handling
+database {
+    # Fallback on query errors
+    user_count: @query("SELECT COUNT(*) FROM users") ?? 0
+    
+    # Try-catch pattern
+    settings: @try(@query("SELECT * FROM settings"), {})
+    
+    # Default values
+    feature_enabled: @query("SELECT enabled FROM features WHERE name = ?", ["new_ui"]) ?? false
+}
+
+# Validation and constraints
+limits {
+    # Ensure numeric values
+    max_upload: int(@env("MAX_UPLOAD_MB", "10"))
+    
+    # Bounded values
+    workers: min(max(@env("WORKERS", 4), 1), 100)
+    
+    # Type safety
+    debug: bool(@env("DEBUG", "false"))
+}
+</pre>
+
+<h3>Performance Optimization</h3>
+<pre>
+# Lazy evaluation
+expensive {
+    # Only evaluate when accessed
+    report_data: @lazy(@query("SELECT * FROM generate_report()"))
+    
+    # Memoization
+    user_permissions: @memo(@query("SELECT * FROM user_permissions WHERE user_id = ?", [user_id]))
+}
+
+# Batch operations
+batch {
+    # Combine multiple queries
+    stats: @batch([
+        "total_users" => "SELECT COUNT(*) FROM users",
+        "total_orders" => "SELECT COUNT(*) FROM orders",
+        "revenue" => "SELECT SUM(amount) FROM payments"
+    ])
+}
+
+# Async operations (future feature)
+async {
+    # Non-blocking operations
+    external_api: @async(@http("GET", "https://slow-api.com/data"))
+}
+</pre>
+
+<h3>Best Practices</h3>
+<ul>
+    <li>Always provide defaults for @env operators</li>
+    <li>Use @cache for expensive @query operations</li>
+    <li>Validate and sanitize data from @query results</li>
+    <li>Monitor performance impact of @optimize operators</li>
+    <li>Use meaningful cache TTLs based on data volatility</li>
+    <li>Handle database connection errors gracefully</li>
+    <li>Document complex @ operator chains</li>
+    <li>Test @ operators with various edge cases</li>
+</ul>

@@ -1,0 +1,1277 @@
+<h1>Installation & Setup</h1>
+
+<h2>Installing and Setting Up TuskLang for C# Projects</h2>
+<p>Complete guide to installing TuskLang tools, setting up your development environment, and configuring C# projects for TuskLang integration.</p>
+
+<h3>project.tsk</h3>
+<pre>
+# Project setup and installation configuration
+project {
+    name: "TuskLangCSharpSetup"
+    version: "1.0.0"
+    description: "TuskLang setup configuration for C# projects"
+    
+    # .NET configuration
+    dotnet {
+        version: "8.0"
+        framework: "net8.0"
+        
+        # Project types
+        project_type: env("PROJECT_TYPE", "console") # console, web, api, library, blazor
+        
+        # Language version
+        language_version: "12.0"
+        nullable: "enable"
+        implicit_usings: "enable"
+    }
+    
+    # Package management
+    packages {
+        # NuGet configuration
+        nuget {
+            # Package sources
+            sources: [
+                {
+                    name: "nuget.org"
+                    url: "https://api.nuget.org/v3/index.json"
+                },
+                {
+                    name: "tusklang"
+                    url: "https://nuget.tusklang.org/v3/index.json"
+                    api_key: env("TUSKLANG_NUGET_KEY")
+                }
+            ]
+            
+            # Global packages folder
+            global_packages_folder: env("NUGET_PACKAGES", "~/.nuget/packages")
+            
+            # Cache configuration
+            cache {
+                http_cache: true
+                plugins_cache: true
+                temp_cache: true
+                global_cache: true
+            }
+        }
+        
+        # TuskLang packages
+        tusklang_packages: {
+            core: {
+                name: "TuskLang.Core"
+                version: "1.0.0"
+                description: "Core TuskLang parsing and evaluation"
+            }
+            
+            extensions: {
+                name: "TuskLang.Extensions"
+                version: "1.0.0" 
+                description: "Extensions for ASP.NET Core integration"
+            }
+            
+            configuration: {
+                name: "TuskLang.Configuration"
+                version: "1.0.0"
+                description: "Configuration provider for Microsoft.Extensions.Configuration"
+            }
+            
+            cli: {
+                name: "TuskLang.Cli"
+                version: "1.0.0"
+                description: "Command-line tools for TuskLang"
+                type: "tool"
+            }
+            
+            testing: {
+                name: "TuskLang.Testing"
+                version: "1.0.0"
+                description: "Testing utilities for TuskLang configurations"
+            }
+            
+            analyzers: {
+                name: "TuskLang.Analyzers"
+                version: "1.0.0"
+                description: "Roslyn analyzers for TuskLang C# integration"
+            }
+        }
+        
+        # Additional .NET packages commonly used with TuskLang
+        additional_packages: {
+            # Logging
+            serilog: {
+                name: "Serilog.AspNetCore"
+                version: "8.0.0"
+            }
+            
+            # Configuration
+            configuration_binder: {
+                name: "Microsoft.Extensions.Configuration.Binder"
+                version: "8.0.0"
+            }
+            
+            # Dependency injection
+            hosting: {
+                name: "Microsoft.Extensions.Hosting"
+                version: "8.0.0"
+            }
+            
+            # Entity Framework (if using database)
+            entity_framework: {
+                name: "Microsoft.EntityFrameworkCore"
+                version: "8.0.0"
+                condition: @project.features.database
+            }
+            
+            # ASP.NET Core (if web project)
+            aspnetcore: {
+                name: "Microsoft.AspNetCore.App"
+                version: "8.0.0"
+                condition: @project.dotnet.project_type in ["web", "api", "blazor"]
+            }
+        }
+    }
+    
+    # Development tools
+    tools {
+        # Global .NET tools
+        global_tools: [
+            {
+                name: "tusklang"
+                package: "TuskLang.Cli"
+                version: "1.0.0"
+            },
+            {
+                name: "dotnet-ef"
+                package: "dotnet-ef"
+                version: "8.0.0"
+                condition: @project.features.database
+            },
+            {
+                name: "dotnet-outdated"
+                package: "dotnet-outdated-tool"
+                version: "4.6.0"
+            }
+        ]
+        
+        # IDE extensions
+        ide_extensions: {
+            visual_studio: [
+                "TuskLang.VisualStudio",
+                "SonarLint",
+                "ReSharper"
+            ]
+            
+            vscode: [
+                "tusklang.vscode-tusklang",
+                "ms-dotnettools.csharp",
+                "ms-dotnettools.vscode-dotnet-runtime"
+            ]
+            
+            rider: [
+                "TuskLang.Rider"
+            ]
+        }
+    }
+    
+    # Build configuration
+    build {
+        # MSBuild properties
+        properties: {
+            # Assembly information
+            assembly_title: @project.name
+            assembly_description: @project.description
+            assembly_version: @project.version
+            assembly_file_version: @project.version
+            
+            # Compilation
+            target_framework: @project.dotnet.framework
+            lang_version: @project.dotnet.language_version
+            nullable: @project.dotnet.nullable
+            implicit_usings: @project.dotnet.implicit_usings
+            
+            # Output
+            output_type: @match(@project.dotnet.project_type, {
+                "console": "Exe",
+                "library": "Library",
+                "web": "Exe",
+                "api": "Exe",
+                "blazor": "Exe"
+            })
+            
+            # Code analysis
+            enable_net_analyzers: true
+            enforce_code_style_in_build: true
+            treat_warnings_as_errors: env("TREAT_WARNINGS_AS_ERRORS", false)
+            warnings_as_errors: ""
+            warnings_not_as_errors: ""
+        }
+        
+        # TuskLang build integration
+        tusklang_integration: {
+            # Pre-build validation
+            validate_before_build: true
+            
+            # Code generation
+            generate_constants: true
+            generate_models: true
+            
+            # Output paths
+            generated_code_path: "Generated"
+            constants_namespace: @project.name + ".Configuration"
+            
+            # Build targets
+            targets: [
+                "ValidateTuskLangFiles",
+                "GenerateTuskLangConstants",
+                "GenerateTuskLangModels"
+            ]
+        }
+        
+        # Static analysis
+        analysis: {
+            enabled: true
+            
+            # Code quality rules
+            rule_sets: [
+                "Microsoft.CodeAnalysis.NetAnalyzers",
+                "TuskLang.Analyzers"
+            ]
+            
+            # SonarQube integration
+            sonarqube: {
+                enabled: env("SONARQUBE_ENABLED", false)
+                host_url: env("SONARQUBE_HOST_URL")
+                login: env("SONARQUBE_LOGIN")
+                organization: env("SONARQUBE_ORGANIZATION")
+            }
+        }
+    }
+    
+    # Testing configuration
+    testing {
+        # Test frameworks
+        frameworks: {
+            unit_tests: {
+                framework: "xUnit"
+                packages: [
+                    "xunit",
+                    "xunit.runner.visualstudio",
+                    "Microsoft.NET.Test.Sdk",
+                    "TuskLang.Testing"
+                ]
+            }
+            
+            integration_tests: {
+                framework: "xUnit"
+                packages: [
+                    "Microsoft.AspNetCore.Mvc.Testing",
+                    "TuskLang.Testing.Integration"
+                ]
+                condition: @project.dotnet.project_type in ["web", "api"]
+            }
+            
+            mocking: {
+                framework: "Moq"
+                packages: [
+                    "Moq",
+                    "Moq.Contrib.HttpClient"
+                ]
+            }
+        }
+        
+        # Test configuration
+        configuration: {
+            # Parallel execution
+            parallel_execution: true
+            max_parallel_threads: env("TEST_PARALLEL_THREADS", -1)
+            
+            # Code coverage
+            code_coverage: {
+                enabled: true
+                tool: "coverlet"
+                threshold: 80
+                exclude_assemblies: [
+                    "*.Tests",
+                    "*.TestUtilities"
+                ]
+            }
+            
+            # Test data
+            test_data_path: "TestData"
+            test_configurations_path: "TestConfigurations"
+        }
+    }
+    
+    # Deployment configuration
+    deployment {
+        # Docker support
+        docker: {
+            enabled: env("DOCKER_ENABLED", false)
+            
+            base_image: @match(@project.dotnet.framework, {
+                "net8.0": "mcr.microsoft.com/dotnet/aspnet:8.0",
+                "net7.0": "mcr.microsoft.com/dotnet/aspnet:7.0",
+                "net6.0": "mcr.microsoft.com/dotnet/aspnet:6.0"
+            })
+            
+            # Multi-stage build
+            build_image: @match(@project.dotnet.framework, {
+                "net8.0": "mcr.microsoft.com/dotnet/sdk:8.0",
+                "net7.0": "mcr.microsoft.com/dotnet/sdk:7.0", 
+                "net6.0": "mcr.microsoft.com/dotnet/sdk:6.0"
+            })
+        }
+        
+        # Azure App Service
+        azure: {
+            enabled: env("AZURE_DEPLOYMENT", false)
+            runtime: @project.dotnet.framework
+            
+            app_settings: {
+                ASPNETCORE_ENVIRONMENT: env("ASPNETCORE_ENVIRONMENT", "Production")
+                TUSKLANG_CONFIG_PATH: env("TUSKLANG_CONFIG_PATH", "/app/config/production.tsk")
+            }
+        }
+        
+        # Self-contained deployment
+        self_contained: {
+            enabled: env("SELF_CONTAINED", false)
+            runtime_identifier: env("RUNTIME_ID", "linux-x64")
+            
+            options: {
+                single_file: true
+                trim_unused_assemblies: true
+                ready_to_run: true
+            }
+        }
+    }
+    
+    # Environment-specific configurations
+    environments: {
+        development: {
+            packages: {
+                additional: [
+                    "Microsoft.Extensions.Logging.Debug",
+                    "Microsoft.VisualStudio.Web.CodeGeneration.Design"
+                ]
+            }
+            
+            build: {
+                properties: {
+                    debug_type: "full"
+                    optimize: false
+                    define_constants: "DEBUG;TRACE"
+                }
+            }
+        }
+        
+        production: {
+            build: {
+                properties: {
+                    debug_type: "pdbonly"
+                    optimize: true
+                    define_constants: "TRACE"
+                }
+            }
+            
+            deployment: {
+                docker: { enabled: true }
+                self_contained: { enabled: true }
+            }
+        }
+    }
+    
+    # Features configuration
+    features: {
+        database: env("FEATURE_DATABASE", false)
+        web_api: env("FEATURE_WEB_API", false)
+        authentication: env("FEATURE_AUTH", false)
+        caching: env("FEATURE_CACHING", false)
+        logging: env("FEATURE_LOGGING", true)
+        monitoring: env("FEATURE_MONITORING", false)
+        swagger: env("FEATURE_SWAGGER", true)
+    }
+}
+</pre>
+
+<h3>C# Setup Implementation</h3>
+<pre>
+using System;
+using System.Collections.Generic;
+using System.Diagnostics;
+using System.IO;
+using System.Linq;
+using System.Text;
+using System.Text.Json;
+using System.Threading.Tasks;
+using System.Xml.Linq;
+
+namespace TuskLang.Setup
+{
+    // Project setup utility class
+    public class TuskLangProjectSetup
+    {
+        private readonly string _projectPath;
+        private readonly ProjectConfig _config;
+
+        public TuskLangProjectSetup(string projectPath, ProjectConfig config)
+        {
+            _projectPath = projectPath ?? throw new ArgumentNullException(nameof(projectPath));
+            _config = config ?? throw new ArgumentNullException(nameof(config));
+        }
+
+        public async Task SetupProjectAsync()
+        {
+            Console.WriteLine($"Setting up TuskLang for project: {_config.Name}");
+
+            // 1. Create project structure
+            await CreateProjectStructureAsync();
+
+            // 2. Generate project file
+            await GenerateProjectFileAsync();
+
+            // 3. Create NuGet configuration
+            await CreateNuGetConfigAsync();
+
+            // 4. Install global tools
+            await InstallGlobalToolsAsync();
+
+            // 5. Create build scripts
+            await CreateBuildScriptsAsync();
+
+            // 6. Setup IDE configuration
+            await SetupIDEConfigurationAsync();
+
+            // 7. Create Docker configuration
+            if (_config.Deployment.Docker.Enabled)
+            {
+                await CreateDockerConfigurationAsync();
+            }
+
+            // 8. Create GitHub Actions workflow
+            await CreateGitHubActionsWorkflowAsync();
+
+            Console.WriteLine("✓ TuskLang project setup completed successfully!");
+        }
+
+        private async Task CreateProjectStructureAsync()
+        {
+            var directories = new[]
+            {
+                "src",
+                "tests",
+                "config",
+                "scripts",
+                "docs",
+                "tools",
+                "Generated",
+                "TestData",
+                "TestConfigurations"
+            };
+
+            foreach (var dir in directories)
+            {
+                var fullPath = Path.Combine(_projectPath, dir);
+                if (!Directory.Exists(fullPath))
+                {
+                    Directory.CreateDirectory(fullPath);
+                    Console.WriteLine($"  Created directory: {dir}");
+                }
+            }
+
+            // Create sample TuskLang configuration
+            var configPath = Path.Combine(_projectPath, "config", "app.tsk");
+            if (!File.Exists(configPath))
+            {
+                await CreateSampleConfigurationAsync(configPath);
+            }
+        }
+
+        private async Task GenerateProjectFileAsync()
+        {
+            var projectFile = Path.Combine(_projectPath, "src", $"{_config.Name}.csproj");
+
+            var project = new XDocument(
+                new XElement("Project",
+                    new XAttribute("Sdk", "Microsoft.NET.Sdk.Web"),
+                    
+                    new XElement("PropertyGroup",
+                        new XElement("TargetFramework", _config.DotNet.Framework),
+                        new XElement("LangVersion", _config.DotNet.LanguageVersion),
+                        new XElement("Nullable", _config.DotNet.Nullable),
+                        new XElement("ImplicitUsings", _config.DotNet.ImplicitUsings),
+                        new XElement("OutputType", GetOutputType()),
+                        new XElement("AssemblyTitle", _config.Name),
+                        new XElement("AssemblyDescription", _config.Description),
+                        new XElement("AssemblyVersion", _config.Version),
+                        new XElement("FileVersion", _config.Version),
+                        new XElement("EnableNETAnalyzers", "true"),
+                        new XElement("EnforceCodeStyleInBuild", "true")
+                    ),
+                    
+                    CreatePackageReferencesElement(),
+                    CreateBuildTargetsElement()
+                )
+            );
+
+            await File.WriteAllTextAsync(projectFile, project.ToString());
+            Console.WriteLine($"  Generated project file: {Path.GetFileName(projectFile)}");
+        }
+
+        private XElement CreatePackageReferencesElement()
+        {
+            var packageReferences = new XElement("ItemGroup");
+
+            // Add TuskLang packages
+            foreach (var package in _config.Packages.TuskLangPackages)
+            {
+                packageReferences.Add(new XElement("PackageReference",
+                    new XAttribute("Include", package.Value.Name),
+                    new XAttribute("Version", package.Value.Version)
+                ));
+            }
+
+            // Add additional packages based on features
+            if (_config.Features.Database)
+            {
+                packageReferences.Add(new XElement("PackageReference",
+                    new XAttribute("Include", "Microsoft.EntityFrameworkCore"),
+                    new XAttribute("Version", "8.0.0")
+                ));
+            }
+
+            if (_config.Features.Authentication)
+            {
+                packageReferences.Add(new XElement("PackageReference",
+                    new XAttribute("Include", "Microsoft.AspNetCore.Authentication.JwtBearer"),
+                    new XAttribute("Version", "8.0.0")
+                ));
+            }
+
+            if (_config.Features.Swagger)
+            {
+                packageReferences.Add(new XElement("PackageReference",
+                    new XAttribute("Include", "Swashbuckle.AspNetCore"),
+                    new XAttribute("Version", "6.5.0")
+                ));
+            }
+
+            return packageReferences;
+        }
+
+        private XElement CreateBuildTargetsElement()
+        {
+            return new XElement("Target",
+                new XAttribute("Name", "ValidateTuskLangFiles"),
+                new XAttribute("BeforeTargets", "Build"),
+                
+                new XElement("Exec",
+                    new XAttribute("Command", "tusklang validate config/**/*.tsk"),
+                    new XAttribute("ContinueOnError", "false")
+                ),
+                
+                new XElement("Message",
+                    new XAttribute("Text", "TuskLang validation completed"),
+                    new XAttribute("Importance", "high")
+                )
+            );
+        }
+
+        private async Task CreateNuGetConfigAsync()
+        {
+            var nugetConfig = Path.Combine(_projectPath, "nuget.config");
+
+            var config = new XDocument(
+                new XElement("configuration",
+                    new XElement("packageSources",
+                        new XElement("add",
+                            new XAttribute("key", "nuget.org"),
+                            new XAttribute("value", "https://api.nuget.org/v3/index.json")
+                        ),
+                        new XElement("add",
+                            new XAttribute("key", "tusklang"),
+                            new XAttribute("value", "https://nuget.tusklang.org/v3/index.json")
+                        )
+                    ),
+                    new XElement("packageSourceCredentials",
+                        new XElement("tusklang",
+                            new XElement("add",
+                                new XAttribute("key", "Username"),
+                                new XAttribute("value", "%TUSKLANG_NUGET_USER%")
+                            ),
+                            new XElement("add",
+                                new XAttribute("key", "ClearTextPassword"),
+                                new XAttribute("value", "%TUSKLANG_NUGET_KEY%")
+                            )
+                        )
+                    )
+                )
+            );
+
+            await File.WriteAllTextAsync(nugetConfig, config.ToString());
+            Console.WriteLine("  Created NuGet configuration");
+        }
+
+        private async Task InstallGlobalToolsAsync()
+        {
+            Console.WriteLine("  Installing global .NET tools...");
+
+            foreach (var tool in _config.Tools.GlobalTools)
+            {
+                try
+                {
+                    var process = new Process
+                    {
+                        StartInfo = new ProcessStartInfo
+                        {
+                            FileName = "dotnet",
+                            Arguments = $"tool install -g {tool.Package} --version {tool.Version}",
+                            UseShellExecute = false,
+                            RedirectStandardOutput = true,
+                            RedirectStandardError = true
+                        }
+                    };
+
+                    process.Start();
+                    await process.WaitForExitAsync();
+
+                    if (process.ExitCode == 0)
+                    {
+                        Console.WriteLine($"    ✓ Installed {tool.Name}");
+                    }
+                    else
+                    {
+                        Console.WriteLine($"    ! {tool.Name} may already be installed");
+                    }
+                }
+                catch (Exception ex)
+                {
+                    Console.WriteLine($"    ✗ Failed to install {tool.Name}: {ex.Message}");
+                }
+            }
+        }
+
+        private async Task CreateBuildScriptsAsync()
+        {
+            // Create PowerShell build script
+            var buildScript = @"#!/usr/bin/env pwsh
+# TuskLang C# Build Script
+
+param(
+    [string]$Configuration = ""Release"",
+    [string]$Target = ""Build"",
+    [switch]$Clean = $false,
+    [switch]$Test = $false,
+    [switch]$Pack = $false
+)
+
+Write-Host ""TuskLang C# Build Script"" -ForegroundColor Green
+Write-Host ""Configuration: $Configuration"" -ForegroundColor Yellow
+Write-Host ""Target: $Target"" -ForegroundColor Yellow
+
+# Set error handling
+$ErrorActionPreference = ""Stop""
+
+try {
+    # Validate TuskLang files
+    Write-Host ""Validating TuskLang files..."" -ForegroundColor Blue
+    tusklang validate config/**/*.tsk
+    if ($LASTEXITCODE -ne 0) { throw ""TuskLang validation failed"" }
+
+    # Clean if requested
+    if ($Clean) {
+        Write-Host ""Cleaning previous build..."" -ForegroundColor Blue
+        dotnet clean --configuration $Configuration
+    }
+
+    # Restore packages
+    Write-Host ""Restoring packages..."" -ForegroundColor Blue
+    dotnet restore
+
+    # Build project
+    Write-Host ""Building project..."" -ForegroundColor Blue
+    dotnet build --configuration $Configuration --no-restore
+
+    # Run tests if requested
+    if ($Test) {
+        Write-Host ""Running tests..."" -ForegroundColor Blue
+        dotnet test --configuration $Configuration --no-build --verbosity normal
+    }
+
+    # Pack if requested
+    if ($Pack) {
+        Write-Host ""Creating packages..."" -ForegroundColor Blue
+        dotnet pack --configuration $Configuration --no-build
+    }
+
+    Write-Host ""Build completed successfully!"" -ForegroundColor Green
+}
+catch {
+    Write-Host ""Build failed: $_"" -ForegroundColor Red
+    exit 1
+}
+";
+
+            var scriptPath = Path.Combine(_projectPath, "scripts", "build.ps1");
+            await File.WriteAllTextAsync(scriptPath, buildScript);
+            Console.WriteLine("  Created build script");
+
+            // Create batch file for Windows
+            var batchScript = @"@echo off
+powershell -ExecutionPolicy Bypass -File ""%~dp0build.ps1"" %*
+";
+
+            var batchPath = Path.Combine(_projectPath, "scripts", "build.cmd");
+            await File.WriteAllTextAsync(batchPath, batchScript);
+
+            // Create shell script for Unix
+            var shellScript = @"#!/bin/bash
+SCRIPT_DIR=""$(cd ""$(dirname ""${BASH_SOURCE[0]}"")/"" && pwd)""
+pwsh ""$SCRIPT_DIR/build.ps1"" ""$@""
+";
+
+            var shellPath = Path.Combine(_projectPath, "scripts", "build.sh");
+            await File.WriteAllTextAsync(shellPath, shellScript);
+
+            // Make shell script executable on Unix systems
+            if (Environment.OSVersion.Platform == PlatformID.Unix)
+            {
+                Process.Start("chmod", $"+x {shellPath}");
+            }
+        }
+
+        private async Task SetupIDEConfigurationAsync()
+        {
+            // VS Code configuration
+            var vscodeDir = Path.Combine(_projectPath, ".vscode");
+            Directory.CreateDirectory(vscodeDir);
+
+            // Settings
+            var settings = new
+            {
+                files = new { associations = new { "*.tsk" = "tusklang" } },
+                tusklang = new
+                {
+                    validation = new { enabled = true },
+                    formatting = new { enabled = true }
+                },
+                dotnet = new
+                {
+                    completion = new { showCompletionItemsFromUnimportedNamespaces = true }
+                }
+            };
+
+            await File.WriteAllTextAsync(
+                Path.Combine(vscodeDir, "settings.json"),
+                JsonSerializer.Serialize(settings, new JsonSerializerOptions { WriteIndented = true })
+            );
+
+            // Tasks
+            var tasks = new
+            {
+                version = "2.0.0",
+                tasks = new[]
+                {
+                    new
+                    {
+                        label = "build",
+                        command = "dotnet",
+                        type = "process",
+                        args = new[] { "build" },
+                        group = new { kind = "build", isDefault = true }
+                    },
+                    new
+                    {
+                        label = "validate-tusklang",
+                        command = "tusklang",
+                        type = "process",
+                        args = new[] { "validate", "config/**/*.tsk" },
+                        group = "build"
+                    }
+                }
+            };
+
+            await File.WriteAllTextAsync(
+                Path.Combine(vscodeDir, "tasks.json"),
+                JsonSerializer.Serialize(tasks, new JsonSerializerOptions { WriteIndented = true })
+            );
+
+            Console.WriteLine("  Created VS Code configuration");
+        }
+
+        private async Task CreateDockerConfigurationAsync()
+        {
+            var dockerfile = $@"# Build stage
+FROM {_config.Deployment.Docker.BuildImage} AS build
+WORKDIR /src
+
+# Copy project files
+COPY [""src/{_config.Name}.csproj"", ""src/""]
+RUN dotnet restore ""src/{_config.Name}.csproj""
+
+# Copy source code
+COPY . .
+WORKDIR ""/src/src""
+
+# Install TuskLang CLI
+RUN dotnet tool install -g TuskLang.Cli
+
+# Validate TuskLang files
+RUN ~/.dotnet/tools/tusklang validate ../config/**/*.tsk
+
+# Build application
+RUN dotnet build ""{_config.Name}.csproj"" -c Release -o /app/build
+
+# Publish stage
+FROM build AS publish
+RUN dotnet publish ""{_config.Name}.csproj"" -c Release -o /app/publish
+
+# Runtime stage
+FROM {_config.Deployment.Docker.BaseImage} AS final
+WORKDIR /app
+COPY --from=publish /app/publish .
+
+# Copy configuration
+COPY config/ ./config/
+
+ENTRYPOINT [""dotnet"", ""{_config.Name}.dll""]
+";
+
+            await File.WriteAllTextAsync(Path.Combine(_projectPath, "Dockerfile"), dockerfile);
+
+            var dockerignore = @"**/.dockerignore
+**/.env
+**/.git
+**/.gitignore
+**/.project
+**/.settings
+**/.toolstarget
+**/.vs
+**/.vscode
+**/*.*proj.user
+**/*.dbmdl
+**/*.jfm
+**/azds.yaml
+**/bin
+**/charts
+**/docker-compose*
+**/Dockerfile*
+**/node_modules
+**/npm-debug.log
+**/obj
+**/secrets.dev.yaml
+**/values.dev.yaml
+LICENSE
+README.md
+";
+
+            await File.WriteAllTextAsync(Path.Combine(_projectPath, ".dockerignore"), dockerignore);
+            Console.WriteLine("  Created Docker configuration");
+        }
+
+        private async Task CreateGitHubActionsWorkflowAsync()
+        {
+            var workflowDir = Path.Combine(_projectPath, ".github", "workflows");
+            Directory.CreateDirectory(workflowDir);
+
+            var workflow = $@"name: CI/CD
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Setup .NET
+      uses: actions/setup-dotnet@v3
+      with:
+        dotnet-version: '{_config.DotNet.Version}'
+    
+    - name: Install TuskLang CLI
+      run: dotnet tool install -g TuskLang.Cli
+      
+    - name: Validate TuskLang files
+      run: tusklang validate config/**/*.tsk
+    
+    - name: Restore dependencies
+      run: dotnet restore
+    
+    - name: Build
+      run: dotnet build --no-restore
+    
+    - name: Test
+      run: dotnet test --no-build --verbosity normal
+
+  docker:
+    runs-on: ubuntu-latest
+    needs: test
+    if: github.ref == 'refs/heads/main'
+    
+    steps:
+    - uses: actions/checkout@v3
+    
+    - name: Build Docker image
+      run: docker build -t ${{{{ github.repository }}}}:${{{{ github.sha }}}} .
+    
+    - name: Login to Docker Hub
+      uses: docker/login-action@v2
+      with:
+        username: ${{{{ secrets.DOCKER_USERNAME }}}}
+        password: ${{{{ secrets.DOCKER_PASSWORD }}}}
+    
+    - name: Push Docker image
+      run: |
+        docker push ${{{{ github.repository }}}}:${{{{ github.sha }}}}
+        docker tag ${{{{ github.repository }}}}:${{{{ github.sha }}}} ${{{{ github.repository }}}}:latest
+        docker push ${{{{ github.repository }}}}:latest
+";
+
+            await File.WriteAllTextAsync(Path.Combine(workflowDir, "ci-cd.yml"), workflow);
+            Console.WriteLine("  Created GitHub Actions workflow");
+        }
+
+        private async Task CreateSampleConfigurationAsync(string configPath)
+        {
+            var sampleConfig = $@"# {_config.Name} Configuration
+app {{
+    name: ""{_config.Name}""
+    version: ""{_config.Version}""
+    description: ""{_config.Description}""
+    
+    environment: env(""ASPNETCORE_ENVIRONMENT"", ""Development"")
+    
+    server {{
+        host: ""localhost""
+        port: env(""PORT"", 5000)
+        https: env(""HTTPS_ENABLED"", false)
+    }}
+    
+    logging {{
+        level: env(""LOG_LEVEL"", ""Information"")
+        providers: [""Console"", ""File""]
+    }}
+    
+    features {{
+        swagger: true
+        health_checks: true
+    }}
+}}
+";
+
+            await File.WriteAllTextAsync(configPath, sampleConfig);
+            Console.WriteLine($"  Created sample configuration: {Path.GetFileName(configPath)}");
+        }
+
+        private string GetOutputType()
+        {
+            return _config.DotNet.ProjectType switch
+            {
+                "console" => "Exe",
+                "library" => "Library",
+                "web" => "Exe",
+                "api" => "Exe",
+                "blazor" => "Exe",
+                _ => "Exe"
+            };
+        }
+    }
+
+    // Configuration models for setup
+    public class ProjectConfig
+    {
+        public string Name { get; set; } = "";
+        public string Version { get; set; } = "1.0.0";
+        public string Description { get; set; } = "";
+        public DotNetConfig DotNet { get; set; } = new();
+        public PackagesConfig Packages { get; set; } = new();
+        public ToolsConfig Tools { get; set; } = new();
+        public DeploymentConfig Deployment { get; set; } = new();
+        public FeaturesConfig Features { get; set; } = new();
+    }
+
+    public class DotNetConfig
+    {
+        public string Version { get; set; } = "8.0";
+        public string Framework { get; set; } = "net8.0";
+        public string ProjectType { get; set; } = "console";
+        public string LanguageVersion { get; set; } = "12.0";
+        public string Nullable { get; set; } = "enable";
+        public string ImplicitUsings { get; set; } = "enable";
+    }
+
+    public class PackagesConfig
+    {
+        public Dictionary<string, PackageInfo> TuskLangPackages { get; set; } = new();
+    }
+
+    public class PackageInfo
+    {
+        public string Name { get; set; } = "";
+        public string Version { get; set; } = "1.0.0";
+        public string Description { get; set; } = "";
+    }
+
+    public class ToolsConfig
+    {
+        public List<GlobalTool> GlobalTools { get; set; } = new();
+    }
+
+    public class GlobalTool
+    {
+        public string Name { get; set; } = "";
+        public string Package { get; set; } = "";
+        public string Version { get; set; } = "1.0.0";
+    }
+
+    public class DeploymentConfig
+    {
+        public DockerConfig Docker { get; set; } = new();
+    }
+
+    public class DockerConfig
+    {
+        public bool Enabled { get; set; } = false;
+        public string BaseImage { get; set; } = "mcr.microsoft.com/dotnet/aspnet:8.0";
+        public string BuildImage { get; set; } = "mcr.microsoft.com/dotnet/sdk:8.0";
+    }
+
+    public class FeaturesConfig
+    {
+        public bool Database { get; set; } = false;
+        public bool Authentication { get; set; } = false;
+        public bool Swagger { get; set; } = true;
+    }
+}
+</pre>
+
+<h3>Usage Example</h3>
+<pre>
+using System;
+using System.Threading.Tasks;
+using TuskLang.Setup;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        Console.WriteLine("=== TuskLang C# Installation & Setup Demo ===");
+
+        // 1. Project configuration
+        var config = new ProjectConfig
+        {
+            Name = "MyTuskLangApp",
+            Version = "1.0.0",
+            Description = "Sample C# application with TuskLang",
+            DotNet = new DotNetConfig
+            {
+                Version = "8.0",
+                Framework = "net8.0",
+                ProjectType = "web",
+                LanguageVersion = "12.0"
+            },
+            Packages = new PackagesConfig
+            {
+                TuskLangPackages = new Dictionary<string, PackageInfo>
+                {
+                    ["core"] = new() { Name = "TuskLang.Core", Version = "1.0.0" },
+                    ["extensions"] = new() { Name = "TuskLang.Extensions", Version = "1.0.0" },
+                    ["configuration"] = new() { Name = "TuskLang.Configuration", Version = "1.0.0" }
+                }
+            },
+            Tools = new ToolsConfig
+            {
+                GlobalTools = new List<GlobalTool>
+                {
+                    new() { Name = "tusklang", Package = "TuskLang.Cli", Version = "1.0.0" },
+                    new() { Name = "dotnet-ef", Package = "dotnet-ef", Version = "8.0.0" }
+                }
+            },
+            Deployment = new DeploymentConfig
+            {
+                Docker = new DockerConfig { Enabled = true }
+            },
+            Features = new FeaturesConfig
+            {
+                Database = true,
+                Authentication = true,
+                Swagger = true
+            }
+        };
+
+        // 2. Setup project
+        var projectPath = Path.Combine(Environment.CurrentDirectory, "TuskLangSetupDemo");
+        Directory.CreateDirectory(projectPath);
+
+        var setup = new TuskLangProjectSetup(projectPath, config);
+        await setup.SetupProjectAsync();
+
+        // 3. Verify installation
+        Console.WriteLine("\n=== Verifying Installation ===");
+        await VerifyInstallationAsync(projectPath);
+
+        // 4. Show project structure
+        Console.WriteLine("\n=== Project Structure ===");
+        ShowProjectStructure(projectPath);
+
+        // 5. Show next steps
+        Console.WriteLine("\n=== Next Steps ===");
+        ShowNextSteps();
+
+        Console.WriteLine("\n=== Setup Complete ===");
+    }
+
+    static async Task VerifyInstallationAsync(string projectPath)
+    {
+        // Check if TuskLang CLI is available
+        try
+        {
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "tusklang",
+                    Arguments = "--version",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true
+                }
+            };
+
+            process.Start();
+            await process.WaitForExitAsync();
+
+            if (process.ExitCode == 0)
+            {
+                Console.WriteLine("  ✓ TuskLang CLI installed and available");
+            }
+            else
+            {
+                Console.WriteLine("  ✗ TuskLang CLI not found");
+            }
+        }
+        catch
+        {
+            Console.WriteLine("  ✗ TuskLang CLI not available");
+        }
+
+        // Check .NET version
+        try
+        {
+            var process = new Process
+            {
+                StartInfo = new ProcessStartInfo
+                {
+                    FileName = "dotnet",
+                    Arguments = "--version",
+                    UseShellExecute = false,
+                    RedirectStandardOutput = true
+                }
+            };
+
+            process.Start();
+            var output = await process.StandardOutput.ReadToEndAsync();
+            await process.WaitForExitAsync();
+
+            Console.WriteLine($"  ✓ .NET version: {output.Trim()}");
+        }
+        catch
+        {
+            Console.WriteLine("  ✗ .NET not available");
+        }
+
+        // Check project file
+        var projectFile = Path.Combine(projectPath, "src", "MyTuskLangApp.csproj");
+        if (File.Exists(projectFile))
+        {
+            Console.WriteLine("  ✓ Project file created");
+        }
+        else
+        {
+            Console.WriteLine("  ✗ Project file not found");
+        }
+
+        // Check configuration file
+        var configFile = Path.Combine(projectPath, "config", "app.tsk");
+        if (File.Exists(configFile))
+        {
+            Console.WriteLine("  ✓ TuskLang configuration created");
+        }
+        else
+        {
+            Console.WriteLine("  ✗ TuskLang configuration not found");
+        }
+    }
+
+    static void ShowProjectStructure(string projectPath)
+    {
+        var structure = new[]
+        {
+            "├── src/",
+            "│   └── MyTuskLangApp.csproj",
+            "├── tests/",
+            "├── config/",
+            "│   └── app.tsk",
+            "├── scripts/",
+            "│   ├── build.ps1",
+            "│   ├── build.cmd",
+            "│   └── build.sh",
+            "├── .vscode/",
+            "│   ├── settings.json",
+            "│   └── tasks.json",
+            "├── .github/",
+            "│   └── workflows/",
+            "│       └── ci-cd.yml",
+            "├── Dockerfile",
+            "├── .dockerignore",
+            "└── nuget.config"
+        };
+
+        foreach (var line in structure)
+        {
+            Console.WriteLine($"  {line}");
+        }
+    }
+
+    static void ShowNextSteps()
+    {
+        var steps = new[]
+        {
+            "1. Navigate to the project directory:",
+            "   cd TuskLangSetupDemo",
+            "",
+            "2. Restore packages:",
+            "   dotnet restore src/",
+            "",
+            "3. Validate TuskLang configuration:",
+            "   tusklang validate config/**/*.tsk",
+            "",
+            "4. Build the project:",
+            "   dotnet build src/",
+            "",
+            "5. Run the application:",
+            "   dotnet run --project src/",
+            "",
+            "6. Use build scripts for automation:",
+            "   ./scripts/build.ps1 -Test -Pack",
+            "",
+            "7. Create Docker image:",
+            "   docker build -t mytusklangapp .",
+            "",
+            "8. Open in VS Code with TuskLang support:",
+            "   code ."
+        };
+
+        foreach (var step in steps)
+        {
+            Console.WriteLine($"  {step}");
+        }
+    }
+}
+</pre>
+
+<p>TuskLang installation and setup for C# provides comprehensive project scaffolding with .NET integration, package management, build automation, and IDE support for productive development.</p>

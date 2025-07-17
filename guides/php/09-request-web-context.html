@@ -1,0 +1,363 @@
+<h1>Request & Web Context</h1>
+
+<h2>HTTP Request Handling in TuskLang PHP</h2>
+<p>TuskLang provides powerful web context integration for PHP applications, enabling dynamic configuration based on request data.</p>
+
+<h3>Request Data Access</h3>
+<pre>
+# Basic request information
+request {
+    method: @request.method
+    uri: @request.uri
+    host: @request.host
+    ip: @request.ip
+    user_agent: @request.user_agent
+    
+    # Headers
+    content_type: @request.header("Content-Type")
+    authorization: @request.header("Authorization")
+    accept: @request.header("Accept")
+}
+
+# Query parameters
+params {
+    page: @request.query("page", 1)
+    limit: @request.query("limit", 10)
+    sort: @request.query("sort", "created_at")
+    filter: @request.query("filter")
+}
+
+# POST data
+post_data {
+    name: @request.post("name")
+    email: @request.post("email")
+    message: @request.post("message")
+}
+</pre>
+
+<h3>Session and Authentication</h3>
+<pre>
+# Session data
+session {
+    user_id: @session("user_id")
+    role: @session("role", "guest")
+    preferences: @session("preferences", {})
+    last_activity: @session("last_activity")
+}
+
+# Authentication context
+auth {
+    is_authenticated: @auth.check()
+    user: @auth.user()
+    permissions: @auth.permissions()
+    
+    # Role-based configuration
+    dashboard_widgets: @auth.role() == "admin" ? admin_widgets : user_widgets
+}
+
+# JWT token handling
+jwt {
+    token: @request.header("Authorization") | replace("Bearer ", "")
+    payload: @jwt.decode(token)
+    user_id: payload.sub
+    expires: payload.exp
+}
+</pre>
+
+<h3>Response Configuration</h3>
+<pre>
+# Response headers
+response {
+    headers {
+        "Content-Type": "application/json"
+        "X-API-Version": "2.0"
+        "Cache-Control": "no-cache"
+        "Access-Control-Allow-Origin": @env("CORS_ORIGIN", "*")
+    }
+    
+    # Status codes based on conditions
+    status: @request.method == "POST" ? 201 : 200
+    
+    # CORS configuration
+    cors {
+        origins: [@env("FRONTEND_URL"), "http://localhost:3000"]
+        methods: ["GET", "POST", "PUT", "DELETE"]
+        headers: ["Content-Type", "Authorization"]
+    }
+}
+</pre>
+
+<h3>PHP Implementation</h3>
+<pre>
+&lt;?php
+namespace TuskLang\Web;
+
+class RequestContextProvider {
+    private array $request;
+    private array $session;
+    private ?object $user = null;
+    
+    public function __construct() {
+        $this->request = $_REQUEST;
+        $this->session = $_SESSION ?? [];
+        $this->loadUser();
+    }
+    
+    public function getRequestData(string $key, $default = null): mixed {
+        return match($key) {
+            'method' => $_SERVER['REQUEST_METHOD'] ?? 'GET',
+            'uri' => $_SERVER['REQUEST_URI'] ?? '/',
+            'host' => $_SERVER['HTTP_HOST'] ?? 'localhost',
+            'ip' => $this->getClientIP(),
+            'user_agent' => $_SERVER['HTTP_USER_AGENT'] ?? '',
+            'protocol' => isset($_SERVER['HTTPS']) ? 'https' : 'http',
+            default => $default
+        };
+    }
+    
+    public function getHeader(string $name, $default = null): mixed {
+        $headerName = 'HTTP_' . strtoupper(str_replace('-', '_', $name));
+        return $_SERVER[$headerName] ?? $default;
+    }
+    
+    public function getQueryParam(string $key, $default = null): mixed {
+        return $_GET[$key] ?? $default;
+    }
+    
+    public function getPostData(string $key, $default = null): mixed {
+        return $_POST[$key] ?? $default;
+    }
+    
+    public function getSessionData(string $key, $default = null): mixed {
+        return $this->session[$key] ?? $default;
+    }
+    
+    public function isAuthenticated(): bool {
+        return $this->user !== null;
+    }
+    
+    public function getUser(): ?object {
+        return $this->user;
+    }
+    
+    public function getUserRole(): ?string {
+        return $this->user?->role ?? null;
+    }
+    
+    public function hasPermission(string $permission): bool {
+        if (!$this->user) return false;
+        
+        return in_array($permission, $this->user->permissions ?? []);
+    }
+    
+    private function getClientIP(): string {
+        $ipKeys = ['HTTP_CLIENT_IP', 'HTTP_X_FORWARDED_FOR', 'REMOTE_ADDR'];
+        
+        foreach ($ipKeys as $key) {
+            if (!empty($_SERVER[$key])) {
+                $ips = explode(',', $_SERVER[$key]);
+                return trim($ips[0]);
+            }
+        }
+        
+        return 'unknown';
+    }
+    
+    private function loadUser(): void {
+        $userId = $this->session['user_id'] ?? null;
+        
+        if ($userId) {
+            // Load user from database or cache
+            $this->user = $this->loadUserFromDatabase($userId);
+        }
+    }
+}
+</pre>
+
+<h3>Route-Based Configuration</h3>
+<pre>
+# Different configs for different routes
+routes {
+    "/api/*" {
+        cors_enabled: true
+        rate_limit: 1000
+        auth_required: true
+        
+        response {
+            format: "json"
+            headers: {"Content-Type": "application/json"}
+        }
+    }
+    
+    "/admin/*" {
+        auth_required: true
+        min_role: "admin"
+        
+        security {
+            csrf_protection: true
+            ip_whitelist: [@env("ADMIN_IPS")]
+        }
+    }
+    
+    "/public/*" {
+        cache_ttl: 3600
+        compression: true
+        
+        headers {
+            "Cache-Control": "public, max-age=3600"
+            "X-Frame-Options": "DENY"
+        }
+    }
+}
+
+# Current route context
+current_route: @request.uri
+route_config: routes[current_route] ?? routes["/default"]
+</pre>
+
+<h3>Middleware Configuration</h3>
+<pre>
+# Middleware stack based on request
+middleware {
+    # Always apply
+    global: ["cors", "security-headers", "logging"]
+    
+    # Conditional middleware
+    auth_required: @request.uri matches "/api/*" ? ["jwt-auth"] : []
+    
+    # Role-based middleware
+    admin_only: @auth.role() == "admin" ? ["admin-access"] : ["redirect-login"]
+    
+    # Rate limiting
+    rate_limit {
+        enabled: true
+        requests_per_minute: @auth.check() ? 1000 : 100
+        burst_limit: 50
+    }
+}
+
+# Security policies
+security {
+    csrf {
+        enabled: @request.method in ["POST", "PUT", "DELETE"]
+        token: @session("csrf_token")
+        validate: @request.post("_token") == csrf.token
+    }
+    
+    content_security_policy {
+        default_src: "'self'"
+        script_src: "'self' 'unsafe-inline'"
+        style_src: "'self' 'unsafe-inline'"
+        img_src: "'self' data: https:"
+    }
+}
+</pre>
+
+<h3>API Response Templates</h3>
+<pre>
+# Response templates
+api_responses {
+    success {
+        status: "success"
+        data: @response.data
+        meta {
+            timestamp: @date("c")
+            request_id: @request.id
+            version: "2.0"
+        }
+    }
+    
+    error {
+        status: "error"
+        message: @response.error.message
+        code: @response.error.code
+        details: @response.error.details ?? null
+        
+        meta {
+            timestamp: @date("c")
+            request_id: @request.id
+        }
+    }
+    
+    paginated {
+        status: "success"
+        data: @response.data
+        pagination {
+            page: @request.query("page", 1)
+            limit: @request.query("limit", 10)
+            total: @response.total
+            pages: ceil(total / limit)
+        }
+    }
+}
+
+# Current response format
+response_format: @request.header("Accept") contains "json" ? "json" : "html"
+</pre>
+
+<h3>Laravel Integration</h3>
+<pre>
+&lt;?php
+// Laravel service provider for TuskLang web context
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use TuskLang\TuskLangEnhanced;
+use TuskLang\Web\RequestContextProvider;
+
+class TuskLangWebServiceProvider extends ServiceProvider {
+    public function register(): void {
+        $this->app->singleton(RequestContextProvider::class);
+        
+        $this->app->singleton(TuskLangEnhanced::class, function ($app) {
+            $parser = new TuskLangEnhanced();
+            $context = $app->make(RequestContextProvider::class);
+            
+            // Register web context operators
+            $parser->addOperator('request', [$context, 'getRequestData']);
+            $parser->addOperator('session', [$context, 'getSessionData']);
+            $parser->addOperator('auth', [$context, 'getAuthData']);
+            
+            return $parser;
+        });
+    }
+    
+    public function boot(): void {
+        // Register middleware
+        $this->app['router']->aliasMiddleware('tusklang', TuskLangMiddleware::class);
+    }
+}
+
+// Middleware example
+class TuskLangMiddleware {
+    public function handle($request, $next) {
+        $config = app(TuskLangEnhanced::class)->parseFile('web.tsk');
+        
+        // Apply configuration
+        if ($config['rate_limit']['enabled'] ?? false) {
+            $this->applyRateLimit($request, $config['rate_limit']);
+        }
+        
+        $response = $next($request);
+        
+        // Apply response headers
+        foreach ($config['response']['headers'] ?? [] as $header => $value) {
+            $response->header($header, $value);
+        }
+        
+        return $response;
+    }
+}
+</pre>
+
+<h3>Best Practices</h3>
+<ul>
+    <li>Validate and sanitize all request data</li>
+    <li>Use HTTPS for sensitive authentication data</li>
+    <li>Implement proper CORS policies</li>
+    <li>Rate limit API endpoints appropriately</li>
+    <li>Log security-relevant events</li>
+    <li>Use CSRF protection for state-changing operations</li>
+    <li>Implement proper session management</li>
+    <li>Keep web context configuration separate from business logic</li>
+</ul>

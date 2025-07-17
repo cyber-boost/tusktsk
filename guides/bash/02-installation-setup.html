@@ -1,0 +1,222 @@
+<h1>Installation & Setup</h1>
+
+<h2>Installing TuskLang for Bash</h2>
+<p>Multiple installation methods for integrating TuskLang into your bash environment.</p>
+
+<h3>System Installation</h3>
+<pre>
+# Install via curl
+curl -fsSL https://raw.githubusercontent.com/tusklang/bash/main/install.sh | bash
+
+# Or wget
+wget -qO- https://raw.githubusercontent.com/tusklang/bash/main/install.sh | bash
+
+# Manual installation
+git clone https://github.com/cyber-boost/tusktsk-bash.git
+cd tusklang-bash
+sudo make install
+
+# This installs:
+# - /usr/local/bin/tusk (CLI tool)
+# - /usr/local/lib/tusklang.sh (Bash library)
+# - /usr/local/share/tusklang/ (Supporting files)
+</pre>
+
+<h3>Bash Library Setup</h3>
+<pre>
+#!/bin/bash
+# tusklang.sh - Core TuskLang parser for Bash
+
+# Initialize TuskLang
+TUSK_VERSION="1.0.0"
+TUSK_CONFIG_DIR="${TUSK_CONFIG_DIR:-$HOME/.config/tusklang}"
+
+# Core parsing function
+tusk_parse() {
+    local file="$1"
+    local prefix="${2:-}"
+    
+    # Check if file exists
+    [ -f "$file" ] || { echo "Error: File $file not found" >&2; return 1; }
+    
+    # Parse TuskLang file
+    while IFS= read -r line; do
+        # Skip comments and empty lines
+        [[ "$line" =~ ^[[:space:]]*# ]] && continue
+        [[ -z "${line// }" ]] && continue
+        
+        # Parse key-value pairs
+        if [[ "$line" =~ ^([^:=]+)[:=][[:space:]]*(.*)$ ]]; then
+            local key="${BASH_REMATCH[1]// /_}"
+            local value="${BASH_REMATCH[2]}"
+            
+            # Remove quotes if present
+            value="${value#\"}"
+            value="${value%\"}"
+            value="${value#\'}"
+            value="${value%\'}"
+            
+            # Export as variable
+            if [ -n "$prefix" ]; then
+                export "${prefix}_${key}=$value"
+            else
+                export "$key=$value"
+            fi
+            
+            # Generate export statement
+            echo "export $key='$value'"
+        fi
+    done < "$file"
+}
+
+# Parse with namespace
+tusk_parse_ns() {
+    local file="$1"
+    local namespace="$2"
+    
+    # Source into namespace
+    while IFS= read -r line; do
+        eval "$line"
+    done < <(tusk_parse "$file" "$namespace")
+}
+
+# Get nested value
+tusk_get() {
+    local path="$1"
+    local default="${2:-}"
+    
+    # Convert dot notation to underscore
+    local var_name="${path//./_}"
+    local value="${!var_name}"
+    
+    echo "${value:-$default}"
+}
+
+# Set nested value
+tusk_set() {
+    local path="$1"
+    local value="$2"
+    
+    # Convert dot notation to underscore
+    local var_name="${path//./_}"
+    export "$var_name=$value"
+}
+
+# Load all .tsk files in directory
+tusk_load_dir() {
+    local dir="$1"
+    local prefix="${2:-}"
+    
+    for file in "$dir"/*.tsk; do
+        [ -f "$file" ] || continue
+        local basename=$(basename "$file" .tsk)
+        tusk_parse_ns "$file" "${prefix}${basename}"
+    done
+}
+</pre>
+
+<h3>Shell Integration</h3>
+<pre>
+# ~/.bashrc or ~/.bash_profile
+
+# Source TuskLang
+source /usr/local/lib/tusklang.sh
+
+# Auto-load user configuration
+if [ -d "$HOME/.config/tusklang" ]; then
+    tusk_load_dir "$HOME/.config/tusklang" "config_"
+fi
+
+# Aliases for common operations
+alias tusk='command tusk'
+alias tusk-get='tusk_get'
+alias tusk-set='tusk_set'
+alias tusk-edit='${EDITOR:-vim} ~/.config/tusklang/'
+
+# Function to reload TuskLang configs
+tusk-reload() {
+    # Clear existing variables
+    unset $(compgen -v | grep -E '^(config_|tusk_)')
+    
+    # Reload configurations
+    tusk_load_dir "$HOME/.config/tusklang" "config_"
+    echo "TuskLang configurations reloaded"
+}
+
+# Tab completion for tusk_get
+_tusk_get_complete() {
+    local cur="${COMP_WORDS[COMP_CWORD]}"
+    local vars=$(compgen -v | grep -E '^(config_|tusk_)' | sed 's/_/./g')
+    COMPREPLY=($(compgen -W "$vars" -- "$cur"))
+}
+complete -F _tusk_get_complete tusk_get tusk-get
+</pre>
+
+<h3>Project Setup Script</h3>
+<pre>
+#!/bin/bash
+# setup-tusk-project.sh
+
+# Create project structure
+create_tusk_project() {
+    local project_name="$1"
+    
+    mkdir -p "$project_name"/{config,scripts,lib}
+    
+    # Create main configuration
+    cat > "$project_name/config/main.tsk" << 'EOF'
+# Project configuration
+project {
+    name: "@PROJECT_NAME@"
+    version: "0.1.0"
+    description: "A TuskLang-powered bash project"
+}
+
+# Paths
+paths {
+    root: "@pwd"
+    scripts: "@var.paths.root/scripts"
+    lib: "@var.paths.root/lib"
+    logs: "@var.paths.root/logs"
+}
+
+# Settings
+settings {
+    debug: env("DEBUG", false)
+    verbose: env("VERBOSE", false)
+    color: env("NO_COLOR", false) ? false : true
+}
+EOF
+    
+    # Create main script
+    cat > "$project_name/run.sh" << 'EOF'
+#!/bin/bash
+set -euo pipefail
+
+# Load TuskLang
+source /usr/local/lib/tusklang.sh
+
+# Load project configuration
+PROJECT_ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+eval "$(tusk_parse "$PROJECT_ROOT/config/main.tsk")"
+
+# Your application logic here
+echo "Running $project_name v$project_version"
+echo "Project root: $paths_root"
+EOF
+    
+    chmod +x "$project_name/run.sh"
+    
+    # Update project name
+    sed -i "s/@PROJECT_NAME@/$project_name/g" "$project_name/config/main.tsk"
+    
+    echo "Created TuskLang project: $project_name"
+}
+
+# Install command
+if [ "${1:-}" = "create" ]; then
+    create_tusk_project "${2:-my-tusk-project}"
+fi
+</pre>
+
+<p>TuskLang for Bash provides a modern configuration management system that integrates seamlessly with shell scripts and the Unix philosophy.</p>

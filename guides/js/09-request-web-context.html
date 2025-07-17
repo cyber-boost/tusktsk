@@ -1,0 +1,470 @@
+<h1>Request & Web Context</h1>
+
+<h2>Building Web Applications with TuskLang</h2>
+<p>TuskLang provides powerful web context operators for building APIs and web applications in JavaScript.</p>
+
+<h3>web-api.tsk</h3>
+<pre>
+#!api
+#!middleware: auth, cors, rateLimit
+
+# API endpoint configuration
+endpoint {
+    name: "User API"
+    version: "1.0"
+    base_path: "/api/v1"
+}
+
+# Request handling
+request_handler: {
+    # Method-based routing
+    GET: @{
+        "/users": @handleGetUsers(),
+        "/users/:id": @handleGetUser(@request.params.id),
+        "/search": @handleSearch(@request.query)
+    }[@request.path],
+    
+    POST: @{
+        "/users": @handleCreateUser(@request.body),
+        "/login": @handleLogin(@request.body)
+    }[@request.path],
+    
+    PUT: @{
+        "/users/:id": @handleUpdateUser(@request.params.id, @request.body)
+    }[@request.path],
+    
+    DELETE: @{
+        "/users/:id": @handleDeleteUser(@request.params.id)
+    }[@request.path]
+}[@request.method]
+
+# Authentication
+auth: {
+    required: @request.path !== "/login" && @request.path !== "/register"
+    token: @request.headers.Authorization
+    user: @auth.required ? @validateToken(@auth.token) : null
+    
+    check: @auth.required && !@auth.user ? @unauthorized() : @continue()
+}
+
+# Request validation
+validation: {
+    create_user: {
+        name: { required: true, type: "string", min: 2, max: 100 },
+        email: { required: true, type: "email", unique: true },
+        password: { required: true, type: "string", min: 8 }
+    },
+    
+    update_user: {
+        name: { type: "string", min: 2, max: 100 },
+        email: { type: "email", unique: true },
+        bio: { type: "string", max: 500 }
+    },
+    
+    search: {
+        q: { required: true, type: "string", min: 1 },
+        page: { type: "number", min: 1, default: 1 },
+        limit: { type: "number", min: 1, max: 100, default: 20 }
+    }
+}
+
+# Response builders
+responses: {
+    success: @response({
+        status: 200,
+        headers: {
+            "Content-Type": "application/json",
+            "X-Request-ID": @request.id
+        },
+        body: @json({
+            success: true,
+            data: @var.data,
+            meta: {
+                timestamp: @timestamp(),
+                version: @var.endpoint.version
+            }
+        })
+    })
+    
+    error: @response({
+        status: @var.status_code|500,
+        headers: {
+            "Content-Type": "application/json",
+            "X-Request-ID": @request.id
+        },
+        body: @json({
+            success: false,
+            error: {
+                message: @var.error_message,
+                code: @var.error_code,
+                details: @var.error_details
+            }
+        })
+    })
+    
+    paginated: @response({
+        status: 200,
+        body: @json({
+            success: true,
+            data: @var.items,
+            pagination: {
+                page: @var.page,
+                limit: @var.limit,
+                total: @var.total,
+                pages: @ceil(@var.total / @var.limit)
+            },
+            links: {
+                first: @buildUrl({ page: 1 }),
+                last: @buildUrl({ page: @var.pagination.pages }),
+                prev: @var.page > 1 ? @buildUrl({ page: @var.page - 1 }) : null,
+                next: @var.page < @var.pagination.pages ? @buildUrl({ page: @var.page + 1 }) : null
+            }
+        })
+    })
+}
+
+# Session management
+session: {
+    id: @request.session.id|@generateSessionId()
+    data: @session.load(@session.id)
+    user_id: @session.data.user_id
+    
+    set: @session.save(@session.id, @merge(@session.data, @var.updates))
+    destroy: @session.delete(@session.id)
+}
+
+# CORS configuration
+cors: {
+    origins: @env.CORS_ORIGINS|["http://localhost:3000"]
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+    headers: ["Content-Type", "Authorization", "X-Request-ID"]
+    credentials: true
+    max_age: 86400
+}
+
+# Rate limiting
+rate_limit: {
+    window: "15m"
+    max_requests: @{
+        "GET": 1000,
+        "POST": 100,
+        "PUT": 100,
+        "DELETE": 50
+    }[@request.method]
+    
+    key: @auth.user ? @auth.user.id : @request.ip
+    current: @rateLimit.get(@rate_limit.key)
+    
+    check: @rate_limit.current >= @rate_limit.max_requests ? @tooManyRequests() : @continue()
+}
+
+# Websocket support
+websocket: {
+    enabled: @env.WEBSOCKET_ENABLED|true
+    
+    handlers: {
+        connection: @handleWSConnection(@ws.client),
+        message: @handleWSMessage(@ws.client, @ws.data),
+        close: @handleWSClose(@ws.client),
+        error: @handleWSError(@ws.client, @ws.error)
+    }
+    
+    broadcast: @ws.broadcast(@var.channel, @var.message)
+    emit: @ws.emit(@var.client_id, @var.event, @var.data)
+}
+</pre>
+
+<h3>JavaScript Web Framework Integration</h3>
+<pre>
+// Express.js integration
+const express = require('express');
+const cors = require('cors');
+const { TuskLangWebHandler } = require('tusklang');
+
+class TuskLangExpress {
+    constructor(configFile) {
+        this.app = express();
+        this.handler = new TuskLangWebHandler();
+        this.config = this.handler.loadConfig(configFile);
+        
+        this.setupMiddleware();
+        this.setupRoutes();
+    }
+    
+    setupMiddleware() {
+        // Body parsing
+        this.app.use(express.json());
+        this.app.use(express.urlencoded({ extended: true }));
+        
+        // CORS
+        const corsConfig = this.config.cors;
+        this.app.use(cors({
+            origin: corsConfig.origins,
+            methods: corsConfig.methods,
+            allowedHeaders: corsConfig.headers,
+            credentials: corsConfig.credentials,
+            maxAge: corsConfig.max_age
+        }));
+        
+        // Request ID
+        this.app.use((req, res, next) => {
+            req.id = req.headers['x-request-id'] || crypto.randomUUID();
+            res.setHeader('X-Request-ID', req.id);
+            next();
+        });
+        
+        // TuskLang context injection
+        this.app.use((req, res, next) => {
+            req.tuskContext = {
+                request: {
+                    method: req.method,
+                    path: req.path,
+                    query: req.query,
+                    headers: req.headers,
+                    body: req.body,
+                    params: req.params,
+                    ip: req.ip,
+                    id: req.id,
+                    session: req.session
+                }
+            };
+            next();
+        });
+    }
+    
+    setupRoutes() {
+        // Dynamic route registration
+        this.app.all('*', async (req, res) => {
+            try {
+                const result = await this.handler.handleRequest(
+                    this.config,
+                    req.tuskContext
+                );
+                
+                // Send response
+                if (result.headers) {
+                    Object.entries(result.headers).forEach(([key, value]) => {
+                        res.setHeader(key, value);
+                    });
+                }
+                
+                res.status(result.status || 200).send(result.body);
+                
+            } catch (error) {
+                console.error('Request error:', error);
+                res.status(500).json({
+                    success: false,
+                    error: {
+                        message: 'Internal server error',
+                        id: req.id
+                    }
+                });
+            }
+        });
+    }
+    
+    listen(port) {
+        this.app.listen(port, () => {
+            console.log(`TuskLang API running on port ${port}`);
+        });
+    }
+}
+
+// Request handler implementations
+class RequestHandlers {
+    static async handleGetUsers(context) {
+        const { page = 1, limit = 20, search } = context.request.query;
+        
+        // Simulate database query
+        let users = [
+            { id: 1, name: 'Alice', email: 'alice@example.com' },
+            { id: 2, name: 'Bob', email: 'bob@example.com' },
+            { id: 3, name: 'Charlie', email: 'charlie@example.com' }
+        ];
+        
+        // Apply search
+        if (search) {
+            users = users.filter(u => 
+                u.name.toLowerCase().includes(search.toLowerCase()) ||
+                u.email.toLowerCase().includes(search.toLowerCase())
+            );
+        }
+        
+        // Paginate
+        const start = (page - 1) * limit;
+        const paginatedUsers = users.slice(start, start + limit);
+        
+        return {
+            items: paginatedUsers,
+            page: parseInt(page),
+            limit: parseInt(limit),
+            total: users.length
+        };
+    }
+    
+    static async handleGetUser(id, context) {
+        // Simulate database lookup
+        const users = {
+            1: { id: 1, name: 'Alice', email: 'alice@example.com' },
+            2: { id: 2, name: 'Bob', email: 'bob@example.com' }
+        };
+        
+        const user = users[id];
+        if (!user) {
+            throw {
+                status_code: 404,
+                error_message: 'User not found',
+                error_code: 'USER_NOT_FOUND'
+            };
+        }
+        
+        return { data: user };
+    }
+    
+    static async handleCreateUser(data, context) {
+        // Validate input
+        const validation = this.validateInput(data, context.config.validation.create_user);
+        if (!validation.valid) {
+            throw {
+                status_code: 400,
+                error_message: 'Validation failed',
+                error_details: validation.errors
+            };
+        }
+        
+        // Create user (simulated)
+        const newUser = {
+            id: Date.now(),
+            ...data,
+            created_at: new Date().toISOString()
+        };
+        
+        return {
+            data: newUser,
+            status_code: 201
+        };
+    }
+    
+    static validateInput(data, rules) {
+        const errors = {};
+        
+        for (const [field, rule] of Object.entries(rules)) {
+            const value = data[field];
+            
+            // Required check
+            if (rule.required && (value === undefined || value === null || value === '')) {
+                errors[field] = `${field} is required`;
+                continue;
+            }
+            
+            // Type check
+            if (value !== undefined && rule.type) {
+                if (rule.type === 'string' && typeof value !== 'string') {
+                    errors[field] = `${field} must be a string`;
+                } else if (rule.type === 'number' && typeof value !== 'number') {
+                    errors[field] = `${field} must be a number`;
+                } else if (rule.type === 'email' && !this.isValidEmail(value)) {
+                    errors[field] = `${field} must be a valid email`;
+                }
+            }
+            
+            // Length checks
+            if (value && rule.min && value.length < rule.min) {
+                errors[field] = `${field} must be at least ${rule.min} characters`;
+            }
+            if (value && rule.max && value.length > rule.max) {
+                errors[field] = `${field} must not exceed ${rule.max} characters`;
+            }
+        }
+        
+        return {
+            valid: Object.keys(errors).length === 0,
+            errors
+        };
+    }
+    
+    static isValidEmail(email) {
+        return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(email);
+    }
+}
+
+// WebSocket support
+class TuskLangWebSocket {
+    constructor(server, config) {
+        const WebSocket = require('ws');
+        this.wss = new WebSocket.Server({ server });
+        this.config = config;
+        this.clients = new Map();
+        
+        this.setupHandlers();
+    }
+    
+    setupHandlers() {
+        this.wss.on('connection', (ws, req) => {
+            const clientId = crypto.randomUUID();
+            this.clients.set(clientId, ws);
+            
+            // Create context
+            const context = {
+                ws: {
+                    client: { id: clientId, ws },
+                    broadcast: (channel, message) => this.broadcast(channel, message),
+                    emit: (targetId, event, data) => this.emit(targetId, event, data)
+                }
+            };
+            
+            // Handle connection
+            if (this.config.websocket.handlers.connection) {
+                this.config.websocket.handlers.connection(context);
+            }
+            
+            ws.on('message', (data) => {
+                context.ws.data = JSON.parse(data);
+                if (this.config.websocket.handlers.message) {
+                    this.config.websocket.handlers.message(context);
+                }
+            });
+            
+            ws.on('close', () => {
+                this.clients.delete(clientId);
+                if (this.config.websocket.handlers.close) {
+                    this.config.websocket.handlers.close(context);
+                }
+            });
+            
+            ws.on('error', (error) => {
+                context.ws.error = error;
+                if (this.config.websocket.handlers.error) {
+                    this.config.websocket.handlers.error(context);
+                }
+            });
+        });
+    }
+    
+    broadcast(channel, message) {
+        const data = JSON.stringify({ channel, message });
+        this.clients.forEach(ws => {
+            if (ws.readyState === WebSocket.OPEN) {
+                ws.send(data);
+            }
+        });
+    }
+    
+    emit(clientId, event, data) {
+        const client = this.clients.get(clientId);
+        if (client && client.readyState === WebSocket.OPEN) {
+            client.send(JSON.stringify({ event, data }));
+        }
+    }
+}
+
+// Usage
+const api = new TuskLangExpress('web-api.tsk');
+api.listen(3000);
+
+// With WebSocket support
+const server = api.app.listen(3001);
+const ws = new TuskLangWebSocket(server, api.config);
+</pre>
+
+<p>TuskLang's web context features enable building complete web applications and APIs with minimal boilerplate while maintaining flexibility and power.</p>
