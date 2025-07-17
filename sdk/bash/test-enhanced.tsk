@@ -1,0 +1,71 @@
+# Test file for enhanced TuskLang features
+# This tests all the new syntax and functionality
+
+# Global variables
+$app_name: "Enhanced TuskLang Test"
+$version: "2.0.0"
+$debug_mode: true
+
+# Basic section
+[config]
+name: $app_name
+version: $version
+environment: "development"
+
+# Test both assignment operators
+host = "localhost"
+port: 8080
+
+# Test range syntax
+port_range: 8000-9000
+
+# Test date operator
+created_at: @date("Y-m-d H:i:s")
+today: @date("Y-m-d")
+
+# Test env operator with defaults
+api_key: @env("API_KEY", "default-key")
+debug: @env("DEBUG", "false")
+
+# Curly brace object
+database {
+    type: "sqlite"
+    file: "./test.db"
+    timeout: 5000
+    enabled: true
+}
+
+# Angle bracket object
+cache >
+    driver: "memory"
+    ttl: "5m"
+    max_size: "100MB"
+<
+
+# Traditional square bracket section
+[server]
+listen_address: $host
+listen_port: $port
+workers: 4
+
+# Section-local variables
+local_var: "section-specific"
+another_var: local_var
+
+# Test arrays and nested structures
+features: ["auth", "api", "cache"]
+complex_config {
+    nested {
+        deep: "value"
+        number: 42
+        boolean: true
+    }
+    array: [1, 2, 3]
+}
+
+# Test multiline strings
+description: """
+This is a multiline string
+that spans multiple lines
+and preserves formatting.
+"""
