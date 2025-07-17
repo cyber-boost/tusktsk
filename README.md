@@ -125,7 +125,7 @@ instances: current_load > 80 ? 10 : 5
 
 ### **3. Cross-File Communication**
 
-![SVG 7](svg/git-svg/readme-new/cross-file-communication.svg)
+![SVG 7](svg/git-svg/og_cross_file_detailed.svg)
 
 ```tsk
 # peanut.tsk - Global configuration hub
@@ -751,7 +751,7 @@ function process(amount, recipient) {
 ## 🏢 **Real-World Use Cases**
 
 
-![SVG 17](svg/git-svg/game-development-usecase.svg)
+![SVG 17](svg/git-svg/og_game_development.svg)
 ### **🎮 Game Development** 
 ```tsk
 [player]
@@ -766,7 +766,7 @@ function calculateDamage(attack, defense, weapon) {
 """
 ```
 
-![SVG 18](svg/git-svg/og_devops-cicd-usecase.svg)
+![SVG 18](svg/git-svg/og_devops_cicd.svg)
 
 ### **☁️ DevOps & CI/CD**
 ```tsk
@@ -826,7 +826,7 @@ connection_pool: @query("SELECT optimal_pool_size FROM performance_metrics LIMIT
 
 ---
 
-![SVG 22](svg/git-svg/readme-new/community-support.svg)
+![SVG 22](svg/git-svg/og_community_support.svg)
 
 ## 🤝 **Community & Support**
 
