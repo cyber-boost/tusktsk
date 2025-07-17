@@ -766,7 +766,7 @@ function calculateDamage(attack, defense, weapon) {
 """
 ```
 
-![SVG 18](svg/git-svg/readme-new/devops-cicd-usecase.svg)
+![SVG 18](svg/git-svg/og_devops-cicd-usecase.svg)
 
 ### **☁️ DevOps & CI/CD**
 ```tsk
