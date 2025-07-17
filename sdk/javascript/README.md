@@ -422,10 +422,10 @@ const tskString = TuskLang.stringify(config);
 ## 📖 Documentation
 
 For more detailed documentation, visit:
-- [TuskLang Official Documentation](https://tusklang.org/docs)
-- [CLI Reference](https://tusklang.org/docs/cli)
-- [Configuration Guide](https://tusklang.org/docs/configuration)
-- [Database Integration](https://tusklang.org/docs/database)
+- [TuskLang Official Documentation](https://tuskt.sk/docs)
+- [CLI Reference](https://tuskt.sk/docs/cli)
+- [Configuration Guide](https://tuskt.sk/docs/configuration)
+- [Database Integration](https://tuskt.sk/docs/database)
 
 ## 🤝 Contributing
 
@@ -441,9 +441,9 @@ MIT License - see [LICENSE](LICENSE) file for details.
 
 ## 🆘 Support
 
-- **Documentation**: [https://tusklang.org/docs](https://tusklang.org/docs)
-- **Issues**: [GitHub Issues](https://github.com/tuskphp/tusklang-js/issues)
-- **Discussions**: [GitHub Discussions](https://github.com/tuskphp/tusklang-js/discussions)
+- **Documentation**: [https://tuskt.sk/docs](https://tuskt.sk/docs)
+- **Issues**: [GitHub Issues](https://github.com/cyber-boost/tusktsk/issues)
+- **Discussions**: [GitHub Discussions](https://github.com/cyber-boost/tusktsk/discussions)
 
 ---
 

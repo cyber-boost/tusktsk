@@ -13,7 +13,7 @@ composer require cyber-boost/tusktsk
 
 ### Manual Installation
 ```bash
-git clone https://github.com/tuskphp/tusklang
+git clone https://github.com/cyber-boost/tusktsk
 cd tusklang/sdk/php
 composer install
 ```
@@ -153,8 +153,8 @@ TuskLang Enhanced can reference system-installed TuskLang tools:
 ## 📚 Documentation
 
 For complete documentation and examples:
-- [Official Documentation](https://docs.tusklang.org)
-- [GitHub Repository](https://github.com/tuskphp/tusklang)
+- [Official Documentation](https://tuskt.sk)
+- [GitHub Repository](https://github.com/cyber-boost/tusktsk)
 - [Examples](examples/)
 
 ## 🤝 Contributing

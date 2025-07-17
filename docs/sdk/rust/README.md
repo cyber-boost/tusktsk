@@ -52,7 +52,7 @@ This suite contains **40 comprehensive documentation files** covering every aspe
 curl --proto '=https' --tlsv1.2 -sSf https://sh.rustup.rs | sh
 
 # Install TuskLang CLI
-curl -sSL tusklang.org/tsk.sh | sudo bash
+curl -sSL tuskt.sk/tsk.sh | sudo bash
 
 # Create new project
 cargo new tusklang-rust-project
@@ -265,7 +265,7 @@ spec:
 ## 🤝 Community and Support
 
 ### **Resources**
-- [TuskLang Official Documentation](https://tusklang.org/docs)
+- [TuskLang Official Documentation](https://tuskt.sk/docs)
 - [Rust Programming Language](https://www.rust-lang.org/)
 - [TuskLang GitHub Repository](https://github.com/cyber-boost/tusktsk)
 - [Rust Community Discord](https://discord.gg/rust-lang)

@@ -20,7 +20,7 @@ TuskLang is a revolutionary configuration language that brings **executable conf
 
 ```bash
 # One-line install
-curl -sSL https://python.tusklang.org | python3 -
+curl -sSL https://python.tuskt.sk | python3 -
 
 # Or via pip
 pip install tusklang
@@ -612,11 +612,11 @@ spec:
 
 ## 📚 Additional Resources
 
-- **Official Documentation**: [docs.tusklang.org/python](https://docs.tusklang.org/python)
-- **GitHub Repository**: [github.com/tusklang/python](https://github.com/cyber-boost/python)
+- **Official Documentation**: [docs.tuskt.sk/python](https://docs.tuskt.sk/python)
+- **GitHub Repository**: [github.com/cyber-boost/tusktsk](https://github.com/cyber-boost/tusktsk)
 - **PyPI Package**: [pypi.org/project/tusklang](https://pypi.org/project/tusklang)
-- **Examples**: [examples.tusklang.org/python](https://examples.tusklang.org/python)
-- **Community Support**: [community.tusklang.org](https://community.tusklang.org)
+- **Examples**: [examples.tuskt.sk/python](https://examples.tuskt.sk/python)
+- **Community Support**: [community.tuskt.sk](https://community.tuskt.sk)
 
 ## 🎯 Next Steps
 
