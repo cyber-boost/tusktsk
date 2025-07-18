@@ -1,480 +1,562 @@
-use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
-use std::io::{Read, Write};
-use std::time::{SystemTime, UNIX_EPOCH};
+use std::io::{self, Read, Write, Seek, SeekFrom};
+use std::time::{SystemTime, UNIX_EPOCH, Duration};
+use byteorder::{LittleEndian, ReadBytesExt, WriteBytesExt};
 
-/// Binary format header for TuskLang files
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BinaryFormatHeader {
-    pub magic_number: [u8; 8],    // "TUSKLANG"
-    pub version: u16,             // Format version (currently 1)
-    pub flags: u16,               // Compression, encryption, signature flags
-    pub compression_type: u8,     // 0=none, 1=gzip, 2=lz4, 3=zstd
-    pub encryption_type: u8,      // 0=none, 1=AES-256-GCM, 2=ChaCha20-Poly1305
-    pub signature_type: u8,       // 0=none, 1=Ed25519, 2=RSA
-    pub reserved: u8,             // Reserved for future use
-    pub data_size: u32,           // Size of data section
-    pub metadata_size: u32,       // Size of metadata section
-    pub checksum: [u8; 32],       // SHA-256 checksum of header
-    pub timestamp: u64,           // Unix timestamp of creation
+/// Binary data types
+#[repr(u8)]
+#[derive(Debug, Clone, Copy, PartialEq)]
+pub enum BinaryType {
+    Null = 0x00,
+    Bool = 0x01,
+    Int8 = 0x02,
+    Int16 = 0x03,
+    Int32 = 0x04,
+    Int64 = 0x05,
+    UInt8 = 0x06,
+    UInt16 = 0x07,
+    UInt32 = 0x08,
+    UInt64 = 0x09,
+    Float32 = 0x0A,
+    Float64 = 0x0B,
+    String = 0x0C,
+    Bytes = 0x0D,
+    Array = 0x0E,
+    Object = 0x0F,
+    Timestamp = 0x10,
+    Duration = 0x11,
+    Reference = 0x12,
+    Decimal = 0x13,
 }
 
-/// Binary format represents a complete TuskLang binary file
-#[derive(Debug, Clone, Serialize, Deserialize)]
-pub struct BinaryFormat {
-    pub header: BinaryFormatHeader,
-    pub data: Vec<u8>,
-    pub metadata: HashMap<String, serde_json::Value>,
-    pub signature: Option<Vec<u8>>,
-}
-
-/// Binary format writer for creating TuskLang binary files
-pub struct BinaryFormatWriter {
-    compression_type: u8,
-    encryption_type: u8,
-    signature_type: u8,
-    encryption_key: Option<Vec<u8>>,
-    signing_key: Option<Vec<u8>>,
-}
-
-/// Binary format reader for reading TuskLang binary files
-pub struct BinaryFormatReader {
-    verification_key: Option<Vec<u8>>,
-    decryption_key: Option<Vec<u8>>,
-}
-
-impl BinaryFormatHeader {
-    /// Create a new header with default values
-    pub fn new() -> Self {
-        let mut header = BinaryFormatHeader {
-            magic_number: [0; 8],
-            version: 1,
-            flags: 0,
-            compression_type: 0,
-            encryption_type: 0,
-            signature_type: 0,
-            reserved: 0,
-            data_size: 0,
-            metadata_size: 0,
-            checksum: [0; 32],
-            timestamp: 0,
-        };
-        
-        // Set magic number
-        header.magic_number.copy_from_slice(b"TUSKLANG");
-        
-        // Set timestamp
-        header.timestamp = SystemTime::now()
-            .duration_since(UNIX_EPOCH)
-            .unwrap()
-            .as_secs();
-        
-        header
-    }
-    
-    /// Validate the header
-    pub fn is_valid(&self) -> bool {
-        self.magic_number == *b"TUSKLANG" && self.version == 1
-    }
-    
-    /// Calculate header checksum
-    pub fn calculate_checksum(&self) -> [u8; 32] {
-        use sha2::{Digest, Sha256};
-        
-        let mut hasher = Sha256::new();
-        hasher.update(&self.magic_number);
-        hasher.update(&self.version.to_le_bytes());
-        hasher.update(&self.flags.to_le_bytes());
-        hasher.update(&[self.compression_type, self.encryption_type, self.signature_type, self.reserved]);
-        hasher.update(&self.data_size.to_le_bytes());
-        hasher.update(&self.metadata_size.to_le_bytes());
-        hasher.update(&self.timestamp.to_le_bytes());
-        
-        let result = hasher.finalize();
-        let mut checksum = [0u8; 32];
-        checksum.copy_from_slice(&result);
-        checksum
+impl From<u8> for BinaryType {
+    fn from(byte: u8) -> Self {
+        match byte {
+            0x00 => BinaryType::Null,
+            0x01 => BinaryType::Bool,
+            0x02 => BinaryType::Int8,
+            0x03 => BinaryType::Int16,
+            0x04 => BinaryType::Int32,
+            0x05 => BinaryType::Int64,
+            0x06 => BinaryType::UInt8,
+            0x07 => BinaryType::UInt16,
+            0x08 => BinaryType::UInt32,
+            0x09 => BinaryType::UInt64,
+            0x0A => BinaryType::Float32,
+            0x0B => BinaryType::Float64,
+            0x0C => BinaryType::String,
+            0x0D => BinaryType::Bytes,
+            0x0E => BinaryType::Array,
+            0x0F => BinaryType::Object,
+            0x10 => BinaryType::Timestamp,
+            0x11 => BinaryType::Duration,
+            0x12 => BinaryType::Reference,
+            0x13 => BinaryType::Decimal,
+            _ => panic!("Unknown binary type: {}", byte),
+        }
     }
 }
 
-impl BinaryFormat {
-    /// Create a new binary format
-    pub fn new() -> Self {
-        BinaryFormat {
-            header: BinaryFormatHeader::new(),
-            data: Vec::new(),
-            metadata: HashMap::new(),
-            signature: None,
-        }
-    }
-    
-    /// Add metadata
-    pub fn add_metadata(&mut self, key: String, value: serde_json::Value) {
-        self.metadata.insert(key, value);
-    }
-    
-    /// Get metadata
-    pub fn get_metadata(&self, key: &str) -> Option<&serde_json::Value> {
-        self.metadata.get(key)
-    }
-    
-    /// Validate the binary format
-    pub fn is_valid(&self) -> bool {
-        self.header.is_valid()
-    }
+/// Binary file header structure
+#[derive(Debug, Clone)]
+pub struct BinaryHeader {
+    pub version: (u8, u8, u8),
+    pub flags: u32,
+    pub data_offset: u64,
+    pub index_offset: u64,
+    pub data_size: u64,
+    pub index_size: u64,
+    pub header_checksum: u32,
 }
 
-impl BinaryFormatWriter {
-    /// Create a new binary format writer
-    pub fn new() -> Self {
-        BinaryFormatWriter {
-            compression_type: 1, // Default to gzip
-            encryption_type: 0,  // No encryption by default
-            signature_type: 0,   // No signature by default
-            encryption_key: None,
-            signing_key: None,
-        }
-    }
-    
-    /// Set compression type
-    pub fn set_compression(&mut self, compression_type: u8) {
-        self.compression_type = compression_type;
-    }
-    
-    /// Set encryption type and key
-    pub fn set_encryption(&mut self, encryption_type: u8, key: Vec<u8>) {
-        self.encryption_type = encryption_type;
-        self.encryption_key = Some(key);
-    }
-    
-    /// Set signature type and key
-    pub fn set_signature(&mut self, signing_key: Vec<u8>) {
-        self.signature_type = 1; // Ed25519
-        self.signing_key = Some(signing_key);
-    }
-    
-    /// Write data to binary format
-    pub fn write_data(&self, data: &[u8], metadata: HashMap<String, serde_json::Value>) -> Result<BinaryFormat, Box<dyn std::error::Error>> {
-        let mut binary_format = BinaryFormat::new();
-        
-        // Set header flags
-        binary_format.header.flags = self.compression_type as u16 
-            | (self.encryption_type as u16) << 4 
-            | (self.signature_type as u16) << 8;
-        binary_format.header.compression_type = self.compression_type;
-        binary_format.header.encryption_type = self.encryption_type;
-        binary_format.header.signature_type = self.signature_type;
-        
-        // Process data
-        let mut processed_data = data.to_vec();
-        
-        // Compress if needed
-        if self.compression_type == 1 {
-            processed_data = self.compress_gzip(data)?;
-        }
-        
-        // Encrypt if needed
-        if self.encryption_type == 1 {
-            processed_data = self.encrypt_aes256gcm(&processed_data)?;
-        }
-        
-        // Update header
-        binary_format.data = processed_data;
-        binary_format.header.data_size = processed_data.len() as u32;
-        
-        // Serialize metadata
-        let metadata_bytes = serde_json::to_vec(&metadata)?;
-        binary_format.metadata = metadata;
-        binary_format.header.metadata_size = metadata_bytes.len() as u32;
-        
-        // Calculate checksum
-        binary_format.header.checksum = binary_format.header.calculate_checksum();
-        
-        // Sign if needed
-        if self.signature_type == 1 {
-            let signature = self.sign_data(&binary_format)?;
-            binary_format.signature = Some(signature);
-        }
-        
-        Ok(binary_format)
-    }
-    
-    /// Compress data using gzip
-    fn compress_gzip(&self, data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        use flate2::write::GzEncoder;
-        use flate2::Compression;
-        
-        let mut encoder = GzEncoder::new(Vec::new(), Compression::default());
-        encoder.write_all(data)?;
-        Ok(encoder.finish()?)
-    }
-    
-    /// Encrypt data using AES-256-GCM
-    fn encrypt_aes256gcm(&self, data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        // Simplified encryption (in production, use proper AES-256-GCM)
-        let key = self.encryption_key.as_ref().ok_or("No encryption key")?;
-        let mut encrypted = Vec::new();
-        
-        // Simple XOR encryption for demonstration
-        for (i, &byte) in data.iter().enumerate() {
-            encrypted.push(byte ^ key[i % key.len()]);
-        }
-        
-        Ok(encrypted)
-    }
-    
-    /// Sign data
-    fn sign_data(&self, binary_format: &BinaryFormat) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        use sha2::{Digest, Sha256};
-        
-        let key = self.signing_key.as_ref().ok_or("No signing key")?;
-        
-        // Create signature data
-        let mut signature_data = Vec::new();
-        signature_data.extend_from_slice(&binary_format.header.magic_number);
-        signature_data.extend_from_slice(&binary_format.header.version.to_le_bytes());
-        signature_data.extend_from_slice(&binary_format.data);
-        
-        // Calculate signature (simplified)
-        let mut hasher = Sha256::new();
-        hasher.update(&signature_data);
-        hasher.update(key);
-        
-        let result = hasher.finalize();
-        Ok(result.to_vec())
-    }
+/// Binary value types
+#[derive(Debug, Clone)]
+pub enum BinaryValue {
+    Null,
+    Bool(bool),
+    Int8(i8),
+    Int16(i16),
+    Int32(i32),
+    Int64(i64),
+    UInt8(u8),
+    UInt16(u16),
+    UInt32(u32),
+    UInt64(u64),
+    Float32(f32),
+    Float64(f64),
+    String(String),
+    Bytes(Vec<u8>),
+    Array(Vec<BinaryValue>),
+    Object(HashMap<String, BinaryValue>),
+    Timestamp(SystemTime),
+    Duration(Duration),
+    Reference(u64),
+    Decimal(f64), // Simplified decimal representation
 }
 
-impl BinaryFormatReader {
-    /// Create a new binary format reader
-    pub fn new() -> Self {
-        BinaryFormatReader {
-            verification_key: None,
-            decryption_key: None,
+/// Binary format reader
+pub struct BinaryFormatReader<R> {
+    reader: R,
+}
+
+impl<R: Read + Seek> BinaryFormatReader<R> {
+    pub fn new(reader: R) -> Self {
+        Self { reader }
+    }
+
+    /// Reads the file header and validates format
+    pub fn read_header(&mut self) -> io::Result<BinaryHeader> {
+        let mut header_bytes = [0u8; 64];
+        self.reader.read_exact(&mut header_bytes)?;
+
+        // Validate magic bytes
+        if header_bytes[0..4] != [0x50, 0x4E, 0x54, 0x00] {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "Invalid magic bytes in header",
+            ));
         }
-    }
-    
-    /// Set verification key
-    pub fn set_verification_key(&mut self, key: Vec<u8>) {
-        self.verification_key = Some(key);
-    }
-    
-    /// Set decryption key
-    pub fn set_decryption_key(&mut self, key: Vec<u8>) {
-        self.decryption_key = Some(key);
-    }
-    
-    /// Read binary format from bytes
-    pub fn read_from_bytes(&self, bytes: &[u8]) -> Result<BinaryFormat, Box<dyn std::error::Error>> {
-        if bytes.len() < 32 {
-            return Err("Invalid binary format: too short".into());
-        }
-        
-        // Parse header
-        let mut header = BinaryFormatHeader::new();
-        header.magic_number.copy_from_slice(&bytes[0..8]);
-        header.version = u16::from_le_bytes([bytes[8], bytes[9]]);
-        header.flags = u16::from_le_bytes([bytes[10], bytes[11]]);
-        header.compression_type = bytes[12];
-        header.encryption_type = bytes[13];
-        header.signature_type = bytes[14];
-        header.reserved = bytes[15];
-        header.data_size = u32::from_le_bytes([bytes[16], bytes[17], bytes[18], bytes[19]]);
-        header.metadata_size = u32::from_le_bytes([bytes[20], bytes[21], bytes[22], bytes[23]]);
-        header.checksum.copy_from_slice(&bytes[24..56]);
-        header.timestamp = u64::from_le_bytes([
-            bytes[56], bytes[57], bytes[58], bytes[59],
-            bytes[60], bytes[61], bytes[62], bytes[63]
+
+        let version = (header_bytes[4], header_bytes[5], header_bytes[6]);
+        let flags = u32::from_le_bytes([header_bytes[7], header_bytes[8], header_bytes[9], header_bytes[10]]);
+        let data_offset = u64::from_le_bytes([
+            header_bytes[11], header_bytes[12], header_bytes[13], header_bytes[14],
+            header_bytes[15], header_bytes[16], header_bytes[17], header_bytes[18],
         ]);
-        
-        if !header.is_valid() {
-            return Err("Invalid binary format header".into());
+        let index_offset = u64::from_le_bytes([
+            header_bytes[19], header_bytes[20], header_bytes[21], header_bytes[22],
+            header_bytes[23], header_bytes[24], header_bytes[25], header_bytes[26],
+        ]);
+        let data_size = u64::from_le_bytes([
+            header_bytes[27], header_bytes[28], header_bytes[29], header_bytes[30],
+            header_bytes[31], header_bytes[32], header_bytes[33], header_bytes[34],
+        ]);
+        let index_size = u64::from_le_bytes([
+            header_bytes[35], header_bytes[36], header_bytes[37], header_bytes[38],
+            header_bytes[39], header_bytes[40], header_bytes[41], header_bytes[42],
+        ]);
+        let header_checksum = u32::from_le_bytes([header_bytes[43], header_bytes[44], header_bytes[45], header_bytes[46]]);
+
+        // Validate header checksum
+        let calculated_checksum = crc32(&header_bytes[0..43]);
+        if header_checksum != calculated_checksum {
+            return Err(io::Error::new(
+                io::ErrorKind::InvalidData,
+                "Header checksum validation failed",
+            ));
         }
-        
-        // Parse data and metadata
-        let data_start = 64;
-        let data_end = data_start + header.data_size as usize;
-        let metadata_end = data_end + header.metadata_size as usize;
-        
-        if bytes.len() < metadata_end {
-            return Err("Invalid binary format: incomplete data".into());
-        }
-        
-        let data = bytes[data_start..data_end].to_vec();
-        let metadata_bytes = &bytes[data_end..metadata_end];
-        
-        let metadata: HashMap<String, serde_json::Value> = if header.metadata_size > 0 {
-            serde_json::from_slice(metadata_bytes)?
-        } else {
-            HashMap::new()
-        };
-        
-        // Parse signature if present
-        let signature = if header.signature_type > 0 && bytes.len() > metadata_end {
-            Some(bytes[metadata_end..].to_vec())
-        } else {
-            None
-        };
-        
-        let mut binary_format = BinaryFormat {
-            header,
-            data,
-            metadata,
-            signature,
-        };
-        
-        // Verify signature if present
-        if let Some(sig) = &binary_format.signature {
-            if !self.verify_signature(&binary_format, sig)? {
-                return Err("Signature verification failed".into());
+
+        Ok(BinaryHeader {
+            version,
+            flags,
+            data_offset,
+            index_offset,
+            data_size,
+            index_size,
+            header_checksum,
+        })
+    }
+
+    /// Reads a value from the data section
+    pub fn read_value(&mut self) -> io::Result<BinaryValue> {
+        let type_byte = self.reader.read_u8()?;
+        let binary_type = BinaryType::from(type_byte);
+
+        match binary_type {
+            BinaryType::Null => Ok(BinaryValue::Null),
+            BinaryType::Bool => {
+                let value = self.reader.read_u8()? != 0;
+                Ok(BinaryValue::Bool(value))
+            }
+            BinaryType::Int8 => {
+                let value = self.reader.read_i8()?;
+                Ok(BinaryValue::Int8(value))
+            }
+            BinaryType::Int16 => {
+                let value = self.reader.read_i16::<LittleEndian>()?;
+                Ok(BinaryValue::Int16(value))
+            }
+            BinaryType::Int32 => {
+                let value = self.reader.read_i32::<LittleEndian>()?;
+                Ok(BinaryValue::Int32(value))
+            }
+            BinaryType::Int64 => {
+                let value = self.reader.read_i64::<LittleEndian>()?;
+                Ok(BinaryValue::Int64(value))
+            }
+            BinaryType::UInt8 => {
+                let value = self.reader.read_u8()?;
+                Ok(BinaryValue::UInt8(value))
+            }
+            BinaryType::UInt16 => {
+                let value = self.reader.read_u16::<LittleEndian>()?;
+                Ok(BinaryValue::UInt16(value))
+            }
+            BinaryType::UInt32 => {
+                let value = self.reader.read_u32::<LittleEndian>()?;
+                Ok(BinaryValue::UInt32(value))
+            }
+            BinaryType::UInt64 => {
+                let value = self.reader.read_u64::<LittleEndian>()?;
+                Ok(BinaryValue::UInt64(value))
+            }
+            BinaryType::Float32 => {
+                let value = self.reader.read_f32::<LittleEndian>()?;
+                Ok(BinaryValue::Float32(value))
+            }
+            BinaryType::Float64 => {
+                let value = self.reader.read_f64::<LittleEndian>()?;
+                Ok(BinaryValue::Float64(value))
+            }
+            BinaryType::String => {
+                let length = self.read_length()?;
+                let mut bytes = vec![0u8; length];
+                self.reader.read_exact(&mut bytes)?;
+                let string = String::from_utf8(bytes)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+                Ok(BinaryValue::String(string))
+            }
+            BinaryType::Bytes => {
+                let length = self.read_length()?;
+                let mut bytes = vec![0u8; length];
+                self.reader.read_exact(&mut bytes)?;
+                Ok(BinaryValue::Bytes(bytes))
+            }
+            BinaryType::Array => {
+                let length = self.read_length()?;
+                let mut array = Vec::with_capacity(length);
+                for _ in 0..length {
+                    array.push(self.read_value()?);
+                }
+                Ok(BinaryValue::Array(array))
+            }
+            BinaryType::Object => {
+                let count = self.read_length()?;
+                let mut object = HashMap::new();
+                for _ in 0..count {
+                    let key = match self.read_value()? {
+                        BinaryValue::String(s) => s,
+                        _ => return Err(io::Error::new(io::ErrorKind::InvalidData, "Object key must be string")),
+                    };
+                    let value = self.read_value()?;
+                    object.insert(key, value);
+                }
+                Ok(BinaryValue::Object(object))
+            }
+            BinaryType::Timestamp => {
+                let ticks = self.reader.read_i64::<LittleEndian>()?;
+                let timestamp = UNIX_EPOCH + Duration::from_nanos(ticks as u64 * 100);
+                Ok(BinaryValue::Timestamp(timestamp))
+            }
+            BinaryType::Duration => {
+                let ticks = self.reader.read_i64::<LittleEndian>()?;
+                let duration = Duration::from_nanos(ticks as u64 * 100);
+                Ok(BinaryValue::Duration(duration))
+            }
+            BinaryType::Reference => {
+                let value = self.reader.read_u64::<LittleEndian>()?;
+                Ok(BinaryValue::Reference(value))
+            }
+            BinaryType::Decimal => {
+                let mut bytes = [0u8; 16];
+                self.reader.read_exact(&mut bytes)?;
+                // Simplified decimal representation
+                let value = f64::from_le_bytes([
+                    bytes[0], bytes[1], bytes[2], bytes[3],
+                    bytes[4], bytes[5], bytes[6], bytes[7],
+                ]);
+                Ok(BinaryValue::Decimal(value))
             }
         }
-        
-        // Decrypt if needed
-        if binary_format.header.encryption_type == 1 {
-            binary_format.data = self.decrypt_aes256gcm(&binary_format.data)?;
-        }
-        
-        // Decompress if needed
-        if binary_format.header.compression_type == 1 {
-            binary_format.data = self.decompress_gzip(&binary_format.data)?;
-        }
-        
-        Ok(binary_format)
     }
-    
-    /// Verify signature
-    fn verify_signature(&self, binary_format: &BinaryFormat, signature: &[u8]) -> Result<bool, Box<dyn std::error::Error>> {
-        use sha2::{Digest, Sha256};
-        
-        let key = self.verification_key.as_ref().ok_or("No verification key")?;
-        
-        // Create signature data
-        let mut signature_data = Vec::new();
-        signature_data.extend_from_slice(&binary_format.header.magic_number);
-        signature_data.extend_from_slice(&binary_format.header.version.to_le_bytes());
-        signature_data.extend_from_slice(&binary_format.data);
-        
-        // Calculate expected signature
-        let mut hasher = Sha256::new();
-        hasher.update(&signature_data);
-        hasher.update(key);
-        
-        let expected = hasher.finalize();
-        Ok(signature == expected.as_slice())
-    }
-    
-    /// Decrypt data using AES-256-GCM
-    fn decrypt_aes256gcm(&self, data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        let key = self.decryption_key.as_ref().ok_or("No decryption key")?;
-        
-        // Simple XOR decryption for demonstration
-        let mut decrypted = Vec::new();
-        for (i, &byte) in data.iter().enumerate() {
-            decrypted.push(byte ^ key[i % key.len()]);
+
+    fn read_length(&mut self) -> io::Result<usize> {
+        let first_byte = self.reader.read_u8()?;
+        if (first_byte & 0x80) == 0 {
+            return Ok(first_byte as usize);
         }
-        
-        Ok(decrypted)
-    }
-    
-    /// Decompress data using gzip
-    fn decompress_gzip(&self, data: &[u8]) -> Result<Vec<u8>, Box<dyn std::error::Error>> {
-        use flate2::read::GzDecoder;
-        
-        let mut decoder = GzDecoder::new(data);
-        let mut decompressed = Vec::new();
-        decoder.read_to_end(&mut decompressed)?;
-        Ok(decompressed)
+
+        let mut length = (first_byte & 0x7F) as usize;
+        let mut shift = 7;
+        loop {
+            let byte = self.reader.read_u8()?;
+            length |= ((byte & 0x7F) as usize) << shift;
+            if (byte & 0x80) == 0 {
+                break;
+            }
+            shift += 7;
+        }
+        Ok(length)
     }
 }
 
-// Utility functions for Agent a1
-
-/// Validate binary format
-pub fn validate_binary_format(data: &[u8]) -> Result<(), Box<dyn std::error::Error>> {
-    if data.len() < 32 {
-        return Err("File too small to be valid binary format".into());
-    }
-    
-    let magic = &data[0..8];
-    if magic != b"TUSKLANG" {
-        return Err("Invalid magic number".into());
-    }
-    
-    Ok(())
+/// Binary format writer
+pub struct BinaryFormatWriter<W> {
+    writer: W,
 }
 
-/// Get binary format information
-pub fn get_binary_format_info(data: &[u8]) -> Result<HashMap<String, serde_json::Value>, Box<dyn std::error::Error>> {
-    validate_binary_format(data)?;
-    
-    let mut info = HashMap::new();
-    info.insert("magic_number".to_string(), serde_json::Value::String(
-        String::from_utf8_lossy(&data[0..8]).to_string()
-    ));
-    info.insert("version".to_string(), serde_json::Value::Number(
-        serde_json::Number::from(u16::from_le_bytes([data[8], data[9]]))
-    ));
-    info.insert("flags".to_string(), serde_json::Value::Number(
-        serde_json::Number::from(u16::from_le_bytes([data[10], data[11]]))
-    ));
-    info.insert("compression_type".to_string(), serde_json::Value::Number(
-        serde_json::Number::from(data[12])
-    ));
-    info.insert("encryption_type".to_string(), serde_json::Value::Number(
-        serde_json::Number::from(data[13])
-    ));
-    info.insert("signature_type".to_string(), serde_json::Value::Number(
-        serde_json::Number::from(data[14])
-    ));
-    info.insert("data_size".to_string(), serde_json::Value::Number(
-        serde_json::Number::from(u32::from_le_bytes([data[16], data[17], data[18], data[19]]))
-    ));
-    info.insert("metadata_size".to_string(), serde_json::Value::Number(
-        serde_json::Number::from(u32::from_le_bytes([data[20], data[21], data[22], data[23]]))
-    ));
-    info.insert("timestamp".to_string(), serde_json::Value::Number(
-        serde_json::Number::from(u64::from_le_bytes([
-            data[56], data[57], data[58], data[59],
-            data[60], data[61], data[62], data[63]
-        ]))
-    ));
-    
-    Ok(info)
+impl<W: Write + Seek> BinaryFormatWriter<W> {
+    pub fn new(writer: W) -> Self {
+        Self { writer }
+    }
+
+    /// Writes the file header
+    pub fn write_header(&mut self, header: &BinaryHeader) -> io::Result<()> {
+        let mut header_bytes = [0u8; 64];
+
+        // Magic bytes
+        header_bytes[0..4].copy_from_slice(&[0x50, 0x4E, 0x54, 0x00]);
+
+        // Version
+        header_bytes[4] = header.version.0;
+        header_bytes[5] = header.version.1;
+        header_bytes[6] = header.version.2;
+
+        // Flags
+        header_bytes[7..11].copy_from_slice(&header.flags.to_le_bytes());
+
+        // Offsets and sizes
+        header_bytes[11..19].copy_from_slice(&header.data_offset.to_le_bytes());
+        header_bytes[19..27].copy_from_slice(&header.index_offset.to_le_bytes());
+        header_bytes[27..35].copy_from_slice(&header.data_size.to_le_bytes());
+        header_bytes[35..43].copy_from_slice(&header.index_size.to_le_bytes());
+
+        // Calculate and write checksum
+        let checksum = crc32(&header_bytes[0..43]);
+        header_bytes[43..47].copy_from_slice(&checksum.to_le_bytes());
+
+        self.writer.write_all(&header_bytes)?;
+        Ok(())
+    }
+
+    /// Writes a value to the data section
+    pub fn write_value(&mut self, value: &BinaryValue) -> io::Result<()> {
+        match value {
+            BinaryValue::Null => {
+                self.writer.write_u8(BinaryType::Null as u8)?;
+            }
+            BinaryValue::Bool(b) => {
+                self.writer.write_u8(BinaryType::Bool as u8)?;
+                self.writer.write_u8(if *b { 1 } else { 0 })?;
+            }
+            BinaryValue::Int8(i) => {
+                self.writer.write_u8(BinaryType::Int8 as u8)?;
+                self.writer.write_i8(*i)?;
+            }
+            BinaryValue::Int16(i) => {
+                self.writer.write_u8(BinaryType::Int16 as u8)?;
+                self.writer.write_i16::<LittleEndian>(*i)?;
+            }
+            BinaryValue::Int32(i) => {
+                self.writer.write_u8(BinaryType::Int32 as u8)?;
+                self.writer.write_i32::<LittleEndian>(*i)?;
+            }
+            BinaryValue::Int64(i) => {
+                self.writer.write_u8(BinaryType::Int64 as u8)?;
+                self.writer.write_i64::<LittleEndian>(*i)?;
+            }
+            BinaryValue::UInt8(u) => {
+                self.writer.write_u8(BinaryType::UInt8 as u8)?;
+                self.writer.write_u8(*u)?;
+            }
+            BinaryValue::UInt16(u) => {
+                self.writer.write_u8(BinaryType::UInt16 as u8)?;
+                self.writer.write_u16::<LittleEndian>(*u)?;
+            }
+            BinaryValue::UInt32(u) => {
+                self.writer.write_u8(BinaryType::UInt32 as u8)?;
+                self.writer.write_u32::<LittleEndian>(*u)?;
+            }
+            BinaryValue::UInt64(u) => {
+                self.writer.write_u8(BinaryType::UInt64 as u8)?;
+                self.writer.write_u64::<LittleEndian>(*u)?;
+            }
+            BinaryValue::Float32(f) => {
+                self.writer.write_u8(BinaryType::Float32 as u8)?;
+                self.writer.write_f32::<LittleEndian>(*f)?;
+            }
+            BinaryValue::Float64(f) => {
+                self.writer.write_u8(BinaryType::Float64 as u8)?;
+                self.writer.write_f64::<LittleEndian>(*f)?;
+            }
+            BinaryValue::String(s) => {
+                self.writer.write_u8(BinaryType::String as u8)?;
+                self.write_length(s.len())?;
+                self.writer.write_all(s.as_bytes())?;
+            }
+            BinaryValue::Bytes(b) => {
+                self.writer.write_u8(BinaryType::Bytes as u8)?;
+                self.write_length(b.len())?;
+                self.writer.write_all(b)?;
+            }
+            BinaryValue::Array(a) => {
+                self.writer.write_u8(BinaryType::Array as u8)?;
+                self.write_length(a.len())?;
+                for item in a {
+                    self.write_value(item)?;
+                }
+            }
+            BinaryValue::Object(o) => {
+                self.writer.write_u8(BinaryType::Object as u8)?;
+                self.write_length(o.len())?;
+                for (key, value) in o {
+                    self.write_value(&BinaryValue::String(key.clone()))?;
+                    self.write_value(value)?;
+                }
+            }
+            BinaryValue::Timestamp(t) => {
+                self.writer.write_u8(BinaryType::Timestamp as u8)?;
+                let duration = t.duration_since(UNIX_EPOCH)
+                    .map_err(|e| io::Error::new(io::ErrorKind::InvalidData, e))?;
+                let ticks = duration.as_nanos() / 100;
+                self.writer.write_i64::<LittleEndian>(ticks as i64)?;
+            }
+            BinaryValue::Duration(d) => {
+                self.writer.write_u8(BinaryType::Duration as u8)?;
+                let ticks = d.as_nanos() / 100;
+                self.writer.write_i64::<LittleEndian>(ticks as i64)?;
+            }
+            BinaryValue::Reference(r) => {
+                self.writer.write_u8(BinaryType::Reference as u8)?;
+                self.writer.write_u64::<LittleEndian>(*r)?;
+            }
+            BinaryValue::Decimal(d) => {
+                self.writer.write_u8(BinaryType::Decimal as u8)?;
+                let bytes = d.to_le_bytes();
+                self.writer.write_all(&bytes)?;
+                // Pad to 16 bytes
+                let padding = [0u8; 8];
+                self.writer.write_all(&padding)?;
+            }
+        }
+        Ok(())
+    }
+
+    fn write_length(&mut self, length: usize) -> io::Result<()> {
+        if length < 0x80 {
+            self.writer.write_u8(length as u8)?;
+            return Ok(());
+        }
+
+        let mut remaining = length;
+        while remaining >= 0x80 {
+            self.writer.write_u8(((remaining & 0x7F) | 0x80) as u8)?;
+            remaining >>= 7;
+        }
+        self.writer.write_u8(remaining as u8)?;
+        Ok(())
+    }
+
+    pub fn flush(&mut self) -> io::Result<()> {
+        self.writer.flush()
+    }
+}
+
+/// CRC32 implementation for checksum calculation
+fn crc32(data: &[u8]) -> u32 {
+    let mut crc = 0xFFFFFFFFu32;
+    for &byte in data {
+        crc = CRC32_TABLE[((crc ^ byte as u32) & 0xFF) as usize] ^ (crc >> 8);
+    }
+    !crc
+}
+
+static CRC32_TABLE: [u32; 256] = {
+    let mut table = [0u32; 256];
+    let mut i = 0;
+    while i < 256 {
+        let mut crc = i as u32;
+        let mut j = 0;
+        while j < 8 {
+            if (crc & 1) != 0 {
+                crc = (crc >> 1) ^ 0xEDB88320;
+            } else {
+                crc >>= 1;
+            }
+            j += 1;
+        }
+        table[i] = crc;
+        i += 1;
+    }
+    table
+};
+
+/// Convenience functions for reading and writing .pnt files
+pub struct BinaryFormat;
+
+impl BinaryFormat {
+    pub fn read_file<R: Read + Seek>(mut reader: R) -> io::Result<(BinaryHeader, BinaryValue)> {
+        let mut binary_reader = BinaryFormatReader::new(reader);
+        let header = binary_reader.read_header()?;
+        let data = binary_reader.read_value()?;
+        Ok((header, data))
+    }
+
+    pub fn write_file<W: Write + Seek>(mut writer: W, data: &BinaryValue, header: Option<BinaryHeader>) -> io::Result<()> {
+        let header = header.unwrap_or(BinaryHeader {
+            version: (1, 0, 0),
+            flags: 0,
+            data_offset: 64,
+            index_offset: 0,
+            data_size: 0,
+            index_size: 0,
+            header_checksum: 0,
+        });
+
+        let mut binary_writer = BinaryFormatWriter::new(writer);
+        binary_writer.write_header(&header)?;
+        binary_writer.write_value(data)?;
+        binary_writer.flush()?;
+        Ok(())
+    }
 }
 
 #[cfg(test)]
 mod tests {
     use super::*;
-    
+    use std::io::Cursor;
+
     #[test]
-    fn test_header_creation() {
-        let header = BinaryFormatHeader::new();
-        assert!(header.is_valid());
-        assert_eq!(header.magic_number, *b"TUSKLANG");
-        assert_eq!(header.version, 1);
+    fn test_binary_format_roundtrip() {
+        let test_data = BinaryValue::Object({
+            let mut map = HashMap::new();
+            map.insert("string".to_string(), BinaryValue::String("hello world".to_string()));
+            map.insert("number".to_string(), BinaryValue::Int32(42));
+            map.insert("array".to_string(), BinaryValue::Array(vec![
+                BinaryValue::Bool(true),
+                BinaryValue::Float64(3.14),
+            ]));
+            map
+        });
+
+        let mut buffer = Cursor::new(Vec::new());
+        BinaryFormat::write_file(&mut buffer, &test_data, None).unwrap();
+        buffer.set_position(0);
+
+        let (header, result) = BinaryFormat::read_file(buffer).unwrap();
+        assert_eq!(header.version, (1, 0, 0));
+        assert_eq!(result, test_data);
     }
-    
+
     #[test]
-    fn test_binary_format_creation() {
-        let mut format = BinaryFormat::new();
-        format.add_metadata("test".to_string(), serde_json::Value::Bool(true));
-        assert!(format.is_valid());
-        assert_eq!(format.get_metadata("test"), Some(&serde_json::Value::Bool(true)));
-    }
-    
-    #[test]
-    fn test_writer_creation() {
-        let writer = BinaryFormatWriter::new();
-        assert_eq!(writer.compression_type, 1);
-        assert_eq!(writer.encryption_type, 0);
-        assert_eq!(writer.signature_type, 0);
-    }
-    
-    #[test]
-    fn test_reader_creation() {
-        let reader = BinaryFormatReader::new();
-        assert!(reader.verification_key.is_none());
-        assert!(reader.decryption_key.is_none());
+    fn test_header_validation() {
+        let mut buffer = Cursor::new(Vec::new());
+        let header = BinaryHeader {
+            version: (1, 0, 0),
+            flags: 0,
+            data_offset: 64,
+            index_offset: 0,
+            data_size: 0,
+            index_size: 0,
+            header_checksum: 0,
+        };
+
+        let mut writer = BinaryFormatWriter::new(&mut buffer);
+        writer.write_header(&header).unwrap();
+        buffer.set_position(0);
+
+        let mut reader = BinaryFormatReader::new(buffer);
+        let read_header = reader.read_header().unwrap();
+        assert_eq!(read_header.version, header.version);
     }
 } 

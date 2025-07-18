@@ -480,7 +480,7 @@ pool_size: 10
 [cache]
 enabled: true
 ttl: 3600
-backend: ""redis""";
+backend: \"redis\"";
             
             Console.WriteLine("🥜 Peanut Configuration Performance Test\n");
             

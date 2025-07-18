@@ -189,6 +189,41 @@ packages/
 releases/
 
 # =============================================================================
+# ENTERPRISE DEPLOYMENT ARTIFACTS
+# =============================================================================
+# Enterprise package build artifacts
+enterprise/dist/
+enterprise/build/
+enterprise/*.egg-info/
+enterprise/tusklang_enterprise/
+enterprise/package.json
+enterprise/tsconfig.json
+enterprise/src/
+enterprise/node_modules/
+enterprise/Dockerfile
+enterprise/setup.py
+
+# Enterprise deployment temporary files
+/tmp/tusklang-enterprise-deploy/
+enterprise-deploy-*.tar.gz
+enterprise-deploy-*.zip
+
+# Enterprise package manager artifacts
+enterprise/*.nupkg
+enterprise/*.whl
+enterprise/*.tar.gz
+enterprise/package-lock.json
+enterprise/yarn.lock
+
+# Enterprise Docker images (local)
+tusklang/enterprise:*
+enterprise:*
+
+# Enterprise deployment logs
+enterprise-deploy.log
+enterprise-build.log
+
+# =============================================================================
 # MONITORING & ANALYTICS
 # =============================================================================
 monitoring/data/
@@ -250,3 +285,6 @@ master.txt
 /admin 
 transfer-sdk.sh
 fix-pkg-domains.sh
+roadmaps/
+/roadmaps 
+

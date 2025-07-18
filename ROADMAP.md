@@ -135,54 +135,114 @@ Establish TuskLang as a first-class citizen in all major package ecosystems.
 
 Extend TuskLang's @ operator system with modern integration patterns.
 
-- [ ] **21. @graphql** - GraphQL query support
+- [x] **21. @graphql** - GraphQL query support ✅ **COMPLETED** (2025-01-17)
   ```tsk
   users: @graphql("{ users { id name email } }")
   ```
 
-- [ ] **22. @grpc** - gRPC service calls
+- [x] **22. @grpc** - gRPC service calls ✅ **COMPLETED** (2025-01-17)
   ```tsk
   service_response: @grpc("UserService.GetUser", {"id": 123})
   ```
 
-- [ ] **23. @websocket** - WebSocket connections
+- [x] **23. @websocket** - WebSocket connections ✅ **COMPLETED** (2025-01-17)
   ```tsk
   live_data: @websocket("wss://api.example.com/stream")
   ```
 
-- [ ] **24. @sse** - Server-Sent Events
+- [x] **24. @sse** - Server-Sent Events ✅ **COMPLETED** (2025-01-17)
   ```tsk
   events: @sse("https://api.example.com/events")
   ```
 
-- [ ] **25. @nats** - NATS messaging
+- [x] **25. @nats** - NATS messaging ✅ **COMPLETED** (2025-01-17)
   ```tsk
   message_queue: @nats("orders.new", "subscribe")
   ```
 
-- [ ] **26. @amqp** - RabbitMQ support
+- [x] **26. @amqp** - RabbitMQ support ✅ **COMPLETED** (2025-01-17)
   ```tsk
   queue_depth: @amqp("queue.stats", "orders")
   ```
 
-- [ ] **27. @kafka** - Kafka streaming
+- [x] **27. @kafka** - Kafka streaming ✅ **COMPLETED** (2025-01-17)
   ```tsk
   stream_offset: @kafka("topic", "consumer-group")
   ```
 
-- [ ] **28. @temporal** - Workflow integration
+- [x] **28. @temporal** - Workflow integration ✅ **COMPLETED** (2025-01-17)
   ```tsk
   workflow_status: @temporal("OrderWorkflow", "status")
   ```
 
-- [ ] **29. @vault** - HashiCorp Vault secrets
+- [x] **29. @vault** - HashiCorp Vault secrets ✅ **COMPLETED** (2025-01-17)
   ```tsk
   api_key: @vault("secret/data/api", "key")
   ```
 
-- [ ] **30. @consul** - Service discovery
+- [x] **30. @consul** - Service discovery ✅ **COMPLETED** (2025-01-17)
   ```tsk
   service_url: @consul("api-service", "healthy")
+  ```
+
+- [x] **31. @etcd** - etcd distributed key-value store ✅ **COMPLETED** (2025-01-17)
+  ```tsk
+  config: @etcd("get", "/app/config")
+  ```
+
+- [x] **32. @redis** - Redis caching and data structures ✅ **COMPLETED** (2025-01-17)
+  ```tsk
+  cache: @redis("get", "user:123")
+  ```
+
+- [x] **33. @elasticsearch** - Elasticsearch search and analytics ✅ **COMPLETED** (2025-01-17)
+  ```tsk
+  search: @elasticsearch("search", "users", {"query": {"match": {"name": "john"}}})
+  ```
+
+- [x] **34. @prometheus** - Prometheus metrics collection ✅ **COMPLETED** (2025-01-17)
+  ```tsk
+  metrics: @prometheus("query", "rate(http_requests_total[5m])")
+  ```
+
+- [x] **35. @jaeger** - Jaeger distributed tracing ✅ **COMPLETED** (2025-01-17)
+  ```tsk
+  trace: @jaeger("get_trace", "trace_id")
+  ```
+
+- [x] **36. @zipkin** - Zipkin distributed tracing ✅ **COMPLETED** (2025-01-17)
+  ```tsk
+  span: @zipkin("get_trace", "trace_id")
+  ```
+
+- [x] **37. @grafana** - Grafana dashboard management ✅ **COMPLETED** (2025-01-17)
+  ```tsk
+  dashboard: @grafana("get_dashboard", "dashboard_uid")
+  ```
+
+- [x] **38. @istio** - Istio service mesh management ✅ **COMPLETED** (2025-01-17)
+  ```tsk
+  service: @istio("get_virtual_service", "service_name")
+  ```
+
+- [x] **39. @mongodb** - MongoDB document database ✅ **COMPLETED** (2025-01-17)
+  ```tsk
+  users: @mongodb("find", "users", {"active": true})
+  ```
+
+- [x] **40. @postgresql** - PostgreSQL relational database ✅ **COMPLETED** (2025-01-17)
+  ```tsk
+  users: @postgresql("query", "SELECT * FROM users WHERE active = ?", [true])
+  ```
+
+- [x] **41. @mysql** - MySQL relational database ✅ **COMPLETED** (2025-01-17)
+  ```tsk
+  users: @mysql("query", "SELECT * FROM users WHERE active = ?", [1])
+  ```
+
+- [x] **42. @sqlite** - SQLite embedded database ✅ **COMPLETED** (2025-01-17)
+  ```tsk
+  users: @sqlite("query", "SELECT * FROM users WHERE active = ?", [1])
   ```
 
 ---
