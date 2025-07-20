@@ -2,6 +2,8 @@
 # TSK (TuskLang Configuration) Parser and Generator for Bash
 # Handles the TOML-like format with fujsen (function serialization) support
 
+echo 'DEBUG: tsk-enhanced-working.sh executed' >> /tmp/tsk-debug.log
+
 # Enable strict mode
 set -euo pipefail
 

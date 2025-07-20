@@ -1,232 +1,284 @@
-use thiserror::Error;
+use serde::{Deserialize, Serialize};
+use std::fmt;
+use std::error::Error as StdError;
 
-/// Result type for TuskLang operations
-pub type TuskResult<T> = Result<T, TuskError>;
-
-/// Error types for TuskLang parsing and operations
-#[derive(Error, Debug, Clone, PartialEq)]
+/// Enhanced error types for TuskLang operations
+#[derive(Debug, Clone, Serialize, Deserialize)]
 pub enum TuskError {
-    #[error("Parse error at line {line}: {message}")]
+    /// Parse error with line number and context
     ParseError {
         line: usize,
+        column: usize,
         message: String,
+        context: String,
+        suggestion: Option<String>,
     },
-
-    #[error("Invalid indentation at line {line}: expected {expected}, got {actual}")]
-    IndentationError {
-        line: usize,
-        expected: usize,
-        actual: usize,
+    /// Type conversion error
+    TypeError {
+        expected: String,
+        found: String,
+        context: String,
     },
-
-    #[error("Unexpected token '{token}' at line {line}")]
-    UnexpectedToken {
-        line: usize,
-        token: String,
-    },
-
-    #[error("Missing value for key '{key}' at line {line}")]
-    MissingValue {
-        line: usize,
-        key: String,
-    },
-
-    #[error("Invalid value '{value}' at line {line}: {reason}")]
-    InvalidValue {
-        line: usize,
-        value: String,
-        reason: String,
-    },
-
-    #[error("Variable '{variable}' not found")]
-    VariableNotFound {
+    /// Variable interpolation error
+    VariableError {
         variable: String,
-    },
-
-    #[error("Circular reference detected for variable '{variable}'")]
-    CircularReference {
-        variable: String,
-    },
-
-    #[error("IO error: {message}")]
-    IoError {
         message: String,
+        available_vars: Vec<String>,
     },
-
-    #[error("Serialization error: {message}")]
-    SerializationError {
-        message: String,
+    /// File operation error
+    FileError {
+        path: String,
+        operation: String,
+        cause: String,
     },
-
-    #[error("Type conversion error: {message}")]
-    TypeConversionError {
-        message: String,
-    },
-
-    #[error("Validation error: {message}")]
+    /// Validation error
     ValidationError {
+        field: String,
+        value: String,
+        rule: String,
         message: String,
+    },
+    /// Serialization error
+    SerializationError {
+        format: String,
+        message: String,
+    },
+    /// Configuration error
+    ConfigError {
+        section: String,
+        message: String,
+        details: Option<String>,
+    },
+    /// Generic error with context
+    Generic {
+        message: String,
+        context: Option<String>,
+        code: Option<String>,
     },
 }
 
 impl TuskError {
-    /// Create a parse error with line number and message
+    /// Create a parse error with detailed context
     pub fn parse_error(line: usize, message: impl Into<String>) -> Self {
         Self::ParseError {
             line,
+            column: 0,
             message: message.into(),
+            context: String::new(),
+            suggestion: None,
         }
     }
 
-    /// Create an indentation error
-    pub fn indentation_error(line: usize, expected: usize, actual: usize) -> Self {
-        Self::IndentationError {
+    /// Create a parse error with column information
+    pub fn parse_error_with_context(
+        line: usize,
+        column: usize,
+        message: impl Into<String>,
+        context: impl Into<String>,
+    ) -> Self {
+        Self::ParseError {
             line,
-            expected,
-            actual,
+            column,
+            message: message.into(),
+            context: context.into(),
+            suggestion: None,
         }
     }
 
-    /// Create an unexpected token error
-    pub fn unexpected_token(line: usize, token: impl Into<String>) -> Self {
-        Self::UnexpectedToken {
-            line,
-            token: token.into(),
+    /// Create a type error
+    pub fn type_error(expected: impl Into<String>, found: impl Into<String>) -> Self {
+        Self::TypeError {
+            expected: expected.into(),
+            found: found.into(),
+            context: String::new(),
         }
     }
 
-    /// Create a missing value error
-    pub fn missing_value(line: usize, key: impl Into<String>) -> Self {
-        Self::MissingValue {
-            line,
-            key: key.into(),
-        }
-    }
-
-    /// Create an invalid value error
-    pub fn invalid_value(line: usize, value: impl Into<String>, reason: impl Into<String>) -> Self {
-        Self::InvalidValue {
-            line,
-            value: value.into(),
-            reason: reason.into(),
-        }
-    }
-
-    /// Create a variable not found error
-    pub fn variable_not_found(variable: impl Into<String>) -> Self {
-        Self::VariableNotFound {
+    /// Create a variable error
+    pub fn variable_error(variable: impl Into<String>, message: impl Into<String>) -> Self {
+        Self::VariableError {
             variable: variable.into(),
-        }
-    }
-
-    /// Create a circular reference error
-    pub fn circular_reference(variable: impl Into<String>) -> Self {
-        Self::CircularReference {
-            variable: variable.into(),
-        }
-    }
-
-    /// Create an IO error
-    pub fn io_error(message: impl Into<String>) -> Self {
-        Self::IoError {
             message: message.into(),
+            available_vars: Vec::new(),
         }
     }
 
-    /// Create a serialization error
-    pub fn serialization_error(message: impl Into<String>) -> Self {
-        Self::SerializationError {
-            message: message.into(),
-        }
-    }
-
-    /// Create a type conversion error
-    pub fn type_conversion_error(message: impl Into<String>) -> Self {
-        Self::TypeConversionError {
-            message: message.into(),
+    /// Create a file error
+    pub fn file_error(path: impl Into<String>, operation: impl Into<String>, cause: impl Into<String>) -> Self {
+        Self::FileError {
+            path: path.into(),
+            operation: operation.into(),
+            cause: cause.into(),
         }
     }
 
     /// Create a validation error
-    pub fn validation_error(message: impl Into<String>) -> Self {
+    pub fn validation_error(
+        field: impl Into<String>,
+        value: impl Into<String>,
+        rule: impl Into<String>,
+        message: impl Into<String>,
+    ) -> Self {
         Self::ValidationError {
+            field: field.into(),
+            value: value.into(),
+            rule: rule.into(),
             message: message.into(),
         }
     }
 
-    /// Get the line number where the error occurred
-    pub fn line_number(&self) -> Option<usize> {
+    /// Get error code for programmatic handling
+    pub fn error_code(&self) -> &str {
         match self {
-            Self::ParseError { line, .. } => Some(*line),
-            Self::IndentationError { line, .. } => Some(*line),
-            Self::UnexpectedToken { line, .. } => Some(*line),
-            Self::MissingValue { line, .. } => Some(*line),
-            Self::InvalidValue { line, .. } => Some(*line),
-            _ => None,
+            TuskError::ParseError { .. } => "PARSE_ERROR",
+            TuskError::TypeError { .. } => "TYPE_ERROR",
+            TuskError::VariableError { .. } => "VARIABLE_ERROR",
+            TuskError::FileError { .. } => "FILE_ERROR",
+            TuskError::ValidationError { .. } => "VALIDATION_ERROR",
+            TuskError::SerializationError { .. } => "SERIALIZATION_ERROR",
+            TuskError::ConfigError { .. } => "CONFIG_ERROR",
+            TuskError::Generic { .. } => "GENERIC_ERROR",
         }
     }
 
-    /// Check if this is a parsing error
-    pub fn is_parse_error(&self) -> bool {
-        matches!(
-            self,
-            Self::ParseError { .. }
-                | Self::IndentationError { .. }
-                | Self::UnexpectedToken { .. }
-                | Self::MissingValue { .. }
-                | Self::InvalidValue { .. }
-        )
-    }
-
-    /// Check if this is a variable-related error
-    pub fn is_variable_error(&self) -> bool {
-        matches!(
-            self,
-            Self::VariableNotFound { .. } | Self::CircularReference { .. }
-        )
+    /// Get detailed error information for debugging
+    pub fn debug_info(&self) -> String {
+        match self {
+            TuskError::ParseError { line, column, message, context, suggestion } => {
+                let mut info = format!("Parse error at line {}, column {}: {}", line, column, message);
+                if !context.is_empty() {
+                    info.push_str(&format!("\nContext: {}", context));
+                }
+                if let Some(suggestion) = suggestion {
+                    info.push_str(&format!("\nSuggestion: {}", suggestion));
+                }
+                info
+            }
+            TuskError::TypeError { expected, found, context } => {
+                let mut info = format!("Type error: expected {}, found {}", expected, found);
+                if !context.is_empty() {
+                    info.push_str(&format!("\nContext: {}", context));
+                }
+                info
+            }
+            TuskError::VariableError { variable, message, available_vars } => {
+                let mut info = format!("Variable error for '{}': {}", variable, message);
+                if !available_vars.is_empty() {
+                    info.push_str(&format!("\nAvailable variables: {}", available_vars.join(", ")));
+                }
+                info
+            }
+            TuskError::FileError { path, operation, cause } => {
+                format!("File error during {} on '{}': {}", operation, path, cause)
+            }
+            TuskError::ValidationError { field, value, rule, message } => {
+                format!("Validation error for field '{}' with value '{}' (rule: {}): {}", field, value, rule, message)
+            }
+            TuskError::SerializationError { format, message } => {
+                format!("Serialization error for format '{}': {}", format, message)
+            }
+            TuskError::ConfigError { section, message, details } => {
+                let mut info = format!("Configuration error in section '{}': {}", section, message);
+                if let Some(details) = details {
+                    info.push_str(&format!("\nDetails: {}", details));
+                }
+                info
+            }
+            TuskError::Generic { message, context, code } => {
+                let mut info = format!("Generic error: {}", message);
+                if let Some(context) = context {
+                    info.push_str(&format!("\nContext: {}", context));
+                }
+                if let Some(code) = code {
+                    info.push_str(&format!("\nCode: {}", code));
+                }
+                info
+            }
+        }
     }
 }
 
-impl From<std::io::Error> for TuskError {
-    fn from(err: std::io::Error) -> Self {
-        Self::io_error(err.to_string())
+impl fmt::Display for TuskError {
+    fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+        match self {
+            TuskError::ParseError { line, column, message, .. } => {
+                write!(f, "Parse error at line {}, column {}: {}", line, column, message)
+            }
+            TuskError::TypeError { expected, found, .. } => {
+                write!(f, "Type error: expected {}, found {}", expected, found)
+            }
+            TuskError::VariableError { variable, message, .. } => {
+                write!(f, "Variable error for '{}': {}", variable, message)
+            }
+            TuskError::FileError { path, operation, cause } => {
+                write!(f, "File error during {} on '{}': {}", operation, path, cause)
+            }
+            TuskError::ValidationError { field, message, .. } => {
+                write!(f, "Validation error for field '{}': {}", field, message)
+            }
+            TuskError::SerializationError { format, message } => {
+                write!(f, "Serialization error for format '{}': {}", format, message)
+            }
+            TuskError::ConfigError { section, message, .. } => {
+                write!(f, "Configuration error in section '{}': {}", section, message)
+            }
+            TuskError::Generic { message, .. } => {
+                write!(f, "Error: {}", message)
+            }
+        }
     }
 }
 
-impl From<serde_json::Error> for TuskError {
-    fn from(err: serde_json::Error) -> Self {
-        Self::serialization_error(err.to_string())
+impl StdError for TuskError {}
+
+/// Result type for TuskLang operations
+pub type TuskResult<T> = Result<T, TuskError>;
+
+/// Error context for better debugging
+#[derive(Debug, Clone)]
+pub struct ErrorContext {
+    pub file_path: Option<String>,
+    pub line_number: Option<usize>,
+    pub column_number: Option<usize>,
+    pub source_line: Option<String>,
+    pub stack_trace: Vec<String>,
+}
+
+impl ErrorContext {
+    pub fn new() -> Self {
+        Self {
+            file_path: None,
+            line_number: None,
+            column_number: None,
+            source_line: None,
+            stack_trace: Vec::new(),
+        }
+    }
+
+    pub fn with_file(mut self, path: impl Into<String>) -> Self {
+        self.file_path = Some(path.into());
+        self
+    }
+
+    pub fn with_location(mut self, line: usize, column: usize) -> Self {
+        self.line_number = Some(line);
+        self.column_number = Some(column);
+        self
+    }
+
+    pub fn with_source_line(mut self, line: impl Into<String>) -> Self {
+        self.source_line = Some(line.into());
+        self
+    }
+
+    pub fn add_stack_frame(mut self, frame: impl Into<String>) -> Self {
+        self.stack_trace.push(frame.into());
+        self
     }
 }
 
-impl From<serde_yaml::Error> for TuskError {
-    fn from(err: serde_yaml::Error) -> Self {
-        Self::serialization_error(err.to_string())
-    }
-}
-
-#[cfg(test)]
-mod tests {
-    use super::*;
-
-    #[test]
-    fn test_parse_error() {
-        let error = TuskError::parse_error(5, "Invalid syntax");
-        assert_eq!(error.line_number(), Some(5));
-        assert!(error.is_parse_error());
-    }
-
-    #[test]
-    fn test_variable_error() {
-        let error = TuskError::variable_not_found("my_var");
-        assert_eq!(error.line_number(), None);
-        assert!(error.is_variable_error());
-    }
-
-    #[test]
-    fn test_error_conversion() {
-        let io_error = std::io::Error::new(std::io::ErrorKind::NotFound, "File not found");
-        let tusk_error: TuskError = io_error.into();
-        assert!(matches!(tusk_error, TuskError::IoError { .. }));
+impl Default for ErrorContext {
+    fn default() -> Self {
+        Self::new()
     }
 } 

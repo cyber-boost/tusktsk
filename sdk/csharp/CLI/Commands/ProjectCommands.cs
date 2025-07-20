@@ -61,7 +61,7 @@ namespace TuskLang.CLI.Commands
 
                 // Create default configuration file
                 var configContent = @"[app]
-name: \"" + projectName + @"\"
+name: """ + projectName + @"""
 version: ""1.0.0""
 description: ""TuskLang project""
 

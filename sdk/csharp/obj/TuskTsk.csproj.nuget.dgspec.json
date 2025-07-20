@@ -78,7 +78,7 @@
             },
             "System.CommandLine": {
               "target": "Package",
-              "version": "[2.0.0-beta4.22272.1, )"
+              "version": "[2.0.0-beta6.25358.103, )"
             },
             "System.Data.SQLite": {
               "target": "Package",
@@ -148,7 +148,7 @@
             },
             "System.CommandLine": {
               "target": "Package",
-              "version": "[2.0.0-beta4.22272.1, )"
+              "version": "[2.0.0-beta6.25358.103, )"
             },
             "System.Data.SQLite": {
               "target": "Package",

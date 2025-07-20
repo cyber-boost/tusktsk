@@ -13,15 +13,64 @@ pub mod parser;
 // pub mod parser_enhanced;
 pub mod error;
 pub mod value;
+pub mod validation;
+pub mod cache;
+pub mod config_manager;
+pub mod security;
+pub mod monitoring;
+pub mod memory_manager;
+pub mod task_scheduler;
+pub mod metrics_collector;
+pub mod network;
+pub mod serialization;
+pub mod cache;
+pub mod database;
+pub mod filesystem;
+pub mod logging;
+pub mod web;
+pub mod template;
+pub mod session;
+pub mod api_gateway;
+pub mod event_system;
+pub mod plugin_system;
+pub mod examples;
+pub mod operators;
+pub mod enterprise;
+pub mod database;
 // pub mod cli;
 // pub mod wasm;
 // pub mod peanut;
 // mod k8s;
 
+#[cfg(test)]
+mod tests;
+
+
+
 pub use parser::{Parser, ParserBuilder};
 // pub use parser_enhanced::{EnhancedParser, load_from_peanut};
 pub use error::{TuskError, TuskResult};
 pub use value::{Value, ValueType};
+pub use validation::{SchemaValidator, SchemaBuilder, ConfigSchema, ValidationRule, ValidationResult};
+pub use cache::{CacheManager, ThreadSafeCache, PerformanceMonitor, CacheStats, OperationStats};
+pub use config_manager::{ConfigManager, ConfigEnvironment, ConfigSource, ConfigMetadata, ConfigChangeEvent};
+pub use security::{SecurityManager, SecureConfig, EncryptionAlgorithm, SecurityLevel, KeyMetadata, EncryptedData};
+pub use monitoring::{MonitoringSystem, PerformanceMonitor as MonitoringPerformanceMonitor, MetricType, HealthStatus, AlertRule};
+pub use memory_manager::{MemoryManager, MemoryPool, PoolBuilder, MemoryStats, PoolStats};
+pub use task_scheduler::{TaskScheduler, SchedulerBuilder, TaskPriority, TaskStatus, TaskMetadata, SchedulerStats};
+pub use metrics_collector::{MetricsCollector, CollectorBuilder, MetricRegistry, MetricType as CollectorMetricType, MetricValue, MetricLabels};
+pub use network::{NetworkManager, NetworkClient, NetworkServer, ConnectionPool, Protocol, NetworkMessage, ConnectionConfig, PoolStats as NetworkPoolStats};
+pub use serialization::{SerializationSystem, SerializationBuilder, SerializationFormat, CompressionAlgorithm, SerializedData, SchemaDefinition};
+pub use cache::{CacheSystem, DistributedCache, CacheBuilder, EvictionPolicy, CacheResult, CacheStats, CacheNode};
+pub use database::{DatabaseManager, DatabasePool, QueryBuilder, DatabaseConfig, DatabaseType, QueryResult, Value as DbValue};
+pub use filesystem::{FileSystemManager, FileWatcher, FileSystemEvent, FileMetadata, WatcherConfig, FileSystemBuilder};
+pub use logging::{Logger, LoggerBuilder, LogLevel, LogEntry, LogStats, LoggingConfig};
+pub use web::{HttpServer, Router, HttpRequest, HttpResponse, HttpMethod, HttpStatus, WebFrameworkBuilder, middleware};
+pub use template::{TemplateEngine, TemplateContext, TemplateValue, TemplateBuilder};
+pub use session::{SessionManager, SessionAuth, SessionData, SessionConfig, SessionBuilder, SessionStats, MemorySessionStorage};
+pub use api_gateway::{ApiGateway, ApiGatewayBuilder, ApiRoute, RateLimit, AuthConfig, CircuitBreakerConfig, GatewayConfig, GatewayStats};
+pub use event_system::{EventStream, EventBus, EventSystemBuilder, Event, EventType, EventPriority, StreamConfig, StreamStats};
+pub use plugin_system::{PluginManager, PluginSystemBuilder, Plugin, PluginMetadata, PluginConfig, PluginStatus, PluginContext};
 
 use serde::{Deserialize, Serialize};
 use std::collections::HashMap;
@@ -146,56 +195,6 @@ fn serialize_value(value: &Value, output: &mut String) -> TuskResult<()> {
 // Re-export protection functions
 // pub use protection::{initialize_protection, get_protection, TuskProtection};
 
-#[cfg(test)]
-mod tests {
-    use super::*;
 
-    #[test]
-    fn test_basic_parsing() {
-        let input = r#"
-app_name: "Test App"
-version: "1.0.0"
-debug: true
-port: 8080
-"#;
-        
-        let result = parse(input).unwrap();
-        assert_eq!(result.get("app_name").unwrap(), &Value::String("Test App".to_string()));
-        assert_eq!(result.get("version").unwrap(), &Value::String("1.0.0".to_string()));
-        assert_eq!(result.get("debug").unwrap(), &Value::Boolean(true));
-        assert_eq!(result.get("port").unwrap(), &Value::Number(8080.0));
-    }
 
-    #[test]
-    fn test_nested_parsing() {
-        let input = r#"
-database:
-  host: "localhost"
-  port: 5432
-  name: "testdb"
-"#;
-        
-        let result = parse(input).unwrap();
-        let database = result.get("database").unwrap().as_object().unwrap();
-        assert_eq!(database.get("host").unwrap(), &Value::String("localhost".to_string()));
-        assert_eq!(database.get("port").unwrap(), &Value::Number(5432.0));
-        assert_eq!(database.get("name").unwrap(), &Value::String("testdb".to_string()));
-    }
-
-    #[test]
-    fn test_array_parsing() {
-        let input = r#"
-features:
-  - logging
-  - metrics
-  - caching
-"#;
-        
-        let result = parse(input).unwrap();
-        let features = result.get("features").unwrap().as_array().unwrap();
-        assert_eq!(features.len(), 3);
-        assert_eq!(features[0], Value::String("logging".to_string()));
-        assert_eq!(features[1], Value::String("metrics".to_string()));
-        assert_eq!(features[2], Value::String("caching".to_string()));
-    }
-} 
+ 

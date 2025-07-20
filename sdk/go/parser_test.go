@@ -1,4 +1,4 @@
-package tusklanggo
+package main
 
 import (
 	"strings"

@@ -3,6 +3,7 @@ using System.IO;
 using System.IO.Compression;
 using System.Text;
 using System.Collections.Generic; // Added missing import for Dictionary
+using System.Linq; // Added for SequenceEqual
 
 namespace TuskLang
 {

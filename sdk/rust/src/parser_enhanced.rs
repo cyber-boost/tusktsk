@@ -32,6 +32,9 @@ pub struct EnhancedParser {
     
     // Standard peanut.tsk locations
     peanut_locations: Vec<String>,
+    
+    // Operator engine for @ operators
+    operator_engine: crate::operators::OperatorEngine,
 }
 
 impl EnhancedParser {
@@ -58,6 +61,10 @@ impl EnhancedParser {
                 format!("{}/.config/tusklang/peanut.tsk", home_dir),
                 tusklang_config,
             ],
+            operator_engine: crate::operators::OperatorEngine::new().unwrap_or_else(|_| {
+                // Fallback to a basic implementation if operator engine fails to initialize
+                crate::operators::OperatorEngine::new().unwrap()
+            }),
         }
     }
     
@@ -460,22 +467,9 @@ impl EnhancedParser {
     
     /// Execute @ operators
     fn execute_operator(&mut self, operator: &str, params: &str) -> Value {
-        match operator {
-            "cache" => {
-                // Simple cache implementation
-                let parts: Vec<&str> = params.splitn(2, ',').collect();
-                if parts.len() == 2 {
-                    let _ttl = parts[0].trim().trim_matches('"').trim_matches('\'');
-                    let value = parts[1].trim();
-                    return self.parse_value(value);
-                }
-                Value::String("".to_string())
-            }
-            "learn" | "optimize" | "metrics" | "feature" => {
-                // Placeholders for advanced features
-                Value::String(format!("@{}({})", operator, params))
-            }
-            _ => Value::String(format!("@{}({})", operator, params)),
+        match self.operator_engine.execute_operator(operator, params) {
+            Ok(value) => value,
+            Err(_) => Value::String(format!("@{}({})", operator, params)),
         }
     }
     

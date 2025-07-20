@@ -1,6 +1,6 @@
 {
   "version": 2,
-  "dgSpecHash": "A5nYTga026lQVvFCogWJwnm1XDylVZHiaGaIUB+G3+CtslfPHUD9EYyYp3dudjSZ0e37rgCnJPWSeugmzRg0xA==",
+  "dgSpecHash": "rOal6Dw6LRO8RIaZ4BdlrpB+FhRJzDvcLm3awxJfLhrpZg6+x71j/1N71+0pHaTPoxnFA+Ihnyz/WU93QQ3SlQ==",
   "success": true,
   "projectFilePath": "/opt/tsk_git/sdk/csharp/TuskTsk.csproj",
   "expectedPackageFiles": [
@@ -27,7 +27,7 @@
     "/root/.nuget/packages/runtime.win-x86.runtime.native.system.data.sqlclient.sni/4.4.0/runtime.win-x86.runtime.native.system.data.sqlclient.sni.4.4.0.nupkg.sha512",
     "/root/.nuget/packages/stub.system.data.sqlite.core.netstandard/1.0.118/stub.system.data.sqlite.core.netstandard.1.0.118.nupkg.sha512",
     "/root/.nuget/packages/system.codedom/6.0.0/system.codedom.6.0.0.nupkg.sha512",
-    "/root/.nuget/packages/system.commandline/2.0.0-beta4.22272.1/system.commandline.2.0.0-beta4.22272.1.nupkg.sha512",
+    "/root/.nuget/packages/system.commandline/2.0.0-beta6.25358.103/system.commandline.2.0.0-beta6.25358.103.nupkg.sha512",
     "/root/.nuget/packages/system.componentmodel.annotations/4.7.0/system.componentmodel.annotations.4.7.0.nupkg.sha512",
     "/root/.nuget/packages/system.configuration.configurationmanager/4.7.0/system.configuration.configurationmanager.4.7.0.nupkg.sha512",
     "/root/.nuget/packages/system.data.sqlclient/4.8.1/system.data.sqlclient.4.8.1.nupkg.sha512",

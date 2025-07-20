@@ -13,7 +13,7 @@ namespace TuskLang
     /// "We don't bow to any king" - Support ALL syntax styles
     /// 
     /// Features:
-    /// - Multiple grouping: [], {}, <>
+    /// - Multiple grouping: [], {}, &lt;&gt;
     /// - $global vs section-local variables
     /// - Cross-file communication
     /// - Database queries (placeholder adapters)

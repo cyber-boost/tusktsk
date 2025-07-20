@@ -13,6 +13,8 @@
 #
 # DEFAULT CONFIG: peanut.tsk (the bridge of language grace)
 
+echo 'DEBUG: tsk-enhanced.sh executed' >> /tmp/tsk-debug.log
+
 # Enable strict mode
 set -euo pipefail
 

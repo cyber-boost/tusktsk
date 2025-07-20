@@ -9,13 +9,15 @@
  * - $global vs section-local variables
  * - Cross-file communication
  * - Database queries (with PDO adapters)
- * - All @ operators
+ * - All @ operators (85 total)
  * - Maximum flexibility
  * 
  * DEFAULT CONFIG: peanut.tsk (the bridge of language grace)
  */
 
 namespace TuskLang\Enhanced;
+
+use TuskLang\Enhanced\OperatorRegistry;
 
 class TuskLangEnhanced
 {
@@ -555,27 +557,54 @@ class TuskLangEnhanced
      */
     private function executeOperator(string $operator, string $params): mixed
     {
-        switch ($operator) {
-            case 'cache':
-                // Simple cache implementation
-                if (preg_match('/^["\'](.*)["\']\s*,\s*(.+)$/', $params, $matches)) {
-                    $ttl = $matches[1];
-                    $value = $matches[2];
-                    $parsedValue = $this->parseValue($value);
-                    return $parsedValue;
-                }
-                return '';
-                
-            case 'learn':
-            case 'optimize':
-            case 'metrics':
-            case 'feature':
-                // Placeholders for advanced features
-                return "@$operator($params)";
-                
-            default:
-                return "@$operator($params)";
+        // Parse parameters into configuration array
+        $config = $this->parseOperatorParams($params);
+        
+        // Create context with global variables
+        $context = [
+            'global_variables' => $this->globalVariables,
+            'section_variables' => $this->sectionVariables,
+            'current_section' => $this->currentSection
+        ];
+        
+        try {
+            // Use the OperatorRegistry to execute the operator
+            $registry = OperatorRegistry::getInstance();
+            return $registry->executeOperator($operator, $config, $context);
+        } catch (\Exception $e) {
+            error_log("Operator '$operator' execution failed: " . $e->getMessage());
+            return "@$operator($params)"; // Fallback to string representation
         }
+    }
+    
+    /**
+     * Parse operator parameters into configuration array
+     */
+    private function parseOperatorParams(string $params): array
+    {
+        $config = [];
+        
+        // Handle simple string parameters
+        if (preg_match('/^["\'](.*)["\']$/', trim($params), $matches)) {
+            return ['value' => $matches[1]];
+        }
+        
+        // Handle key-value pairs
+        if (preg_match_all('/(\w+)\s*:\s*([^,\s]+)/', $params, $matches, PREG_SET_ORDER)) {
+            foreach ($matches as $match) {
+                $key = $match[1];
+                $value = $match[2];
+                
+                // Remove quotes if present
+                if (preg_match('/^["\'](.*)["\']$/', $value, $quoteMatches)) {
+                    $value = $quoteMatches[1];
+                }
+                
+                $config[$key] = $value;
+            }
+        }
+        
+        return $config;
     }
     
     /**

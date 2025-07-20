@@ -1,6 +1,5 @@
 using System;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.IO;
 using System.Threading.Tasks;
 using System.Text.Json;
@@ -19,19 +18,17 @@ namespace TuskLang.CLI.Commands
         public static void AddCommands(RootCommand rootCommand)
         {
             // tsk license check
-            var checkCommand = new Command("check", "Check current license status")
-            {
-                new Option<bool>("--verbose", "Show detailed license information")
-            };
-            checkCommand.Handler = CommandHandler.Create<bool>(CheckLicense);
+            var checkCommand = new Command("check", "Check current license status");
+            var verboseOption = new Option<bool>("--verbose", "Show detailed license information");
+            checkCommand.AddOption(verboseOption);
+            checkCommand.SetHandler(CheckLicense, verboseOption);
             rootCommand.AddCommand(checkCommand);
 
             // tsk license activate <key>
-            var activateCommand = new Command("activate", "Activate license with key")
-            {
-                new Argument<string>("key", "License key to activate")
-            };
-            activateCommand.Handler = CommandHandler.Create<string>(ActivateLicense);
+            var activateCommand = new Command("activate", "Activate license with key");
+            var keyArgument = new Argument<string>("key", "License key to activate");
+            activateCommand.AddArgument(keyArgument);
+            activateCommand.SetHandler(ActivateLicense, keyArgument);
             rootCommand.AddCommand(activateCommand);
 
             // Add license subcommand

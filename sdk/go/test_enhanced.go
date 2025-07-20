@@ -4,7 +4,7 @@ import (
 	"fmt"
 	"os"
 	
-	"tusklang-go"
+	"tusk-go-sdk"
 )
 
 func main() {

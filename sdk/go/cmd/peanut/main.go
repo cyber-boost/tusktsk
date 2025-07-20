@@ -9,7 +9,7 @@ import (
 	"path/filepath"
 	"time"
 
-	"tusklang-go/peanut"
+	"tusk-go-sdk/peanut"
 )
 
 func main() {

@@ -4,9 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"os"
-	"strings"
 	
-	"tusklang-go"
 )
 
 func main() {
@@ -24,7 +22,7 @@ func main() {
 			os.Exit(1)
 		}
 		
-		parser := tusklanggo.NewEnhancedParser()
+		parser := NewEnhancedParser()
 		err := parser.ParseFile(os.Args[2])
 		if err != nil {
 			fmt.Printf("Error parsing file: %v\n", err)
@@ -42,7 +40,7 @@ func main() {
 			os.Exit(1)
 		}
 		
-		parser := tusklanggo.NewEnhancedParser()
+		parser := NewEnhancedParser()
 		err := parser.ParseFile(os.Args[2])
 		if err != nil {
 			fmt.Printf("Error parsing file: %v\n", err)
@@ -60,7 +58,7 @@ func main() {
 			os.Exit(1)
 		}
 		
-		parser := tusklanggo.NewEnhancedParser()
+		parser := NewEnhancedParser()
 		err := parser.ParseFile(os.Args[2])
 		if err != nil {
 			fmt.Printf("Error parsing file: %v\n", err)
@@ -72,7 +70,7 @@ func main() {
 		}
 		
 	case "peanut":
-		parser := tusklanggo.LoadFromPeanut()
+		parser := NewEnhancedParser()LoadFromPeanut()
 		fmt.Printf("Loaded %d configuration items\n", len(parser.Items()))
 		
 		for _, key := range parser.Keys() {
@@ -86,7 +84,7 @@ func main() {
 			os.Exit(1)
 		}
 		
-		parser := tusklanggo.NewEnhancedParser()
+		parser := NewEnhancedParser()
 		err := parser.ParseFile(os.Args[2])
 		if err != nil {
 			fmt.Printf("Error parsing file: %v\n", err)
@@ -107,7 +105,7 @@ func main() {
 			os.Exit(1)
 		}
 		
-		parser := tusklanggo.NewEnhancedParser()
+		parser := NewEnhancedParser()
 		err := parser.ParseFile(os.Args[2])
 		if err != nil {
 			fmt.Printf("❌ Validation failed: %v\n", err)
@@ -128,7 +126,7 @@ func showHelp() {
 TuskLang Enhanced for Go - The Freedom Parser
 ============================================
 
-Usage: tusklang-go [command] [options]
+Usage: tsk-sdk [command] [options]
 
 Commands:
     parse <file>     Parse a .tsk file and show all key-value pairs
@@ -139,12 +137,12 @@ Commands:
     peanut           Load configuration from peanut.tsk
     
 Examples:
-    tusklang-go parse config.tsk
-    tusklang-go get config.tsk database.host
-    tusklang-go keys config.tsk
-    tusklang-go json config.tsk
-    tusklang-go validate config.tsk
-    tusklang-go peanut
+    tsk-sdk parse config.tsk
+    tsk-sdk get config.tsk database.host
+    tsk-sdk keys config.tsk
+    tsk-sdk json config.tsk
+    tsk-sdk validate config.tsk
+    tsk-sdk peanut
 
 Features:
     - Multiple syntax styles: [], {}, <>
