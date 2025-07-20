@@ -438,6 +438,7 @@ show_status() {
 show_usage() {
     cat << EOF
 Usage: g.sh [COMMAND] [OPTIONS]
+   or: g.sh [SUMMARY_FILE]       # Shortcut: auto add-all & commit
 
 Commands:
     status               Show git status and recent commits
@@ -449,6 +450,11 @@ Commands:
     history              Show recent g.sh actions
     config               Show current configuration
     help                 Show this help message
+
+Shortcut Mode:
+    g.sh july-20th-recap-1.md     # Auto add-all & commit with summary file
+    g.sh my-summary.md            # Looks in summaries/ directory automatically
+    g.sh filename                 # Works with or without .md extension
 
 Examples:
     g.sh status                    # Show current status
@@ -509,6 +515,26 @@ main() {
     local force_mode=false
     local no_push=false
     local commit_type="feat"
+    
+    # Check if first argument is a filename (shortcut mode)
+    if [[ "$command" =~ \.(md|txt)$ ]] || [ -f "summaries/$command" ] || [ -f "summaries/$command.md" ]; then
+        print_info "Shortcut mode: auto add-all and commit with summary file"
+        
+        # Force add all changes
+        git add -A
+        print_status "Added all changes (force mode)"
+        save_history "add-all (shortcut)"
+        
+        # Find and commit with summary file
+        local summary_file=$(find_summary_file "$command")
+        if [ -n "$summary_file" ]; then
+            commit_with_summary "$summary_file" "$commit_type"
+            return 0
+        else
+            print_error "Summary file not found: $command"
+            exit 1
+        fi
+    fi
     
     # Parse options
     shift
