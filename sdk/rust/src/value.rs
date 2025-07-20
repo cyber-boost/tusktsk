@@ -82,6 +82,16 @@ impl Value {
         }
     }
 
+    /// Get the number value as f64, if this is a number (alias for as_number)
+    pub fn as_f64(&self) -> Option<f64> {
+        self.as_number()
+    }
+
+    /// Get the string value as &str, if this is a string
+    pub fn as_str(&self) -> Option<&str> {
+        self.as_string()
+    }
+
     /// Get the boolean value, if this is a boolean
     pub fn as_boolean(&self) -> Option<bool> {
         match self {
@@ -110,6 +120,14 @@ impl Value {
     pub fn get(&self, key: &str) -> Option<&Value> {
         match self {
             Value::Object(obj) => obj.get(key),
+            _ => None,
+        }
+    }
+
+    /// Get a mutable value from an object by key
+    pub fn get_mut(&mut self, key: &str) -> Option<&mut Value> {
+        match self {
+            Value::Object(obj) => obj.get_mut(key),
             _ => None,
         }
     }

@@ -2,11 +2,11 @@ use crate::error::{TuskError, TuskResult};
 use crate::value::Value;
 use nom::{
     branch::alt,
-    bytes::complete::{is_not, tag, take_while},
-    character::complete::{char, digit1, line_ending, multispace0, space0, space1},
-    combinator::{map, map_res, opt, recognize, value},
-    multi::{many0, many1},
-    sequence::{delimited, pair, preceded, separated_pair, terminated, tuple},
+    bytes::complete::{take_while1, take_while, is_not},
+    character::complete::{char, digit1, space0, space1},
+    combinator::{map, map_res, recognize, value},
+    multi::many1,
+    sequence::{delimited, separated_pair, tuple, preceded},
     IResult,
 };
 use regex::Regex;
@@ -240,10 +240,7 @@ fn parse_array_item(input: &str) -> IResult<&str, (&str, Value)> {
 
 /// Parse a key (identifier)
 fn parse_key(input: &str) -> IResult<&str, &str> {
-    recognize(many1(alt((
-        take_while(|c: char| c.is_alphanumeric()),
-        take_while(|c: char| c == '_' || c == '-'),
-    ))))(input)
+    take_while1(|c: char| c.is_alphanumeric() || c == '_' || c == '-')(input)
 }
 
 /// Parse a value
@@ -287,14 +284,14 @@ fn parse_number(input: &str) -> IResult<&str, Value> {
 /// Parse a boolean value
 fn parse_boolean(input: &str) -> IResult<&str, Value> {
     alt((
-        value(Value::Boolean(true), tag("true")),
-        value(Value::Boolean(false), tag("false")),
+        map(recognize(tuple((char('t'), char('r'), char('u'), char('e')))), |_| Value::Boolean(true)),
+        map(recognize(tuple((char('f'), char('a'), char('l'), char('s'), char('e')))), |_| Value::Boolean(false)),
     ))(input)
 }
 
 /// Parse a null value
 fn parse_null(input: &str) -> IResult<&str, Value> {
-    value(Value::Null, tag("null"))(input)
+    map(recognize(tuple((char('n'), char('u'), char('l'), char('l')))), |_| Value::Null)(input)
 }
 
 #[cfg(test)]
@@ -304,6 +301,9 @@ mod tests {
     #[test]
     fn test_parse_key_value() {
         let result = parse_key_value("app_name: \"Test App\"");
+        if let Err(e) = &result {
+            println!("Parse error: {:?}", e);
+        }
         assert!(result.is_ok());
         let (_, (key, value)) = result.unwrap();
         assert_eq!(key, "app_name");

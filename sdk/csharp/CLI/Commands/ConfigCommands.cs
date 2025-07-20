@@ -1,6 +1,5 @@
 using System;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.IO;
 using System.Threading.Tasks;
 using System.Collections.Generic;
@@ -17,19 +16,19 @@ namespace TuskLang.CLI.Commands
     {
         public static Command CreateConfigCommand()
         {
+            var fileOption = new Option<string>("--file", "Configuration file path");
+            var validateOption = new Option<bool>("--validate", "Validate configuration");
+            var formatOption = new Option<bool>("--format", "Format configuration file");
+
             var configCommand = new Command("config", "Configuration management commands")
             {
-                new Option<string>("--file", "Configuration file path") { IsRequired = false },
-                new Option<bool>("--validate", "Validate configuration") { IsRequired = false },
-                new Option<bool>("--format", "Format configuration file") { IsRequired = false }
+                fileOption,
+                validateOption,
+                formatOption
             };
 
-            configCommand.SetHandler(async (context) =>
+            configCommand.SetHandler(async (file, validate, format) =>
             {
-                var file = context.ParseResult.GetValueForOption<string>("--file");
-                var validate = context.ParseResult.GetValueForOption<bool>("--validate");
-                var format = context.ParseResult.GetValueForOption<bool>("--format");
-
                 if (validate)
                 {
                     await ValidateConfig(file);
@@ -42,7 +41,7 @@ namespace TuskLang.CLI.Commands
                 {
                     await ShowConfig(file);
                 }
-            });
+            }, fileOption, validateOption, formatOption);
 
             return configCommand;
         }
@@ -52,7 +51,7 @@ namespace TuskLang.CLI.Commands
             try
             {
                 var config = new PeanutConfig(filePath ?? "peanu.tsk");
-                var result = await config.ValidateAsync();
+                var result = await ValidateConfigAsync(config);
                 
                 if (result.IsValid)
                 {
@@ -77,7 +76,7 @@ namespace TuskLang.CLI.Commands
             try
             {
                 var config = new PeanutConfig(filePath ?? "peanu.tsk");
-                await config.FormatAsync();
+                await FormatConfigAsync(config);
                 Console.WriteLine("✅ Configuration formatted successfully");
             }
             catch (Exception ex)
@@ -98,6 +97,94 @@ namespace TuskLang.CLI.Commands
             {
                 Console.WriteLine($"❌ Error loading config: {ex.Message}");
             }
+        }
+
+        private static async Task<ValidationResult> ValidateConfigAsync(PeanutConfig config)
+        {
+            try
+            {
+                var content = await config.LoadAsync();
+                var lines = content.Split('\n');
+                var sections = 0;
+                var keys = 0;
+
+                foreach (var line in lines)
+                {
+                    var trimmed = line.Trim();
+                    if (trimmed.StartsWith("[") && trimmed.EndsWith("]"))
+                    {
+                        sections++;
+                    }
+                    else if (trimmed.Contains("=") && !trimmed.StartsWith("#"))
+                    {
+                        keys++;
+                    }
+                }
+
+                return new ValidationResult
+                {
+                    IsValid = true,
+                    SectionCount = sections,
+                    KeyCount = keys,
+                    LineCount = lines.Length
+                };
+            }
+            catch (Exception ex)
+            {
+                return new ValidationResult
+                {
+                    IsValid = false,
+                    ErrorMessage = ex.Message
+                };
+            }
+        }
+
+        private static async Task FormatConfigAsync(PeanutConfig config)
+        {
+            var content = await config.LoadAsync();
+            var lines = content.Split('\n');
+            var formattedLines = new List<string>();
+            var inSection = false;
+
+            foreach (var line in lines)
+            {
+                var trimmed = line.Trim();
+                if (string.IsNullOrEmpty(trimmed))
+                {
+                    if (inSection)
+                    {
+                        formattedLines.Add("");
+                    }
+                    continue;
+                }
+
+                if (trimmed.StartsWith("[") && trimmed.EndsWith("]"))
+                {
+                    if (inSection)
+                    {
+                        formattedLines.Add("");
+                    }
+                    formattedLines.Add(trimmed);
+                    inSection = true;
+                }
+                else if (trimmed.StartsWith("#"))
+                {
+                    formattedLines.Add(trimmed);
+                }
+                else if (trimmed.Contains("="))
+                {
+                    var parts = trimmed.Split('=', 2);
+                    if (parts.Length == 2)
+                    {
+                        var key = parts[0].Trim();
+                        var value = parts[1].Trim();
+                        formattedLines.Add($"  {key} = {value}");
+                    }
+                }
+            }
+
+            var formattedContent = string.Join("\n", formattedLines);
+            await File.WriteAllTextAsync(config.FilePath, formattedContent);
         }
 
         /// <summary>

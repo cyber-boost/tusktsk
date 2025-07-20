@@ -1,6 +1,5 @@
 using System;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.IO;
 using System.Threading.Tasks;
 using TuskLang.CLI.Commands;
@@ -15,10 +14,13 @@ namespace TuskLang.CLI
     {
         public static async Task<int> Main(string[] args)
         {
+            var configOption = new Option<string>("--config", "Configuration file path");
+            var verboseOption = new Option<bool>("--verbose", "Enable verbose output");
+
             var rootCommand = new RootCommand("TuskLang CLI - Configuration Management Tool")
             {
-                new Option<string>("--config", "Configuration file path") { IsRequired = false },
-                new Option<bool>("--verbose", "Enable verbose output") { IsRequired = false }
+                configOption,
+                verboseOption
             };
 
             // Add subcommands
@@ -26,11 +28,8 @@ namespace TuskLang.CLI
             rootCommand.AddCommand(UtilityCommands.CreateUtilityCommand());
             rootCommand.AddCommand(TestingCommands.CreateTestingCommand());
 
-            rootCommand.SetHandler(async (context) =>
+            rootCommand.SetHandler(async (configPath, verbose) =>
             {
-                var configPath = context.ParseResult.GetValueForOption<string>("--config");
-                var verbose = context.ParseResult.GetValueForOption<bool>("--verbose");
-                
                 if (verbose)
                 {
                     Console.WriteLine("Verbose mode enabled");
@@ -42,7 +41,7 @@ namespace TuskLang.CLI
                 }
                 
                 Console.WriteLine("TuskLang CLI - Use --help for available commands");
-            });
+            }, configOption, verboseOption);
 
             return await rootCommand.InvokeAsync(args);
         }

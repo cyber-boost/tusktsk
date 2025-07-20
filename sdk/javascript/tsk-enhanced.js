@@ -338,6 +338,9 @@ class TuskLangEnhanced {
    */
   async executeOperator(operator, params) {
     switch (operator) {
+      case 'variable':
+        return this.executeVariableOperator(params);
+      
       case 'query':
         return this.executeQuery(params);
       

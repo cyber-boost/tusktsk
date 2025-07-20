@@ -1,0 +1,1062 @@
+#!/usr/bin/env php
+<?php
+/**
+ * TuskLang CLI - Universal Command Interface
+ * Strong. Secure. Scalable. 🐘
+ * 
+ * Modern CLI with subcommands and extensibility
+ */
+
+// Define paths
+define('TSK_LIB_PATH', '/usr/local/lib/tusklang');
+define('TSK_HOME', '/opt/tusklang');
+define('TSK_DIR', '/opt/tsk');
+define('FUJSEN_DIR', '/opt/tsk/fujsen');
+define('FUJSEN_PORT', 8874);
+
+// Load TuskLang core
+require_once TSK_LIB_PATH . '/TuskLang.php';
+
+use TuskPHP\Utils\TuskLang;
+
+// Colors for output
+function colorize($text, $color = null) {
+    $colors = [
+        'red' => "\033[0;31m",
+        'green' => "\033[0;32m", 
+        'yellow' => "\033[1;33m",
+        'blue' => "\033[0;34m",
+        'purple' => "\033[0;35m",
+        'cyan' => "\033[0;36m",
+        'white' => "\033[1;37m",
+        'reset' => "\033[0m"
+    ];
+    
+    if (!$color) return $text;
+    return ($colors[$color] ?? '') . $text . $colors['reset'];
+}
+
+// Parse command line arguments
+$command = $argv[1] ?? 'help';
+$subcommand = $argv[2] ?? null;
+$args = array_slice($argv, 2);
+
+// Main command router
+switch ($command) {
+    case 'db':
+        handleDbCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    case 'serve':
+        handleServeCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    case 'test':
+        handleTestCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    case 'services':
+        handleServicesCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    case 'init':
+        handleInitCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    case 'cache':
+        handleCacheCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    case 'license':
+        handleLicenseCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    case 'compile':
+        handleCompileCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    case 'optimize':
+        handleOptimizeCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    case 'migrate':
+        handleMigrateCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    case 'binary':
+        handleBinaryCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    case 'peanuts':
+        handlePeanutsCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    case 'config':
+        handleConfigCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    case 'css':
+        handleCssCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    case 'ai':
+        handleAiCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    case 'registry':
+        handleRegistryCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    case 'graphql':
+        handleGraphQLCommand($subcommand, array_slice($argv, 3));
+        break;
+        
+    // Legacy commands (backwards compatibility)
+    case 'parse':
+        handleParseCommand($args);
+        break;
+        
+    case 'validate':
+        handleValidateCommand($args);
+        break;
+        
+    case 'convert':
+        handleConvertCommand($args);
+        break;
+        
+    case 'get':
+        handleGetCommand($args);
+        break;
+        
+    case 'set':
+        handleSetCommand($args);
+        break;
+        
+    case 'version':
+        handleVersionCommand();
+        break;
+        
+    case 'help':
+    default:
+        showHelp();
+        break;
+}
+
+function showHelp() {
+    echo colorize("🐘 TuskLang CLI - Universal Command Interface\n", 'blue');
+    echo "Strong. Secure. Scalable.\n\n";
+    
+    echo colorize("Available Commands:\n", 'yellow');
+    echo "  tsk db <command>           Database operations\n";
+    echo "  tsk serve [port]           Start development server\n";
+    echo "  tsk test <file>            Run tests\n";
+    echo "  tsk services <command>     Service management\n";
+    echo "  tsk init <command>         Initialize project\n";
+    echo "  tsk cache <command>        Cache management\n";
+    echo "  tsk license <command>      License operations\n";
+    echo "  tsk compile <command>      Compile files\n";
+    echo "  tsk optimize <command>     Optimize code\n";
+    echo "  tsk migrate <command>      Database migrations\n";
+    echo "  tsk binary <command>       Binary operations\n";
+    echo "  tsk peanuts <command>      Peanuts operations\n";
+    echo "  tsk config <command>       Configuration\n";
+    echo "  tsk css <command>          CSS operations\n";
+    echo "  tsk ai <command>           AI integration\n";
+    echo "  tsk auth <command>         Authentication\n";
+    echo "  tsk graphql <command>      GraphQL operations\n";
+    echo "  tsk version                Show version\n";
+    echo "  tsk help                   Show this help\n\n";
+    
+    echo colorize("Examples:\n", 'yellow');
+    echo "  tsk db status              Check database status\n";
+    echo "  tsk serve 3574             Start server on port 3574\n";
+    echo "  tsk test config.tsk        Test configuration file\n";
+    echo "  tsk graphql query '{ users { id name } }'\n";
+    echo "  tsk version                Show TuskLang version\n\n";
+    
+    echo colorize("For more information, visit: https://tusklang.org\n", 'cyan');
+}
+
+// Registry commands
+function handleRegistryCommand($subcommand, $args) {
+    switch ($subcommand) {
+        case 'upload':
+            $package = $args[0] ?? null;
+            $version = $args[1] ?? null;
+            $file = $args[2] ?? null;
+            
+            if (!$package || !$version || !$file) {
+                die(colorize("Usage: tsk registry upload <package> <version> <file>\n", 'red'));
+            }
+            
+            uploadPackage($package, $version, $file);
+            break;
+            
+        case 'download':
+            $package = $args[0] ?? null;
+            $version = $args[1] ?? null;
+            
+            if (!$package) {
+                die(colorize("Usage: tsk registry download <package> [version]\n", 'red'));
+            }
+            
+            downloadPackage($package, $version);
+            break;
+            
+        case 'search':
+            $query = $args[0] ?? null;
+            $limit = $args[1] ?? 20;
+            
+            if (!$query) {
+                die(colorize("Usage: tsk registry search <query> [limit]\n", 'red'));
+            }
+            
+            searchPackages($query, $limit);
+            break;
+            
+        case 'info':
+            $package = $args[0] ?? null;
+            
+            if (!$package) {
+                die(colorize("Usage: tsk registry info <package>\n", 'red'));
+            }
+            
+            getPackageInfo($package);
+            break;
+            
+        case 'deps':
+            $package = $args[0] ?? null;
+            $version = $args[1] ?? null;
+            
+            if (!$package) {
+                die(colorize("Usage: tsk registry deps <package> [version]\n", 'red'));
+            }
+            
+            getPackageDependencies($package, $version);
+            break;
+            
+        case 'cdn':
+            $action = $args[0] ?? null;
+            
+            if ($action === 'stats') {
+                getCDNStats();
+            } elseif ($action === 'health') {
+                checkCDNHealth();
+            } else {
+                echo colorize("CDN Commands:\n", 'yellow');
+                echo "  tsk registry cdn stats    Show CDN statistics\n";
+                echo "  tsk registry cdn health   Check CDN health\n";
+            }
+            break;
+            
+        case 'health':
+            checkRegistryHealth();
+            break;
+            
+        default:
+            echo colorize("Registry Commands:\n", 'yellow');
+            echo "  tsk registry upload <package> <version> <file>  Upload package\n";
+            echo "  tsk registry download <package> [version]       Download package\n";
+            echo "  tsk registry search <query> [limit]             Search packages\n";
+            echo "  tsk registry info <package>                     Get package info\n";
+            echo "  tsk registry deps <package> [version]           Get dependencies\n";
+            echo "  tsk registry cdn <action>                       CDN operations\n";
+            echo "  tsk registry health                             Check registry health\n";
+            break;
+    }
+}
+
+/**
+ * Upload package to registry
+ */
+function uploadPackage($package, $version, $file) {
+    echo colorize("📦 Uploading package: $package@$version\n", 'blue');
+    
+    if (!file_exists($file)) {
+        die(colorize("❌ Package file not found: $file\n", 'red'));
+    }
+    
+    // Prepare metadata
+    $metadata = [
+        'name' => $package,
+        'version' => $version,
+        'description' => "Package $package version $version",
+        'author' => getCurrentUser(),
+        'license' => 'MIT',
+        'created_at' => date('Y-m-d H:i:s')
+    ];
+    
+    // Create multipart form data
+    $postData = [
+        'metadata' => json_encode($metadata),
+        'package' => new CURLFile($file)
+    ];
+    
+    // Upload to registry API
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, 'https://tusklang.org/packages/api/v1/packages/upload');
+    curl_setopt($ch, CURLOPT_POST, true);
+    curl_setopt($ch, CURLOPT_POSTFIELDS, $postData);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 300); // 5 minutes for large files
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode === 200) {
+        $result = json_decode($response, true);
+        if ($result['success']) {
+            echo colorize("✅ Package uploaded successfully!\n", 'green');
+            echo "Package ID: " . $result['package_id'] . "\n";
+            echo "Version ID: " . $result['version_id'] . "\n";
+            
+            if (isset($result['cdn_distribution'])) {
+                echo "CDN Distribution: " . count($result['cdn_distribution']['edge_nodes']) . " edge nodes\n";
+            }
+        } else {
+            echo colorize("❌ Upload failed: " . $result['error'] . "\n", 'red');
+        }
+    } else {
+        echo colorize("❌ Upload failed with HTTP code: $httpCode\n", 'red');
+        echo "Response: $response\n";
+    }
+}
+
+/**
+ * Download package from registry
+ */
+function downloadPackage($package, $version = null) {
+    echo colorize("📥 Downloading package: $package" . ($version ? "@$version" : "") . "\n", 'blue');
+    
+    $url = 'https://tusklang.org/packages/api/v1/packages/download/' . urlencode($package);
+    if ($version) {
+        $url .= "?version=" . urlencode($version);
+    }
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 300);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode === 200) {
+        $result = json_decode($response, true);
+        if ($result['success']) {
+            echo colorize("✅ Package found!\n", 'green');
+            echo "Download URL: " . $result['download_url'] . "\n";
+            echo "File Size: " . formatBytes($result['file_size']) . "\n";
+            echo "Checksum: " . $result['checksum'] . "\n";
+            
+            // Download the actual file
+            $downloadUrl = $result['download_url'];
+            $filename = basename($downloadUrl);
+            
+            echo "Downloading file to: $filename\n";
+            
+            $ch = curl_init();
+            curl_setopt($ch, CURLOPT_URL, $downloadUrl);
+            curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+            curl_setopt($ch, CURLOPT_FOLLOWLOCATION, true);
+            
+            $fileContent = curl_exec($ch);
+            $downloadHttpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+            curl_close($ch);
+            
+            if ($downloadHttpCode === 200 && $fileContent) {
+                file_put_contents($filename, $fileContent);
+                echo colorize("✅ Package downloaded successfully!\n", 'green');
+            } else {
+                echo colorize("❌ File download failed\n", 'red');
+            }
+        } else {
+            echo colorize("❌ Download failed: " . $result['error'] . "\n", 'red');
+        }
+    } else {
+        echo colorize("❌ Download failed with HTTP code: $httpCode\n", 'red');
+        echo "Response: $response\n";
+    }
+}
+
+/**
+ * Search packages in registry
+ */
+function searchPackages($query, $limit = 20) {
+    echo colorize("🔍 Searching packages: $query\n", 'blue');
+    
+    $url = 'https://tusklang.org/packages/api/v1/search?q=' . urlencode($query) . '&limit=' . $limit;
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode === 200) {
+        $result = json_decode($response, true);
+        if ($result['success']) {
+            echo colorize("✅ Found " . count($result['results']) . " packages\n", 'green');
+            echo "\n";
+            
+            foreach ($result['results'] as $package) {
+                echo colorize($package['name'], 'cyan') . " v" . $package['version'] . "\n";
+                echo "  " . ($package['description'] ?? 'No description') . "\n";
+                echo "  Downloads: " . number_format($package['downloads']) . "\n";
+                echo "  Author: " . ($package['author'] ?? 'Unknown') . "\n";
+                echo "  License: " . ($package['license'] ?? 'Unknown') . "\n";
+                echo "\n";
+            }
+        } else {
+            echo colorize("❌ Search failed: " . $result['error'] . "\n", 'red');
+        }
+    } else {
+        echo colorize("❌ Search failed with HTTP code: $httpCode\n", 'red');
+        echo "Response: $response\n";
+    }
+}
+
+/**
+ * Get package information
+ */
+function getPackageInfo($package) {
+    echo colorize("📋 Package information: $package\n", 'blue');
+    
+    $url = 'https://tusklang.org/packages/api/v1/packages/metadata/' . urlencode($package);
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode === 200) {
+        $result = json_decode($response, true);
+        if ($result['success']) {
+            $metadata = $result['metadata'];
+            echo colorize("✅ Package found!\n", 'green');
+            echo "\n";
+            echo "Name: " . $metadata['name'] . "\n";
+            echo "Description: " . ($metadata['description'] ?? 'No description') . "\n";
+            echo "Author: " . ($metadata['author'] ?? 'Unknown') . "\n";
+            echo "License: " . ($metadata['license'] ?? 'Unknown') . "\n";
+            echo "Homepage: " . ($metadata['homepage'] ?? 'N/A') . "\n";
+            echo "Repository: " . ($metadata['repository'] ?? 'N/A') . "\n";
+            echo "Total Downloads: " . number_format($metadata['total_downloads']) . "\n";
+            echo "Versions: " . implode(', ', $metadata['versions']) . "\n";
+            echo "Created: " . $metadata['created_at'] . "\n";
+            echo "Updated: " . $metadata['updated_at'] . "\n";
+        } else {
+            echo colorize("❌ Failed to get package info: " . $result['error'] . "\n", 'red');
+        }
+    } else {
+        echo colorize("❌ Failed with HTTP code: $httpCode\n", 'red');
+        echo "Response: $response\n";
+    }
+}
+
+/**
+ * Get package dependencies
+ */
+function getPackageDependencies($package, $version = null) {
+    echo colorize("🔗 Dependencies for: $package" . ($version ? "@$version" : "") . "\n", 'blue');
+    
+    $url = 'https://tusklang.org/packages/api/v1/packages/dependencies/' . urlencode($package);
+    if ($version) {
+        $url .= "?version=" . urlencode($version);
+    }
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode === 200) {
+        $result = json_decode($response, true);
+        if ($result['success']) {
+            echo colorize("✅ Dependencies resolved!\n", 'green');
+            echo "\n";
+            
+            if (empty($result['dependencies'])) {
+                echo "No dependencies found.\n";
+            } else {
+                foreach ($result['dependencies'] as $dep) {
+                    echo colorize($dep['name'], 'cyan') . " v" . $dep['version'] . " (" . $dep['type'] . ")\n";
+                }
+            }
+        } else {
+            echo colorize("❌ Failed to resolve dependencies: " . $result['error'] . "\n", 'red');
+        }
+    } else {
+        echo colorize("❌ Failed with HTTP code: $httpCode\n", 'red');
+        echo "Response: $response\n";
+    }
+}
+
+/**
+ * Get CDN statistics
+ */
+function getCDNStats() {
+    echo colorize("📊 CDN Statistics\n", 'blue');
+    
+    $url = 'https://tusklang.org/packages/api/v1/cdn/stats';
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode === 200) {
+        $result = json_decode($response, true);
+        if ($result['success']) {
+            $stats = $result['stats'];
+            echo colorize("✅ CDN Statistics retrieved!\n", 'green');
+            echo "\n";
+            echo "Edge Nodes: " . $stats['edge_nodes'] . "\n";
+            echo "Total Packages: " . number_format($stats['total_packages']) . "\n";
+            echo "Total Size: " . formatBytes($stats['total_size']) . "\n";
+            echo "Average Response Time: " . $stats['performance']['response_time_avg'] . "ms\n";
+            echo "Throughput: " . $stats['performance']['throughput'] . " MB/s\n";
+            echo "Cache Hit Rate: " . $stats['performance']['cache_hit_rate'] . "%\n";
+            
+            echo "\nEdge Node Status:\n";
+            foreach ($stats['sync_status'] as $node => $status) {
+                echo "  $node: " . $status['packages'] . " packages, last sync: " . $status['last_sync'] . "\n";
+            }
+        } else {
+            echo colorize("❌ Failed to get CDN stats: " . $result['error'] . "\n", 'red');
+        }
+    } else {
+        echo colorize("❌ Failed with HTTP code: $httpCode\n", 'red');
+        echo "Response: $response\n";
+    }
+}
+
+/**
+ * Check CDN health
+ */
+function checkCDNHealth() {
+    echo colorize("🏥 CDN Health Check\n", 'blue');
+    
+    $url = 'https://tusklang.org/packages/api/v1/cdn/health';
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode === 200) {
+        $result = json_decode($response, true);
+        if ($result['success']) {
+            echo colorize("✅ CDN is healthy!\n", 'green');
+            echo "Status: " . $result['status'] . "\n";
+            echo "Timestamp: " . $result['timestamp'] . "\n";
+            echo "Edge Nodes: " . $result['cdn']['edge_nodes'] . "\n";
+        } else {
+            echo colorize("❌ CDN health check failed: " . $result['error'] . "\n", 'red');
+        }
+    } else {
+        echo colorize("❌ Failed with HTTP code: $httpCode\n", 'red');
+        echo "Response: $response\n";
+    }
+}
+
+/**
+ * Check registry health
+ */
+function checkRegistryHealth() {
+    echo colorize("🏥 Registry Health Check\n", 'blue');
+    
+    $url = 'https://tusklang.org/packages/api/v1/health';
+    
+    $ch = curl_init();
+    curl_setopt($ch, CURLOPT_URL, $url);
+    curl_setopt($ch, CURLOPT_RETURNTRANSFER, true);
+    curl_setopt($ch, CURLOPT_TIMEOUT, 30);
+    
+    $response = curl_exec($ch);
+    $httpCode = curl_getinfo($ch, CURLINFO_HTTP_CODE);
+    curl_close($ch);
+    
+    if ($httpCode === 200) {
+        $result = json_decode($response, true);
+        echo colorize("✅ Registry health check completed!\n", 'green');
+        echo "Overall Status: " . $result['status'] . "\n";
+        echo "Timestamp: " . $result['timestamp'] . "\n";
+        echo "Registry: " . $result['registry']['message'] . "\n";
+        echo "CDN: " . $result['cdn']['message'] . "\n";
+    } else {
+        echo colorize("❌ Health check failed with HTTP code: $httpCode\n", 'red');
+        echo "Response: $response\n";
+    }
+}
+
+// Helper functions
+function getCurrentUser() {
+    return get_current_user() ?: 'unknown';
+}
+
+function formatBytes($bytes, $precision = 2) {
+    $units = array('B', 'KB', 'MB', 'GB', 'TB');
+    
+    for ($i = 0; $bytes > 1024 && $i < count($units) - 1; $i++) {
+        $bytes /= 1024;
+    }
+    
+    return round($bytes, $precision) . ' ' . $units[$i];
+}
+
+// GraphQL commands
+function handleGraphQLCommand($subcommand, $args) {
+    // Load GraphQL library
+    if (!class_exists('TuskPHP\\Utils\\TuskGraphQL')) {
+        require_once __DIR__ . '/../lib/TuskGraphQL.php';
+    }
+    
+    switch ($subcommand) {
+        case 'query':
+            $query = $args[0] ?? null;
+            $endpoint = $args[1] ?? null;
+            if (!$query) {
+                die(colorize("Usage: tsk graphql query <query> [endpoint]\n", 'red'));
+            }
+            executeGraphQLQuery($query, $endpoint);
+            break;
+            
+        case 'mutation':
+            $mutation = $args[0] ?? null;
+            $endpoint = $args[1] ?? null;
+            if (!$mutation) {
+                die(colorize("Usage: tsk graphql mutation <mutation> [endpoint]\n", 'red'));
+            }
+            executeGraphQLMutation($mutation, $endpoint);
+            break;
+            
+        case 'validate':
+            $query = $args[0] ?? null;
+            if (!$query) {
+                die(colorize("Usage: tsk graphql validate <query>\n", 'red'));
+            }
+            validateGraphQLQuery($query);
+            break;
+            
+        case 'endpoint':
+            $name = $args[0] ?? null;
+            $url = $args[1] ?? null;
+            if (!$name || !$url) {
+                die(colorize("Usage: tsk graphql endpoint <name> <url>\n", 'red'));
+            }
+            setGraphQLEndpoint($name, $url);
+            break;
+            
+        case 'auth':
+            $endpoint = $args[0] ?? null;
+            $token = $args[1] ?? null;
+            $type = $args[2] ?? 'Bearer';
+            if (!$endpoint || !$token) {
+                die(colorize("Usage: tsk graphql auth <endpoint> <token> [type]\n", 'red'));
+            }
+            setGraphQLAuth($endpoint, $token, $type);
+            break;
+            
+        case 'cache':
+            $action = $args[0] ?? 'status';
+            handleGraphQLCache($action);
+            break;
+            
+        case 'test':
+            $endpoint = $args[0] ?? null;
+            testGraphQLEndpoint($endpoint);
+            break;
+            
+        default:
+            echo colorize("GraphQL Commands:\n", 'yellow');
+            echo "  tsk graphql query <query> [endpoint]     Execute GraphQL query\n";
+            echo "  tsk graphql mutation <mutation> [endpoint] Execute GraphQL mutation\n";
+            echo "  tsk graphql validate <query>             Validate GraphQL query\n";
+            echo "  tsk graphql endpoint <name> <url>        Set GraphQL endpoint\n";
+            echo "  tsk graphql auth <endpoint> <token> [type] Set authentication\n";
+            echo "  tsk graphql cache [clear|status]         Manage cache\n";
+            echo "  tsk graphql test [endpoint]              Test GraphQL endpoint\n";
+            break;
+    }
+}
+
+function executeGraphQLQuery($query, $endpoint = null) {
+    try {
+        $options = [];
+        if ($endpoint) {
+            $options['endpoint'] = $endpoint;
+        }
+        
+        echo colorize("🔍 Executing GraphQL Query\n", 'blue');
+        echo "Query: $query\n";
+        if ($endpoint) echo "Endpoint: $endpoint\n";
+        echo "\n";
+        
+        $result = \TuskPHP\Utils\TuskGraphQL::query($query, [], $options);
+        
+        echo colorize("✅ Query executed successfully\n", 'green');
+        echo json_encode($result, JSON_PRETTY_PRINT) . "\n";
+        
+    } catch (\Exception $e) {
+        echo colorize("❌ GraphQL query failed: " . $e->getMessage() . "\n", 'red');
+    }
+}
+
+function executeGraphQLMutation($mutation, $endpoint = null) {
+    try {
+        $options = [];
+        if ($endpoint) {
+            $options['endpoint'] = $endpoint;
+        }
+        
+        echo colorize("🔧 Executing GraphQL Mutation\n", 'blue');
+        echo "Mutation: $mutation\n";
+        if ($endpoint) echo "Endpoint: $endpoint\n";
+        echo "\n";
+        
+        $result = \TuskPHP\Utils\TuskGraphQL::mutation($mutation, [], $options);
+        
+        echo colorize("✅ Mutation executed successfully\n", 'green');
+        echo json_encode($result, JSON_PRETTY_PRINT) . "\n";
+        
+    } catch (\Exception $e) {
+        echo colorize("❌ GraphQL mutation failed: " . $e->getMessage() . "\n", 'red');
+    }
+}
+
+function validateGraphQLQuery($query) {
+    try {
+        echo colorize("🔍 Validating GraphQL Query\n", 'blue');
+        echo "Query: $query\n\n";
+        
+        $isValid = \TuskPHP\Utils\TuskGraphQL::validateQuery($query);
+        
+        if ($isValid) {
+            echo colorize("✅ Query is valid\n", 'green');
+            
+            $fields = \TuskPHP\Utils\TuskGraphQL::parseQueryFields($query);
+            $complexity = \TuskPHP\Utils\TuskGraphQL::getQueryComplexity($query);
+            
+            echo "Fields: " . implode(', ', $fields) . "\n";
+            echo "Complexity: $complexity\n";
+        } else {
+            echo colorize("❌ Query is invalid\n", 'red');
+        }
+        
+    } catch (\Exception $e) {
+        echo colorize("❌ Validation failed: " . $e->getMessage() . "\n", 'red');
+    }
+}
+
+function setGraphQLEndpoint($name, $url) {
+    try {
+        \TuskPHP\Utils\TuskGraphQL::setEndpoint($name, $url);
+        echo colorize("✅ GraphQL endpoint '$name' set to: $url\n", 'green');
+    } catch (\Exception $e) {
+        echo colorize("❌ Failed to set endpoint: " . $e->getMessage() . "\n", 'red');
+    }
+}
+
+function setGraphQLAuth($endpoint, $token, $type) {
+    try {
+        \TuskPHP\Utils\TuskGraphQL::setAuthToken($endpoint, $token, $type);
+        echo colorize("✅ Authentication set for endpoint '$endpoint' with $type token\n", 'green');
+    } catch (\Exception $e) {
+        echo colorize("❌ Failed to set authentication: " . $e->getMessage() . "\n", 'red');
+    }
+}
+
+function handleGraphQLCache($action) {
+    try {
+        switch ($action) {
+            case 'clear':
+                \TuskPHP\Utils\TuskGraphQL::clearCache();
+                echo colorize("✅ GraphQL cache cleared\n", 'green');
+                break;
+                
+            case 'status':
+            default:
+                $stats = \TuskPHP\Utils\TuskGraphQL::getCacheStats();
+                echo colorize("📊 GraphQL Cache Statistics\n", 'blue');
+                echo "Total entries: " . $stats['total_entries'] . "\n";
+                echo "Memory usage: " . formatBytes($stats['memory_usage']) . "\n";
+                echo "Cache hits: " . $stats['cache_hits'] . "\n";
+                echo "Cache misses: " . $stats['cache_misses'] . "\n";
+                break;
+        }
+    } catch (\Exception $e) {
+        echo colorize("❌ Cache operation failed: " . $e->getMessage() . "\n", 'red');
+    }
+}
+
+function testGraphQLEndpoint($endpoint) {
+    try {
+        if (!$endpoint) {
+            echo colorize("⚠️  No endpoint specified, using default\n", 'yellow');
+        }
+        
+        echo colorize("🧪 Testing GraphQL Endpoint\n", 'blue');
+        echo "Endpoint: " . ($endpoint ?: 'default') . "\n\n";
+        
+        $testQuery = '{ __schema { types { name } } }';
+        $options = $endpoint ? ['endpoint' => $endpoint] : [];
+        
+        $result = \TuskPHP\Utils\TuskGraphQL::query($testQuery, [], $options);
+        
+        echo colorize("✅ Endpoint is working\n", 'green');
+        echo "Schema types: " . count($result['__schema']['types'] ?? []) . "\n";
+        
+    } catch (\Exception $e) {
+        echo colorize("❌ Endpoint test failed: " . $e->getMessage() . "\n", 'red');
+    }
+}
+
+// License command handler
+function handleLicenseCommand($subcommand, $args) {
+    switch ($subcommand) {
+        case 'validate':
+            $key = $args[0] ?? null;
+            if (!$key) {
+                die(colorize("Usage: tsk license validate <license_key>\n", 'red'));
+            }
+            validateLicense($key);
+            break;
+            
+        case 'status':
+            showLicenseStatus();
+            break;
+            
+        case 'renew':
+            $key = $args[0] ?? null;
+            if (!$key) {
+                die(colorize("Usage: tsk license renew <license_key>\n", 'red'));
+            }
+            renewLicense($key);
+            break;
+            
+        case 'revoke':
+            $key = $args[0] ?? null;
+            if (!$key) {
+                die(colorize("Usage: tsk license revoke <license_key>\n", 'red'));
+            }
+            revokeLicense($key);
+            break;
+            
+        case 'info':
+            $key = $args[0] ?? null;
+            if (!$key) {
+                die(colorize("Usage: tsk license info <license_key>\n", 'red'));
+            }
+            showLicenseInfo($key);
+            break;
+            
+        case 'install':
+            $key = $args[0] ?? null;
+            if (!$key) {
+                die(colorize("Usage: tsk license install <license_key>\n", 'red'));
+            }
+            installLicense($key);
+            break;
+            
+        case 'cache':
+            $action = $args[0] ?? 'status';
+            handleLicenseCache($action);
+            break;
+            
+        default:
+            echo colorize("License Commands:\n", 'yellow');
+            echo "  tsk license validate <key>     Validate license key\n";
+            echo "  tsk license status              Show current license status\n";
+            echo "  tsk license renew <key>         Renew license\n";
+            echo "  tsk license revoke <key>        Revoke license\n";
+            echo "  tsk license info <key>          Show license information\n";
+            echo "  tsk license install <key>       Install license\n";
+            echo "  tsk license cache [clear|status] Manage license cache\n";
+            break;
+    }
+}
+
+function validateLicense($key) {
+    try {
+        echo colorize("🔍 Validating License\n", 'blue');
+        echo "Key: $key\n\n";
+        
+        $result = \TuskPHP\License\TuskLicense::validate($key);
+        
+        if ($result['valid']) {
+            echo colorize("✅ License is valid\n", 'green');
+            echo "Type: " . $result['license']['type'] . "\n";
+            echo "Organization: " . ($result['license']['organization'] ?: 'N/A') . "\n";
+            echo "Expires: " . ($result['license']['expires'] ?: 'Never') . "\n";
+        } else {
+            echo colorize("❌ License is invalid: " . $result['reason'] . "\n", 'red');
+        }
+        
+    } catch (\Exception $e) {
+        echo colorize("❌ License validation failed: " . $e->getMessage() . "\n", 'red');
+    }
+}
+
+function showLicenseStatus() {
+    try {
+        echo colorize("📊 License Status\n", 'blue');
+        
+        $licenseFile = __DIR__ . '/../.license';
+        if (file_exists($licenseFile)) {
+            $licenseId = trim(file_get_contents($licenseFile));
+            echo "License ID: $licenseId\n";
+            
+            // Check with API
+            $result = \TuskPHP\License\TuskLicense::validate($licenseId);
+            if ($result['valid']) {
+                echo colorize("✅ License is active\n", 'green');
+                echo "Type: " . $result['license']['type'] . "\n";
+                echo "Expires: " . ($result['license']['expires'] ?: 'Never') . "\n";
+            } else {
+                echo colorize("❌ License is invalid: " . $result['reason'] . "\n", 'red');
+            }
+        } else {
+            echo colorize("⚠️  No license installed\n", 'yellow');
+            echo "Run 'tsk license install <key>' to install a license\n";
+        }
+        
+    } catch (\Exception $e) {
+        echo colorize("❌ Failed to check license status: " . $e->getMessage() . "\n", 'red');
+    }
+}
+
+function renewLicense($key) {
+    try {
+        echo colorize("🔄 Renewing License\n", 'blue');
+        echo "Key: $key\n\n";
+        
+        $result = \TuskPHP\License\TuskLicense::renew($key);
+        
+        if ($result['success']) {
+            echo colorize("✅ License renewed successfully\n", 'green');
+            echo "New expiration: " . $result['expires'] . "\n";
+        } else {
+            echo colorize("❌ License renewal failed: " . $result['reason'] . "\n", 'red');
+        }
+        
+    } catch (\Exception $e) {
+        echo colorize("❌ License renewal failed: " . $e->getMessage() . "\n", 'red');
+    }
+}
+
+function revokeLicense($key) {
+    try {
+        echo colorize("🗑️  Revoking License\n", 'blue');
+        echo "Key: $key\n\n";
+        
+        $result = \TuskPHP\License\TuskLicense::revoke($key);
+        
+        if ($result['success']) {
+            echo colorize("✅ License revoked successfully\n", 'green');
+        } else {
+            echo colorize("❌ License revocation failed: " . $result['reason'] . "\n", 'red');
+        }
+        
+    } catch (\Exception $e) {
+        echo colorize("❌ License revocation failed: " . $e->getMessage() . "\n", 'red');
+    }
+}
+
+function showLicenseInfo($key) {
+    try {
+        echo colorize("📋 License Information\n", 'blue');
+        echo "Key: $key\n\n";
+        
+        $result = \TuskPHP\License\TuskLicense::getInfo($key);
+        
+        if ($result['success']) {
+            $license = $result['license'];
+            echo "License ID:      " . $license['id'] . "\n";
+            echo "Type:            " . $license['type'] . "\n";
+            echo "Email:           " . ($license['email'] ?: 'N/A') . "\n";
+            echo "Organization:    " . ($license['organization'] ?: 'N/A') . "\n";
+            echo "Max Installations: " . $license['max_installations'] . "\n";
+            echo "Current Installs:  " . $license['current_installations'] . "\n";
+            echo "Created:         " . $license['created'] . "\n";
+            echo "Expires:         " . ($license['expires'] ?: 'Never') . "\n";
+            echo "Status:          " . $license['status'] . "\n";
+        } else {
+            echo colorize("❌ Failed to get license info: " . $result['reason'] . "\n", 'red');
+        }
+        
+    } catch (\Exception $e) {
+        echo colorize("❌ Failed to get license info: " . $e->getMessage() . "\n", 'red');
+    }
+}
+
+function installLicense($key) {
+    try {
+        echo colorize("📦 Installing License\n", 'blue');
+        echo "Key: $key\n\n";
+        
+        // Validate license first
+        $result = \TuskPHP\License\TuskLicense::validate($key);
+        
+        if (!$result['valid']) {
+            echo colorize("❌ Invalid license key: " . $result['reason'] . "\n", 'red');
+            return;
+        }
+        
+        // Save license to file
+        $licenseFile = __DIR__ . '/../.license';
+        file_put_contents($licenseFile, $key);
+        
+        echo colorize("✅ License installed successfully\n", 'green');
+        echo "License file: $licenseFile\n";
+        echo "Type: " . $result['license']['type'] . "\n";
+        echo "Organization: " . ($result['license']['organization'] ?: 'N/A') . "\n";
+        
+    } catch (\Exception $e) {
+        echo colorize("❌ License installation failed: " . $e->getMessage() . "\n", 'red');
+    }
+}
+
+function handleLicenseCache($action) {
+    try {
+        switch ($action) {
+            case 'clear':
+                \TuskPHP\License\TuskLicense::clearCache();
+                echo colorize("✅ License cache cleared\n", 'green');
+                break;
+                
+            case 'status':
+            default:
+                $stats = \TuskPHP\License\TuskLicense::getCacheStats();
+                echo colorize("📊 License Cache Statistics\n", 'blue');
+                echo "Total entries: " . $stats['total_entries'] . "\n";
+                echo "Memory usage: " . formatBytes($stats['memory_usage']) . "\n";
+                echo "Cache hits: " . $stats['cache_hits'] . "\n";
+                echo "Cache misses: " . $stats['cache_misses'] . "\n";
+                break;
+        }
+    } catch (\Exception $e) {
+        echo colorize("❌ License cache operation failed: " . $e->getMessage() . "\n", 'red');
+    }
+}

@@ -231,6 +231,35 @@ impl fmt::Display for TuskError {
 
 impl StdError for TuskError {}
 
+// From implementations for common error types
+impl From<serde_json::Error> for TuskError {
+    fn from(err: serde_json::Error) -> Self {
+        TuskError::SerializationError {
+            format: "JSON".to_string(),
+            message: err.to_string(),
+        }
+    }
+}
+
+impl From<serde_yaml::Error> for TuskError {
+    fn from(err: serde_yaml::Error) -> Self {
+        TuskError::SerializationError {
+            format: "YAML".to_string(),
+            message: err.to_string(),
+        }
+    }
+}
+
+impl From<std::io::Error> for TuskError {
+    fn from(err: std::io::Error) -> Self {
+        TuskError::FileError {
+            path: "unknown".to_string(),
+            operation: "io".to_string(),
+            cause: err.to_string(),
+        }
+    }
+}
+
 /// Result type for TuskLang operations
 pub type TuskResult<T> = Result<T, TuskError>;
 

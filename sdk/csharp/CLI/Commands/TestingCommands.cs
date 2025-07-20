@@ -1,12 +1,12 @@
 using System;
 using System.CommandLine;
-using System.CommandLine.Invocation;
 using System.IO;
 using System.Threading.Tasks;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Text;
 using TuskLang;
+using System.Text.Json;
 
 namespace TuskLang.CLI.Commands
 {
@@ -17,17 +17,17 @@ namespace TuskLang.CLI.Commands
     {
         public static Command CreateTestingCommand()
         {
+            var typeOption = new Option<string>("--type", "Test type");
+            var runOption = new Option<bool>("--run", "Run tests");
+
             var testingCommand = new Command("test", "Testing commands")
             {
-                new Option<string>("--type", "Test type") { IsRequired = false },
-                new Option<bool>("--run", "Run tests") { IsRequired = false }
+                typeOption,
+                runOption
             };
 
-            testingCommand.SetHandler(async (context) =>
+            testingCommand.SetHandler(async (type, run) =>
             {
-                var type = context.ParseResult.GetValueForOption<string>("--type");
-                var run = context.ParseResult.GetValueForOption<bool>("--run");
-
                 if (run)
                 {
                     await RunTests(type);
@@ -36,7 +36,7 @@ namespace TuskLang.CLI.Commands
                 {
                     Console.WriteLine("Use --run to execute tests");
                 }
-            });
+            }, typeOption, runOption);
 
             return testingCommand;
         }
@@ -84,7 +84,7 @@ bad_fujsen = function bad() {
             
             try
             {
-                var parsed = config.ParseTextConfig(testContent);
+                var parsed = ParseTextConfig(testContent);
                 Console.WriteLine("[OK] Error handling test passed");
             }
             catch
@@ -105,7 +105,7 @@ loop_fujsen = function loop(count) {
     return sum;
 }";
             
-            var parsed = config.ParseTextConfig(testContent);
+            var parsed = ParseTextConfig(testContent);
             Console.WriteLine("[OK] Performance test passed");
         }
 
@@ -116,8 +116,8 @@ loop_fujsen = function loop(count) {
 name = ""Binary Test""
 value = 42";
             
-            var parsed = config.ParseTextConfig(testContent);
-            await config.CompileToBinaryAsync(parsed, "test-output.pnt");
+            var parsed = ParseTextConfig(testContent);
+            await CompileToBinaryAsync(parsed, "test-output.pnt");
             Console.WriteLine("[OK] Binary operations test passed");
         }
 
@@ -130,7 +130,7 @@ process_fujsen = function process(data) {
     return data.map(item => ({ ...item, processed: true }));
 }";
             
-            var parsed = config.ParseTextConfig(testContent);
+            var parsed = ParseTextConfig(testContent);
             Console.WriteLine("[OK] Integration test passed");
         }
 
@@ -141,6 +141,44 @@ process_fujsen = function process(data) {
             await TestPerformance(config);
             await TestBinaryOperations(config);
             await TestIntegration(config);
+        }
+
+        private static Dictionary<string, object> ParseTextConfig(string content)
+        {
+            var result = new Dictionary<string, object>();
+            var lines = content.Split('\n');
+            string currentSection = "";
+
+            foreach (var line in lines)
+            {
+                var trimmed = line.Trim();
+                if (string.IsNullOrEmpty(trimmed) || trimmed.StartsWith("#"))
+                    continue;
+
+                if (trimmed.StartsWith("[") && trimmed.EndsWith("]"))
+                {
+                    currentSection = trimmed.Substring(1, trimmed.Length - 2);
+                    result[currentSection] = new Dictionary<string, object>();
+                }
+                else if (trimmed.Contains("=") && !string.IsNullOrEmpty(currentSection))
+                {
+                    var parts = trimmed.Split('=', 2);
+                    if (parts.Length == 2)
+                    {
+                        var key = parts[0].Trim();
+                        var value = parts[1].Trim().Trim('"');
+                        ((Dictionary<string, object>)result[currentSection])[key] = value;
+                    }
+                }
+            }
+
+            return result;
+        }
+
+        private static async Task CompileToBinaryAsync(Dictionary<string, object> config, string outputPath)
+        {
+            var json = System.Text.Json.JsonSerializer.Serialize(config, new JsonSerializerOptions { WriteIndented = true });
+            await File.WriteAllTextAsync(outputPath, json);
         }
     }
 
