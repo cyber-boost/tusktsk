@@ -1,0 +1,390 @@
+<h1>Variables & References</h1>
+
+<h2>Variable References and Dynamic Values</h2>
+<p>TuskLang supports variable references and dynamic value resolution in JavaScript applications.</p>
+
+<h3>variables.tsk</h3>
+<pre>
+# Base configuration values
+base_url: "https://api.example.com"
+api_version: "v2"
+environment: env("NODE_ENV", "development")
+
+# Reference other variables using @var
+api {
+    endpoint: "@var.base_url/@var.api_version"
+    users: "@var.api.endpoint/users"
+    posts: "@var.api.endpoint/posts"
+    comments: "@var.api.endpoint/comments"
+}
+
+# Conditional references
+database {
+    host: @var.environment === "production" ? "db.prod.com" : "localhost"
+    port: @var.environment === "production" ? 5432 : 5433
+    name: "@var.app_name_@var.environment"
+    
+    # Reference with fallback
+    password: @var.db_password|"default_password"
+    ssl: @var.db_ssl|false
+}
+
+# Computed values
+computed {
+    cache_key: "@var.app_name:@var.version:@var.timestamp"
+    is_dev: @var.environment === "development"
+    is_prod: @var.environment === "production"
+    debug: @var.computed.is_dev || @var.force_debug
+}
+
+# Dynamic paths
+paths {
+    root: process.cwd()
+    src: "@var.paths.root/src"
+    public: "@var.paths.root/public"
+    uploads: "@var.paths.public/uploads"
+    logs: "@var.paths.root/logs/@var.environment"
+}
+
+# Circular reference protection
+circular {
+    a: @var.circular.b|"default_a"
+    b: @var.circular.a|"default_b"
+}
+
+# Array and object references
+data {
+    users: ["alice", "bob", "charlie"]
+    current_user: @var.data.users[0]
+    user_count: @var.data.users.length
+    
+    settings: {
+        theme: "dark",
+        language: "en"
+    }
+    current_theme: @var.data.settings.theme
+}
+
+# Function references
+functions {
+    timestamp: () => Date.now()
+    random: () => Math.random()
+    uuid: () => crypto.randomUUID()
+}
+
+# Global references
+globals {
+    node_version: @global.process.version
+    platform: @global.process.platform
+    memory: @global.process.memoryUsage()
+}
+</pre>
+
+<h3>JavaScript Variable Resolution</h3>
+<pre>
+class VariableTuskLang {
+    constructor(options = {}) {
+        this.globalContext = options.globals || globalThis;
+        this.cache = new Map();
+        this.resolving = new Set(); // For circular reference detection
+    }
+    
+    parse(content, context = {}) {
+        // First pass: parse basic structure
+        const parsed = this.parseBasic(content);
+        
+        // Second pass: resolve variables
+        return this.resolveVariables(parsed, { ...context, ...parsed });
+    }
+    
+    parseBasic(content) {
+        const lines = content.split('\n');
+        const result = {};
+        const stack = [result];
+        let current = result;
+        
+        for (const line of lines) {
+            const trimmed = line.trim();
+            
+            if (!trimmed || trimmed.startsWith('#')) continue;
+            
+            if (trimmed === '}') {
+                stack.pop();
+                current = stack[stack.length - 1];
+                continue;
+            }
+            
+            if (trimmed.endsWith('{')) {
+                const key = trimmed.slice(0, -1).trim();
+                current[key] = {};
+                stack.push(current);
+                current = current[key];
+                continue;
+            }
+            
+            const separator = trimmed.includes(':') ? ':' : '=';
+            const sepIndex = trimmed.indexOf(separator);
+            
+            if (sepIndex > 0) {
+                const key = trimmed.substring(0, sepIndex).trim();
+                const value = trimmed.substring(sepIndex + 1).trim();
+                current[key] = this.parseValue(value);
+            }
+        }
+        
+        return result;
+    }
+    
+    parseValue(value) {
+        // Check for variable references
+        if (value.startsWith('@var.')) {
+            return { type: 'var_ref', path: value.substring(5) };
+        }
+        
+        if (value.startsWith('@global.')) {
+            return { type: 'global_ref', path: value.substring(8) };
+        }
+        
+        // Variable with fallback
+        if (value.includes('@var.') && value.includes('|')) {
+            const [ref, fallback] = value.split('|');
+            return {
+                type: 'var_ref_fallback',
+                path: ref.substring(5),
+                fallback: this.parseValue(fallback)
+            };
+        }
+        
+        // Function reference
+        if (value.startsWith('() =>')) {
+            return { type: 'function', code: value };
+        }
+        
+        // Environment variable
+        if (value.startsWith('env(')) {
+            const match = value.match(/env\("([^"]+)"(?:,\s*"([^"]+)")?\)/);
+            if (match) {
+                return {
+                    type: 'env',
+                    name: match[1],
+                    default: match[2]
+                };
+            }
+        }
+        
+        // Process.* references
+        if (value.startsWith('process.')) {
+            return { type: 'process', path: value.substring(8) };
+        }
+        
+        // String interpolation with @var
+        if (typeof value === 'string' && value.includes('@var.')) {
+            return { type: 'interpolated', template: value };
+        }
+        
+        // Parse as normal value
+        if ((value.startsWith('"') && value.endsWith('"')) ||
+            (value.startsWith("'") && value.endsWith("'"))) {
+            return value.slice(1, -1);
+        }
+        
+        if (value === 'true') return true;
+        if (value === 'false') return false;
+        if (value === 'null') return null;
+        if (/^-?\d+(\.\d+)?$/.test(value)) return parseFloat(value);
+        
+        return value;
+    }
+    
+    resolveVariables(obj, context) {
+        const resolved = {};
+        
+        for (const [key, value] of Object.entries(obj)) {
+            resolved[key] = this.resolveValue(value, { ...context, ...resolved });
+        }
+        
+        return resolved;
+    }
+    
+    resolveValue(value, context) {
+        if (value === null || value === undefined) return value;
+        
+        // Handle variable reference objects
+        if (typeof value === 'object' && value.type) {
+            switch (value.type) {
+                case 'var_ref':
+                    return this.resolveVarRef(value.path, context);
+                    
+                case 'var_ref_fallback':
+                    try {
+                        return this.resolveVarRef(value.path, context);
+                    } catch {
+                        return this.resolveValue(value.fallback, context);
+                    }
+                    
+                case 'global_ref':
+                    return this.resolveGlobalRef(value.path);
+                    
+                case 'env':
+                    return process.env[value.name] || value.default;
+                    
+                case 'process':
+                    return this.resolveProcessRef(value.path);
+                    
+                case 'function':
+                    return eval(value.code);
+                    
+                case 'interpolated':
+                    return this.interpolateString(value.template, context);
+            }
+        }
+        
+        // Handle arrays
+        if (Array.isArray(value)) {
+            return value.map(item => this.resolveValue(item, context));
+        }
+        
+        // Handle nested objects
+        if (typeof value === 'object') {
+            const resolved = {};
+            for (const [k, v] of Object.entries(value)) {
+                resolved[k] = this.resolveValue(v, context);
+            }
+            return resolved;
+        }
+        
+        return value;
+    }
+    
+    resolveVarRef(path, context) {
+        // Check circular references
+        const cacheKey = `var:${path}`;
+        if (this.resolving.has(cacheKey)) {
+            throw new Error(`Circular reference detected: ${path}`);
+        }
+        
+        this.resolving.add(cacheKey);
+        
+        try {
+            // Check cache
+            if (this.cache.has(cacheKey)) {
+                return this.cache.get(cacheKey);
+            }
+            
+            // Parse path (handles array indices and nested properties)
+            const parts = path.split(/\.|\[|\]/).filter(Boolean);
+            let current = context;
+            
+            for (const part of parts) {
+                if (current === null || current === undefined) {
+                    throw new Error(`Cannot resolve variable: ${path}`);
+                }
+                
+                // Handle array index
+                if (/^\d+$/.test(part)) {
+                    current = current[parseInt(part)];
+                } else {
+                    current = current[part];
+                }
+            }
+            
+            // Resolve if value is still a reference object
+            if (typeof current === 'object' && current?.type) {
+                current = this.resolveValue(current, context);
+            }
+            
+            // Cache result
+            this.cache.set(cacheKey, current);
+            
+            return current;
+        } finally {
+            this.resolving.delete(cacheKey);
+        }
+    }
+    
+    resolveGlobalRef(path) {
+        const parts = path.split('.');
+        let current = this.globalContext;
+        
+        for (const part of parts) {
+            if (current === null || current === undefined) {
+                return undefined;
+            }
+            
+            // Handle function calls
+            if (part.endsWith('()')) {
+                const funcName = part.slice(0, -2);
+                if (typeof current[funcName] === 'function') {
+                    current = current[funcName]();
+                } else {
+                    current = current[funcName];
+                }
+            } else {
+                current = current[part];
+            }
+        }
+        
+        return current;
+    }
+    
+    resolveProcessRef(path) {
+        if (path === 'cwd()') return process.cwd();
+        
+        const parts = path.split('.');
+        let current = process;
+        
+        for (const part of parts) {
+            if (part.endsWith('()') && typeof current[part.slice(0, -2)] === 'function') {
+                current = current[part.slice(0, -2)]();
+            } else {
+                current = current[part];
+            }
+        }
+        
+        return current;
+    }
+    
+    interpolateString(template, context) {
+        return template.replace(/@var\.([a-zA-Z0-9_.[\]]+)/g, (match, path) => {
+            try {
+                return this.resolveVarRef(path, context);
+            } catch {
+                return match;
+            }
+        });
+    }
+}
+
+// Usage example
+const parser = new VariableTuskLang({
+    globals: { process, crypto, Date, Math }
+});
+
+const config = parser.parse(fs.readFileSync('variables.tsk', 'utf8'), {
+    app_name: 'MyApp',
+    version: '1.0.0',
+    timestamp: Date.now(),
+    force_debug: false
+});
+
+// Access resolved values
+console.log(config.api.users);              // "https://api.example.com/v2/users"
+console.log(config.database.host);          // "localhost" or "db.prod.com"
+console.log(config.computed.cache_key);     // "MyApp:1.0.0:1234567890"
+console.log(config.paths.logs);             // "/current/working/dir/logs/development"
+console.log(config.data.current_user);      // "alice"
+console.log(config.globals.node_version);   // "v18.0.0" (or current version)
+
+// Function references are resolved
+console.log(typeof config.functions.timestamp); // "function"
+console.log(config.functions.timestamp());      // Current timestamp
+
+// Test circular reference protection
+try {
+    console.log(config.circular.a); // "default_b"
+} catch (e) {
+    console.error('Circular reference handled:', e.message);
+}
+</pre>
+
+<p>TuskLang's variable reference system in JavaScript enables dynamic configuration with computed values, fallbacks, and circular reference protection.</p>

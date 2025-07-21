@@ -1,0 +1,1263 @@
+<h1>Reactive Programming</h1>
+
+<h2>Reactive Programming with TuskLang in C#</h2>
+<p>Implement reactive programming patterns, event streams, and observable configurations using TuskLang with System.Reactive in C# applications.</p>
+
+<h3>reactive.tsk</h3>
+<pre>
+# TuskLang Reactive Programming Configuration
+
+# 1. Observable Data Sources
+observables {
+    # File system watching
+    config_changes: @observe("config/*.tsk", {
+        events: ["created", "modified", "deleted"]
+        debounce: 500  # milliseconds
+        buffer_time: 1000
+        distinct: true
+    })
+    
+    # Database change streams
+    user_changes: @observe("users", {
+        operations: ["insert", "update", "delete"]
+        filter: { active: true }
+        include_old_values: true
+    })
+    
+    # HTTP request streams
+    api_requests: @observe("http", {
+        methods: ["GET", "POST", "PUT", "DELETE"]
+        paths: ["/api/*"]
+        include_headers: true
+        include_body: false
+    })
+    
+    # Real-time metrics
+    metrics_stream: @observe("metrics", {
+        interval: 1000  # 1 second
+        metrics: ["cpu", "memory", "requests", "errors"]
+        aggregation: "1m"  # 1 minute windows
+    })
+    
+    # External service events
+    external_events: @observe("webhook", {
+        endpoint: "/webhooks/external"
+        verification: env("WEBHOOK_SECRET")
+        retry_policy: {
+            max_retries: 3
+            backoff: "exponential"
+        }
+    })
+}
+
+# 2. Event Processing Pipelines
+pipelines {
+    # Configuration reload pipeline
+    config_reload: {
+        source: @config_changes
+        operators: [
+            @filter(event =&gt; event.type == "modified"),
+            @debounce(2000),  # Wait 2 seconds for multiple changes
+            @map(event =&gt; @load_config(event.path)),
+            @filter(config =&gt; @validate_config(config)),
+            @do_action(config =&gt; @apply_config(config)),
+            @catch_errors(error =&gt; @log_error("Config reload failed", error))
+        ]
+        on_next: @notify_config_updated
+        on_error: @handle_config_error
+        on_complete: @log_pipeline_complete
+    }
+    
+    # User activity processing
+    user_activity: {
+        source: @user_changes
+        operators: [
+            @map(change =&gt; {
+                user_id: change.data.id,
+                action: change.operation,
+                timestamp: @now,
+                previous: change.old_values
+            }),
+            @group_by(activity =&gt; activity.user_id),
+            @window(30000),  # 30 second windows
+            @map(window =&gt; {
+                user_id: window.key,
+                activities: window.events,
+                count: window.events.length,
+                time_range: {
+                    start: @min(window.events.map(e =&gt; e.timestamp)),
+                    end: @max(window.events.map(e =&gt; e.timestamp))
+                }
+            }),
+            @filter(summary =&gt; summary.count &gt; 1),  # Only multi-event sessions
+            @scan(summary =&gt; @update_user_metrics(summary))
+        ]
+    }
+    
+    # Real-time alerting
+    alert_processing: {
+        source: @metrics_stream
+        operators: [
+            @map(metric =&gt; {
+                name: metric.name,
+                value: metric.value,
+                threshold: @get_alert_threshold(metric.name),
+                severity: @calculate_severity(metric.value, metric.name)
+            }),
+            @filter(alert =&gt; alert.value &gt; alert.threshold),
+            @distinct_until_changed(alert =&gt; alert.name),  # Prevent spam
+            @map(alert =&gt; @enrich_alert(alert)),
+            @branch([
+                {
+                    condition: alert =&gt; alert.severity == "critical",
+                    pipeline: [
+                        @do_action(alert =&gt; @send_sms_alert(alert)),
+                        @do_action(alert =&gt; @create_incident(alert))
+                    ]
+                },
+                {
+                    condition: alert =&gt; alert.severity == "warning",
+                    pipeline: [
+                        @do_action(alert =&gt; @send_email_alert(alert)),
+                        @do_action(alert =&gt; @log_warning(alert))
+                    ]
+                },
+                {
+                    condition: alert =&gt; alert.severity == "info",
+                    pipeline: [
+                        @do_action(alert =&gt; @log_info(alert))
+                    ]
+                }
+            ])
+        ]
+    }
+    
+    # Performance monitoring
+    performance_tracking: {
+        source: @api_requests
+        operators: [
+            @map(request =&gt; {
+                endpoint: request.path,
+                method: request.method,
+                response_time: request.duration,
+                status_code: request.status,
+                timestamp: request.timestamp
+            }),
+            @group_by(req =&gt; "#{req.method} #{req.endpoint}"),
+            @window_with_time(60000),  # 1 minute sliding windows
+            @map(window =&gt; {
+                endpoint: window.key,
+                request_count: window.events.length,
+                avg_response_time: @avg(window.events.map(e =&gt; e.response_time)),
+                error_rate: @percentage(window.events.filter(e =&gt; e.status_code &gt;= 400).length, window.events.length),
+                p95_response_time: @percentile(window.events.map(e =&gt; e.response_time), 95),
+                throughput: window.events.length / 60  # requests per second
+            }),
+            @do_action(stats =&gt; @record_metrics(stats)),
+            @filter(stats =&gt; stats.error_rate &gt; 5 || stats.avg_response_time &gt; 1000),
+            @do_action(stats =&gt; @trigger_performance_alert(stats))
+        ]
+    }
+}
+
+# 3. Reactive State Management
+state {
+    # Application state with reactive updates
+    application_state: @reactive_state({
+        initial: {
+            config: @load_initial_config(),
+            users: { active_count: 0, total_count: 0 },
+            metrics: { cpu: 0, memory: 0, requests: 0 },
+            alerts: []
+        },
+        
+        reducers: {
+            # Config updates
+            CONFIG_UPDATED: (state, action) =&gt; {
+                ...state,
+                config: action.config,
+                last_updated: @now
+            },
+            
+            # User metrics updates
+            USER_METRICS_UPDATED: (state, action) =&gt; {
+                ...state,
+                users: {
+                    active_count: action.active_count,
+                    total_count: action.total_count,
+                    last_activity: @now
+                }
+            },
+            
+            # System metrics updates
+            METRICS_UPDATED: (state, action) =&gt; {
+                ...state,
+                metrics: {
+                    ...state.metrics,
+                    ...action.metrics,
+                    timestamp: @now
+                }
+            },
+            
+            # Alert management
+            ALERT_TRIGGERED: (state, action) =&gt; {
+                ...state,
+                alerts: [...state.alerts, {
+                    id: @uuid(),
+                    ...action.alert,
+                    created_at: @now
+                }]
+            },
+            
+            ALERT_RESOLVED: (state, action) =&gt; {
+                ...state,
+                alerts: state.alerts.filter(alert =&gt; alert.id !== action.alert_id)
+            }
+        },
+        
+        # State subscriptions
+        subscriptions: [
+            {
+                source: @config_changes,
+                action_creator: (event) =&gt; ({ type: "CONFIG_UPDATED", config: @load_config(event.path) })
+            },
+            {
+                source: @user_changes,
+                action_creator: (event) =&gt; ({ type: "USER_METRICS_UPDATED", ...@calculate_user_metrics() })
+            },
+            {
+                source: @metrics_stream,
+                action_creator: (metrics) =&gt; ({ type: "METRICS_UPDATED", metrics: metrics })
+            }
+        ]
+    })
+    
+    # Derived state with automatic updates
+    derived_state: @reactive_compute([
+        @application_state.config,
+        @application_state.metrics,
+        @application_state.users
+    ], (config, metrics, users) =&gt; ({
+        # Computed health score
+        health_score: @calculate_health_score(metrics, users),
+        
+        # Feature flags based on current state
+        features: {
+            analytics: config.features.analytics && users.active_count &gt; 10,
+            high_performance: metrics.cpu &lt; 80 && metrics.memory &lt; 80,
+            maintenance_mode: config.maintenance.enabled || @application_state.alerts.length &gt; 5
+        },
+        
+        # Dynamic scaling recommendations
+        scaling: {
+            recommended_instances: @calculate_scaling(metrics, users),
+            auto_scale: config.auto_scaling.enabled && !@derived_state.features.maintenance_mode
+        },
+        
+        # Status summary
+        status: @derive_system_status(metrics, users, @application_state.alerts)
+    }))
+}
+
+# 4. Event Sourcing
+event_sourcing {
+    # Event store configuration
+    event_store: {
+        provider: "sql"  # sql, mongodb, eventstore
+        connection: env("EVENT_STORE_CONNECTION")
+        
+        # Event serialization
+        serialization: {
+            format: "json"
+            compression: "gzip"
+            encryption: env("EVENT_ENCRYPTION_ENABLED", false)
+        }
+        
+        # Snapshot configuration
+        snapshots: {
+            enabled: true
+            frequency: 100  # Every 100 events
+            retention: "30d"
+        }
+        
+        # Projection configuration
+        projections: {
+            user_summary: {
+                events: ["UserCreated", "UserUpdated", "UserDeleted"],
+                handler: @user_projection_handler,
+                rebuild_on_start: false
+            },
+            
+            order_analytics: {
+                events: ["OrderPlaced", "OrderCompleted", "OrderCancelled"],
+                handler: @order_analytics_handler,
+                window: "1d"  # Daily projections
+            },
+            
+            system_metrics: {
+                events: ["MetricRecorded", "AlertTriggered", "AlertResolved"],
+                handler: @metrics_projection_handler,
+                real_time: true
+            }
+        }
+    }
+    
+    # Command handlers
+    commands: {
+        # User management commands
+        CreateUser: {
+            handler: @create_user_handler,
+            events: ["UserCreated"],
+            validation: @validate_user_command,
+            side_effects: [@send_welcome_email, @create_user_profile]
+        },
+        
+        UpdateUserPreferences: {
+            handler: @update_preferences_handler,
+            events: ["UserPreferencesUpdated"],
+            validation: @validate_preferences,
+            side_effects: [@invalidate_user_cache, @notify_preference_change]
+        },
+        
+        # System configuration commands
+        UpdateConfiguration: {
+            handler: @update_config_handler,
+            events: ["ConfigurationUpdated"],
+            validation: @validate_configuration,
+            side_effects: [@restart_services, @notify_admins]
+        }
+    }
+    
+    # Event handlers
+    event_handlers: {
+        UserCreated: [
+            @update_user_count_projection,
+            @send_analytics_event,
+            @trigger_onboarding_workflow
+        ],
+        
+        ConfigurationUpdated: [
+            @reload_application_config,
+            @update_feature_flags,
+            @log_configuration_change
+        ],
+        
+        AlertTriggered: [
+            @update_alert_dashboard,
+            @check_escalation_rules,
+            @record_alert_metrics
+        ]
+    }
+}
+
+# 5. Real-time Communication
+real_time {
+    # WebSocket configuration
+    websockets: {
+        enabled: true
+        port: env("WEBSOCKET_PORT", 8080)
+        path: "/ws"
+        
+        # Connection management
+        connections: {
+            max_connections: env("MAX_WS_CONNECTIONS", 1000)
+            heartbeat_interval: 30000  # 30 seconds
+            timeout: 60000  # 1 minute
+            
+            # Authentication
+            auth_required: true
+            auth_token_header: "Authorization"
+            auth_validator: @validate_ws_token
+        }
+        
+        # Message routing
+        routing: {
+            # User-specific channels
+            user_channel: "user.#{@user.id}",
+            
+            # Role-based channels
+            admin_channel: "admin",
+            moderator_channel: "moderator",
+            
+            # Feature-based channels
+            analytics_channel: "analytics",
+            monitoring_channel: "monitoring",
+            
+            # Public channels
+            public_announcements: "announcements",
+            system_status: "status"
+        }
+        
+        # Message filters
+        filters: [
+            {
+                channel: "user.*",
+                condition: @user.authenticated && @channel_belongs_to_user(@channel, @user.id)
+            },
+            {
+                channel: "admin",
+                condition: @user.role == "admin"
+            },
+            {
+                channel: "monitoring",
+                condition: @user.permissions.includes("monitoring:read")
+            }
+        ]
+    }
+    
+    # Server-Sent Events (SSE)
+    sse: {
+        enabled: true
+        endpoint: "/events"
+        
+        # Event streams
+        streams: {
+            # Configuration changes
+            config_updates: {
+                source: @config_changes,
+                filter: event =&gt; event.type == "modified",
+                transform: event =&gt; ({
+                    type: "config_updated",
+                    data: { file: event.path, timestamp: @now }
+                })
+            },
+            
+            # System metrics
+            live_metrics: {
+                source: @metrics_stream,
+                interval: 5000,  # 5 seconds
+                transform: metrics =&gt; ({
+                    type: "metrics_update",
+                    data: metrics
+                })
+            },
+            
+            # User activity
+            user_activity: {
+                source: @user_changes,
+                filter: change =&gt; change.operation == "update",
+                transform: change =&gt; ({
+                    type: "user_updated",
+                    data: { user_id: change.data.id, timestamp: @now }
+                })
+            }
+        }
+    }
+    
+    # Push notifications
+    push_notifications: {
+        providers: {
+            firebase: {
+                enabled: env("FIREBASE_ENABLED", false),
+                server_key: env("FIREBASE_SERVER_KEY"),
+                project_id: env("FIREBASE_PROJECT_ID")
+            },
+            
+            apns: {
+                enabled: env("APNS_ENABLED", false),
+                key_file: env("APNS_KEY_FILE"),
+                team_id: env("APNS_TEAM_ID"),
+                bundle_id: env("APNS_BUNDLE_ID")
+            }
+        }
+        
+        # Notification routing
+        routing: {
+            # Alert notifications
+            alerts: {
+                condition: alert =&gt; alert.severity in ["critical", "warning"],
+                template: "alert_notification",
+                targets: @get_alert_recipients(alert)
+            },
+            
+            # System updates
+            system_updates: {
+                condition: update =&gt; update.type == "maintenance",
+                template: "maintenance_notification",
+                targets: @get_all_users()
+            },
+            
+            # User-specific notifications
+            user_notifications: {
+                condition: notification =&gt; notification.user_id,
+                template: "user_notification",
+                targets: user =&gt; [user.device_tokens]
+            }
+        }
+    }
+}
+
+# 6. Reactive Configuration
+reactive_config {
+    # Hot-reloadable settings
+    hot_reload: {
+        enabled: env("HOT_RELOAD_ENABLED", true)
+        watch_patterns: ["config/*.tsk", "config/**/*.json"]
+        debounce: 1000
+        
+        # Reload strategies
+        strategies: {
+            # Graceful reload - wait for current operations
+            graceful: {
+                timeout: 30000,
+                wait_for_completion: true,
+                notify_clients: true
+            },
+            
+            # Immediate reload - apply changes immediately
+            immediate: {
+                force: true,
+                notify_clients: true,
+                rollback_on_error: true
+            },
+            
+            # Staged reload - apply changes in phases
+            staged: {
+                phases: ["validation", "preparation", "application", "verification"],
+                rollback_on_failure: true
+            }
+        }
+        
+        # Validation before reload
+        validation: {
+            syntax_check: true,
+            schema_validation: true,
+            dependency_check: true,
+            custom_validators: [@validate_business_rules, @check_resource_availability]
+        }
+    }
+    
+    # Feature flags with reactive updates
+    feature_flags: @reactive_value({
+        source: @observe("feature_flags", { interval: 10000 }),  # Check every 10 seconds
+        initial: @load_feature_flags(),
+        transform: flags =&gt; @merge_with_overrides(flags, @user.overrides),
+        cache_ttl: 60000  # 1 minute cache
+    })
+    
+    # Dynamic scaling parameters
+    scaling_config: @reactive_compute([
+        @metrics_stream,
+        @feature_flags
+    ], (metrics, flags) =&gt; ({
+        target_cpu: flags.high_performance ? 60 : 80,
+        target_memory: flags.high_performance ? 70 : 85,
+        min_instances: metrics.load &lt; 0.2 ? 1 : 2,
+        max_instances: flags.unlimited_scaling ? 50 : 10,
+        scale_up_threshold: flags.aggressive_scaling ? 70 : 80,
+        scale_down_threshold: flags.aggressive_scaling ? 30 : 40
+    }))
+}
+</pre>
+
+<h3>TuskReactiveEngine.cs</h3>
+<pre>
+using System;
+using System.Collections.Concurrent;
+using System.Collections.Generic;
+using System.Linq;
+using System.Reactive;
+using System.Reactive.Concurrency;
+using System.Reactive.Linq;
+using System.Reactive.Subjects;
+using System.Threading;
+using System.Threading.Tasks;
+
+namespace TuskLang.Reactive
+{
+    // Main reactive engine for TuskLang
+    public class TuskReactiveEngine : IDisposable
+    {
+        private readonly Dictionary&lt;string, IObservable&lt;object&gt;&gt; _observables;
+        private readonly Dictionary&lt;string, ISubject&lt;object&gt;&gt; _subjects;
+        private readonly Dictionary&lt;string, IDisposable&gt; _subscriptions;
+        private readonly ConcurrentDictionary&lt;string, object&gt; _state;
+        private readonly ReplaySubject&lt;StateChange&gt; _stateChanges;
+        private readonly IScheduler _scheduler;
+        
+        public TuskReactiveEngine(IScheduler scheduler = null)
+        {
+            _observables = new Dictionary&lt;string, IObservable&lt;object&gt;&gt;();
+            _subjects = new Dictionary&lt;string, ISubject&lt;object&gt;&gt;();
+            _subscriptions = new Dictionary&lt;string, IDisposable&gt;();
+            _state = new ConcurrentDictionary&lt;string, object&gt;();
+            _stateChanges = new ReplaySubject&lt;StateChange&gt;();
+            _scheduler = scheduler ?? DefaultScheduler.Instance;
+        }
+        
+        // Create an observable from various sources
+        public IObservable&lt;T&gt; CreateObservable&lt;T&gt;(string name, ObservableConfig config)
+        {
+            IObservable&lt;T&gt; source = config.SourceType switch
+            {
+                ObservableSourceType.Timer =&gt; CreateTimerObservable&lt;T&gt;(config),
+                ObservableSourceType.FileSystem =&gt; CreateFileSystemObservable&lt;T&gt;(config),
+                ObservableSourceType.Http =&gt; CreateHttpObservable&lt;T&gt;(config),
+                ObservableSourceType.Database =&gt; CreateDatabaseObservable&lt;T&gt;(config),
+                ObservableSourceType.External =&gt; CreateExternalObservable&lt;T&gt;(config),
+                _ =&gt; throw new ArgumentException($"Unknown source type: {config.SourceType}")
+            };
+            
+            // Apply common operators
+            if (config.DebounceMs &gt; 0)
+                source = source.Debounce(TimeSpan.FromMilliseconds(config.DebounceMs));
+            
+            if (config.BufferTimeMs &gt; 0)
+                source = source.Buffer(TimeSpan.FromMilliseconds(config.BufferTimeMs)).SelectMany(x =&gt; x);
+            
+            if (config.DistinctUntilChanged)
+                source = source.DistinctUntilChanged();
+            
+            if (config.Filter != null)
+                source = source.Where(config.Filter);
+            
+            if (config.Transform != null)
+                source = source.Select(config.Transform);
+            
+            // Store the observable
+            _observables[name] = source.Cast&lt;object&gt;();
+            
+            return source;
+        }
+        
+        // Create a subject for manual event emission
+        public ISubject&lt;T&gt; CreateSubject&lt;T&gt;(string name, SubjectType type = SubjectType.Subject)
+        {
+            ISubject&lt;T&gt; subject = type switch
+            {
+                SubjectType.Subject =&gt; new Subject&lt;T&gt;(),
+                SubjectType.BehaviorSubject =&gt; new BehaviorSubject&lt;T&gt;(default(T)),
+                SubjectType.ReplaySubject =&gt; new ReplaySubject&lt;T&gt;(),
+                SubjectType.AsyncSubject =&gt; new AsyncSubject&lt;T&gt;(),
+                _ =&gt; throw new ArgumentException($"Unknown subject type: {type}")
+            };
+            
+            _subjects[name] = subject.Cast&lt;object&gt;();
+            return subject;
+        }
+        
+        // Create a processing pipeline
+        public IDisposable CreatePipeline&lt;T&gt;(string name, PipelineConfig&lt;T&gt; config)
+        {
+            if (!_observables.TryGetValue(config.SourceName, out var sourceObservable))
+                throw new ArgumentException($"Source observable '{config.SourceName}' not found");
+            
+            var pipeline = sourceObservable.Cast&lt;T&gt;();
+            
+            // Apply pipeline operators
+            foreach (var op in config.Operators)
+            {
+                pipeline = op(pipeline);
+            }
+            
+            // Subscribe to the pipeline
+            var subscription = pipeline.Subscribe(
+                onNext: config.OnNext ?? (_ =&gt; { }),
+                onError: config.OnError ?? (ex =&gt; Console.WriteLine($"Pipeline error: {ex.Message}")),
+                onCompleted: config.OnCompleted ?? (() =&gt; Console.WriteLine($"Pipeline {name} completed"))
+            );
+            
+            _subscriptions[name] = subscription;
+            return subscription;
+        }
+        
+        // Create reactive state management
+        public ReactiveState&lt;T&gt; CreateReactiveState&lt;T&gt;(string name, T initialState, 
+            Dictionary&lt;string, Func&lt;T, object, T&gt;&gt; reducers = null)
+        {
+            var stateSubject = new BehaviorSubject&lt;T&gt;(initialState);
+            var actionSubject = new Subject&lt;StateAction&gt;();
+            
+            // Set up state reduction
+            var subscription = actionSubject
+                .Scan(initialState, (state, action) =&gt;
+                {
+                    if (reducers?.TryGetValue(action.Type, out var reducer) == true)
+                    {
+                        var newState = reducer(state, action.Payload);
+                        
+                        // Emit state change event
+                        _stateChanges.OnNext(new StateChange
+                        {
+                            StateName = name,
+                            Action = action,
+                            PreviousState = state,
+                            NewState = newState,
+                            Timestamp = DateTime.UtcNow
+                        });
+                        
+                        return newState;
+                    }
+                    return state;
+                })
+                .Subscribe(stateSubject.OnNext);
+            
+            _subscriptions[$"state_{name}"] = subscription;
+            
+            var reactiveState = new ReactiveState&lt;T&gt;
+            {
+                Name = name,
+                State = stateSubject.AsObservable(),
+                Dispatch = actionSubject.OnNext,
+                CurrentValue = () =&gt; stateSubject.Value
+            };
+            
+            // Store current state
+            _state[name] = reactiveState;
+            
+            return reactiveState;
+        }
+        
+        // Create computed/derived observables
+        public IObservable&lt;TResult&gt; CreateComputed&lt;TResult&gt;(string name, 
+            IObservable&lt;object&gt;[] dependencies, Func&lt;object[], TResult&gt; compute)
+        {
+            var computed = dependencies
+                .CombineLatest()
+                .Select(values =&gt; compute(values.ToArray()))
+                .DistinctUntilChanged()
+                .Replay(1)
+                .RefCount();
+            
+            _observables[name] = computed.Cast&lt;object&gt;();
+            return computed;
+        }
+        
+        // Hot-reload configuration support
+        public IObservable&lt;T&gt; CreateHotReloadable&lt;T&gt;(string name, Func&lt;T&gt; loader, 
+            IObservable&lt;object&gt; trigger, HotReloadConfig config = null)
+        {
+            config ??= new HotReloadConfig();
+            
+            var hotReloadable = trigger
+                .StartWith(new object()) // Initial load
+                .Debounce(TimeSpan.FromMilliseconds(config.DebounceMs))
+                .SelectMany(async _ =&gt;
+                {
+                    try
+                    {
+                        // Validation phase
+                        if (config.ValidateBeforeReload)
+                        {
+                            var isValid = await ValidateConfiguration(name);
+                            if (!isValid)
+                                throw new InvalidOperationException("Configuration validation failed");
+                        }
+                        
+                        // Load new configuration
+                        var newConfig = loader();
+                        
+                        // Apply graceful reload if configured
+                        if (config.GracefulReload)
+                        {
+                            await WaitForCurrentOperations(config.GracefulTimeoutMs);
+                        }
+                        
+                        return newConfig;
+                    }
+                    catch (Exception ex)
+                    {
+                        if (config.RollbackOnError)
+                        {
+                            // Return current configuration on error
+                            return _state.TryGetValue(name, out var currentState) ? (T)currentState : default(T);
+                        }
+                        throw;
+                    }
+                })
+                .Retry(config.MaxRetries)
+                .Replay(1)
+                .RefCount();
+            
+            _observables[name] = hotReloadable.Cast&lt;object&gt;();
+            return hotReloadable;
+        }
+        
+        // Event sourcing support
+        public EventStore&lt;T&gt; CreateEventStore&lt;T&gt;(string name, EventStoreConfig config)
+        {
+            var eventSubject = new Subject&lt;Event&lt;T&gt;&gt;();
+            var eventStore = new List&lt;Event&lt;T&gt;&gt;();
+            var snapshotStore = new Dictionary&lt;int, T&gt;();
+            
+            // Event persistence
+            var persistenceSubscription = eventSubject
+                .Buffer(TimeSpan.FromMilliseconds(config.BatchTimeMs), config.BatchSize)
+                .Where(events =&gt; events.Any())
+                .Subscribe(async events =&gt;
+                {
+                    await PersistEvents(name, events);
+                    eventStore.AddRange(events);
+                    
+                    // Create snapshot if needed
+                    if (config.SnapshotFrequency &gt; 0 && eventStore.Count % config.SnapshotFrequency == 0)
+                    {
+                        var currentState = ReplayEvents&lt;T&gt;(eventStore, config.StateReducer);
+                        snapshotStore[eventStore.Count] = currentState;
+                        await PersistSnapshot(name, eventStore.Count, currentState);
+                    }
+                });
+            
+            _subscriptions[$"eventstore_{name}"] = persistenceSubscription;
+            
+            return new EventStore&lt;T&gt;
+            {
+                Name = name,
+                Events = eventSubject.AsObservable(),
+                AppendEvent = eventSubject.OnNext,
+                GetEvents = () =&gt; eventStore.AsReadOnly(),
+                ReplayFromSnapshot = (snapshotVersion) =&gt; 
+                {
+                    var snapshot = snapshotStore.TryGetValue(snapshotVersion, out var snap) ? snap : default(T);
+                    var eventsFromSnapshot = eventStore.Skip(snapshotVersion);
+                    return ReplayEvents(eventsFromSnapshot, config.StateReducer, snapshot);
+                }
+            };
+        }
+        
+        // Real-time communication support
+        public IRealTimeCommunication CreateRealTimeCommunication(RealTimeConfig config)
+        {
+            var messageSubject = new Subject&lt;RealTimeMessage&gt;();
+            var connectionSubject = new Subject&lt;ConnectionEvent&gt;();
+            
+            // Message routing
+            var routedMessages = messageSubject
+                .Where(msg =&gt; config.MessageFilters?.All(filter =&gt; filter(msg)) != false)
+                .GroupBy(msg =&gt; msg.Channel)
+                .SelectMany(channelGroup =&gt; 
+                    channelGroup.Where(msg =&gt; IsAuthorizedForChannel(msg.UserId, msg.Channel, config)));
+            
+            return new RealTimeCommunication
+            {
+                Messages = routedMessages,
+                Connections = connectionSubject.AsObservable(),
+                SendMessage = messageSubject.OnNext,
+                NotifyConnection = connectionSubject.OnNext,
+                GetActiveConnections = () =&gt; GetActiveConnections(config),
+                BroadcastToChannel = (channel, message) =&gt; BroadcastMessage(channel, message, config)
+            };
+        }
+        
+        // Get observable by name
+        public IObservable&lt;T&gt; GetObservable&lt;T&gt;(string name)
+        {
+            if (_observables.TryGetValue(name, out var observable))
+                return observable.Cast&lt;T&gt;();
+            
+            throw new ArgumentException($"Observable '{name}' not found");
+        }
+        
+        // Get subject by name
+        public ISubject&lt;T&gt; GetSubject&lt;T&gt;(string name)
+        {
+            if (_subjects.TryGetValue(name, out var subject))
+                return (ISubject&lt;T&gt;)subject;
+            
+            throw new ArgumentException($"Subject '{name}' not found");
+        }
+        
+        // Get current state
+        public T GetState&lt;T&gt;(string name)
+        {
+            if (_state.TryGetValue(name, out var state))
+                return (T)state;
+            
+            return default(T);
+        }
+        
+        // State change stream
+        public IObservable&lt;StateChange&gt; StateChanges =&gt; _stateChanges.AsObservable();
+        
+        // Private helper methods
+        private IObservable&lt;T&gt; CreateTimerObservable&lt;T&gt;(ObservableConfig config)
+        {
+            return Observable.Timer(TimeSpan.Zero, TimeSpan.FromMilliseconds(config.IntervalMs), _scheduler)
+                .Select(_ =&gt; config.ValueProvider != null ? (T)config.ValueProvider() : default(T));
+        }
+        
+        private IObservable&lt;T&gt; CreateFileSystemObservable&lt;T&gt;(ObservableConfig config)
+        {
+            // File system watching implementation
+            return Observable.Create&lt;T&gt;(observer =&gt;
+            {
+                var watcher = new System.IO.FileSystemWatcher(config.Path)
+                {
+                    IncludeSubdirectories = config.IncludeSubdirectories,
+                    EnableRaisingEvents = true
+                };
+                
+                watcher.Changed += (s, e) =&gt; observer.OnNext((T)(object)new { Type = "Changed", Path = e.FullPath });
+                watcher.Created += (s, e) =&gt; observer.OnNext((T)(object)new { Type = "Created", Path = e.FullPath });
+                watcher.Deleted += (s, e) =&gt; observer.OnNext((T)(object)new { Type = "Deleted", Path = e.FullPath });
+                
+                return watcher;
+            });
+        }
+        
+        private IObservable&lt;T&gt; CreateHttpObservable&lt;T&gt;(ObservableConfig config)
+        {
+            // HTTP request monitoring implementation
+            return Observable.Empty&lt;T&gt;(); // Placeholder
+        }
+        
+        private IObservable&lt;T&gt; CreateDatabaseObservable&lt;T&gt;(ObservableConfig config)
+        {
+            // Database change stream implementation
+            return Observable.Empty&lt;T&gt;(); // Placeholder
+        }
+        
+        private IObservable&lt;T&gt; CreateExternalObservable&lt;T&gt;(ObservableConfig config)
+        {
+            // External event source implementation
+            return Observable.Empty&lt;T&gt;(); // Placeholder
+        }
+        
+        private async Task&lt;bool&gt; ValidateConfiguration(string name)
+        {
+            // Configuration validation logic
+            return await Task.FromResult(true); // Placeholder
+        }
+        
+        private async Task WaitForCurrentOperations(int timeoutMs)
+        {
+            // Wait for current operations to complete
+            await Task.Delay(Math.Min(timeoutMs, 100)); // Placeholder
+        }
+        
+        private async Task PersistEvents&lt;T&gt;(string storeName, IEnumerable&lt;Event&lt;T&gt;&gt; events)
+        {
+            // Event persistence implementation
+            await Task.CompletedTask; // Placeholder
+        }
+        
+        private async Task PersistSnapshot&lt;T&gt;(string storeName, int version, T snapshot)
+        {
+            // Snapshot persistence implementation
+            await Task.CompletedTask; // Placeholder
+        }
+        
+        private T ReplayEvents&lt;T&gt;(IEnumerable&lt;Event&lt;T&gt;&gt; events, Func&lt;T, Event&lt;T&gt;, T&gt; reducer, T initialState = default(T))
+        {
+            return events.Aggregate(initialState, (state, evt) =&gt; reducer(state, evt));
+        }
+        
+        private bool IsAuthorizedForChannel(string userId, string channel, RealTimeConfig config)
+        {
+            // Channel authorization logic
+            return true; // Placeholder
+        }
+        
+        private List&lt;string&gt; GetActiveConnections(RealTimeConfig config)
+        {
+            // Get active connections
+            return new List&lt;string&gt;(); // Placeholder
+        }
+        
+        private async Task BroadcastMessage(string channel, object message, RealTimeConfig config)
+        {
+            // Broadcast message implementation
+            await Task.CompletedTask; // Placeholder
+        }
+        
+        public void Dispose()
+        {
+            foreach (var subscription in _subscriptions.Values)
+            {
+                subscription?.Dispose();
+            }
+            _subscriptions.Clear();
+            
+            foreach (var subject in _subjects.Values)
+            {
+                subject?.Dispose();
+            }
+            _subjects.Clear();
+            
+            _stateChanges?.Dispose();
+        }
+    }
+}
+</pre>
+
+<h3>Supporting Classes</h3>
+<pre>
+namespace TuskLang.Reactive
+{
+    // Observable configuration
+    public class ObservableConfig
+    {
+        public ObservableSourceType SourceType { get; set; }
+        public string Path { get; set; }
+        public int IntervalMs { get; set; } = 1000;
+        public int DebounceMs { get; set; }
+        public int BufferTimeMs { get; set; }
+        public bool DistinctUntilChanged { get; set; }
+        public bool IncludeSubdirectories { get; set; }
+        public Func&lt;object, bool&gt; Filter { get; set; }
+        public Func&lt;object, object&gt; Transform { get; set; }
+        public Func&lt;object&gt; ValueProvider { get; set; }
+    }
+    
+    public enum ObservableSourceType
+    {
+        Timer,
+        FileSystem,
+        Http,
+        Database,
+        External
+    }
+    
+    // Pipeline configuration
+    public class PipelineConfig&lt;T&gt;
+    {
+        public string SourceName { get; set; }
+        public List&lt;Func&lt;IObservable&lt;T&gt;, IObservable&lt;T&gt;&gt;&gt; Operators { get; set; } = new();
+        public Action&lt;T&gt; OnNext { get; set; }
+        public Action&lt;Exception&gt; OnError { get; set; }
+        public Action OnCompleted { get; set; }
+    }
+    
+    // Reactive state
+    public class ReactiveState&lt;T&gt;
+    {
+        public string Name { get; set; }
+        public IObservable&lt;T&gt; State { get; set; }
+        public Action&lt;StateAction&gt; Dispatch { get; set; }
+        public Func&lt;T&gt; CurrentValue { get; set; }
+    }
+    
+    // State action
+    public class StateAction
+    {
+        public string Type { get; set; }
+        public object Payload { get; set; }
+    }
+    
+    // State change event
+    public class StateChange
+    {
+        public string StateName { get; set; }
+        public StateAction Action { get; set; }
+        public object PreviousState { get; set; }
+        public object NewState { get; set; }
+        public DateTime Timestamp { get; set; }
+    }
+    
+    // Hot reload configuration
+    public class HotReloadConfig
+    {
+        public int DebounceMs { get; set; } = 1000;
+        public bool ValidateBeforeReload { get; set; } = true;
+        public bool GracefulReload { get; set; } = true;
+        public int GracefulTimeoutMs { get; set; } = 30000;
+        public bool RollbackOnError { get; set; } = true;
+        public int MaxRetries { get; set; } = 3;
+    }
+    
+    // Event store
+    public class EventStore&lt;T&gt;
+    {
+        public string Name { get; set; }
+        public IObservable&lt;Event&lt;T&gt;&gt; Events { get; set; }
+        public Action&lt;Event&lt;T&gt;&gt; AppendEvent { get; set; }
+        public Func&lt;IReadOnlyList&lt;Event&lt;T&gt;&gt;&gt; GetEvents { get; set; }
+        public Func&lt;int, T&gt; ReplayFromSnapshot { get; set; }
+    }
+    
+    public class Event&lt;T&gt;
+    {
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string Type { get; set; }
+        public T Data { get; set; }
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+        public Dictionary&lt;string, object&gt; Metadata { get; set; } = new();
+    }
+    
+    // Event store configuration
+    public class EventStoreConfig
+    {
+        public int BatchSize { get; set; } = 100;
+        public int BatchTimeMs { get; set; } = 1000;
+        public int SnapshotFrequency { get; set; } = 100;
+        public Func&lt;object, Event&lt;object&gt;, object&gt; StateReducer { get; set; }
+    }
+    
+    // Real-time communication
+    public interface IRealTimeCommunication
+    {
+        IObservable&lt;RealTimeMessage&gt; Messages { get; }
+        IObservable&lt;ConnectionEvent&gt; Connections { get; }
+        void SendMessage(RealTimeMessage message);
+        void NotifyConnection(ConnectionEvent connectionEvent);
+        List&lt;string&gt; GetActiveConnections();
+        Task BroadcastToChannel(string channel, object message);
+    }
+    
+    public class RealTimeCommunication : IRealTimeCommunication
+    {
+        public IObservable&lt;RealTimeMessage&gt; Messages { get; set; }
+        public IObservable&lt;ConnectionEvent&gt; Connections { get; set; }
+        public Action&lt;RealTimeMessage&gt; SendMessage { get; set; }
+        public Action&lt;ConnectionEvent&gt; NotifyConnection { get; set; }
+        public Func&lt;List&lt;string&gt;&gt; GetActiveConnections { get; set; }
+        public Func&lt;string, object, Task&gt; BroadcastToChannel { get; set; }
+        
+        void IRealTimeCommunication.SendMessage(RealTimeMessage message) =&gt; SendMessage(message);
+        void IRealTimeCommunication.NotifyConnection(ConnectionEvent connectionEvent) =&gt; NotifyConnection(connectionEvent);
+        List&lt;string&gt; IRealTimeCommunication.GetActiveConnections() =&gt; GetActiveConnections();
+        Task IRealTimeCommunication.BroadcastToChannel(string channel, object message) =&gt; BroadcastToChannel(channel, message);
+    }
+    
+    public class RealTimeMessage
+    {
+        public string Id { get; set; } = Guid.NewGuid().ToString();
+        public string Channel { get; set; }
+        public string UserId { get; set; }
+        public object Data { get; set; }
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    }
+    
+    public class ConnectionEvent
+    {
+        public string ConnectionId { get; set; }
+        public string UserId { get; set; }
+        public ConnectionEventType Type { get; set; }
+        public DateTime Timestamp { get; set; } = DateTime.UtcNow;
+    }
+    
+    public enum ConnectionEventType
+    {
+        Connected,
+        Disconnected,
+        Authenticated,
+        Error
+    }
+    
+    public class RealTimeConfig
+    {
+        public List&lt;Func&lt;RealTimeMessage, bool&gt;&gt; MessageFilters { get; set; } = new();
+        public Dictionary&lt;string, string&gt; ChannelPermissions { get; set; } = new();
+    }
+    
+    public enum SubjectType
+    {
+        Subject,
+        BehaviorSubject,
+        ReplaySubject,
+        AsyncSubject
+    }
+}
+</pre>
+
+<h3>Usage Example</h3>
+<pre>
+using System.Reactive.Linq;
+using TuskLang.Reactive;
+
+class Program
+{
+    static async Task Main(string[] args)
+    {
+        var reactiveEngine = new TuskReactiveEngine();
+        
+        // Create file system observable
+        var configChanges = reactiveEngine.CreateObservable&lt;object&gt;("config_changes", new ObservableConfig
+        {
+            SourceType = ObservableSourceType.FileSystem,
+            Path = "config",
+            DebounceMs = 1000,
+            DistinctUntilChanged = true
+        });
+        
+        // Create metrics timer
+        var metricsTimer = reactiveEngine.CreateObservable&lt;object&gt;("metrics_timer", new ObservableConfig
+        {
+            SourceType = ObservableSourceType.Timer,
+            IntervalMs = 5000,
+            ValueProvider = () =&gt; new { CPU = Random.Shared.Next(0, 100), Memory = Random.Shared.Next(0, 100) }
+        });
+        
+        // Create reactive state
+        var appState = reactiveEngine.CreateReactiveState("app_state", new AppState
+        {
+            ConfigVersion = 1,
+            Metrics = new { CPU = 0, Memory = 0 },
+            ActiveUsers = 0
+        }, new Dictionary&lt;string, Func&lt;AppState, object, AppState&gt;&gt;
+        {
+            ["CONFIG_UPDATED"] = (state, payload) =&gt; state with { ConfigVersion = state.ConfigVersion + 1 },
+            ["METRICS_UPDATED"] = (state, payload) =&gt; state with { Metrics = payload },
+            ["USER_COUNT_UPDATED"] = (state, payload) =&gt; state with { ActiveUsers = (int)payload }
+        });
+        
+        // Create processing pipeline
+        var configPipeline = reactiveEngine.CreatePipeline("config_pipeline", new PipelineConfig&lt;object&gt;
+        {
+            SourceName = "config_changes",
+            Operators = new List&lt;Func&lt;IObservable&lt;object&gt;, IObservable&lt;object&gt;&gt;&gt;
+            {
+                obs =&gt; obs.Where(change =&gt; change.ToString().Contains("modified")),
+                obs =&gt; obs.Throttle(TimeSpan.FromSeconds(2)),
+                obs =&gt; obs.Select(change =&gt; new { Type = "CONFIG_UPDATED", Data = change })
+            },
+            OnNext = result =&gt; appState.Dispatch(new StateAction { Type = "CONFIG_UPDATED", Payload = result }),
+            OnError = ex =&gt; Console.WriteLine($"Config pipeline error: {ex.Message}")
+        });
+        
+        // Create computed observable
+        var healthScore = reactiveEngine.CreateComputed("health_score", 
+            new[] { appState.State.Cast&lt;object&gt;() },
+            values =&gt;
+            {
+                var state = (AppState)values[0];
+                var metrics = state.Metrics;
+                // Calculate health score based on metrics and active users
+                return new { Score = 85, Status = "Healthy" };
+            });
+        
+        // Subscribe to state changes
+        appState.State.Subscribe(state =&gt;
+        {
+            Console.WriteLine($"App State Updated: Config v{state.ConfigVersion}, Users: {state.ActiveUsers}");
+        });
+        
+        // Subscribe to health score changes
+        healthScore.Subscribe(health =&gt;
+        {
+            Console.WriteLine($"Health Score: {health}");
+        });
+        
+        // Simulate some events
+        var eventSubject = reactiveEngine.CreateSubject&lt;object&gt;("test_events", SubjectType.Subject);
+        
+        eventSubject.OnNext(new { Type = "USER_JOINED", UserId = "user1" });
+        eventSubject.OnNext(new { Type = "USER_JOINED", UserId = "user2" });
+        
+        // Create hot-reloadable configuration
+        var hotConfig = reactiveEngine.CreateHotReloadable("hot_config",
+            () =&gt; new { Version = DateTime.Now.Ticks, Setting = "value" },
+            configChanges,
+            new HotReloadConfig { DebounceMs = 2000, ValidateBeforeReload = true });
+        
+        hotConfig.Subscribe(config =&gt;
+        {
+            Console.WriteLine($"Hot config reloaded: {config}");
+        });
+        
+        // Keep the application running
+        Console.WriteLine("Reactive engine running. Press any key to exit...");
+        Console.ReadKey();
+        
+        reactiveEngine.Dispose();
+    }
+}
+
+// Example state record
+public record AppState
+{
+    public int ConfigVersion { get; init; }
+    public object Metrics { get; init; }
+    public int ActiveUsers { get; init; }
+}
+</pre>

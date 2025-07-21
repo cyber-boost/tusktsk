@@ -1,0 +1,55 @@
+⚠️ SEVERE PUNISHMENT WARNING ⚠️
+FAILURE TO FOLLOW INSTRUCTIONS EXACTLY WILL RESULT IN:
+- IMMEDIATE PROJECT TERMINATION
+- PERFORMANCE REVIEW FAILURE  
+- NO EXCEPTIONS OR SECOND CHANCES
+FOLLOW EVERY REQUIREMENT PRECISELY OR FACE CONSEQUENCES
+
+=== AGENT A2-G5: GRPC & PROTOCOL BUFFERS ===
+
+MANDATORY IMPLEMENTATION REQUIREMENTS:
+
+🎯 GOAL 1: gRPC Client Implementation
+- Complete gRPC client with HTTP/2 support
+- Service method invocation (unary, streaming)
+- Request/response serialization with Protocol Buffers
+- Connection management and pooling
+- Authentication and metadata handling
+- Error handling and status codes
+
+🎯 GOAL 2: gRPC Server Implementation
+- Full gRPC server with service registration
+- Unary and streaming RPC support
+- Protocol Buffer message handling
+- Interceptors and middleware pipeline
+- Health checking and reflection
+- Load balancing and service discovery
+
+🎯 GOAL 3: Protocol Buffer Integration
+- Protocol Buffer compiler integration
+- Message serialization/deserialization
+- Schema validation and evolution
+- Code generation from .proto files
+- Custom message types and services
+- Binary wire format handling
+
+IMPLEMENTATION STANDARDS:
+- PHP 8.4+ with gRPC extension
+- Protocol Buffers 3.x compatibility
+- PSR-4 autoloading and coding standards
+- Comprehensive error handling
+- Performance optimization
+- Memory usage monitoring
+- Security validation
+
+DELIVERABLES:
+✅ GRPCClient with all RPC patterns
+✅ GRPCServer with service hosting
+✅ ProtocolBufferManager for serialization
+✅ ServiceRegistry for discovery
+✅ InterceptorChain for middleware
+✅ HealthChecker for monitoring
+✅ Comprehensive test suite
+✅ Performance benchmarks
+
+PUNISHMENT FOR NON-COMPLIANCE: IMMEDIATE TERMINATION 

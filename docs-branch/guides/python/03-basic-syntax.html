@@ -1,0 +1,332 @@
+<h1>Basic TuskLang Syntax in Python</h1>
+
+<h2>Core Syntax Elements</h2>
+<p>TuskLang provides clean, readable configuration syntax that Python applications can easily parse and utilize.</p>
+
+<h3>basic.tsk</h3>
+<pre>
+# Basic key-value pairs
+app_name: "Python TuskLang App"
+version: "2.1.0"
+debug: true
+max_connections: 100
+timeout: 30.5
+
+# Both colon and equals syntax supported
+api_key = "sk-1234567890"
+secret = env("SECRET_KEY", "default-secret")
+
+# String values (quotes optional for simple strings)
+simple_string: hello_world
+quoted_string: "Hello, World!"
+multiline_string: "This is a long string that might span multiple conceptual lines"
+
+# Numeric values
+port: 8080
+pi: 3.14159
+negative: -42
+scientific: 1.23e-4
+
+# Boolean values
+enabled: true
+disabled: false
+development_mode: env("DEV_MODE", true)
+
+# Null/None values
+optional_setting: null
+database_password: env("DB_PASS", null)
+
+# Comments (ignored during parsing)
+# This is a single-line comment
+primary_color: "blue"  # Inline comment
+# TODO: Add more color options
+
+# Environment variable substitution
+database_url: env("DATABASE_URL", "sqlite:///default.db")
+redis_url: env("REDIS_URL")
+log_level: env("LOG_LEVEL", "INFO")
+
+# File inclusion
+ssl_cert: file("/etc/ssl/cert.pem")
+private_key: file("/etc/ssl/private.key")
+
+# PHP-style expressions (for compatibility)
+current_time: php(time())
+random_id: php(uniqid())
+</pre>
+
+<h3>Python Parser Implementation</h3>
+<pre>
+import os
+import re
+import time
+import uuid
+from typing import Any, Dict, Optional, Union
+from pathlib import Path
+
+class TuskLangSyntaxParser:
+    """Parse basic TuskLang syntax elements."""
+    
+    def __init__(self):
+        self.env_pattern = re.compile(r'env\("([^"]+)"(?:,\s*([^)]+))?\)')
+        self.file_pattern = re.compile(r'file\("([^"]+)"\)')
+        self.php_pattern = re.compile(r'php\(([^)]+)\)')
+    
+    def parse_value(self, value: str) -> Any:
+        """Parse a single value with type conversion."""
+        value = value.strip()
+        
+        # Handle null/None
+        if value.lower() == 'null':
+            return None
+        
+        # Handle booleans
+        if value.lower() == 'true':
+            return True
+        elif value.lower() == 'false':
+            return False
+        
+        # Handle environment variables
+        if value.startswith('env('):
+            return self._parse_env_function(value)
+        
+        # Handle file inclusion
+        if value.startswith('file('):
+            return self._parse_file_function(value)
+        
+        # Handle PHP expressions
+        if value.startswith('php('):
+            return self._parse_php_function(value)
+        
+        # Handle quoted strings
+        if (value.startswith('"') and value.endswith('"')) or \
+           (value.startswith("'") and value.endswith("'")):
+            return value[1:-1]
+        
+        # Handle numbers
+        try:
+            # Try integer first
+            if '.' not in value and 'e' not in value.lower():
+                return int(value)
+            # Then float
+            return float(value)
+        except ValueError:
+            pass
+        
+        # Return as string if no other type matches
+        return value
+    
+    def _parse_env_function(self, value: str) -> str:
+        """Parse env("VAR", "default") function."""
+        match = self.env_pattern.match(value)
+        if not match:
+            return value
+        
+        env_var = match.group(1)
+        default_val = match.group(2)
+        
+        # Handle default value parsing
+        if default_val:
+            default_val = default_val.strip()
+            if default_val.startswith('"') and default_val.endswith('"'):
+                default_val = default_val[1:-1]
+            else:
+                default_val = self.parse_value(default_val)
+        else:
+            default_val = ""
+        
+        return os.getenv(env_var, default_val)
+    
+    def _parse_file_function(self, value: str) -> str:
+        """Parse file("path") function."""
+        match = self.file_pattern.match(value)
+        if not match:
+            return value
+        
+        file_path = match.group(1)
+        try:
+            return Path(file_path).read_text().strip()
+        except (FileNotFoundError, PermissionError) as e:
+            raise ValueError(f"Cannot read file {file_path}: {e}")
+    
+    def _parse_php_function(self, value: str) -> Any:
+        """Parse php() expressions for Python equivalents."""
+        match = self.php_pattern.match(value)
+        if not match:
+            return value
+        
+        expression = match.group(1).strip()
+        
+        # Map common PHP functions to Python equivalents
+        php_mappings = {
+            'time()': lambda: int(time.time()),
+            'uniqid()': lambda: str(uuid.uuid4()).replace('-', ''),
+            'date("Y-m-d")': lambda: time.strftime('%Y-%m-%d'),
+            'date("Y-m-d H:i:s")': lambda: time.strftime('%Y-%m-%d %H:%M:%S'),
+            'microtime(true)': lambda: time.time(),
+            'rand(1, 100)': lambda: __import__('random').randint(1, 100),
+        }
+        
+        if expression in php_mappings:
+            return php_mappings[expression]()
+        
+        # Return expression as string if no mapping found
+        return expression
+
+class TuskLangBasicParser:
+    """Complete basic TuskLang parser."""
+    
+    def __init__(self):
+        self.syntax_parser = TuskLangSyntaxParser()
+    
+    def parse_file(self, filename: str) -> Dict[str, Any]:
+        """Parse TuskLang file."""
+        with open(filename, 'r', encoding='utf-8') as f:
+            return self.parse(f.read())
+    
+    def parse(self, content: str) -> Dict[str, Any]:
+        """Parse TuskLang content."""
+        result = {}
+        
+        for line_num, line in enumerate(content.split('\n'), 1):
+            try:
+                # Remove inline comments
+                if '#' in line:
+                    # Don't remove # if it's inside quotes
+                    in_quotes = False
+                    quote_char = None
+                    for i, char in enumerate(line):
+                        if char in ('"', "'") and (i == 0 or line[i-1] != '\\'):
+                            if not in_quotes:
+                                in_quotes = True
+                                quote_char = char
+                            elif char == quote_char:
+                                in_quotes = False
+                                quote_char = None
+                        elif char == '#' and not in_quotes:
+                            line = line[:i]
+                            break
+                
+                line = line.strip()
+                
+                # Skip empty lines and comments
+                if not line or line.startswith('#'):
+                    continue
+                
+                # Parse key-value pairs
+                if ':' in line:
+                    key, value = line.split(':', 1)
+                elif '=' in line:
+                    key, value = line.split('=', 1)
+                else:
+                    continue
+                
+                key = key.strip()
+                value = value.strip()
+                
+                # Parse the value
+                parsed_value = self.syntax_parser.parse_value(value)
+                result[key] = parsed_value
+                
+            except Exception as e:
+                raise ValueError(f"Error parsing line {line_num}: {line}\nError: {e}")
+        
+        return result
+
+# Example usage and testing
+def example_usage():
+    """Demonstrate basic syntax parsing."""
+    
+    # Sample TuskLang content
+    sample_config = '''
+# Application Configuration
+app_name: "My Python App"
+version: "1.2.3"
+debug: env("DEBUG", false)
+port: env("PORT", 8000)
+timeout: 30.5
+
+# Database settings
+db_host: env("DB_HOST", "localhost")
+db_port: env("DB_PORT", 5432)
+db_ssl: true
+
+# File includes
+ssl_cert: file("/etc/ssl/cert.pem")
+app_secret: env("SECRET_KEY", "fallback-secret")
+
+# PHP-style functions
+startup_time: php(time())
+session_id: php(uniqid())
+
+# Null values
+optional_feature: null
+cache_ttl: env("CACHE_TTL", null)
+'''
+    
+    # Parse the configuration
+    parser = TuskLangBasicParser()
+    config = parser.parse(sample_config)
+    
+    # Display parsed values
+    print("Parsed Configuration:")
+    print("=" * 40)
+    for key, value in config.items():
+        print(f"{key}: {value} ({type(value).__name__})")
+    
+    return config
+
+# Validation helper
+def validate_syntax(content: str) -> tuple[bool, Optional[str]]:
+    """Validate TuskLang syntax."""
+    try:
+        parser = TuskLangBasicParser()
+        parser.parse(content)
+        return True, None
+    except Exception as e:
+        return False, str(e)
+
+if __name__ == "__main__":
+    config = example_usage()
+    
+    # Test validation
+    print("\nValidation Test:")
+    print("=" * 40)
+    
+    valid_content = 'name: "test"\nport: 8080'
+    invalid_content = 'invalid syntax here'
+    
+    is_valid, error = validate_syntax(valid_content)
+    print(f"Valid content: {is_valid}")
+    
+    is_valid, error = validate_syntax(invalid_content)
+    print(f"Invalid content: {is_valid}, Error: {error}")
+</pre>
+
+<h3>Advanced Syntax Features</h3>
+<pre>
+# Complex values with nested functions
+database_url: env("DATABASE_URL", "postgresql://user:pass@localhost/db")
+redis_config: env("REDIS_URL", "redis://localhost:6379/0")
+
+# Multiple environment variables with fallbacks
+primary_db: env("PRIMARY_DB", env("DATABASE_URL", "sqlite:///fallback.db"))
+
+# Concatenated values
+full_title: "App Name v" + env("VERSION", "1.0.0")
+log_file: "/var/log/" + env("APP_NAME", "app") + ".log"
+
+# Scientific notation
+large_number: 1.5e6
+small_number: 2.3e-4
+
+# Escaped quotes in strings
+message: "He said \"Hello, World!\" to everyone"
+path_with_spaces: "C:\\Program Files\\My App\\config.txt"
+
+# Unicode support
+unicode_string: "🐍 Python with TuskLang 🚀"
+chinese_text: "你好世界"
+</pre>
+
+<p>TuskLang's basic syntax provides powerful configuration capabilities while maintaining readability and Python integration.</p>

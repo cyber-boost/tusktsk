@@ -1,0 +1,29 @@
+{
+  "goal_id": "g6",
+  "agent_id": "a9",
+  "language": "Bash",
+  "created_at": "2025-07-19T18:58:38Z",
+  "goals": [
+    {
+      "id": "g6.1",
+      "description": "Implement @kubernetes operator for K8s operations",
+      "success_criteria": "Kubernetes operator supports pod management, service operations, and cluster status",
+      "priority": "high"
+    },
+    {
+      "id": "g6.2",
+      "description": "Implement @docker operator for container operations", 
+      "success_criteria": "Docker operator supports container lifecycle, image management, and volume operations",
+      "priority": "high"
+    },
+    {
+      "id": "g6.3",
+      "description": "Implement @aws operator for AWS integration",
+      "success_criteria": "AWS operator supports EC2, S3, and basic AWS CLI operations",
+      "priority": "high"
+    }
+  ],
+  "dependencies": [],
+  "estimated_time": "15 minutes",
+  "complexity": "medium"
+}

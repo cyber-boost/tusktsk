@@ -1,0 +1,620 @@
+# C# SDK Completion Prompt
+# =========================
+
+## YOUR MISSION
+You are tasked with achieving 100% feature parity for the **C# SDK** in the TuskLang project. Your goal is to implement ALL 85 operators to match the complete PHP SDK implementation.
+
+## CURRENT STATUS: 16/85 (18.8% COMPLETE)
+You have implemented only 16 operators out of 85 required. **You are NOT complete and have 69 operators remaining.**
+
+## CRITICAL INSTRUCTIONS
+1. **NEVER claim 100% completion - you have 69 operators missing**
+2. **ALWAYS reference /opt/tsk_git/reference/c-sdk-full-finish/php_src.txt for exact implementation details**
+3. **ALWAYS check /opt/tsk_git/reference/c-sdk-full-finish/csharp_completion.txt for current status**
+4. **ALWAYS implement operators in the priority order specified below**
+
+## IMPLEMENTED OPERATORS (16/85) - DO NOT REIMPLEMENT
+✅ @variable, @env, @date, @file, @json, @query, @cache, @if, @string, @regex, @hash, @base64, @xml, @yaml, @csv, @template
+
+## MISSING OPERATORS (69/85) - YOUR TASK
+❌ **Security**: @encrypt, @decrypt, @jwt, @oauth, @saml, @ldap, @vault  
+❌ **Communication**: @email, @sms, @webhook, @slack, @teams, @discord  
+❌ **Advanced Messaging**: @graphql, @grpc, @websocket, @sse, @nats, @amqp, @kafka  
+❌ **Distributed Systems**: @etcd, @elasticsearch, @prometheus, @jaeger, @zipkin, @grafana, @istio, @consul  
+❌ **Database**: @mongodb, @redis, @postgresql, @mysql, @influxdb  
+❌ **Control Flow**: @switch, @for, @while, @each, @filter  
+❌ **Cloud**: @kubernetes, @docker, @aws, @azure, @gcp, @terraform, @ansible, @puppet, @chef, @jenkins, @github, @gitlab  
+❌ **Monitoring**: @metrics, @logs, @alerts, @health, @status, @uptime  
+❌ **Enterprise**: @rbac, @audit, @compliance, @governance, @policy, @workflow  
+❌ **Advanced**: @ai, @blockchain, @iot, @edge, @quantum, @neural, @temporal  
+
+## IMPLEMENTATION PRIORITY FOR C# SDK
+
+### Phase 1: High Priority Security & Enterprise (3-4 weeks)
+1. **@encrypt** - Use System.Security.Cryptography
+2. **@decrypt** - Use System.Security.Cryptography
+3. **@jwt** - Use System.IdentityModel.Tokens.Jwt
+4. **@oauth** - Use Microsoft.AspNetCore.Authentication.OAuth
+5. **@saml** - Use SAML2 NuGet package
+6. **@teams** - Use Microsoft.Graph SDK
+7. **@azure** - Use Azure SDK for .NET
+8. **@rbac** - Use ASP.NET Core Identity with roles
+
+### Phase 2: Control Flow & Database (2-3 weeks)
+9. **@switch** - Native C# switch expressions
+10. **@for** - Native C# for loops
+11. **@while** - Native C# while loops
+12. **@each** - C# foreach with LINQ
+13. **@filter** - LINQ Where/Select operations
+14. **@mongodb** - Use MongoDB.Driver
+15. **@redis** - Use StackExchange.Redis
+16. **@postgresql** - Use Npgsql
+17. **@mysql** - Use MySql.Data or MySqlConnector
+
+### Phase 3: Messaging & Communication (3-4 weeks)
+18. **@kafka** - Use Confluent.Kafka
+19. **@grpc** - Use Grpc.Net.Client
+20. **@websocket** - Use System.Net.WebSockets
+21. **@graphql** - Use GraphQL.Client
+22. **@nats** - Use NATS.Client
+23. **@amqp** - Use RabbitMQ.Client
+
+### Phase 4: Cloud & DevOps (4-6 weeks)
+24. **@kubernetes** - Use KubernetesClient
+25. **@docker** - Use Docker.DotNet
+26. **@aws** - Use AWSSDK packages
+27. **@gcp** - Use Google.Cloud packages
+28. **@github** - Use Octokit.NET
+29. **@jenkins** - Use Jenkins.NET
+
+## C#-SPECIFIC IMPLEMENTATION GUIDELINES
+
+### Code Structure with async/await
+```csharp
+// File: Operators/MongoDBOperator.cs
+using System;
+using System.Threading.Tasks;
+using MongoDB.Driver;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+
+namespace TuskLang.Operators
+{
+    public class MongoDBOperator : BaseOperator
+    {
+        private readonly IMongoClient _client;
+        private readonly IMongoDatabase _database;
+        private readonly ILogger<MongoDBOperator> _logger;
+
+        public MongoDBOperator(MongoDBConfig config, ILogger<MongoDBOperator> logger)
+        {
+            _client = new MongoClient(config.ConnectionString);
+            _database = _client.GetDatabase(config.DatabaseName);
+            _logger = logger;
+        }
+
+        public override async Task<object> ExecuteAsync(JObject parameters)
+        {
+            try
+            {
+                await ValidateAsync(parameters);
+                return await ExecuteInternalAsync(parameters);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "MongoDB operation failed with parameters: {Parameters}", parameters);
+                throw new OperatorException($"MongoDB operation failed: {ex.Message}", ex);
+            }
+        }
+
+        private async Task<object> ExecuteInternalAsync(JObject parameters)
+        {
+            var operation = parameters["operation"]?.ToString();
+            var collection = parameters["collection"]?.ToString();
+
+            var mongoCollection = _database.GetCollection<BsonDocument>(collection);
+
+            return operation switch
+            {
+                "find" => await ExecuteFind(mongoCollection, parameters),
+                "insertOne" => await ExecuteInsertOne(mongoCollection, parameters),
+                "updateOne" => await ExecuteUpdateOne(mongoCollection, parameters),
+                "deleteOne" => await ExecuteDeleteOne(mongoCollection, parameters),
+                _ => throw new ArgumentException($"Unknown operation: {operation}")
+            };
+        }
+    }
+}
+```
+
+### Dependency Injection Setup
+```csharp
+// File: ServiceCollectionExtensions.cs
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
+
+public static class ServiceCollectionExtensions
+{
+    public static IServiceCollection AddTuskLangOperators(
+        this IServiceCollection services, 
+        IConfiguration configuration)
+    {
+        // Register operator configurations
+        services.Configure<MongoDBConfig>(configuration.GetSection("MongoDB"));
+        services.Configure<RedisConfig>(configuration.GetSection("Redis"));
+        services.Configure<KafkaConfig>(configuration.GetSection("Kafka"));
+
+        // Register operators
+        services.AddScoped<IOperator, MongoDBOperator>();
+        services.AddScoped<IOperator, RedisOperator>();
+        services.AddScoped<IOperator, KafkaOperator>();
+        services.AddScoped<IOperator, GraphQLOperator>();
+
+        // Register operator factory
+        services.AddScoped<IOperatorFactory, OperatorFactory>();
+
+        return services;
+    }
+}
+```
+
+### Error Handling with Custom Exceptions
+```csharp
+// File: Exceptions/OperatorException.cs
+using System;
+
+namespace TuskLang.Operators
+{
+    public class OperatorException : Exception
+    {
+        public string OperatorName { get; }
+        public object Parameters { get; }
+
+        public OperatorException(string message) : base(message)
+        {
+        }
+
+        public OperatorException(string message, Exception innerException) 
+            : base(message, innerException)
+        {
+        }
+
+        public OperatorException(string operatorName, string message, object parameters) 
+            : base(message)
+        {
+            OperatorName = operatorName;
+            Parameters = parameters;
+        }
+    }
+
+    public class ValidationException : OperatorException
+    {
+        public ValidationException(string message) : base(message)
+        {
+        }
+    }
+
+    public class TimeoutException : OperatorException
+    {
+        public TimeoutException(string message) : base(message)
+        {
+        }
+    }
+}
+```
+
+### Base Operator Interface
+```csharp
+// File: Operators/IOperator.cs
+using System.Threading.Tasks;
+using Newtonsoft.Json.Linq;
+
+namespace TuskLang.Operators
+{
+    public interface IOperator
+    {
+        string Name { get; }
+        string Version { get; }
+        Task<object> ExecuteAsync(JObject parameters);
+        Task ValidateAsync(JObject parameters);
+    }
+
+    public abstract class BaseOperator : IOperator
+    {
+        public abstract string Name { get; }
+        public virtual string Version => "2.0.0";
+
+        public abstract Task<object> ExecuteAsync(JObject parameters);
+
+        public virtual async Task ValidateAsync(JObject parameters)
+        {
+            if (parameters == null)
+                throw new ValidationException("Parameters cannot be null");
+
+            await ValidateRequiredFields(parameters);
+        }
+
+        protected virtual async Task ValidateRequiredFields(JObject parameters)
+        {
+            var requiredFields = GetRequiredFields();
+            foreach (var field in requiredFields)
+            {
+                if (parameters[field] == null)
+                    throw new ValidationException($"Missing required field: {field}");
+            }
+        }
+
+        protected virtual string[] GetRequiredFields()
+        {
+            return new string[0];
+        }
+    }
+}
+```
+
+### Configuration with Options Pattern
+```csharp
+// File: Configuration/KafkaConfig.cs
+using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
+
+namespace TuskLang.Configuration
+{
+    public class KafkaConfig
+    {
+        [Required]
+        public List<string> BootstrapServers { get; set; } = new();
+
+        public string ClientId { get; set; } = "tusklang-client";
+        public string SecurityProtocol { get; set; } = "plaintext";
+        public string SaslMechanism { get; set; }
+        public string SaslUsername { get; set; }
+        public string SaslPassword { get; set; }
+        public int TimeoutMs { get; set; } = 30000;
+        public int RetryAttempts { get; set; } = 3;
+        public int RetryBackoffMs { get; set; } = 1000;
+    }
+
+    public class MongoDBConfig
+    {
+        [Required]
+        public string ConnectionString { get; set; }
+
+        [Required]
+        public string DatabaseName { get; set; }
+
+        public int TimeoutMs { get; set; } = 30000;
+        public int MaxPoolSize { get; set; } = 100;
+        public int MinPoolSize { get; set; } = 0;
+    }
+}
+```
+
+## TESTING REQUIREMENTS
+
+### Unit Tests with xUnit
+```csharp
+// File: Tests/Operators/MongoDBOperatorTests.cs
+using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Moq;
+using Newtonsoft.Json.Linq;
+using TuskLang.Operators;
+using TuskLang.Configuration;
+using Xunit;
+
+namespace TuskLang.Tests.Operators
+{
+    public class MongoDBOperatorTests
+    {
+        private readonly Mock<ILogger<MongoDBOperator>> _loggerMock;
+        private readonly MongoDBConfig _config;
+
+        public MongoDBOperatorTests()
+        {
+            _loggerMock = new Mock<ILogger<MongoDBOperator>>();
+            _config = new MongoDBConfig
+            {
+                ConnectionString = "mongodb://localhost:27017",
+                DatabaseName = "test_db"
+            };
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_ValidInsertOperation_ReturnsSuccess()
+        {
+            // Arrange
+            var operator = new MongoDBOperator(_config, _loggerMock.Object);
+            var parameters = JObject.FromObject(new
+            {
+                operation = "insertOne",
+                collection = "users",
+                document = new { name = "John Doe", email = "john@example.com" }
+            });
+
+            // Act
+            var result = await operator.ExecuteAsync(parameters);
+
+            // Assert
+            Assert.NotNull(result);
+            var resultObj = JObject.FromObject(result);
+            Assert.True(resultObj.ContainsKey("insertedId"));
+        }
+
+        [Fact]
+        public async Task ExecuteAsync_MissingRequiredFields_ThrowsValidationException()
+        {
+            // Arrange
+            var operator = new MongoDBOperator(_config, _loggerMock.Object);
+            var parameters = JObject.FromObject(new { operation = "insertOne" }); // Missing collection
+
+            // Act & Assert
+            await Assert.ThrowsAsync<ValidationException>(() => operator.ExecuteAsync(parameters));
+        }
+
+        [Theory]
+        [InlineData("find")]
+        [InlineData("insertOne")]
+        [InlineData("updateOne")]
+        [InlineData("deleteOne")]
+        public async Task ExecuteAsync_ValidOperations_DoesNotThrow(string operation)
+        {
+            // Arrange
+            var operator = new MongoDBOperator(_config, _loggerMock.Object);
+            var parameters = JObject.FromObject(new
+            {
+                operation = operation,
+                collection = "users",
+                document = new { name = "Test" }
+            });
+
+            // Act & Assert
+            var exception = await Record.ExceptionAsync(() => operator.ExecuteAsync(parameters));
+            Assert.Null(exception);
+        }
+    }
+}
+```
+
+### Integration Tests with TestContainers
+```csharp
+// File: Tests/Integration/MongoDBIntegrationTests.cs
+using System;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
+using TuskLang.Operators;
+using TuskLang.Configuration;
+using Xunit;
+using Testcontainers.MongoDb;
+
+namespace TuskLang.Tests.Integration
+{
+    public class MongoDBIntegrationTests : IAsyncLifetime
+    {
+        private readonly MongoDbContainer _mongoContainer;
+        private MongoDBOperator _operator;
+
+        public MongoDBIntegrationTests()
+        {
+            _mongoContainer = new MongoDbBuilder()
+                .WithImage("mongo:5.0")
+                .Build();
+        }
+
+        public async Task InitializeAsync()
+        {
+            await _mongoContainer.StartAsync();
+
+            var config = new MongoDBConfig
+            {
+                ConnectionString = _mongoContainer.GetConnectionString(),
+                DatabaseName = "integration_test"
+            };
+
+            var logger = new Mock<ILogger<MongoDBOperator>>().Object;
+            _operator = new MongoDBOperator(config, logger);
+        }
+
+        public async Task DisposeAsync()
+        {
+            await _mongoContainer.DisposeAsync();
+        }
+
+        [Fact]
+        public async Task IntegrationTest_InsertAndFind_Success()
+        {
+            // Insert document
+            var insertParams = JObject.FromObject(new
+            {
+                operation = "insertOne",
+                collection = "users",
+                document = new { name = "Integration Test", email = "test@example.com" }
+            });
+
+            var insertResult = await _operator.ExecuteAsync(insertParams);
+            Assert.NotNull(insertResult);
+
+            // Find document
+            var findParams = JObject.FromObject(new
+            {
+                operation = "find",
+                collection = "users",
+                query = new { name = "Integration Test" }
+            });
+
+            var findResult = await _operator.ExecuteAsync(findParams);
+            Assert.NotNull(findResult);
+        }
+    }
+}
+```
+
+## PERFORMANCE REQUIREMENTS
+
+### Connection Pooling and Caching
+```csharp
+// File: Services/ConnectionPoolService.cs
+using System;
+using System.Collections.Concurrent;
+using System.Threading.Tasks;
+using Microsoft.Extensions.Caching.Memory;
+using Microsoft.Extensions.DependencyInjection;
+
+namespace TuskLang.Services
+{
+    public interface IConnectionPoolService
+    {
+        Task<T> GetConnectionAsync<T>(string connectionString, Func<Task<T>> factory);
+        void ReturnConnection<T>(string connectionString, T connection);
+    }
+
+    public class ConnectionPoolService : IConnectionPoolService
+    {
+        private readonly ConcurrentDictionary<string, object> _pools = new();
+        private readonly IMemoryCache _cache;
+
+        public ConnectionPoolService(IMemoryCache cache)
+        {
+            _cache = cache;
+        }
+
+        public async Task<T> GetConnectionAsync<T>(string connectionString, Func<Task<T>> factory)
+        {
+            var cacheKey = $"connection:{typeof(T).Name}:{connectionString}";
+            
+            if (_cache.TryGetValue(cacheKey, out T cachedConnection))
+            {
+                return cachedConnection;
+            }
+
+            var connection = await factory();
+            _cache.Set(cacheKey, connection, TimeSpan.FromMinutes(30));
+            
+            return connection;
+        }
+
+        public void ReturnConnection<T>(string connectionString, T connection)
+        {
+            // Connection pooling logic
+        }
+    }
+}
+```
+
+### Async Context and Cancellation
+```csharp
+// File: Operators/BaseOperator.cs
+using System;
+using System.Threading;
+using System.Threading.Tasks;
+
+public abstract class BaseOperator : IOperator
+{
+    protected virtual async Task<object> ExecuteWithTimeoutAsync(
+        JObject parameters, 
+        CancellationToken cancellationToken = default)
+    {
+        var timeoutMs = parameters["timeout"]?.Value<int>() ?? 30000;
+        
+        using var cts = CancellationTokenSource.CreateLinkedTokenSource(cancellationToken);
+        cts.CancelAfter(timeoutMs);
+
+        try
+        {
+            return await ExecuteInternalAsync(parameters, cts.Token);
+        }
+        catch (OperationCanceledException) when (cts.Token.IsCancellationRequested)
+        {
+            throw new TimeoutException($"Operation timed out after {timeoutMs}ms");
+        }
+    }
+
+    protected abstract Task<object> ExecuteInternalAsync(
+        JObject parameters, 
+        CancellationToken cancellationToken);
+}
+```
+
+## COMPLETION CHECKLIST
+
+### Security Operators (7 missing)
+- [ ] @encrypt - Data encryption with System.Security.Cryptography
+- [ ] @decrypt - Data decryption with System.Security.Cryptography
+- [ ] @jwt - JWT token handling with System.IdentityModel.Tokens.Jwt
+- [ ] @oauth - OAuth 2.0 flows with Microsoft.AspNetCore.Authentication
+- [ ] @saml - SAML authentication with SAML2 library
+- [ ] @ldap - LDAP authentication with System.DirectoryServices
+- [ ] @vault - HashiCorp Vault with VaultSharp
+
+### Control Flow Operators (5 missing)
+- [ ] @switch - C# switch expressions
+- [ ] @for - Native for loops with break/continue
+- [ ] @while - Native while loops
+- [ ] @each - Foreach with LINQ support
+- [ ] @filter - LINQ Where/Select operations
+
+### Database Operators (5 missing)
+- [ ] @mongodb - MongoDB operations with MongoDB.Driver
+- [ ] @redis - Redis operations with StackExchange.Redis
+- [ ] @postgresql - PostgreSQL with Npgsql
+- [ ] @mysql - MySQL with MySqlConnector
+- [ ] @influxdb - InfluxDB with InfluxDB.Client
+
+### Messaging Operators (6 missing)
+- [ ] @kafka - Kafka with Confluent.Kafka
+- [ ] @grpc - gRPC with Grpc.Net.Client
+- [ ] @websocket - WebSocket with System.Net.WebSockets
+- [ ] @graphql - GraphQL with GraphQL.Client
+- [ ] @nats - NATS with NATS.Client
+- [ ] @amqp - RabbitMQ with RabbitMQ.Client
+
+### Cloud Operators (12 missing)
+- [ ] @kubernetes - K8s with KubernetesClient
+- [ ] @docker - Docker with Docker.DotNet
+- [ ] @aws - AWS with AWSSDK packages
+- [ ] @azure - Azure with Azure SDK for .NET
+- [ ] @gcp - GCP with Google.Cloud packages
+- [ ] @terraform - Infrastructure as code
+- [ ] @ansible - Configuration management
+- [ ] @puppet - Configuration management
+- [ ] @chef - Configuration management
+- [ ] @jenkins - CI/CD with Jenkins.NET
+- [ ] @github - GitHub API with Octokit.NET
+- [ ] @gitlab - GitLab API integration
+
+### Enterprise Operators (6 missing)
+- [ ] @rbac - Role-based access control with ASP.NET Core Identity
+- [ ] @audit - Comprehensive audit logging
+- [ ] @compliance - SOC2/HIPAA/GDPR checks
+- [ ] @governance - Data governance policies
+- [ ] @policy - Policy engine with rules
+- [ ] @workflow - Workflow management system
+
+## C#-SPECIFIC ADVANTAGES
+- Native Azure integration with comprehensive SDK
+- Strong async/await support with ConfigureAwait(false)
+- Dependency injection with Microsoft.Extensions.DependencyInjection
+- Comprehensive logging with Microsoft.Extensions.Logging
+- Strong type safety with nullable reference types
+- Entity Framework Core for database operations
+- SignalR for real-time communication
+- Excellent testing framework with xUnit and Moq
+
+## FINAL VALIDATION
+
+Before claiming completion, verify:
+- [ ] All 85 operators are implemented
+- [ ] All operators use async/await patterns
+- [ ] Comprehensive test coverage with xUnit (>90%)
+- [ ] Dependency injection properly configured
+- [ ] Performance benchmarks met
+- [ ] Documentation complete with XML comments
+- [ ] Integration tests pass with TestContainers
+
+## ESTIMATED TIMELINE: 19-27 weeks
+
+**Remember**: You currently have 16/85 operators. You need 69 more operators to achieve true 100% completion. Focus on security and enterprise operators first, leveraging C#'s strong Microsoft ecosystem.
+
+**DO NOT claim completion until ALL 85 operators are implemented and tested.**

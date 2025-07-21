@@ -1,0 +1,117 @@
+{
+  "goal_id": "g27",
+  "agent_id": "communication_messaging_specialist",
+  "language": "Java",
+  "created_at": "2025-07-21T10:00:00Z",
+  "specialization": "Communication & Messaging Protocols",
+  "priority": "HIGH",
+  "estimated_time": "2-3 weeks",
+  "total_goals": 6,
+  "completion_percentage": 0.0,
+  "goals": [
+    {
+      "id": "g27.1",
+      "description": "gRPC Communication System with real gRPC implementation",
+      "success_criteria": "Full gRPC client/server operations with service discovery and load balancing",
+      "priority": "high",
+      "operators": ["@grpc.call", "@grpc.stream", "@grpc.server", "@grpc.client", "@grpc.health"],
+      "requirements": [
+        "gRPC Java implementation with Netty",
+        "Service discovery integration",
+        "Load balancing and health checking",
+        "Streaming operations (client/server/bidirectional)",
+        "Error handling and retries with exponential backoff"
+      ]
+    },
+    {
+      "id": "g27.2", 
+      "description": "WebSocket Real-time Communication System",
+      "success_criteria": "Complete WebSocket client with connection management and event handling",
+      "priority": "high",
+      "operators": ["@websocket.connect", "@websocket.send", "@websocket.close", "@websocket.listen", "@websocket.broadcast"],
+      "requirements": [
+        "Java-WebSocket client library integration",
+        "Connection lifecycle management with heartbeat",
+        "Message framing and protocol support",
+        "Automatic reconnection with exponential backoff",
+        "Event-driven message handling with callbacks"
+      ]
+    },
+    {
+      "id": "g27.3",
+      "description": "Event Streaming (SSE) System for real-time updates",
+      "success_criteria": "Full SSE client with event parsing and reconnection",
+      "priority": "high", 
+      "operators": ["@sse.connect", "@sse.listen", "@sse.close", "@sse.filter"],
+      "requirements": [
+        "Server-Sent Events client implementation",
+        "Event parsing and type filtering",
+        "Automatic reconnection with retry logic",
+        "Event routing and callback management",
+        "Connection health monitoring and failover"
+      ]
+    },
+    {
+      "id": "g27.4",
+      "description": "Message Queue Integration System (NATS/AMQP)",
+      "success_criteria": "Full messaging operations with clustering and queue groups",
+      "priority": "medium",
+      "operators": ["@nats.publish", "@nats.subscribe", "@nats.request", "@amqp.publish", "@amqp.consume", "@amqp.queue"],
+      "requirements": [
+        "NATS Java client (jnats) integration",
+        "RabbitMQ AMQP client integration",
+        "Publish/Subscribe messaging patterns",
+        "Request/Reply patterns with timeout",
+        "Queue groups and load balancing"
+      ]
+    },
+    {
+      "id": "g27.5",
+      "description": "Apache Kafka Streaming System",
+      "success_criteria": "Full Kafka producer/consumer with partitioning and offset management",
+      "priority": "medium",
+      "operators": ["@kafka.produce", "@kafka.consume", "@kafka.admin", "@kafka.stream", "@kafka.connect"],
+      "requirements": [
+        "Kafka Java client integration",
+        "Producer with custom partitioning strategies",
+        "Consumer groups with offset management", 
+        "Admin operations (topics, partitions, configs)",
+        "Kafka Streams integration for stream processing"
+      ]
+    },
+    {
+      "id": "g27.6",
+      "description": "Workflow Orchestration (Temporal) System",
+      "success_criteria": "Full workflow orchestration with durable execution",
+      "priority": "medium",
+      "operators": ["@temporal.workflow", "@temporal.activity", "@temporal.schedule", "@temporal.signal", "@temporal.query"],
+      "requirements": [
+        "Temporal Java SDK integration",
+        "Workflow definition and execution engine",
+        "Activity implementation with retry policies",
+        "Scheduling and cron-based workflows", 
+        "Signal and query handling for workflow communication"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "files_to_create": [
+    "src/main/java/tusk/operators/GrpcOperator.java",
+    "src/main/java/tusk/operators/WebSocketOperator.java",
+    "src/main/java/tusk/operators/SSEOperator.java",
+    "src/main/java/tusk/operators/MessagingOperators.java",
+    "src/main/java/tusk/operators/KafkaOperator.java",
+    "src/main/java/tusk/operators/TemporalOperator.java",
+    "src/test/java/tusk/operators/CommunicationOperatorsTest.java"
+  ],
+  "external_dependencies": [
+    "io.grpc:grpc-netty-shaded:1.57.2",
+    "io.grpc:grpc-protobuf:1.57.2", 
+    "io.grpc:grpc-stub:1.57.2",
+    "org.java-websocket:Java-WebSocket:1.5.4",
+    "io.nats:jnats:2.16.14",
+    "com.rabbitmq:amqp-client:5.18.0",
+    "org.apache.kafka:kafka-clients:3.5.1",
+    "io.temporal:temporal-sdk:1.20.1"
+  ]
+} 

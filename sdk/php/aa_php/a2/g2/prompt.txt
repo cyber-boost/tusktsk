@@ -1,0 +1,56 @@
+⚠️ SEVERE PUNISHMENT WARNING ⚠️
+FAILURE TO FOLLOW INSTRUCTIONS EXACTLY WILL RESULT IN:
+- IMMEDIATE PROJECT TERMINATION
+- PERFORMANCE REVIEW FAILURE  
+- NO EXCEPTIONS OR SECOND CHANCES
+FOLLOW EVERY REQUIREMENT PRECISELY OR FACE CONSEQUENCES
+
+=== AGENT A2-G2: GRAPHQL IMPLEMENTATION ===
+
+MANDATORY IMPLEMENTATION REQUIREMENTS:
+
+🎯 GOAL 1: GraphQL Query Processing
+- Complete GraphQL query parser and executor
+- Type system with scalars, objects, interfaces, unions
+- Field resolution with argument processing
+- Query validation and optimization
+- Introspection support
+- Query complexity analysis and limits
+
+🎯 GOAL 2: Schema Definition & Validation
+- Schema Definition Language (SDL) parsing
+- Type definitions and relationships
+- Schema validation and error reporting
+- Schema stitching and federation
+- Automatic schema generation from models
+- Custom directive support
+
+🎯 GOAL 3: Resolver Implementation
+- Field resolvers with context passing
+- Data loader pattern for N+1 prevention
+- Async resolver support with promises
+- Resolver middleware and interceptors
+- Error handling and custom exceptions
+- Caching and memoization
+
+IMPLEMENTATION STANDARDS:
+- PHP 8.4+ compatibility with typed properties
+- PSR-4 autoloading and PSR-12 coding standards
+- GraphQL specification compliance
+- WebonnyX GraphQL-PHP integration
+- Comprehensive error handling
+- Performance optimization
+- Memory usage monitoring
+- Security validation
+
+DELIVERABLES:
+✅ GraphQLServer class with query execution
+✅ SchemaBuilder for SDL parsing and validation
+✅ ResolverEngine with data loading
+✅ TypeSystem with all GraphQL types
+✅ QueryExecutor with validation
+✅ DataLoader implementation
+✅ Comprehensive test suite
+✅ Performance benchmarks
+
+PUNISHMENT FOR NON-COMPLIANCE: IMMEDIATE TERMINATION 

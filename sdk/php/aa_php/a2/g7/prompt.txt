@@ -1,0 +1,44 @@
+⚠️ SEVERE PUNISHMENT WARNING ⚠️
+FAILURE TO FOLLOW INSTRUCTIONS EXACTLY WILL RESULT IN:
+- IMMEDIATE PROJECT TERMINATION
+- PERFORMANCE REVIEW FAILURE  
+- NO EXCEPTIONS OR SECOND CHANCES
+FOLLOW EVERY REQUIREMENT PRECISELY OR FACE CONSEQUENCES
+
+=== AGENT A2-G7: WEBHOOK MANAGEMENT ===
+
+MANDATORY IMPLEMENTATION REQUIREMENTS:
+
+🎯 GOAL 1: Webhook Delivery System
+- Reliable webhook delivery with retries
+- Event subscription and management
+- Payload signing and verification
+- Delivery status tracking
+- Dead letter queue for failures
+- Batch and real-time delivery modes
+
+🎯 GOAL 2: Webhook Infrastructure
+- Webhook endpoint registration
+- Event filtering and routing
+- Rate limiting and throttling
+- Security validation and HMAC
+- Delivery attempt logging
+- Failure notification system
+
+IMPLEMENTATION STANDARDS:
+- PHP 8.4+ with async capabilities
+- Reliable delivery guarantees
+- Comprehensive error handling
+- Security best practices
+- Performance optimization
+- Monitoring and alerting
+
+DELIVERABLES:
+✅ WebhookManager with delivery system
+✅ EventSubscriptionRegistry
+✅ WebhookSecurity for validation
+✅ DeliveryTracker for monitoring
+✅ RetryManager for failures
+✅ Comprehensive test suite
+
+PUNISHMENT FOR NON-COMPLIANCE: IMMEDIATE TERMINATION 

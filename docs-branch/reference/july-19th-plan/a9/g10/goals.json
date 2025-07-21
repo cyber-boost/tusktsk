@@ -1,0 +1,29 @@
+{
+  "goal_id": "g10",
+  "agent_id": "a9",
+  "language": "Bash",
+  "created_at": "2025-07-19T18:58:38Z",
+  "goals": [
+    {
+      "id": "g10.1",
+      "description": "Implement @mongodb and @redis operators for NoSQL database operations",
+      "success_criteria": "MongoDB and Redis databases can be connected, queried, and managed via bash",
+      "priority": "high"
+    },
+    {
+      "id": "g10.2",
+      "description": "Implement @postgresql operator for PostgreSQL database operations",
+      "success_criteria": "PostgreSQL database can be connected, queried, and managed with SQL operations",
+      "priority": "high"
+    },
+    {
+      "id": "g10.3",
+      "description": "Implement @mysql operator for MySQL database operations",
+      "success_criteria": "MySQL database can be connected, queried, and managed with SQL operations",
+      "priority": "high"
+    }
+  ],
+  "dependencies": [],
+  "estimated_time": "60 minutes",
+  "complexity": "high"
+}

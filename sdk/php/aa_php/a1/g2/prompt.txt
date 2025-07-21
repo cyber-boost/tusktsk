@@ -1,0 +1,60 @@
+🎯 AGENT A1 - G2: SQLITE & CONNECTION POOLING
+=============================================
+
+⚠️ SEVERE PUNISHMENT WARNING ⚠️
+FAILURE TO FOLLOW INSTRUCTIONS EXACTLY WILL RESULT IN:
+- IMMEDIATE PROJECT TERMINATION
+- PERFORMANCE REVIEW FAILURE  
+- NO EXCEPTIONS OR SECOND CHANCES
+FOLLOW EVERY REQUIREMENT PRECISELY OR FACE CONSEQUENCES
+
+📋 MISSION: SQLite Operations & Advanced Connection Pooling
+AGENT: A1 | GOAL FOLDER: G2 | LANGUAGE: PHP
+LOCATION: reference/todo-july21/php/a1/g2/
+TIMELINE: 2-3 days | PRIORITY: HIGH
+
+🎯 YOUR 3 GOALS:
+
+**GOAL 1: SQLite Operator Enhancement**
+- Implement WAL (Write-Ahead Logging) mode for better concurrency
+- Add database encryption support (SQLCipher integration)
+- Implement backup/restore functionality with compression
+- Add memory database support for testing/caching
+- Optimize concurrent access handling
+
+**GOAL 2: Universal Connection Pool Manager**
+- Create unified connection pooling for all database types
+- Implement intelligent pool sizing based on load
+- Add connection health monitoring and auto-recovery
+- Implement connection lifecycle management
+- Add pool statistics and performance metrics
+
+**GOAL 3: Connection Security & Optimization**
+- Implement connection encryption for all database types
+- Add connection timeout and retry logic
+- Implement connection validation and testing
+- Add connection usage analytics
+- Optimize connection reuse strategies
+
+🔧 TECHNICAL REQUIREMENTS:
+- SQLite 3.35+ with WAL mode
+- Connection pool size: 5-50 connections
+- Health check interval: 30 seconds
+- Connection timeout: 30 seconds
+- Encryption: AES-256 minimum
+- Performance monitoring mandatory
+
+⚠️ MANDATORY DELIVERABLES:
+✅ ideas.json - Future enhancement ideas
+✅ status.json - Progress tracking 
+✅ summary.json - Completion summary
+✅ implementation/ - PHP operator files
+✅ tests/ - 100% test coverage
+✅ docs/ - Complete documentation
+
+🚨 PUNISHMENT FOR NON-COMPLIANCE:
+🚨 Missing files = IMMEDIATE TERMINATION
+🚨 Non-functional code = PROJECT FAILURE
+🚨 Poor test coverage = PERFORMANCE REVIEW FAILURE
+
+💪 EXCELLENCE BRINGS REWARDS - MEDIOCRITY BRINGS PUNISHMENT!

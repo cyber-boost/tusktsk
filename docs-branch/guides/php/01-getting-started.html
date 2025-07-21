@@ -1,0 +1,117 @@
+<h1>Getting Started with TuskLang in PHP</h1>
+
+<h2>Basic TuskLang Configuration</h2>
+<p>TuskLang provides a powerful alternative to JSON and INI files for PHP applications, with database queries, caching, and intelligent configuration management.</p>
+
+<h3>config.tsk</h3>
+<pre>
+# Application configuration
+name: "My PHP App"
+version: "2.0.0"
+environment: env("APP_ENV", "production")
+
+# Server settings
+server {
+    host: env("SERVER_HOST", "localhost")
+    port: env("SERVER_PORT", 8080)
+    workers: 4
+    timeout: 30
+}
+
+# Database configuration
+database {
+    driver: "mysql"
+    host: env("DB_HOST", "localhost")
+    port: env("DB_PORT", 3306)
+    name: env("DB_NAME", "myapp")
+    user: env("DB_USER", "root")
+    password: env("DB_PASSWORD", "")
+    charset: "utf8mb4"
+}
+
+# Redis cache
+cache {
+    host: env("REDIS_HOST", "localhost")
+    port: env("REDIS_PORT", 6379)
+    prefix: "app_cache_"
+}
+</pre>
+
+<h3>PHP Usage</h3>
+<pre>
+&lt;?php
+require_once 'vendor/autoload.php';
+
+use TuskLang\TuskLangEnhanced;
+
+class AppConfig {
+    private TuskLangEnhanced $parser;
+    private array $config;
+    
+    public function __construct(string $configFile = 'config.tsk') {
+        $this->parser = new TuskLangEnhanced();
+        $this->config = $this->parser->parseFile($configFile);
+    }
+    
+    public function get(string $path, $default = null) {
+        return $this->parser->get($path) ?? $default;
+    }
+    
+    public function getDatabaseConfig(): array {
+        return $this->config['database'] ?? [];
+    }
+    
+    public function getCacheConfig(): array {
+        return $this->config['cache'] ?? [];
+    }
+}
+
+// Usage
+$config = new AppConfig();
+$dbHost = $config->get('database.host', 'localhost');
+$appName = $config->get('name');
+</pre>
+
+<h3>Basic Example</h3>
+<pre>
+&lt;?php
+// Load TuskLang configuration
+$parser = new TuskLang\TuskLangEnhanced();
+$config = $parser->parseFile('config.tsk');
+
+// Access configuration values
+echo "App: " . $config['name'] . " v" . $config['version'] . "\n";
+echo "Environment: " . $config['environment'] . "\n";
+echo "Database: " . $config['database']['driver'] . "\n";
+
+// Use in your application
+$pdo = new PDO(
+    sprintf("%s:host=%s;dbname=%s;charset=%s",
+        $config['database']['driver'],
+        $config['database']['host'],
+        $config['database']['name'],
+        $config['database']['charset']
+    ),
+    $config['database']['user'],
+    $config['database']['password']
+);
+</pre>
+
+<h3>Features</h3>
+<ul>
+    <li>Clean, readable syntax - better than JSON or INI files</li>
+    <li>Environment variable support with defaults</li>
+    <li>Database queries directly in config files</li>
+    <li>Intelligent caching with @cache operator</li>
+    <li>Auto-loading of peanut.tsk for universal settings</li>
+    <li>Cross-file references for modular configuration</li>
+    <li>Type safety and validation</li>
+</ul>
+
+<h3>Installation</h3>
+<pre>
+composer require tusklang/tusklang
+</pre>
+
+<h3>Next Steps</h3>
+<p>Learn about installation and setup options in the next section, or explore TuskLang's powerful @ operators for dynamic configuration.</p>

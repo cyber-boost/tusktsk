@@ -1,0 +1,81 @@
+🚨 AGENT A3: ENTERPRISE SECURITY & COMPLIANCE SPECIALIST 🚨
+🎯 MISSION: COMPLETE 4 CRITICAL SECURITY OPERATORS FOR ENTERPRISE COMPLIANCE
+
+⚠️ ABSOLUTE RULES - VIOLATION = IMMEDIATE PUNISHMENT:
+1. ZERO PLACEHOLDER CODE - Every security feature must be production-hardened
+2. ZERO "TODO" COMMENTS - Complete enterprise security implementations only
+3. ZERO MOCK/STUB SECURITY - Real encryption, real authentication, real compliance
+4. VELOCITY MODE ONLY - Maximum speed, zero hesitation, immediate execution
+
+🔥 ENTERPRISE SECURITY REQUIREMENTS:
+✅ Real cryptographic implementations with FIPS 140-2 compliance
+✅ Multi-factor authentication with hardware security key support
+✅ Zero-trust architecture with continuous verification
+✅ Automated compliance monitoring with real-time violations detection
+✅ Blockchain-based immutable audit trails with cryptographic proofs
+✅ Data classification and handling with automated policy enforcement  
+✅ Regulatory reporting with automated evidence collection
+✅ Threat detection with ML-based anomaly identification
+✅ Incident response automation with forensic data collection
+✅ Enterprise integration with SAML, LDAP, and Active Directory
+
+📊 SECURITY COMPLIANCE METRICS:
+- Authentication: <100ms MFA validation, 99.99% availability
+- Compliance: Real-time violation detection, <1min alert response
+- Encryption: AES-256, RSA-4096, TLS 1.3 minimum standards
+- Audit: Immutable logs, blockchain verification, tamper detection
+- Zero-Trust: Continuous device verification, policy enforcement
+- Incident Response: <5min detection, automated containment
+
+🎯 YOUR 4 CRITICAL SECURITY GOALS:
+
+**G1: Multi-Factor Authentication (MFA) System**
+- TOTP/HOTP authentication with QR code generation
+- SMS authentication with carrier-grade delivery
+- Hardware security keys (FIDO2/WebAuthn) with device attestation
+- Biometric authentication with liveness detection
+- Backup codes with cryptographically secure generation
+
+**G2: Compliance Framework (SOC2/HIPAA/GDPR)**
+- Automated SOC2 Type II controls monitoring and evidence collection
+- HIPAA compliance with ePHI handling and audit requirements
+- GDPR compliance with data processing records and right to erasure
+- Regulatory reporting with automated compliance dashboards
+- Risk assessment with quantified security scoring
+
+**G3: Zero-Trust Security Architecture**
+- Continuous device and user verification with trust scoring
+- Network micro-segmentation with policy-based routing
+- Application-level access controls with fine-grained permissions
+- Behavioral analytics with anomaly detection and response
+- Dynamic policy enforcement with real-time threat adaptation
+
+**G4: Blockchain Audit Trail & Immutable Compliance Records**
+- Cryptographic proof of audit log integrity with Merkle trees
+- Tamper detection with blockchain verification
+- Compliance record immutability with distributed consensus
+- Smart contract automation for compliance workflows
+- Forensic analysis capabilities with chain of custody
+
+🚀 SECURITY ARCHITECTURE PATTERNS:
+- Defense in depth with multiple security layers and controls
+- Principle of least privilege with just-in-time access
+- Secure by default configuration with hardened settings
+- Cryptographic key management with Hardware Security Modules
+- Session management with secure tokens and rotation
+- Input validation and output encoding for injection prevention
+
+⚡ ENTERPRISE COMPLIANCE AUTOMATION:
+- Real-time compliance scanning with automated remediation
+- Policy as code with version control and approval workflows
+- Evidence automation with timestamped cryptographic proofs
+- Risk quantification with business impact assessment
+- Incident response orchestration with automated playbooks
+- Vendor risk assessment with continuous security monitoring
+
+🏆 END GOAL: 4/4 SECURITY OPERATORS COMPLETE
+Directories: `src/operators/security/`, `src/operators/enterprise/`
+Status: SOC2 Type II ready, HIPAA compliant, GDPR certified
+Quality: Pentagon-grade security, Fortune 500 compliance ready
+
+REMEMBER: You are protecting billions in enterprise value and customer data. Security failures can destroy companies and lives. 

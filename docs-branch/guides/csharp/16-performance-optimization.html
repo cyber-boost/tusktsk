@@ -1,0 +1,90 @@
+<h1>Performance Optimization with TuskLang in C#</h1>
+
+<h2>Optimizing TuskLang Configuration Loading</h2>
+<p>Performance considerations when using TuskLang in C# applications, including caching, lazy loading, and memory management.</p>
+
+<h3>Cached Configuration Loading</h3>
+<pre>
+public class OptimizedTuskConfig
+{
+    private static readonly object _lock = new object();
+    private static TuskConfig _cachedConfig;
+    private static DateTime _lastModified;
+    private static readonly string _configPath = "config.tsk";
+
+    public static TuskConfig GetConfig()
+    {
+        var fileInfo = new FileInfo(_configPath);
+        
+        if (_cachedConfig == null || fileInfo.LastWriteTime > _lastModified)
+        {
+            lock (_lock)
+            {
+                if (_cachedConfig == null || fileInfo.LastWriteTime > _lastModified)
+                {
+                    _cachedConfig = TuskLangParser.ParseFile(_configPath);
+                    _lastModified = fileInfo.LastWriteTime;
+                }
+            }
+        }
+        
+        return _cachedConfig;
+    }
+}
+</pre>
+
+<h3>Memory-Efficient Parsing</h3>
+<pre>
+public class StreamingTuskParser
+{
+    public static async Task&lt;TuskConfig&gt; ParseAsync(string filePath)
+    {
+        using var reader = new StreamReader(filePath);
+        var config = new TuskConfig();
+        
+        string line;
+        while ((line = await reader.ReadLineAsync()) != null)
+        {
+            ProcessLine(line, config);
+        }
+        
+        return config;
+    }
+    
+    private static void ProcessLine(string line, TuskConfig config)
+    {
+        line = line.Trim();
+        
+        if (string.IsNullOrEmpty(line) || line.StartsWith("#"))
+            return;
+            
+        // Process line efficiently without string allocation
+        var span = line.AsSpan();
+        // ... parsing logic
+    }
+}
+</pre>
+
+<h3>Performance Configuration</h3>
+<pre>
+# performance.tsk
+performance {
+    cache_enabled: true
+    cache_ttl: 300
+    lazy_loading: true
+    
+    parsing {
+        buffer_size: 8192
+        parallel_processing: true
+        max_workers: @optimize("parser_workers", 4)
+    }
+    
+    memory {
+        pool_size: 1000
+        gc_pressure: "low"
+        string_interning: true
+    }
+}
+</pre>
+
+<p>Use caching, streaming, and memory pools to optimize TuskLang performance in high-throughput C# applications.</p>

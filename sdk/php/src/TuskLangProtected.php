@@ -8,7 +8,7 @@
  * Runtime license validation ensures compliance
  */
 
-namespace TuskLang\SDK;
+namespace TuskLang;
 
 class TuskLangProtected
 {

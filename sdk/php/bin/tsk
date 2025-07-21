@@ -1,0 +1,25 @@
+#!/usr/bin/env php
+<?php
+/**
+ * TuskLang CLI - Universal Command Interface for PHP
+ * ====================================================
+ * Strong. Secure. Scalable.
+ * 
+ * This is the main entry point for the TuskLang CLI.
+ * It delegates to the comprehensive CLI implementation in cli/main.php
+ */
+
+// Find the CLI main file
+$cliMain = __DIR__ . '/../cli/main.php';
+
+if (file_exists($cliMain)) {
+    // Include and run the main CLI
+    require_once $cliMain;
+} else {
+    // Fallback to basic CLI if main.php not found
+    echo "TuskLang CLI - Universal Command Interface\n";
+    echo "Strong. Secure. Scalable.\n\n";
+    echo "Error: CLI implementation not found at $cliMain\n";
+    echo "Please ensure the CLI is properly installed.\n";
+    exit(1);
+} 

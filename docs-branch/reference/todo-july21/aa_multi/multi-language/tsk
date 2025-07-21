@@ -1,0 +1,436 @@
+#!/usr/bin/env python3
+"""
+TuskLang Multi-Language SDK Main Entry Point
+Unified CLI for coordinating across all language SDKs
+"""
+
+import sys
+import os
+import json
+from pathlib import Path
+from dataclasses import asdict
+
+# Add the multi-language directory to Python path
+script_dir = Path(__file__).parent
+sys.path.insert(0, str(script_dir))
+
+from tsk_coordinator import MultiLanguageCoordinator
+from config_manager import ConfigManager
+from package_manager import MultiLanguagePackageManager
+from test_runner import MultiLanguageTestRunner
+from test_data_manager import CrossLanguageTestDataManager
+from test_reporter import MultiLanguageTestReporter
+from deployment_orchestrator import MultiLanguageDeploymentOrchestrator
+from deployment_config_manager import DeploymentConfigManager
+from deployment_monitor import DeploymentMonitor
+
+def main():
+    """Main entry point for multi-language TuskLang SDK"""
+    import json
+    if len(sys.argv) < 2:
+        print("TuskLang Multi-Language SDK")
+        print("Usage: tsk <command> [options]")
+        print("\nCommands:")
+        print("  run <language> <command>     - Run command in specific language")
+        print("  run-all <command>            - Run command in all languages")
+        print("  status                       - Show SDK status")
+        print("  list                         - List available languages")
+        print("  config                       - Configuration management")
+        print("  packages                     - Package management")
+        print("  help                         - Show this help")
+        return
+    
+    command = sys.argv[1]
+    
+    if command == "help":
+        print("TuskLang Multi-Language SDK")
+        print("Usage: tsk <command> [options]")
+        print("\nCommands:")
+        print("  run <language> <command>     - Run command in specific language")
+        print("  run-all <command>            - Run command in all languages")
+        print("  status                       - Show SDK status")
+        print("  list                         - List available languages")
+        print("  config                       - Configuration management")
+        print("  packages                     - Package management")
+        print("  help                         - Show this help")
+        return
+    
+    coordinator = MultiLanguageCoordinator()
+    
+    if command == "run":
+        if len(sys.argv) < 4:
+            print("Usage: tsk run <language> <command> [args...]")
+            return
+        
+        language = sys.argv[2]
+        cmd = sys.argv[3]
+        args = sys.argv[4:] if len(sys.argv) > 4 else []
+        
+        result = coordinator.execute_command(language, cmd, args)
+        print(result.get('stdout', ''))
+        if result.get('stderr'):
+            print(result.get('stderr'), file=sys.stderr)
+        
+        if not result.get('success'):
+            sys.exit(1)
+    
+    elif command == "run-all":
+        if len(sys.argv) < 3:
+            print("Usage: tsk run-all <command> [args...]")
+            return
+        
+        cmd = sys.argv[2]
+        args = sys.argv[3:] if len(sys.argv) > 3 else []
+        
+        results = coordinator.execute_all_languages(cmd, args)
+        for language, result in results.items():
+            print(f"\n=== {language.upper()} ===")
+            print(result.get('stdout', ''))
+            if result.get('stderr'):
+                print(result.get('stderr'), file=sys.stderr)
+    
+    elif command == "status":
+        status = coordinator.get_sdk_status()
+        print("TuskLang Multi-Language SDK Status:")
+        for language, info in status.items():
+            status_str = "✓ Available" if info['available'] else "✗ Not Found"
+            print(f"  {language:12} - {status_str}")
+            if info['available']:
+                print(f"    Path: {info['path']}")
+                print(f"    Executable: {info['executable']}")
+    
+    elif command == "list":
+        languages = coordinator.list_available_languages()
+        print("Available languages:")
+        for lang in languages:
+            print(f"  - {lang}")
+    
+    elif command == "config":
+        if len(sys.argv) < 3:
+            print("Configuration Management:")
+            print("  tsk config load              - Load and display current configuration")
+            print("  tsk config validate          - Validate current configuration")
+            print("  tsk config template [lang]   - Generate configuration template")
+            print("  tsk config save <file>       - Save configuration to file")
+            return
+        
+        config_cmd = sys.argv[2]
+        config_manager = ConfigManager(script_dir)
+        
+        if config_cmd == "load":
+            config = config_manager.load_hierarchical_config()
+            import json
+            print(json.dumps(config, indent=2))
+        
+        elif config_cmd == "validate":
+            config = config_manager.load_hierarchical_config()
+            errors = config_manager.validate_config(config)
+            if errors:
+                print("Configuration errors:")
+                for error in errors:
+                    print(f"  - {error}")
+            else:
+                print("Configuration is valid")
+        
+        elif config_cmd == "template":
+            language = sys.argv[3] if len(sys.argv) > 3 else None
+            template = config_manager.generate_config_template(language)
+            print(template)
+        
+        elif config_cmd == "save":
+            if len(sys.argv) < 4:
+                print("Usage: tsk config save <file>")
+                return
+            config = config_manager.load_hierarchical_config()
+            file_path = Path(sys.argv[3])
+            if config_manager.save_config(config, file_path):
+                print(f"Configuration saved to {file_path}")
+            else:
+                print("Failed to save configuration")
+    
+    elif command == "packages":
+        if len(sys.argv) < 3:
+            print("Package Management:")
+            print("  tsk packages install <lang>     - Install dependencies for language")
+            print("  tsk packages install-all        - Install dependencies for all languages")
+            print("  tsk packages list <lang>        - List packages for language")
+            print("  tsk packages update <lang>      - Update packages for language")
+            print("  tsk packages graph <lang>       - Get dependency graph")
+            print("  tsk packages conflicts           - Check for dependency conflicts")
+            return
+        
+        pkg_cmd = sys.argv[2]
+        package_manager = MultiLanguagePackageManager(script_dir)
+        
+        if pkg_cmd == "install":
+            if len(sys.argv) < 4:
+                print("Usage: tsk packages install <language>")
+                return
+            language = sys.argv[3]
+            result = package_manager.install_dependencies(language)
+            import json
+            print(json.dumps(result, indent=2))
+        
+        elif pkg_cmd == "install-all":
+            results = package_manager.install_all_languages()
+            import json
+            print(json.dumps(results, indent=2))
+        
+        elif pkg_cmd == "list":
+            if len(sys.argv) < 4:
+                print("Usage: tsk packages list <language>")
+                return
+            language = sys.argv[3]
+            result = package_manager.list_packages(language)
+            import json
+            print(json.dumps(result, indent=2))
+        
+        elif pkg_cmd == "update":
+            if len(sys.argv) < 4:
+                print("Usage: tsk packages update <language>")
+                return
+            language = sys.argv[3]
+            result = package_manager.update_packages(language)
+            import json
+            print(json.dumps(result, indent=2))
+        
+        elif pkg_cmd == "graph":
+            if len(sys.argv) < 4:
+                print("Usage: tsk packages graph <language>")
+                return
+            language = sys.argv[3]
+            result = package_manager.get_dependency_graph(language)
+            import json
+            print(json.dumps(result, indent=2))
+        
+        elif pkg_cmd == "conflicts":
+            result = package_manager.check_dependency_conflicts()
+            import json
+            print(json.dumps(result, indent=2))
+    
+    elif command == "test":
+        if len(sys.argv) < 3:
+            print("Testing Framework:")
+            print("  tsk test run <lang>             - Run tests for language")
+            print("  tsk test run-all                - Run tests for all languages")
+            print("  tsk test data create <name> <lang> <data> - Create test fixture")
+            print("  tsk test data get <name> <lang> - Get test fixture")
+            print("  tsk test data share <key> <value> <lang> - Share test data")
+            print("  tsk test report generate        - Generate test report")
+            print("  tsk test report analyze         - Analyze cross-language patterns")
+            return
+        
+        test_cmd = sys.argv[2]
+        
+        if test_cmd == "run":
+            if len(sys.argv) < 4:
+                print("Usage: tsk test run <language>")
+                return
+            language = sys.argv[3]
+            test_runner = MultiLanguageTestRunner(script_dir)
+            result = test_runner.run_tests_for_language(language)
+            import json
+            print(json.dumps(asdict(result), indent=2, default=str))
+        
+        elif test_cmd == "run-all":
+            test_runner = MultiLanguageTestRunner(script_dir)
+            results = test_runner.run_all_tests()
+            print(json.dumps({lang: asdict(suite) for lang, suite in results.items()}, indent=2, default=str))
+        
+        elif test_cmd == "data":
+            if len(sys.argv) < 4:
+                print("Usage: tsk test data <command> [args...]")
+                return
+            
+            data_cmd = sys.argv[3]
+            data_manager = CrossLanguageTestDataManager()
+            
+            if data_cmd == "create":
+                if len(sys.argv) < 7:
+                    print("Usage: tsk test data create <name> <language> <data>")
+                    return
+                name, language, data = sys.argv[4], sys.argv[5], sys.argv[6]
+                fixture = data_manager.create_fixture(name, language, data)
+                print(f"Created fixture: {fixture.name} for {fixture.language}")
+            
+            elif data_cmd == "get":
+                if len(sys.argv) < 6:
+                    print("Usage: tsk test data get <name> <language>")
+                    return
+                name, language = sys.argv[4], sys.argv[5]
+                fixture = data_manager.get_fixture(name, language)
+                if fixture:
+                    print(json.dumps(asdict(fixture), indent=2, default=str))
+                else:
+                    print("Fixture not found")
+            
+            elif data_cmd == "share":
+                if len(sys.argv) < 7:
+                    print("Usage: tsk test data share <key> <value> <source_lang>")
+                    return
+                key, value, source_lang = sys.argv[4], sys.argv[5], sys.argv[6]
+                test_data = data_manager.share_data(key, value, source_lang)
+                print(f"Shared data with key: {test_data.key}")
+        
+        elif test_cmd == "report":
+            if len(sys.argv) < 4:
+                print("Usage: tsk test report <command>")
+                return
+            
+            report_cmd = sys.argv[3]
+            reporter = MultiLanguageTestReporter()
+            
+            if report_cmd == "generate":
+                report = reporter.generate_comprehensive_report()
+                print(report)
+            
+            elif report_cmd == "analyze":
+                analysis = reporter.analyze_cross_language_patterns()
+                print(json.dumps({
+                    'language_comparison': {lang: asdict(metrics) for lang, metrics in analysis.language_comparison.items()},
+                    'common_failures': analysis.common_failures,
+                    'recommendations': analysis.recommendations
+                }, indent=2))
+    
+    elif command == "deploy":
+        if len(sys.argv) < 3:
+            print("Deployment Framework:")
+            print("  tsk deploy build <lang>           - Build application for language")
+            print("  tsk deploy package <lang>         - Package application for language")
+            print("  tsk deploy deploy <lang>          - Deploy application for language")
+            print("  tsk deploy build-deploy <lang>    - Build and deploy application")
+            print("  tsk deploy deploy-all             - Deploy all languages")
+            print("  tsk deploy config save-env <file> - Save environment configuration")
+            print("  tsk deploy config get-env <name>  - Get environment configuration")
+            print("  tsk deploy config validate <lang> <env> - Validate deployment config")
+            print("  tsk deploy monitor start <id> <lang> <env> - Start monitoring deployment")
+            print("  tsk deploy monitor status <id>    - Get deployment status")
+            print("  tsk deploy monitor rollback <id>  - Rollback deployment")
+            return
+        
+        deploy_cmd = sys.argv[2]
+        
+        if deploy_cmd == "build":
+            if len(sys.argv) < 4:
+                print("Usage: tsk deploy build <language>")
+                return
+            language = sys.argv[3]
+            orchestrator = MultiLanguageDeploymentOrchestrator(script_dir)
+            result = orchestrator.build_application(language)
+            print(json.dumps(asdict(result), indent=2, default=str))
+        
+        elif deploy_cmd == "package":
+            if len(sys.argv) < 4:
+                print("Usage: tsk deploy package <language>")
+                return
+            language = sys.argv[3]
+            orchestrator = MultiLanguageDeploymentOrchestrator(script_dir)
+            package = orchestrator.package_application(language)
+            print(json.dumps(asdict(package), indent=2, default=str))
+        
+        elif deploy_cmd == "deploy":
+            if len(sys.argv) < 4:
+                print("Usage: tsk deploy deploy <language>")
+                return
+            language = sys.argv[3]
+            environment = sys.argv[4] if len(sys.argv) > 4 else 'production'
+            orchestrator = MultiLanguageDeploymentOrchestrator(script_dir)
+            result = orchestrator.deploy_application(language, target_environment=environment)
+            print(json.dumps(asdict(result), indent=2, default=str))
+        
+        elif deploy_cmd == "build-deploy":
+            if len(sys.argv) < 4:
+                print("Usage: tsk deploy build-deploy <language>")
+                return
+            language = sys.argv[3]
+            environment = sys.argv[4] if len(sys.argv) > 4 else 'production'
+            orchestrator = MultiLanguageDeploymentOrchestrator(script_dir)
+            results = orchestrator.build_and_deploy(language, target_environment=environment)
+            print(json.dumps({stage: asdict(result) for stage, result in results.items()}, indent=2, default=str))
+        
+        elif deploy_cmd == "deploy-all":
+            environment = sys.argv[3] if len(sys.argv) > 3 else 'production'
+            parallel = '--parallel' in sys.argv
+            orchestrator = MultiLanguageDeploymentOrchestrator(script_dir)
+            results = orchestrator.deploy_all_languages(environment, parallel)
+            print(json.dumps({lang: asdict(result) for lang, result in results.items()}, indent=2, default=str))
+        
+        elif deploy_cmd == "config":
+            if len(sys.argv) < 4:
+                print("Usage: tsk deploy config <command> [args...]")
+                return
+            
+            config_cmd = sys.argv[3]
+            config_manager = DeploymentConfigManager()
+            
+            if config_cmd == "save-env":
+                if len(sys.argv) < 5:
+                    print("Usage: tsk deploy config save-env <file>")
+                    return
+                with open(sys.argv[4], 'r') as f:
+                    env_data = json.load(f)
+                from deployment_config_manager import EnvironmentConfig
+                env_config = EnvironmentConfig(**env_data)
+                success = config_manager.save_environment(env_config)
+                print(f"Environment saved: {success}")
+            
+            elif config_cmd == "get-env":
+                if len(sys.argv) < 5:
+                    print("Usage: tsk deploy config get-env <name>")
+                    return
+                env_config = config_manager.get_environment(sys.argv[4])
+                if env_config:
+                    print(json.dumps(asdict(env_config), indent=2))
+                else:
+                    print("Environment not found")
+            
+            elif config_cmd == "validate":
+                if len(sys.argv) < 6:
+                    print("Usage: tsk deploy config validate <language> <environment>")
+                    return
+                language, environment = sys.argv[4], sys.argv[5]
+                validation = config_manager.validate_deployment_config(language, environment)
+                print(json.dumps(asdict(validation), indent=2))
+        
+        elif deploy_cmd == "monitor":
+            if len(sys.argv) < 4:
+                print("Usage: tsk deploy monitor <command> [args...]")
+                return
+            
+            monitor_cmd = sys.argv[3]
+            monitor = DeploymentMonitor()
+            
+            if monitor_cmd == "start":
+                if len(sys.argv) < 7:
+                    print("Usage: tsk deploy monitor start <deployment_id> <language> <environment>")
+                    return
+                deployment_id, language, environment = sys.argv[4], sys.argv[5], sys.argv[6]
+                success = monitor.start_deployment_monitoring(deployment_id, language, environment)
+                print(f"Monitoring started: {success}")
+            
+            elif monitor_cmd == "status":
+                if len(sys.argv) < 5:
+                    print("Usage: tsk deploy monitor status <deployment_id>")
+                    return
+                status = monitor.get_deployment_status(sys.argv[4])
+                if status:
+                    print(json.dumps(asdict(status), indent=2, default=str))
+                else:
+                    print("Deployment not found")
+            
+            elif monitor_cmd == "rollback":
+                if len(sys.argv) < 5:
+                    print("Usage: tsk deploy monitor rollback <deployment_id>")
+                    return
+                deployment_id = sys.argv[4]
+                reason = sys.argv[5] if len(sys.argv) > 5 else "Manual rollback"
+                rollback_info = monitor.rollback_deployment(deployment_id, reason)
+                print(json.dumps(asdict(rollback_info), indent=2, default=str))
+    
+    else:
+        print(f"Unknown command: {command}")
+        print("Use 'tsk help' for usage information")
+        sys.exit(1)
+
+if __name__ == '__main__':
+    main() 

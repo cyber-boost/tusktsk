@@ -1,0 +1,349 @@
+<h1>Collections & Structures</h1>
+
+<h2>Working with Collections in TuskLang PHP</h2>
+<p>TuskLang provides powerful ways to define and manipulate collections and data structures in PHP applications.</p>
+
+<h3>Arrays</h3>
+<pre>
+# Simple arrays
+fruits: ["apple", "banana", "orange"]
+numbers: [1, 2, 3, 4, 5]
+mixed: ["text", 123, true, null]
+
+# Multi-dimensional arrays
+matrix: [
+    [1, 0, 0],
+    [0, 1, 0],
+    [0, 0, 1]
+]
+
+# Array of configurations
+environments: [
+    {name: "dev", url: "http://localhost:3000"},
+    {name: "staging", url: "https://staging.example.com"},
+    {name: "production", url: "https://app.example.com"}
+]
+</pre>
+
+<h3>Objects and Maps</h3>
+<pre>
+# Simple object/map
+user {
+    id: 1
+    name: "John Doe"
+    email: "john@example.com"
+    roles: ["admin", "user"]
+}
+
+# Nested structures
+company {
+    name: "Tech Corp"
+    
+    departments {
+        engineering {
+            head: "Alice"
+            employees: 50
+            teams: ["backend", "frontend", "devops"]
+        }
+        
+        sales {
+            head: "Bob"
+            employees: 30
+            regions: ["north", "south", "east", "west"]
+        }
+    }
+}
+
+# Dynamic keys (processed in PHP)
+permissions {
+    "user:read": true
+    "user:write": false
+    "admin:*": true
+}
+</pre>
+
+<h3>PHP Collection Processing</h3>
+<pre>
+&lt;?php
+use TuskLang\TuskLangEnhanced;
+
+class CollectionProcessor {
+    private TuskLangEnhanced $parser;
+    
+    public function __construct() {
+        $this->parser = new TuskLangEnhanced();
+    }
+    
+    public function processConfig(string $configFile): array {
+        $config = $this->parser->parseFile($configFile);
+        
+        // Array operations
+        $fruits = $config['fruits'] ?? [];
+        $fruitsUpper = array_map('strtoupper', $fruits);
+        
+        // Filtering
+        $numbers = $config['numbers'] ?? [];
+        $evenNumbers = array_filter($numbers, fn($n) => $n % 2 === 0);
+        
+        // Object to array conversion
+        $user = $config['user'] ?? [];
+        $userArray = (array) $user;
+        
+        // Collection manipulation
+        return [
+            'fruit_count' => count($fruits),
+            'even_numbers' => array_values($evenNumbers),
+            'user_keys' => array_keys($userArray),
+            'departments' => $this->flattenDepartments($config['company']['departments'] ?? [])
+        ];
+    }
+    
+    private function flattenDepartments(array $departments): array {
+        $result = [];
+        foreach ($departments as $name => $dept) {
+            $result[] = [
+                'name' => $name,
+                'head' => $dept['head'],
+                'size' => $dept['employees']
+            ];
+        }
+        return $result;
+    }
+}
+</pre>
+
+<h3>Advanced Collection Patterns</h3>
+<pre>
+# Lookup tables
+status_codes {
+    200: "OK"
+    201: "Created"
+    400: "Bad Request"
+    401: "Unauthorized"
+    404: "Not Found"
+    500: "Internal Server Error"
+}
+
+# Configuration matrix
+feature_flags {
+    development {
+        new_ui: true
+        analytics: false
+        debug_mode: true
+    }
+    
+    production {
+        new_ui: false
+        analytics: true
+        debug_mode: false
+    }
+}
+
+# Hierarchical data
+menu_structure: [
+    {
+        title: "Dashboard"
+        icon: "home"
+        path: "/dashboard"
+    },
+    {
+        title: "Users"
+        icon: "users"
+        path: "/users"
+        children: [
+            {title: "List", path: "/users/list"},
+            {title: "Create", path: "/users/create"}
+        ]
+    }
+]
+</pre>
+
+<h3>Laravel Collection Integration</h3>
+<pre>
+&lt;?php
+use Illuminate\Support\Collection;
+use TuskLang\TuskLangEnhanced;
+
+class TuskLangCollectionService {
+    private TuskLangEnhanced $parser;
+    
+    public function getMenuCollection(): Collection {
+        $config = $this->parser->parseFile('menu.tsk');
+        
+        return collect($config['menu_structure'])
+            ->map(function ($item) {
+                return [
+                    'title' => $item['title'],
+                    'path' => $item['path'],
+                    'children' => collect($item['children'] ?? [])
+                ];
+            })
+            ->filter(function ($item) {
+                // Filter based on user permissions
+                return auth()->user()->can('view', $item['path']);
+            });
+    }
+    
+    public function getFeatureFlags(string $environment): Collection {
+        $config = $this->parser->parseFile('features.tsk');
+        
+        return collect($config['feature_flags'][$environment] ?? [])
+            ->filter(function ($enabled) {
+                return $enabled === true;
+            })
+            ->keys();
+    }
+}
+</pre>
+
+<h3>Database Result Mapping</h3>
+<pre>
+# Query results configuration
+queries {
+    user_stats: @query("SELECT role, COUNT(*) as count FROM users GROUP BY role")
+    
+    # Transform results
+    role_distribution: array_column(user_stats, 'count', 'role')
+    
+    # Aggregate data
+    total_users: array_sum(array_column(user_stats, 'count'))
+}
+
+# Model relationships
+models {
+    user {
+        table: "users"
+        
+        relations {
+            posts: {
+                type: "hasMany"
+                model: "Post"
+                foreign_key: "user_id"
+            }
+            
+            profile: {
+                type: "hasOne"
+                model: "Profile"
+                foreign_key: "user_id"
+            }
+            
+            roles: {
+                type: "belongsToMany"
+                model: "Role"
+                pivot_table: "user_roles"
+            }
+        }
+    }
+}
+</pre>
+
+<h3>Collection Utilities</h3>
+<pre>
+&lt;?php
+class TuskLangCollectionUtils {
+    /**
+     * Dot notation access for nested collections
+     */
+    public static function get(array $collection, string $path, $default = null) {
+        $keys = explode('.', $path);
+        $value = $collection;
+        
+        foreach ($keys as $key) {
+            if (!is_array($value) || !isset($value[$key])) {
+                return $default;
+            }
+            $value = $value[$key];
+        }
+        
+        return $value;
+    }
+    
+    /**
+     * Set value using dot notation
+     */
+    public static function set(array &$collection, string $path, $value): void {
+        $keys = explode('.', $path);
+        $current = &$collection;
+        
+        foreach ($keys as $i => $key) {
+            if ($i === count($keys) - 1) {
+                $current[$key] = $value;
+            } else {
+                if (!isset($current[$key]) || !is_array($current[$key])) {
+                    $current[$key] = [];
+                }
+                $current = &$current[$key];
+            }
+        }
+    }
+    
+    /**
+     * Flatten nested collection
+     */
+    public static function flatten(array $collection, string $prefix = ''): array {
+        $result = [];
+        
+        foreach ($collection as $key => $value) {
+            $newKey = $prefix ? "$prefix.$key" : $key;
+            
+            if (is_array($value) && !isset($value[0])) {
+                // Associative array - recurse
+                $result = array_merge($result, self::flatten($value, $newKey));
+            } else {
+                $result[$newKey] = $value;
+            }
+        }
+        
+        return $result;
+    }
+}
+
+// Usage examples
+$config = $parser->parseFile('config.tsk');
+
+// Dot notation access
+$dbHost = TuskLangCollectionUtils::get($config, 'database.host', 'localhost');
+$menuTitle = TuskLangCollectionUtils::get($config, 'menu_structure.0.title');
+
+// Set nested value
+TuskLangCollectionUtils::set($config, 'cache.redis.ttl', 3600);
+
+// Flatten for easy access
+$flat = TuskLangCollectionUtils::flatten($config);
+// Results in: ['database.host' => 'localhost', 'database.port' => 3306, ...]
+</pre>
+
+<h3>Performance Considerations</h3>
+<pre>
+# Lazy loading configuration
+large_dataset {
+    # Load only when accessed
+    items: @lazy("SELECT * FROM large_table")
+    
+    # Paginated results
+    paginated: @query("SELECT * FROM items LIMIT 100 OFFSET 0")
+    
+    # Cached collections
+    categories: @cache("1h", @query("SELECT * FROM categories"))
+}
+
+# Memory-efficient structures
+streaming_config {
+    # Process in chunks
+    chunk_size: 1000
+    
+    # Generator-based processing
+    process_type: "stream"
+}
+</pre>
+
+<h3>Best Practices</h3>
+<ul>
+    <li>Use appropriate data structures for your use case</li>
+    <li>Keep collections immutable when possible</li>
+    <li>Leverage PHP's array functions for transformations</li>
+    <li>Use Laravel Collections for complex operations</li>
+    <li>Consider memory usage for large datasets</li>
+    <li>Cache processed collections when appropriate</li>
+    <li>Use type hints and validation for collection data</li>
+</ul>

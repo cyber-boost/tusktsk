@@ -1,0 +1,1235 @@
+<h1>Operations and Computations with TuskLang in Rust</h1>
+
+<h2>Mathematical and Logical Operations</h2>
+<p>TuskLang provides comprehensive mathematical and logical operations that integrate seamlessly with Rust's powerful type system and computational libraries for high-performance configuration processing.</p>
+
+<h3>Basic Mathematical Operations</h3>
+<pre>
+# operations-computations.tsk
+# Basic arithmetic operations
+math_config {
+    # Simple calculations
+    basic_operations: {
+        addition: add(10, 5)          # 15
+        subtraction: sub(20, 8)       # 12
+        multiplication: mul(7, 6)     # 42
+        division: div(100, 4)         # 25
+        modulo: mod(17, 5)           # 2
+        power: pow(2, 8)             # 256
+    }
+    
+    # Floating point operations
+    float_operations: {
+        precise_division: fdiv(22, 7)    # 3.142857...
+        square_root: sqrt(64)            # 8.0
+        cube_root: cbrt(27)              # 3.0
+        absolute_value: abs(-42.5)       # 42.5
+        ceiling: ceil(3.14)              # 4
+        floor: floor(3.99)               # 3
+        round: round(3.7)                # 4
+        truncate: trunc(3.99)            # 3
+    }
+    
+    # Advanced mathematical functions
+    advanced_math: {
+        sine: sin(rad(90))               # 1.0 (90 degrees to radians)
+        cosine: cos(rad(0))              # 1.0
+        tangent: tan(rad(45))            # 1.0
+        natural_log: ln(e())             # 1.0
+        log_base_10: log10(1000)         # 3.0
+        exponential: exp(1)              # e (2.718...)
+    }
+    
+    # Constants
+    constants: {
+        pi: pi()                         # 3.14159...
+        e: e()                          # 2.71828...
+        golden_ratio: phi()             # 1.61803...
+        sqrt_2: sqrt(2)                 # 1.41421...
+    }
+}
+
+# System resource calculations
+resource_calculations {
+    cpu_count: cpu_count()
+    total_memory: memory_total()
+    
+    # Calculate optimal settings based on resources
+    performance_config: {
+        # Thread pool size: 2 * CPU cores, capped at 32
+        thread_pool_size: min(mul(cpu_count, 2), 32)
+        
+        # Worker threads: CPU cores - 1, minimum 1
+        worker_threads: max(sub(cpu_count, 1), 1)
+        
+        # Memory allocation: 60% of total memory
+        heap_size_bytes: mul(total_memory, 0.6)
+        heap_size_mb: div(heap_size_bytes, 1048576)  # Convert to MB
+        
+        # Buffer sizes based on memory
+        buffer_size: if(gt(total_memory, 8000000000),  # > 8GB
+            65536,      # 64KB buffers
+            32768)      # 32KB buffers
+        
+        # Connection pool sizing
+        db_pool_size: if(gt(cpu_count, 8),
+            add(cpu_count, 10),    # CPU count + 10 for high-end systems
+            add(cpu_count, 5))     # CPU count + 5 for lower-end systems
+    }
+    
+    # Load balancing calculations
+    load_balancing: {
+        current_load: cpu_usage()
+        memory_pressure: memory_usage()
+        
+        # Calculate load factor (0.0 to 1.0)
+        load_factor: div(add(current_load, memory_pressure), 200)
+        
+        # Adjust replica count based on load
+        target_replicas: if(gt(load_factor, 0.8),
+            mul(cpu_count, 2),      # Scale up under high load
+            if(gt(load_factor, 0.5),
+                cpu_count,          # Normal scaling
+                max(div(cpu_count, 2), 2)))  # Scale down under low load
+        
+        # Request routing weights
+        routing_weights: {
+            primary: if(lt(load_factor, 0.7), 0.8, 0.6)
+            secondary: if(lt(load_factor, 0.7), 0.2, 0.4)
+        }
+    }
+}
+
+# Time-based calculations
+time_calculations {
+    current_time: now()
+    start_of_day: start_of_day(current_time)
+    end_of_day: end_of_day(current_time)
+    
+    # Calculate durations and intervals
+    durations: {
+        uptime_seconds: sub(unix_time(), env_int("START_TIME", unix_time()))
+        uptime_minutes: div(uptime_seconds, 60)
+        uptime_hours: div(uptime_minutes, 60)
+        uptime_days: div(uptime_hours, 24)
+        
+        # Cache TTL based on time of day
+        cache_ttl: if(between(hour(current_time), 9, 17),
+            300,   # 5 minutes during business hours
+            1800)  # 30 minutes outside business hours
+        
+        # Backup schedule calculation
+        next_backup: add(current_time, 
+            if(eq(day_of_week(current_time), 0),  # Sunday
+                parse_duration("6h"),   # Next backup in 6 hours
+                parse_duration("24h"))) # Daily backup
+    }
+    
+    # Rate limiting calculations
+    rate_limiting: {
+        requests_per_hour: 1000
+        requests_per_minute: div(requests_per_hour, 60)
+        requests_per_second: div(requests_per_minute, 60)
+        
+        # Sliding window calculations
+        window_size_seconds: 3600  # 1 hour
+        bucket_count: 60           # 1-minute buckets
+        bucket_size_seconds: div(window_size_seconds, bucket_count)
+        
+        # Burst allowance
+        burst_multiplier: 1.5
+        burst_limit: mul(requests_per_minute, burst_multiplier)
+    }
+}
+</pre>
+
+<h3>Rust Mathematical Operations Implementation</h3>
+<pre>
+use std::collections::HashMap;
+use std::f64::consts::{PI, E};
+use anyhow::Result;
+use serde_json::{Value, Number};
+
+// Mathematical operations engine
+#[derive(Debug)]
+pub struct MathEngine {
+    functions: HashMap<String, Box<dyn MathFunction>>,
+    constants: HashMap<String, f64>,
+}
+
+impl MathEngine {
+    pub fn new() -> Self {
+        let mut engine = MathEngine {
+            functions: HashMap::new(),
+            constants: HashMap::new(),
+        };
+        
+        // Register basic arithmetic functions
+        engine.register_function("add", Box::new(AddFunction));
+        engine.register_function("sub", Box::new(SubFunction));
+        engine.register_function("mul", Box::new(MulFunction));
+        engine.register_function("div", Box::new(DivFunction));
+        engine.register_function("mod", Box::new(ModFunction));
+        engine.register_function("pow", Box::new(PowFunction));
+        
+        // Register floating point functions
+        engine.register_function("fdiv", Box::new(FloatDivFunction));
+        engine.register_function("sqrt", Box::new(SqrtFunction));
+        engine.register_function("cbrt", Box::new(CbrtFunction));
+        engine.register_function("abs", Box::new(AbsFunction));
+        engine.register_function("ceil", Box::new(CeilFunction));
+        engine.register_function("floor", Box::new(FloorFunction));
+        engine.register_function("round", Box::new(RoundFunction));
+        engine.register_function("trunc", Box::new(TruncFunction));
+        
+        // Register trigonometric functions
+        engine.register_function("sin", Box::new(SinFunction));
+        engine.register_function("cos", Box::new(CosFunction));
+        engine.register_function("tan", Box::new(TanFunction));
+        engine.register_function("asin", Box::new(AsinFunction));
+        engine.register_function("acos", Box::new(AcosFunction));
+        engine.register_function("atan", Box::new(AtanFunction));
+        engine.register_function("rad", Box::new(RadFunction));
+        engine.register_function("deg", Box::new(DegFunction));
+        
+        // Register logarithmic functions
+        engine.register_function("ln", Box::new(LnFunction));
+        engine.register_function("log10", Box::new(Log10Function));
+        engine.register_function("log", Box::new(LogFunction));
+        engine.register_function("exp", Box::new(ExpFunction));
+        
+        // Register comparison functions
+        engine.register_function("min", Box::new(MinFunction));
+        engine.register_function("max", Box::new(MaxFunction));
+        engine.register_function("clamp", Box::new(ClampFunction));
+        engine.register_function("between", Box::new(BetweenFunction));
+        
+        // Register logical functions
+        engine.register_function("eq", Box::new(EqFunction));
+        engine.register_function("ne", Box::new(NeFunction));
+        engine.register_function("lt", Box::new(LtFunction));
+        engine.register_function("le", Box::new(LeFunction));
+        engine.register_function("gt", Box::new(GtFunction));
+        engine.register_function("ge", Box::new(GeFunction));
+        
+        // Register constants
+        engine.register_constant("pi", PI);
+        engine.register_constant("e", E);
+        engine.register_constant("phi", (1.0 + 5.0_f64.sqrt()) / 2.0); // Golden ratio
+        engine.register_constant("sqrt2", 2.0_f64.sqrt());
+        engine.register_constant("ln2", 2.0_f64.ln());
+        engine.register_constant("ln10", 10.0_f64.ln());
+        
+        engine
+    }
+    
+    pub fn register_function(&mut self, name: &str, function: Box<dyn MathFunction>) {
+        self.functions.insert(name.to_string(), function);
+    }
+    
+    pub fn register_constant(&mut self, name: &str, value: f64) {
+        self.constants.insert(name.to_string(), value);
+    }
+    
+    pub fn evaluate(&self, expression: &str) -> Result<Value> {
+        if let Some(&constant_value) = self.constants.get(expression) {
+            return Ok(Value::Number(Number::from_f64(constant_value).unwrap()));
+        }
+        
+        // Parse function call
+        if let Some((func_name, args)) = self.parse_function_call(expression)? {
+            if let Some(function) = self.functions.get(&func_name) {
+                let arg_values = args.iter()
+                    .map(|arg| self.evaluate(arg))
+                    .collect::<Result<Vec<_>>>()?;
+                
+                function.call(&arg_values)
+            } else {
+                anyhow::bail!("Unknown function: {}", func_name);
+            }
+        } else {
+            // Parse as literal value
+            self.parse_literal(expression)
+        }
+    }
+    
+    fn parse_function_call(&self, expression: &str) -> Result<Option<(String, Vec<String>)>> {
+        let expression = expression.trim();
+        
+        if let Some(open_paren) = expression.find('(') {
+            if expression.ends_with(')') {
+                let func_name = expression[..open_paren].trim().to_string();
+                let args_str = &expression[open_paren + 1..expression.len() - 1];
+                
+                let args = if args_str.trim().is_empty() {
+                    Vec::new()
+                } else {
+                    self.parse_function_args(args_str)?
+                };
+                
+                return Ok(Some((func_name, args)));
+            }
+        }
+        
+        Ok(None)
+    }
+    
+    fn parse_function_args(&self, args_str: &str) -> Result<Vec<String>> {
+        let mut args = Vec::new();
+        let mut current_arg = String::new();
+        let mut paren_depth = 0;
+        let mut in_quotes = false;
+        
+        for ch in args_str.chars() {
+            match ch {
+                '"' => {
+                    in_quotes = !in_quotes;
+                    current_arg.push(ch);
+                }
+                '(' if !in_quotes => {
+                    paren_depth += 1;
+                    current_arg.push(ch);
+                }
+                ')' if !in_quotes => {
+                    paren_depth -= 1;
+                    current_arg.push(ch);
+                }
+                ',' if !in_quotes && paren_depth == 0 => {
+                    args.push(current_arg.trim().to_string());
+                    current_arg.clear();
+                }
+                _ => {
+                    current_arg.push(ch);
+                }
+            }
+        }
+        
+        if !current_arg.trim().is_empty() {
+            args.push(current_arg.trim().to_string());
+        }
+        
+        Ok(args)
+    }
+    
+    fn parse_literal(&self, literal: &str) -> Result<Value> {
+        let literal = literal.trim();
+        
+        // String literal
+        if literal.starts_with('"') && literal.ends_with('"') {
+            let content = &literal[1..literal.len() - 1];
+            return Ok(Value::String(content.to_string()));
+        }
+        
+        // Boolean literal
+        if literal == "true" {
+            return Ok(Value::Bool(true));
+        }
+        if literal == "false" {
+            return Ok(Value::Bool(false));
+        }
+        
+        // Numeric literal
+        if let Ok(int_val) = literal.parse::<i64>() {
+            return Ok(Value::Number(Number::from(int_val)));
+        }
+        
+        if let Ok(float_val) = literal.parse::<f64>() {
+            return Ok(Value::Number(Number::from_f64(float_val).unwrap()));
+        }
+        
+        anyhow::bail!("Cannot parse literal: {}", literal);
+    }
+}
+
+// Trait for mathematical functions
+trait MathFunction: Send + Sync {
+    fn call(&self, args: &[Value]) -> Result<Value>;
+}
+
+// Helper function to extract number from Value
+fn extract_number(value: &Value) -> Result<f64> {
+    match value {
+        Value::Number(n) => n.as_f64().ok_or_else(|| anyhow::anyhow!("Invalid number")),
+        _ => anyhow::bail!("Expected number, got {:?}", value),
+    }
+}
+
+// Helper function to create number Value
+fn create_number(value: f64) -> Value {
+    Value::Number(Number::from_f64(value).unwrap_or(Number::from(0)))
+}
+
+// Basic arithmetic functions
+#[derive(Debug)]
+struct AddFunction;
+
+impl MathFunction for AddFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 2 {
+            anyhow::bail!("add() requires exactly 2 arguments");
+        }
+        
+        let a = extract_number(&args[0])?;
+        let b = extract_number(&args[1])?;
+        Ok(create_number(a + b))
+    }
+}
+
+#[derive(Debug)]
+struct SubFunction;
+
+impl MathFunction for SubFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 2 {
+            anyhow::bail!("sub() requires exactly 2 arguments");
+        }
+        
+        let a = extract_number(&args[0])?;
+        let b = extract_number(&args[1])?;
+        Ok(create_number(a - b))
+    }
+}
+
+#[derive(Debug)]
+struct MulFunction;
+
+impl MathFunction for MulFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 2 {
+            anyhow::bail!("mul() requires exactly 2 arguments");
+        }
+        
+        let a = extract_number(&args[0])?;
+        let b = extract_number(&args[1])?;
+        Ok(create_number(a * b))
+    }
+}
+
+#[derive(Debug)]
+struct DivFunction;
+
+impl MathFunction for DivFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 2 {
+            anyhow::bail!("div() requires exactly 2 arguments");
+        }
+        
+        let a = extract_number(&args[0])?;
+        let b = extract_number(&args[1])?;
+        
+        if b == 0.0 {
+            anyhow::bail!("Division by zero");
+        }
+        
+        // Integer division if both operands are integers
+        if a.fract() == 0.0 && b.fract() == 0.0 {
+            Ok(create_number((a as i64 / b as i64) as f64))
+        } else {
+            Ok(create_number(a / b))
+        }
+    }
+}
+
+#[derive(Debug)]
+struct FloatDivFunction;
+
+impl MathFunction for FloatDivFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 2 {
+            anyhow::bail!("fdiv() requires exactly 2 arguments");
+        }
+        
+        let a = extract_number(&args[0])?;
+        let b = extract_number(&args[1])?;
+        
+        if b == 0.0 {
+            anyhow::bail!("Division by zero");
+        }
+        
+        Ok(create_number(a / b))
+    }
+}
+
+#[derive(Debug)]
+struct ModFunction;
+
+impl MathFunction for ModFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 2 {
+            anyhow::bail!("mod() requires exactly 2 arguments");
+        }
+        
+        let a = extract_number(&args[0])?;
+        let b = extract_number(&args[1])?;
+        
+        if b == 0.0 {
+            anyhow::bail!("Modulo by zero");
+        }
+        
+        Ok(create_number(a % b))
+    }
+}
+
+#[derive(Debug)]
+struct PowFunction;
+
+impl MathFunction for PowFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 2 {
+            anyhow::bail!("pow() requires exactly 2 arguments");
+        }
+        
+        let base = extract_number(&args[0])?;
+        let exponent = extract_number(&args[1])?;
+        Ok(create_number(base.powf(exponent)))
+    }
+}
+
+// Floating point functions
+#[derive(Debug)]
+struct SqrtFunction;
+
+impl MathFunction for SqrtFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("sqrt() requires exactly 1 argument");
+        }
+        
+        let x = extract_number(&args[0])?;
+        if x < 0.0 {
+            anyhow::bail!("Square root of negative number");
+        }
+        
+        Ok(create_number(x.sqrt()))
+    }
+}
+
+#[derive(Debug)]
+struct CbrtFunction;
+
+impl MathFunction for CbrtFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("cbrt() requires exactly 1 argument");
+        }
+        
+        let x = extract_number(&args[0])?;
+        Ok(create_number(x.cbrt()))
+    }
+}
+
+#[derive(Debug)]
+struct AbsFunction;
+
+impl MathFunction for AbsFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("abs() requires exactly 1 argument");
+        }
+        
+        let x = extract_number(&args[0])?;
+        Ok(create_number(x.abs()))
+    }
+}
+
+#[derive(Debug)]
+struct CeilFunction;
+
+impl MathFunction for CeilFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("ceil() requires exactly 1 argument");
+        }
+        
+        let x = extract_number(&args[0])?;
+        Ok(create_number(x.ceil()))
+    }
+}
+
+#[derive(Debug)]
+struct FloorFunction;
+
+impl MathFunction for FloorFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("floor() requires exactly 1 argument");
+        }
+        
+        let x = extract_number(&args[0])?;
+        Ok(create_number(x.floor()))
+    }
+}
+
+#[derive(Debug)]
+struct RoundFunction;
+
+impl MathFunction for RoundFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("round() requires exactly 1 argument");
+        }
+        
+        let x = extract_number(&args[0])?;
+        Ok(create_number(x.round()))
+    }
+}
+
+// Trigonometric functions
+#[derive(Debug)]
+struct SinFunction;
+
+impl MathFunction for SinFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("sin() requires exactly 1 argument");
+        }
+        
+        let x = extract_number(&args[0])?;
+        Ok(create_number(x.sin()))
+    }
+}
+
+#[derive(Debug)]
+struct CosFunction;
+
+impl MathFunction for CosFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("cos() requires exactly 1 argument");
+        }
+        
+        let x = extract_number(&args[0])?;
+        Ok(create_number(x.cos()))
+    }
+}
+
+#[derive(Debug)]
+struct TanFunction;
+
+impl MathFunction for TanFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("tan() requires exactly 1 argument");
+        }
+        
+        let x = extract_number(&args[0])?;
+        Ok(create_number(x.tan()))
+    }
+}
+
+#[derive(Debug)]
+struct RadFunction;
+
+impl MathFunction for RadFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("rad() requires exactly 1 argument");
+        }
+        
+        let degrees = extract_number(&args[0])?;
+        Ok(create_number(degrees.to_radians()))
+    }
+}
+
+#[derive(Debug)]
+struct DegFunction;
+
+impl MathFunction for DegFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("deg() requires exactly 1 argument");
+        }
+        
+        let radians = extract_number(&args[0])?;
+        Ok(create_number(radians.to_degrees()))
+    }
+}
+
+// Logarithmic functions
+#[derive(Debug)]
+struct LnFunction;
+
+impl MathFunction for LnFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("ln() requires exactly 1 argument");
+        }
+        
+        let x = extract_number(&args[0])?;
+        if x <= 0.0 {
+            anyhow::bail!("Natural logarithm of non-positive number");
+        }
+        
+        Ok(create_number(x.ln()))
+    }
+}
+
+#[derive(Debug)]
+struct Log10Function;
+
+impl MathFunction for Log10Function {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("log10() requires exactly 1 argument");
+        }
+        
+        let x = extract_number(&args[0])?;
+        if x <= 0.0 {
+            anyhow::bail!("Logarithm of non-positive number");
+        }
+        
+        Ok(create_number(x.log10()))
+    }
+}
+
+#[derive(Debug)]
+struct ExpFunction;
+
+impl MathFunction for ExpFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("exp() requires exactly 1 argument");
+        }
+        
+        let x = extract_number(&args[0])?;
+        Ok(create_number(x.exp()))
+    }
+}
+
+// Comparison and logical functions
+#[derive(Debug)]
+struct MinFunction;
+
+impl MathFunction for MinFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() < 2 {
+            anyhow::bail!("min() requires at least 2 arguments");
+        }
+        
+        let mut min_val = extract_number(&args[0])?;
+        for arg in &args[1..] {
+            let val = extract_number(arg)?;
+            if val < min_val {
+                min_val = val;
+            }
+        }
+        
+        Ok(create_number(min_val))
+    }
+}
+
+#[derive(Debug)]
+struct MaxFunction;
+
+impl MathFunction for MaxFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() < 2 {
+            anyhow::bail!("max() requires at least 2 arguments");
+        }
+        
+        let mut max_val = extract_number(&args[0])?;
+        for arg in &args[1..] {
+            let val = extract_number(arg)?;
+            if val > max_val {
+                max_val = val;
+            }
+        }
+        
+        Ok(create_number(max_val))
+    }
+}
+
+#[derive(Debug)]
+struct ClampFunction;
+
+impl MathFunction for ClampFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 3 {
+            anyhow::bail!("clamp() requires exactly 3 arguments: value, min, max");
+        }
+        
+        let value = extract_number(&args[0])?;
+        let min_val = extract_number(&args[1])?;
+        let max_val = extract_number(&args[2])?;
+        
+        if min_val > max_val {
+            anyhow::bail!("Min value cannot be greater than max value");
+        }
+        
+        Ok(create_number(value.clamp(min_val, max_val)))
+    }
+}
+
+#[derive(Debug)]
+struct BetweenFunction;
+
+impl MathFunction for BetweenFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 3 {
+            anyhow::bail!("between() requires exactly 3 arguments: value, min, max");
+        }
+        
+        let value = extract_number(&args[0])?;
+        let min_val = extract_number(&args[1])?;
+        let max_val = extract_number(&args[2])?;
+        
+        Ok(Value::Bool(value >= min_val && value <= max_val))
+    }
+}
+
+// Comparison functions
+#[derive(Debug)]
+struct EqFunction;
+
+impl MathFunction for EqFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 2 {
+            anyhow::bail!("eq() requires exactly 2 arguments");
+        }
+        
+        Ok(Value::Bool(args[0] == args[1]))
+    }
+}
+
+#[derive(Debug)]
+struct LtFunction;
+
+impl MathFunction for LtFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 2 {
+            anyhow::bail!("lt() requires exactly 2 arguments");
+        }
+        
+        let a = extract_number(&args[0])?;
+        let b = extract_number(&args[1])?;
+        Ok(Value::Bool(a < b))
+    }
+}
+
+#[derive(Debug)]
+struct GtFunction;
+
+impl MathFunction for GtFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 2 {
+            anyhow::bail!("gt() requires exactly 2 arguments");
+        }
+        
+        let a = extract_number(&args[0])?;
+        let b = extract_number(&args[1])?;
+        Ok(Value::Bool(a > b))
+    }
+}
+
+#[derive(Debug)]
+struct LeFunction;
+
+impl MathFunction for LeFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 2 {
+            anyhow::bail!("le() requires exactly 2 arguments");
+        }
+        
+        let a = extract_number(&args[0])?;
+        let b = extract_number(&args[1])?;
+        Ok(Value::Bool(a <= b))
+    }
+}
+
+#[derive(Debug)]
+struct GeFunction;
+
+impl MathFunction for GeFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 2 {
+            anyhow::bail!("ge() requires exactly 2 arguments");
+        }
+        
+        let a = extract_number(&args[0])?;
+        let b = extract_number(&args[1])?;
+        Ok(Value::Bool(a >= b))
+    }
+}
+
+#[derive(Debug)]
+struct NeFunction;
+
+impl MathFunction for NeFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 2 {
+            anyhow::bail!("ne() requires exactly 2 arguments");
+        }
+        
+        Ok(Value::Bool(args[0] != args[1]))
+    }
+}
+</pre>
+
+<h3>Advanced Computational Operations</h3>
+<pre>
+# advanced-computations.tsk
+# Statistical operations
+statistics_config {
+    data_points: [10, 20, 30, 40, 50, 25, 35, 45]
+    
+    # Basic statistics
+    basic_stats: {
+        count: len(data_points)
+        sum: sum(data_points)
+        mean: avg(data_points)
+        median: median(data_points)
+        mode: mode(data_points)
+        
+        # Variability measures
+        variance: variance(data_points)
+        std_dev: stddev(data_points)
+        range: sub(max(data_points), min(data_points))
+        
+        # Percentiles
+        p25: percentile(data_points, 25)
+        p50: percentile(data_points, 50)  # Same as median
+        p75: percentile(data_points, 75)
+        p90: percentile(data_points, 90)
+        p95: percentile(data_points, 95)
+        p99: percentile(data_points, 99)
+    }
+    
+    # Performance thresholds based on statistics
+    performance_thresholds: {
+        excellent: gt(p95, 90)
+        good: between(p75, 70, 90)
+        acceptable: between(p50, 50, 70)
+        poor: lt(p25, 50)
+        
+        # Dynamic alert thresholds
+        alert_threshold: add(mean, mul(std_dev, 2))  # Mean + 2 standard deviations
+        warning_threshold: add(mean, std_dev)        # Mean + 1 standard deviation
+    }
+}
+
+# Network and bandwidth calculations
+network_calculations {
+    # Bandwidth calculations
+    bandwidth: {
+        bits_per_second: 1000000000  # 1 Gbps
+        bytes_per_second: div(bits_per_second, 8)
+        megabytes_per_second: div(bytes_per_second, 1048576)
+        
+        # Transfer time calculations
+        file_size_mb: 100
+        transfer_time_seconds: div(file_size_mb, megabytes_per_second)
+        transfer_time_minutes: div(transfer_time_seconds, 60)
+    }
+    
+    # Latency calculations
+    latency: {
+        base_latency_ms: 50
+        processing_time_ms: 10
+        network_overhead_ms: 5
+        
+        total_latency: add(add(base_latency_ms, processing_time_ms), network_overhead_ms)
+        
+        # Round-trip time
+        rtt_ms: mul(total_latency, 2)
+        
+        # Timeout calculations
+        connection_timeout: mul(rtt_ms, 3)  # 3x RTT
+        request_timeout: mul(rtt_ms, 5)     # 5x RTT
+    }
+    
+    # Throughput optimization
+    throughput: {
+        concurrent_connections: 100
+        requests_per_connection: 10
+        total_requests: mul(concurrent_connections, requests_per_connection)
+        
+        # Calculate optimal batch size
+        optimal_batch_size: min(
+            div(total_requests, 10),  # No more than 10% of total
+            max(div(concurrent_connections, 4), 5)  # At least 5
+        )
+        
+        # Queue management
+        queue_size: mul(concurrent_connections, 2)
+        queue_high_watermark: mul(queue_size, 0.8)
+        queue_low_watermark: mul(queue_size, 0.2)
+    }
+}
+
+# Financial and business calculations
+business_calculations {
+    # Pricing calculations
+    pricing: {
+        base_price: 100.0
+        discount_rate: 0.15  # 15%
+        tax_rate: 0.08       # 8%
+        
+        discounted_price: mul(base_price, sub(1, discount_rate))
+        tax_amount: mul(discounted_price, tax_rate)
+        final_price: add(discounted_price, tax_amount)
+        
+        # Bulk pricing tiers
+        quantity: 50
+        bulk_discount: if(gt(quantity, 100), 0.25,
+                         if(gt(quantity, 50), 0.15,
+                           if(gt(quantity, 10), 0.05, 0)))
+        
+        bulk_price: mul(base_price, sub(1, bulk_discount))
+        total_cost: mul(bulk_price, quantity)
+    }
+    
+    # Resource utilization costs
+    cost_calculation: {
+        cpu_hours: 100
+        memory_gb_hours: 200
+        storage_gb_hours: 1000
+        network_gb: 50
+        
+        # Cost per unit
+        cpu_cost_per_hour: 0.05
+        memory_cost_per_gb_hour: 0.01
+        storage_cost_per_gb_hour: 0.001
+        network_cost_per_gb: 0.02
+        
+        # Calculate total costs
+        cpu_cost: mul(cpu_hours, cpu_cost_per_hour)
+        memory_cost: mul(memory_gb_hours, memory_cost_per_gb_hour)
+        storage_cost: mul(storage_gb_hours, storage_cost_per_gb_hour)
+        network_cost: mul(network_gb, network_cost_per_gb)
+        
+        total_cost: add(add(add(cpu_cost, memory_cost), storage_cost), network_cost)
+        
+        # Cost optimization suggestions
+        optimized_config: {
+            reduce_cpu: if(gt(div(cpu_cost, total_cost), 0.5), true, false)
+            reduce_memory: if(gt(div(memory_cost, total_cost), 0.3), true, false)
+            optimize_storage: if(gt(div(storage_cost, total_cost), 0.2), true, false)
+        }
+    }
+}
+
+# Cryptographic and security calculations
+security_calculations {
+    # Password strength calculation
+    password_strength: {
+        length: 12
+        has_uppercase: true
+        has_lowercase: true
+        has_numbers: true
+        has_symbols: true
+        
+        # Character set size calculation
+        charset_size: add(
+            if(has_lowercase, 26, 0),
+            add(if(has_uppercase, 26, 0),
+                add(if(has_numbers, 10, 0),
+                    if(has_symbols, 32, 0))))
+        
+        # Entropy calculation (bits)
+        entropy: mul(length, log2(charset_size))
+        
+        # Strength classification
+        strength_level: if(gt(entropy, 60), "strong",
+                          if(gt(entropy, 40), "medium",
+                            if(gt(entropy, 20), "weak", "very_weak")))
+        
+        # Time to crack (simplified)
+        attempts_per_second: 1000000  # 1M attempts/sec
+        total_combinations: pow(charset_size, length)
+        average_time_seconds: div(total_combinations, mul(attempts_per_second, 2))
+        time_to_crack_years: div(average_time_seconds, 31536000)  # seconds in a year
+    }
+    
+    # Token and session calculations
+    token_config: {
+        token_length: 32
+        token_entropy: mul(token_length, 8)  # 8 bits per byte
+        
+        # Session timeout calculation
+        base_timeout_minutes: 30
+        activity_extension_minutes: 15
+        max_session_hours: 8
+        
+        # Calculate dynamic timeout based on user activity
+        user_activity_score: 0.7  # 0.0 to 1.0
+        dynamic_timeout: add(base_timeout_minutes,
+                           mul(activity_extension_minutes, user_activity_score))
+        
+        final_timeout: min(dynamic_timeout, mul(max_session_hours, 60))
+    }
+    
+    # Rate limiting for security
+    security_rate_limits: {
+        login_attempts_per_minute: 5
+        api_calls_per_hour: 1000
+        password_reset_per_day: 3
+        
+        # Backoff calculation for failed attempts
+        failed_attempts: 3
+        backoff_base_seconds: 30
+        backoff_multiplier: 2
+        max_backoff_minutes: 30
+        
+        current_backoff: min(
+            mul(backoff_base_seconds, pow(backoff_multiplier, failed_attempts)),
+            mul(max_backoff_minutes, 60)
+        )
+    }
+}
+
+// Extended math engine with statistical functions
+impl MathEngine {
+    pub fn register_statistical_functions(&mut self) {
+        self.register_function("sum", Box::new(SumFunction));
+        self.register_function("avg", Box::new(AvgFunction));
+        self.register_function("len", Box::new(LenFunction));
+        self.register_function("median", Box::new(MedianFunction));
+        self.register_function("variance", Box::new(VarianceFunction));
+        self.register_function("stddev", Box::new(StdDevFunction));
+        self.register_function("percentile", Box::new(PercentileFunction));
+        self.register_function("log2", Box::new(Log2Function));
+    }
+}
+
+#[derive(Debug)]
+struct SumFunction;
+
+impl MathFunction for SumFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("sum() requires exactly 1 argument (array)");
+        }
+        
+        if let Value::Array(arr) = &args[0] {
+            let mut total = 0.0;
+            for item in arr {
+                total += extract_number(item)?;
+            }
+            Ok(create_number(total))
+        } else {
+            anyhow::bail!("sum() requires an array argument");
+        }
+    }
+}
+
+#[derive(Debug)]
+struct AvgFunction;
+
+impl MathFunction for AvgFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("avg() requires exactly 1 argument (array)");
+        }
+        
+        if let Value::Array(arr) = &args[0] {
+            if arr.is_empty() {
+                anyhow::bail!("Cannot calculate average of empty array");
+            }
+            
+            let mut total = 0.0;
+            for item in arr {
+                total += extract_number(item)?;
+            }
+            Ok(create_number(total / arr.len() as f64))
+        } else {
+            anyhow::bail!("avg() requires an array argument");
+        }
+    }
+}
+
+#[derive(Debug)]
+struct MedianFunction;
+
+impl MathFunction for MedianFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("median() requires exactly 1 argument (array)");
+        }
+        
+        if let Value::Array(arr) = &args[0] {
+            if arr.is_empty() {
+                anyhow::bail!("Cannot calculate median of empty array");
+            }
+            
+            let mut numbers: Vec<f64> = arr.iter()
+                .map(extract_number)
+                .collect::<Result<Vec<_>>>()?;
+            
+            numbers.sort_by(|a, b| a.partial_cmp(b).unwrap());
+            
+            let len = numbers.len();
+            let median = if len % 2 == 0 {
+                (numbers[len / 2 - 1] + numbers[len / 2]) / 2.0
+            } else {
+                numbers[len / 2]
+            };
+            
+            Ok(create_number(median))
+        } else {
+            anyhow::bail!("median() requires an array argument");
+        }
+    }
+}
+
+#[derive(Debug)]
+struct VarianceFunction;
+
+impl MathFunction for VarianceFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("variance() requires exactly 1 argument (array)");
+        }
+        
+        if let Value::Array(arr) = &args[0] {
+            if arr.len() < 2 {
+                anyhow::bail!("Variance requires at least 2 data points");
+            }
+            
+            let numbers: Vec<f64> = arr.iter()
+                .map(extract_number)
+                .collect::<Result<Vec<_>>>()?;
+            
+            let mean = numbers.iter().sum::<f64>() / numbers.len() as f64;
+            let variance = numbers.iter()
+                .map(|x| (x - mean).powi(2))
+                .sum::<f64>() / (numbers.len() - 1) as f64;  // Sample variance
+            
+            Ok(create_number(variance))
+        } else {
+            anyhow::bail!("variance() requires an array argument");
+        }
+    }
+}
+
+#[derive(Debug)]
+struct StdDevFunction;
+
+impl MathFunction for StdDevFunction {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        // Calculate variance first, then take square root
+        let variance_result = VarianceFunction.call(args)?;
+        let variance = extract_number(&variance_result)?;
+        Ok(create_number(variance.sqrt()))
+    }
+}
+
+#[derive(Debug)]
+struct Log2Function;
+
+impl MathFunction for Log2Function {
+    fn call(&self, args: &[Value]) -> Result<Value> {
+        if args.len() != 1 {
+            anyhow::bail!("log2() requires exactly 1 argument");
+        }
+        
+        let x = extract_number(&args[0])?;
+        if x <= 0.0 {
+            anyhow::bail!("Logarithm of non-positive number");
+        }
+        
+        Ok(create_number(x.log2()))
+    }
+}
+</pre>
+
+<p>TuskLang's operations and computations in Rust provide comprehensive mathematical, statistical, and analytical capabilities with excellent performance and type safety, enabling sophisticated configuration calculations and decision-making algorithms.</p>

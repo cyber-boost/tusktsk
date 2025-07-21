@@ -1,0 +1,37 @@
+⚠️ SEVERE PUNISHMENT WARNING ⚠️
+FAILURE TO FOLLOW INSTRUCTIONS EXACTLY WILL RESULT IN:
+- IMMEDIATE PROJECT TERMINATION
+- PERFORMANCE REVIEW FAILURE  
+- NO EXCEPTIONS OR SECOND CHANCES
+FOLLOW EVERY REQUIREMENT PRECISELY OR FACE CONSEQUENCES
+
+=== G1: JSON & XML Processing ===
+
+OBJECTIVE: Implement 3 core operators for JSON and XML data processing
+
+MANDATORY GOALS:
+1. JsonOperator - Complete JSON parsing, validation, manipulation, and transformation
+2. XmlOperator - Full XML processing with DOM/SAX parsing, validation, and conversion
+3. DataFormatOperator - Universal data format conversion (JSON↔XML↔YAML↔CSV)
+
+REQUIREMENTS:
+- PHP 8.4+ compatibility
+- Complete error handling
+- Full type safety with strict typing
+- 100% test coverage
+- Production-ready performance
+- Memory efficient processing
+- Support for large datasets
+- Comprehensive documentation
+
+DELIVERABLES:
+- implementation/JsonOperator.php
+- implementation/XmlOperator.php  
+- implementation/DataFormatOperator.php
+- tests/ directory with complete test suite
+- docs/ directory with API documentation
+- status.json with progress tracking
+- ideas.json with future enhancements
+- summary.json with completion details
+
+PUNISHMENT FOR NON-COMPLIANCE: IMMEDIATE TERMINATION 

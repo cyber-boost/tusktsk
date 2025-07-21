@@ -1,0 +1,796 @@
+<h1>Database and ORM Integration in TuskLang for Ruby</h1>
+
+<h2>ActiveRecord and Database Configuration</h2>
+<p>TuskLang provides seamless integration with Ruby ORM systems including ActiveRecord, Sequel, and DataMapper.</p>
+
+<h3>database.tsk</h3>
+<pre>
+# Database Configuration
+database: {
+    adapter: "postgresql"
+    host: env("DB_HOST", "localhost")
+    port: env("DB_PORT", 5432)
+    database: env("DB_NAME", "myapp_development")
+    username: env("DB_USER", "postgres")
+    password: env("DB_PASSWORD", "")
+    pool: env("DB_POOL", 5)
+    timeout: 5000
+    encoding: "unicode"
+    schema_search_path: "public"
+}
+
+# Multiple Database Support
+databases: {
+    primary: {
+        adapter: "postgresql"
+        host: env("PRIMARY_DB_HOST", "localhost")
+        database: "myapp_primary"
+        username: env("DB_USER")
+        password: env("DB_PASSWORD")
+    }
+    
+    analytics: {
+        adapter: "postgresql"
+        host: env("ANALYTICS_DB_HOST", "localhost")
+        database: "myapp_analytics"
+        username: env("ANALYTICS_DB_USER")
+        password: env("ANALYTICS_DB_PASSWORD")
+        pool: 2
+    }
+    
+    cache: {
+        adapter: "redis"
+        host: env("REDIS_HOST", "localhost")
+        port: env("REDIS_PORT", 6379)
+        database: env("REDIS_DB", 0)
+    }
+}
+
+# ActiveRecord Configuration
+activerecord: {
+    default_timezone: "UTC"
+    time_zone_aware_attributes: true
+    dump_schema_after_migration: true
+    schema_format: "ruby"
+    timestamped_migrations: true
+    maintain_test_schema: true
+    
+    # Connection settings
+    checkout_timeout: 5
+    reaping_frequency: 10
+    idle_timeout: 300
+    
+    # Query settings
+    query_cache: true
+    prepared_statements: true
+    advisory_locks: true
+}
+
+# Migration Settings
+migrations: {
+    path: "db/migrate"
+    version_table_name: "schema_migrations"
+    internal_metadata_table_name: "ar_internal_metadata"
+    verbose: env("MIGRATION_VERBOSE", true)
+}
+
+# Seed Data Configuration
+seeds: {
+    path: "db/seeds"
+    files: [
+        "users.rb",
+        "categories.rb",
+        "initial_data.rb"
+    ]
+    environment_specific: true
+}
+
+# Query Optimization
+query_optimization: {
+    includes_preloading: true
+    counter_cache: true
+    touch_associations: true
+    bulk_operations: true
+    
+    # N+1 query detection
+    bullet: {
+        enabled: env("ENABLE_BULLET", false)
+        alert: true
+        bullet_logger: true
+        console: true
+    }
+}
+
+# Database Monitoring
+monitoring: {
+    slow_query_threshold: 1000  # milliseconds
+    log_queries: env("LOG_QUERIES", false)
+    explain_threshold: 500
+    
+    metrics: {
+        connection_pool_size: true
+        query_execution_time: true
+        database_size: true
+        table_sizes: true
+    }
+}
+
+# Model Configuration with TuskLang Queries
+models: {
+    User: {
+        table_name: "users"
+        primary_key: "id"
+        
+        # TuskLang query definitions
+        active_users: @Query("User").where("active", true)
+        recent_users: @Query("User").where("created_at >", @time(-86400))
+        admin_users: @Query("User").where("role", "admin")
+        
+        # Associations
+        has_many: ["posts", "comments"]
+        belongs_to: ["organization"]
+        
+        # Validations
+        validations: {
+            email: {presence: true, uniqueness: true, format: "email"}
+            name: {presence: true, length: {minimum: 2, maximum: 50}}
+            age: {numericality: {greater_than: 0, less_than: 150}}
+        }
+        
+        # Callbacks
+        before_save: ["normalize_email", "set_default_role"]
+        after_create: ["send_welcome_email", "create_profile"]
+        
+        # Scopes
+        scopes: {
+            active: "where(active: true)"
+            recent: "where('created_at > ?', 1.week.ago)"
+            by_role: "lambda { |role| where(role: role) }"
+        }
+    }
+    
+    Post: {
+        table_name: "posts"
+        
+        # Complex queries with @ operators
+        published_posts: @Query("Post").where("status", "published").where("published_at <=", @time())
+        trending_posts: @cache("15m", @Query("Post").where("views >", 1000).order("views DESC").limit(10))
+        user_posts: @Query("Post").where("user_id", @request.user_id)
+        
+        # Associations
+        belongs_to: ["user", "category"]
+        has_many: ["comments", "tags"]
+        
+        # Full-text search
+        search: {
+            engine: "pg_search"
+            against: ["title", "content"]
+            options: {
+                using: {
+                    tsearch: {prefix: true}
+                }
+            }
+        }
+    }
+}
+
+# Database-specific Optimizations
+postgresql: {
+    enable_extension: ["uuid-ossp", "pg_stat_statements", "pg_trgm"]
+    
+    # Performance settings
+    shared_preload_libraries: ["pg_stat_statements"]
+    work_mem: "64MB"
+    maintenance_work_mem: "256MB"
+    effective_cache_size: "1GB"
+    
+    # Connection pooling
+    max_connections: 100
+    connection_pool: {
+        size: 25
+        checkout_timeout: 5
+        reaping_frequency: 10
+    }
+}
+
+mysql: {
+    # MySQL-specific settings
+    sql_mode: "STRICT_TRANS_TABLES,NO_ZERO_DATE,NO_ZERO_IN_DATE,ERROR_FOR_DIVISION_BY_ZERO"
+    charset: "utf8mb4"
+    collation: "utf8mb4_unicode_ci"
+    
+    # Performance
+    innodb_buffer_pool_size: "1G"
+    query_cache_type: 1
+    query_cache_size: "128M"
+}
+
+# Background Job Database Operations
+background_jobs: {
+    # Database cleanup jobs
+    cleanup_old_records: @job("DatabaseCleanupWorker", "cleanup_old_sessions", delay: 3600)
+    optimize_tables: @job("DatabaseMaintenanceWorker", "optimize_tables", cron: "0 2 * * 0")
+    backup_database: @job("BackupWorker", "create_backup", cron: "0 1 * * *")
+    
+    # Data processing jobs
+    update_counters: @job("CounterCacheWorker", "update_all_counters", interval: 300)
+    refresh_materialized_views: @job("MaterializedViewWorker", "refresh_all", cron: "*/15 * * * *")
+}
+
+# Database Health Checks
+health_checks: {
+    connection_test: @Query("SELECT 1").first()
+    read_test: @Query("User").limit(1).first()
+    write_test: @Query("HealthCheck").create({timestamp: @time()})
+    
+    # Performance checks
+    slow_queries: @Query("SELECT * FROM pg_stat_statements WHERE mean_time > 1000").all()
+    connection_pool_status: @metrics("database_pool_size")
+    
+    # Alerts
+    max_connections_alert: @alert("database_connections > 80")
+    disk_space_alert: @alert("database_disk_usage > 90")
+}
+
+# Replica Configuration
+read_replicas: {
+    enabled: env("USE_READ_REPLICAS", false)
+    
+    replica1: {
+        adapter: "postgresql"
+        host: env("REPLICA1_HOST")
+        database: env("DB_NAME")
+        username: env("DB_USER")
+        password: env("DB_PASSWORD")
+        replica: true
+    }
+    
+    # Load balancing
+    load_balancing: {
+        strategy: "round_robin"  # round_robin, least_connections, random
+        health_check_interval: 30
+        failover_timeout: 5
+    }
+}
+
+# Database Sharding
+sharding: {
+    enabled: env("USE_SHARDING", false)
+    strategy: "hash"  # hash, range, directory
+    
+    shards: {
+        shard1: {
+            host: env("SHARD1_HOST")
+            database: "myapp_shard1"
+            weight: 1
+        }
+        shard2: {
+            host: env("SHARD2_HOST") 
+            database: "myapp_shard2"
+            weight: 1
+        }
+    }
+    
+    # Shard key configuration
+    shard_key: "user_id"
+    cross_shard_queries: false
+}
+
+# Data Archival
+archival: {
+    enabled: env("ENABLE_ARCHIVAL", false)
+    
+    rules: [
+        {
+            table: "user_sessions"
+            condition: "created_at < ?",
+            interval: "30 days"
+            action: "delete"
+        },
+        {
+            table: "audit_logs"
+            condition: "created_at < ?"
+            interval: "1 year"
+            action: "archive"
+            destination: "archived_audit_logs"
+        }
+    ]
+    
+    schedule: "0 3 * * *"  # Daily at 3 AM
+}
+
+# Environment-specific Database Settings
+environments: {
+    development: {
+        database: {
+            pool: 2
+            timeout: 5000
+            checkout_timeout: 5
+        }
+        
+        # Development helpers
+        query_logging: true
+        migration_verbose: true
+        seed_on_setup: true
+    }
+    
+    test: {
+        database: {
+            adapter: "sqlite3"
+            database: ":memory:"
+            pool: 1
+        }
+        
+        # Test optimizations
+        transactional_fixtures: true
+        use_instantiated_fixtures: false
+        dump_schema_after_migration: false
+    }
+    
+    production: {
+        database: {
+            pool: 25
+            timeout: 5000
+            checkout_timeout: 5
+            reaping_frequency: 10
+        }
+        
+        # Production settings
+        query_logging: false
+        migration_verbose: false
+        prepared_statements: true
+        advisory_locks: true
+    }
+}
+
+# Security Configuration
+security: {
+    # SSL/TLS
+    ssl_mode: env("DB_SSL_MODE", "prefer")  # disable, allow, prefer, require
+    ssl_cert: env("DB_SSL_CERT")
+    ssl_key: env("DB_SSL_KEY") 
+    ssl_ca: env("DB_SSL_CA")
+    
+    # Access control
+    readonly_user: env("DB_READONLY_USER")
+    application_name: "myapp_#{env('RAILS_ENV')}"
+    
+    # Encryption
+    encrypted_columns: ["ssn", "credit_card", "personal_data"]
+    encryption_key: env("DATABASE_ENCRYPTION_KEY")
+}
+</pre>
+
+<h3>Ruby Database Integration</h3>
+<pre>
+#!/usr/bin/env ruby
+
+require 'active_record'
+require 'ostruct'
+
+class TuskLangDatabaseIntegration
+  attr_reader :config
+
+  def initialize(config)
+    @config = config
+    @query_cache = {}
+  end
+
+  def setup_database
+    # Configure ActiveRecord
+    configure_activerecord
+    
+    # Establish connections
+    establish_connections
+    
+    # Setup query monitoring
+    setup_monitoring if @config.monitoring&.enabled
+    
+    # Setup health checks
+    setup_health_checks
+  end
+
+  def execute_tusklang_query(query_string)
+    # Parse TuskLang query syntax
+    query = parse_query(query_string)
+    
+    # Execute with caching if specified
+    if query[:cache]
+      execute_cached_query(query)
+    else
+      execute_direct_query(query)
+    end
+  end
+
+  def process_model_queries(model_config)
+    results = {}
+    
+    model_config.each do |model_name, config|
+      model_class = Object.const_get(model_name)
+      
+      config.each do |query_name, query_definition|
+        next unless query_definition.is_a?(String) && query_definition.start_with?('@Query')
+        
+        results["#{model_name}_#{query_name}"] = execute_tusklang_query(query_definition)
+      end
+    end
+    
+    results
+  end
+
+  private
+
+  def configure_activerecord
+    ActiveRecord::Base.establish_connection(@config.database.to_h)
+    
+    if @config.activerecord
+      ActiveRecord::Base.default_timezone = @config.activerecord.default_timezone&.to_sym || :utc
+      ActiveRecord::Base.time_zone_aware_attributes = @config.activerecord.time_zone_aware_attributes
+      
+      # Configure connection pool
+      if @config.activerecord.checkout_timeout
+        ActiveRecord::Base.connection_pool.checkout_timeout = @config.activerecord.checkout_timeout
+      end
+    end
+  end
+
+  def establish_connections
+    if @config.databases
+      @config.databases.each do |name, db_config|
+        ActiveRecord::Base.establish_connection(
+          name.to_sym,
+          db_config.to_h
+        )
+      end
+    end
+  end
+
+  def setup_monitoring
+    # Setup slow query monitoring
+    if @config.monitoring.slow_query_threshold
+      setup_slow_query_monitoring(@config.monitoring.slow_query_threshold)
+    end
+    
+    # Setup connection pool monitoring
+    if @config.monitoring.metrics&.connection_pool_size
+      setup_connection_pool_monitoring
+    end
+  end
+
+  def setup_health_checks
+    return unless @config.health_checks
+
+    @health_checks = {}
+    
+    @config.health_checks.each do |check_name, check_query|
+      if check_query.start_with?('@Query')
+        @health_checks[check_name] = parse_query(check_query)
+      end
+    end
+  end
+
+  def parse_query(query_string)
+    # Parse @Query("Model").method().method() syntax
+    match = query_string.match(/@Query\("([^"]+)"\)(.*)/)
+    return nil unless match
+
+    model_name = match[1]
+    chain = match[2]
+    
+    {
+      model: model_name,
+      chain: parse_query_chain(chain),
+      cache: extract_cache_directive(query_string)
+    }
+  end
+
+  def parse_query_chain(chain)
+    methods = []
+    current_method = ""
+    in_parentheses = 0
+    
+    chain.each_char do |char|
+      case char
+      when '('
+        in_parentheses += 1
+        current_method << char
+      when ')'
+        in_parentheses -= 1
+        current_method << char
+        
+        if in_parentheses == 0 && current_method.include?('(')
+          methods << parse_method_call(current_method)
+          current_method = ""
+        end
+      when '.'
+        if in_parentheses == 0
+          methods << {name: current_method, args: []} unless current_method.empty?
+          current_method = ""
+        else
+          current_method << char
+        end
+      else
+        current_method << char
+      end
+    end
+    
+    methods << {name: current_method, args: []} unless current_method.empty?
+    methods
+  end
+
+  def parse_method_call(method_string)
+    method_string = method_string.strip
+    
+    if method_string.include?('(')
+      name = method_string.split('(').first
+      args_string = method_string.match(/\((.+)\)$/)[1]
+      args = parse_method_args(args_string)
+      {name: name, args: args}
+    else
+      {name: method_string, args: []}
+    end
+  end
+
+  def parse_method_args(args_string)
+    # Simple argument parsing - would be more sophisticated in real implementation
+    args_string.split(',').map(&:strip).map do |arg|
+      case arg
+      when /^"(.+)"$/
+        $1
+      when /^\d+$/
+        arg.to_i
+      when /^\d+\.\d+$/
+        arg.to_f
+      when /^(true|false)$/i
+        arg.downcase == 'true'
+      else
+        arg
+      end
+    end
+  end
+
+  def extract_cache_directive(query_string)
+    # Check if query is wrapped in @cache directive
+    cache_match = query_string.match(/@cache\("([^"]+)",\s*(.+)\)/)
+    if cache_match
+      {
+        ttl: parse_duration(cache_match[1]),
+        key: generate_cache_key(cache_match[2])
+      }
+    end
+  end
+
+  def execute_direct_query(query)
+    return nil unless query
+
+    model_class = Object.const_get(query[:model])
+    result = model_class
+
+    query[:chain].each do |method_call|
+      case method_call[:name]
+      when 'where'
+        result = result.where(*method_call[:args])
+      when 'order'
+        result = result.order(method_call[:args].first)
+      when 'limit'
+        result = result.limit(method_call[:args].first)
+      when 'includes'
+        result = result.includes(*method_call[:args])
+      when 'joins'
+        result = result.joins(*method_call[:args])
+      when 'group'
+        result = result.group(*method_call[:args])
+      when 'having'
+        result = result.having(*method_call[:args])
+      when 'first'
+        return result.first
+      when 'last'
+        return result.last
+      when 'all'
+        return result.all
+      when 'count'
+        return result.count
+      when 'sum'
+        return result.sum(method_call[:args].first)
+      when 'average'
+        return result.average(method_call[:args].first)
+      when 'maximum'
+        return result.maximum(method_call[:args].first)
+      when 'minimum'
+        return result.minimum(method_call[:args].first)
+      when 'pluck'
+        return result.pluck(*method_call[:args])
+      when 'exists?'
+        return result.exists?
+      when 'find'
+        return result.find(method_call[:args].first)
+      when 'find_by'
+        return result.find_by(*method_call[:args])
+      when 'create'
+        return result.create(method_call[:args].first)
+      when 'update_all'
+        return result.update_all(method_call[:args].first)
+      when 'delete_all'
+        return result.delete_all
+      when 'destroy_all'
+        return result.destroy_all
+      end
+    end
+
+    result
+  end
+
+  def execute_cached_query(query)
+    cache_info = query[:cache]
+    cache_key = cache_info[:key]
+    
+    # Check cache first
+    if @query_cache[cache_key] && 
+       @query_cache[cache_key][:expires_at] > Time.now
+      return @query_cache[cache_key][:value]
+    end
+    
+    # Execute query and cache result
+    result = execute_direct_query(query)
+    
+    @query_cache[cache_key] = {
+      value: result,
+      expires_at: Time.now + cache_info[:ttl]
+    }
+    
+    result
+  end
+
+  def parse_duration(duration_string)
+    value = duration_string[0..-2].to_i
+    unit = duration_string[-1]
+    
+    case unit
+    when 's'
+      value
+    when 'm'
+      value * 60
+    when 'h'
+      value * 3600
+    when 'd'
+      value * 86400
+    else
+      value * 60 # Default to minutes
+    end
+  end
+
+  def generate_cache_key(query_string)
+    Digest::MD5.hexdigest(query_string)
+  end
+
+  def setup_slow_query_monitoring(threshold)
+    # This would integrate with Rails logging or APM tools
+    ActiveSupport::Notifications.subscribe('sql.active_record') do |name, start, finish, id, payload|
+      duration = (finish - start) * 1000 # Convert to milliseconds
+      
+      if duration > threshold
+        Rails.logger.warn "Slow query detected: #{duration}ms - #{payload[:sql]}"
+      end
+    end
+  end
+
+  def setup_connection_pool_monitoring
+    # Monitor connection pool usage
+    Thread.new do
+      loop do
+        pool = ActiveRecord::Base.connection_pool
+        size = pool.size
+        checked_out = pool.checked_out_connections.size
+        available = size - checked_out
+        
+        # Log or send metrics
+        Rails.logger.debug "Connection pool - Size: #{size}, Used: #{checked_out}, Available: #{available}"
+        
+        sleep 60 # Check every minute
+      end
+    end
+  end
+end
+
+# Database health checker
+class TuskLangDatabaseHealthChecker
+  def initialize(database_integration)
+    @db = database_integration
+  end
+
+  def check_health
+    results = {}
+    
+    # Basic connectivity
+    results[:connectivity] = check_connectivity
+    
+    # Connection pool status
+    results[:connection_pool] = check_connection_pool
+    
+    # Query performance
+    results[:query_performance] = check_query_performance
+    
+    # Disk space (if accessible)
+    results[:disk_space] = check_disk_space
+    
+    results
+  end
+
+  private
+
+  def check_connectivity
+    ActiveRecord::Base.connection.execute("SELECT 1")
+    {status: :healthy, message: "Database connection successful"}
+  rescue => e
+    {status: :unhealthy, message: "Database connection failed: #{e.message}"}
+  end
+
+  def check_connection_pool
+    pool = ActiveRecord::Base.connection_pool
+    size = pool.size
+    checked_out = pool.checked_out_connections.size
+    available = size - checked_out
+    
+    usage_percentage = (checked_out.to_f / size * 100).round(2)
+    
+    status = if usage_percentage > 90
+               :critical
+             elsif usage_percentage > 75
+               :warning
+             else
+               :healthy
+             end
+    
+    {
+      status: status,
+      size: size,
+      checked_out: checked_out,
+      available: available,
+      usage_percentage: usage_percentage
+    }
+  end
+
+  def check_query_performance
+    start_time = Time.now
+    ActiveRecord::Base.connection.execute("SELECT COUNT(*) FROM users LIMIT 1")
+    duration = (Time.now - start_time) * 1000
+    
+    status = if duration > 1000
+               :slow
+             elsif duration > 500
+               :warning
+             else
+               :fast
+             end
+    
+    {status: status, duration_ms: duration.round(2)}
+  rescue => e
+    {status: :error, message: e.message}
+  end
+
+  def check_disk_space
+    # This would require system access or database-specific queries
+    {status: :unknown, message: "Disk space check not implemented"}
+  end
+end
+
+if __FILE__ == $0
+  # Example usage
+  config = OpenStruct.new(
+    database: OpenStruct.new(
+      adapter: 'sqlite3',
+      database: ':memory:',
+      pool: 5
+    ),
+    monitoring: OpenStruct.new(
+      enabled: true,
+      slow_query_threshold: 1000
+    )
+  )
+  
+  db_integration = TuskLangDatabaseIntegration.new(config)
+  puts "TuskLang Database Integration initialized"
+end
+</pre>
+
+<p>TuskLang's database integration provides powerful ORM configuration and query capabilities for Ruby applications with comprehensive monitoring and optimization features.</p>

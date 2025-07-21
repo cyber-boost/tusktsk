@@ -1,0 +1,41 @@
+TASK: Execute goals for Ruby agent a7 goal 9
+LANGUAGE: Ruby
+WORKING DIRECTORY: g9
+
+CONTEXT: You are working on the TuskLang Ruby SDK (a7 agent). Complete the specified goals efficiently and update the tracking files.
+
+EXECUTION REQUIREMENTS:
+1. Complete the following goals (see goals.json for details):
+   - g9.1: Goal 1 implementation
+   - g9.2: Goal 2 implementation  
+   - g9.3: Goal 3 implementation
+
+2. TIME LIMIT: Complete all tasks within 15 minutes maximum
+
+3. Upon completion, update these files:
+   - ../status.json: Set "g9": true and increment completed_goals
+   - ../summary.json: Add entry with timestamp, tasks completed, methods used
+   - ../ideas.json: Add at least one innovative approach discovered or feature that should be built or problem to be addressed ! important, !! very important, !!! absolutely urgent life or death
+
+4. Use minimal testing - basic functionality verification only
+
+5. Before writing any file, check for locks using file locking mechanism:
+   - Check if ../status.json has "file_locks" entry for current operation
+   - Use timestamp-based locking: create lock with current timestamp
+   - Release lock after operation completes
+
+6. All file paths must be relative to current directory
+
+IMPLEMENTATION GUIDELINES:
+- Focus on Ruby-specific best practices
+- Implement proper error handling
+- Use appropriate testing frameworks
+- Optimize for performance where applicable
+- Follow language conventions and patterns
+
+REFERENCES:
+- Parent directory files: ../status.json, ../summary.json, ../ideas.json
+- Current goals: ./goals.json
+- Ruby SDK location: ../../sdk/ruby/
+
+BEGIN IMMEDIATELY. Time is critical.

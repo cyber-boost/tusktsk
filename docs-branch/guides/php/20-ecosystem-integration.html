@@ -1,0 +1,681 @@
+<h1>Ecosystem Integration</h1>
+
+<h2>Integrating TuskLang with PHP Ecosystem</h2>
+<p>Learn how to integrate TuskLang with popular PHP frameworks, tools, and services for seamless development workflows.</p>
+
+<h3>Laravel Integration</h3>
+<pre>
+&lt;?php
+// Laravel Service Provider
+namespace App\Providers;
+
+use Illuminate\Support\ServiceProvider;
+use TuskLang\TuskLangEnhanced;
+use TuskLang\Laravel\TuskLangConfigRepository;
+
+class TuskLangServiceProvider extends ServiceProvider {
+    public function register(): void {
+        $this->app->singleton(TuskLangEnhanced::class, function ($app) {
+            $parser = new TuskLangEnhanced();
+            
+            // Set up database adapter
+            $parser->setDatabaseAdapter(new \TuskLang\Database\LaravelAdapter(
+                $app['db']->connection()
+            ));
+            
+            return $parser;
+        });
+        
+        // Replace default config repository
+        $this->app->singleton('config', function ($app) {
+            return new TuskLangConfigRepository(
+                $app->make(TuskLangEnhanced::class),
+                config_path('app.tsk')
+            );
+        });
+    }
+    
+    public function boot(): void {
+        // Publish configuration files
+        $this->publishes([
+            __DIR__ . '/../../config/tusklang.php' => config_path('tusklang.php'),
+            __DIR__ . '/../../config/app.tsk' => config_path('app.tsk'),
+        ], 'tusklang');
+        
+        // Register Artisan commands
+        if ($this->app->runningInConsole()) {
+            $this->commands([
+                \TuskLang\Laravel\Commands\TuskLangValidate::class,
+                \TuskLang\Laravel\Commands\TuskLangCache::class,
+                \TuskLang\Laravel\Commands\TuskLangConvert::class,
+            ]);
+        }
+        
+        // Register middleware
+        $this->app['router']->aliasMiddleware('tusklang.reload', 
+            \TuskLang\Laravel\Middleware\ConfigReloadMiddleware::class);
+    }
+}
+
+// Laravel Configuration Repository
+class TuskLangConfigRepository implements \Illuminate\Contracts\Config\Repository {
+    private TuskLangEnhanced $parser;
+    private array $config = [];
+    private string $configFile;
+    
+    public function __construct(TuskLangEnhanced $parser, string $configFile) {
+        $this->parser = $parser;
+        $this->configFile = $configFile;
+        $this->loadConfig();
+    }
+    
+    public function get($key, $default = null) {
+        return data_get($this->config, $key, $default);
+    }
+    
+    public function set($key, $value = null): void {
+        if (is_array($key)) {
+            foreach ($key as $innerKey => $innerValue) {
+                data_set($this->config, $innerKey, $innerValue);
+            }
+        } else {
+            data_set($this->config, $key, $value);
+        }
+    }
+    
+    public function has($key): bool {
+        return data_get($this->config, $key) !== null;
+    }
+    
+    public function all(): array {
+        return $this->config;
+    }
+    
+    public function reload(): void {
+        $this->loadConfig();
+    }
+    
+    private function loadConfig(): void {
+        if (file_exists($this->configFile)) {
+            $this->config = $this->parser->parseFile($this->configFile);
+        }
+    }
+}
+</pre>
+
+<h3>Symfony Integration</h3>
+<pre>
+&lt;?php
+// Symfony Bundle
+namespace TuskLang\Symfony;
+
+use Symfony\Component\HttpKernel\Bundle\Bundle;
+use Symfony\Component\DependencyInjection\ContainerBuilder;
+
+class TuskLangBundle extends Bundle {
+    public function build(ContainerBuilder $container): void {
+        parent::build($container);
+        
+        $container->addCompilerPass(new TuskLangCompilerPass());
+    }
+}
+
+// Dependency Injection Extension
+class TuskLangExtension extends Extension {
+    public function load(array $configs, ContainerBuilder $container): void {
+        $configuration = new Configuration();
+        $config = $this->processConfiguration($configuration, $configs);
+        
+        $loader = new YamlFileLoader($container, new FileLocator(__DIR__ . '/../Resources/config'));
+        $loader->load('services.yaml');
+        
+        // Register TuskLang parser as service
+        $container->register('tusklang.parser', TuskLangEnhanced::class)
+            ->setPublic(true)
+            ->addMethodCall('setDatabaseAdapter', [
+                new Reference('doctrine.dbal.default_connection')
+            ]);
+        
+        // Register configuration loader
+        $container->register('tusklang.config_loader', TuskLangConfigLoader::class)
+            ->setArguments([
+                new Reference('tusklang.parser'),
+                '%kernel.project_dir%/config/app.tsk'
+            ]);
+    }
+}
+
+// Symfony Configuration Loader
+class TuskLangConfigLoader {
+    private TuskLangEnhanced $parser;
+    private string $configPath;
+    private array $config = [];
+    
+    public function __construct(TuskLangEnhanced $parser, string $configPath) {
+        $this->parser = $parser;
+        $this->configPath = $configPath;
+        $this->loadConfiguration();
+    }
+    
+    public function get(string $key, $default = null) {
+        $keys = explode('.', $key);
+        $value = $this->config;
+        
+        foreach ($keys as $segment) {
+            if (!is_array($value) || !array_key_exists($segment, $value)) {
+                return $default;
+            }
+            $value = $value[$segment];
+        }
+        
+        return $value;
+    }
+    
+    private function loadConfiguration(): void {
+        if (file_exists($this->configPath)) {
+            $this->config = $this->parser->parseFile($this->configPath);
+        }
+    }
+}
+</pre>
+
+<h3>WordPress Integration</h3>
+<pre>
+&lt;?php
+// WordPress Plugin Integration
+class TuskLangWordPressPlugin {
+    private TuskLangEnhanced $parser;
+    
+    public function __construct() {
+        $this->parser = new TuskLangEnhanced();
+        $this->init();
+    }
+    
+    private function init(): void {
+        add_action('init', [$this, 'loadConfiguration']);
+        add_action('admin_menu', [$this, 'addAdminMenu']);
+        add_action('wp_ajax_reload_config', [$this, 'reloadConfiguration']);
+        
+        // Hook into WordPress database
+        $this->parser->setDatabaseAdapter(new TuskLangWordPressDBAdapter());
+    }
+    
+    public function loadConfiguration(): void {
+        $configFile = WP_CONTENT_DIR . '/tusklang/wp-config.tsk';
+        
+        if (file_exists($configFile)) {
+            $config = $this->parser->parseFile($configFile);
+            
+            // Apply WordPress-specific configurations
+            $this->applyWordPressConfig($config);
+        }
+    }
+    
+    private function applyWordPressConfig(array $config): void {
+        // Set WordPress constants
+        if (isset($config['wordpress']['debug'])) {
+            if (!defined('WP_DEBUG')) {
+                define('WP_DEBUG', $config['wordpress']['debug']);
+            }
+        }
+        
+        // Configure plugins
+        if (isset($config['plugins'])) {
+            foreach ($config['plugins'] as $plugin => $settings) {
+                update_option("plugin_{$plugin}_settings", $settings);
+            }
+        }
+        
+        // Set theme configurations
+        if (isset($config['theme'])) {
+            foreach ($config['theme'] as $key => $value) {
+                set_theme_mod($key, $value);
+            }
+        }
+    }
+    
+    public function addAdminMenu(): void {
+        add_options_page(
+            'TuskLang Configuration',
+            'TuskLang',
+            'manage_options',
+            'tusklang-config',
+            [$this, 'adminPage']
+        );
+    }
+    
+    public function adminPage(): void {
+        echo '
+        <div class="wrap">
+            <h1>TuskLang Configuration</h1>
+            <button id="reload-config" class="button button-primary">Reload Configuration</button>
+            <div id="config-status"></div>
+        </div>
+        <script>
+        document.getElementById("reload-config").addEventListener("click", function() {
+            fetch(ajaxurl, {
+                method: "POST",
+                body: new FormData(Object.entries({action: "reload_config"}))
+            })
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById("config-status").innerHTML = 
+                    "<p>Configuration reloaded successfully!</p>";
+            });
+        });
+        </script>
+        ';
+    }
+}
+
+// WordPress Database Adapter
+class TuskLangWordPressDBAdapter {
+    public function query(string $sql, array $params = []): array {
+        global $wpdb;
+        
+        $prepared = $wpdb->prepare($sql, $params);
+        $results = $wpdb->get_results($prepared, ARRAY_A);
+        
+        return $results ?: [];
+    }
+}
+
+// Initialize plugin
+new TuskLangWordPressPlugin();
+</pre>
+
+<h3>CodeIgniter Integration</h3>
+<pre>
+&lt;?php
+// CodeIgniter 4 Integration
+namespace App\Libraries;
+
+use TuskLang\TuskLangEnhanced;
+
+class TuskLangConfig {
+    private TuskLangEnhanced $parser;
+    private array $config = [];
+    
+    public function __construct() {
+        $this->parser = new TuskLangEnhanced();
+        $this->loadConfiguration();
+    }
+    
+    private function loadConfiguration(): void {
+        $configFile = APPPATH . 'Config/app.tsk';
+        
+        if (file_exists($configFile)) {
+            $this->config = $this->parser->parseFile($configFile);
+        }
+    }
+    
+    public function get(string $key, $default = null) {
+        $keys = explode('.', $key);
+        $value = $this->config;
+        
+        foreach ($keys as $segment) {
+            if (!is_array($value) || !isset($value[$segment])) {
+                return $default;
+            }
+            $value = $value[$segment];
+        }
+        
+        return $value;
+    }
+}
+
+// CodeIgniter Service
+namespace Config;
+
+use CodeIgniter\Config\BaseService;
+
+class Services extends BaseService {
+    public static function tusklang(bool $getShared = true) {
+        if ($getShared) {
+            return static::getSharedInstance('tusklang');
+        }
+        
+        return new \App\Libraries\TuskLangConfig();
+    }
+}
+
+// Usage in Controller
+class HomeController extends BaseController {
+    public function index() {
+        $tuskConfig = service('tusklang');
+        $appName = $tuskConfig->get('app.name', 'Default App');
+        
+        return view('home', ['app_name' => $appName]);
+    }
+}
+</pre>
+
+<h3>Composer Package Integration</h3>
+<pre>
+# composer.json
+{
+    "name": "your-project/tusklang-config",
+    "description": "TuskLang configuration package",
+    "type": "library",
+    "require": {
+        "php": ">=8.0",
+        "tusklang/tusklang": "^2.0"
+    },
+    "autoload": {
+        "psr-4": {
+            "YourProject\\TuskLang\\": "src/"
+        }
+    },
+    "extra": {
+        "laravel": {
+            "providers": [
+                "YourProject\\TuskLang\\TuskLangServiceProvider"
+            ]
+        }
+    },
+    "scripts": {
+        "validate-config": "tusklang validate config.tsk",
+        "build-config": "tusklang convert config.tsk config.json",
+        "test": "phpunit"
+    }
+}
+
+# Package Configuration
+&lt;?php
+namespace YourProject\TuskLang;
+
+class ConfigurationPackage {
+    public static function loadConfig(string $environment = 'production'): array {
+        $parser = new \TuskLang\TuskLangEnhanced();
+        
+        $baseConfig = $parser->parseFile(__DIR__ . '/../config/base.tsk');
+        $envConfig = $parser->parseFile(__DIR__ . "/../config/{$environment}.tsk");
+        
+        return array_merge_recursive($baseConfig, $envConfig);
+    }
+    
+    public static function validateConfig(array $config): bool {
+        $validator = new \TuskLang\Validation\ConfigValidator();
+        return $validator->validate($config);
+    }
+}
+</pre>
+
+<h3>Docker and DevOps Integration</h3>
+<pre>
+# Dockerfile with TuskLang
+FROM php:8.2-fpm
+
+# Install Composer
+COPY --from=composer:latest /usr/bin/composer /usr/bin/composer
+
+# Install TuskLang
+RUN composer global require tusklang/tusklang
+ENV PATH="$PATH:/root/.composer/vendor/bin"
+
+# Copy configuration
+COPY config/ /app/config/
+
+# Validate configuration at build time
+RUN tusklang validate /app/config/app.tsk
+
+# Generate production config
+RUN tusklang convert /app/config/app.tsk /app/config/app.json
+
+WORKDIR /app
+COPY . .
+
+# Docker Compose for development
+version: '3.8'
+services:
+  app:
+    build: .
+    volumes:
+      - ./config:/app/config
+    environment:
+      - APP_ENV=development
+      - DB_HOST=database
+    depends_on:
+      - database
+      - redis
+    
+  database:
+    image: mysql:8.0
+    environment:
+      MYSQL_ROOT_PASSWORD: secret
+      MYSQL_DATABASE: app
+    
+  redis:
+    image: redis:alpine
+    
+  config-watcher:
+    image: node:alpine
+    volumes:
+      - ./config:/config
+    command: |
+      sh -c '
+        apk add --no-cache inotify-tools curl &&
+        while inotifywait -e modify /config/*.tsk; do
+          echo "Configuration changed, reloading..." &&
+          curl -X POST http://app/reload-config
+        done
+      '
+</pre>
+
+<h3>API Integration</h3>
+<pre>
+&lt;?php
+// REST API for configuration management
+namespace App\Http\Controllers;
+
+class ConfigurationController {
+    private TuskLangEnhanced $parser;
+    
+    public function __construct() {
+        $this->parser = new TuskLangEnhanced();
+    }
+    
+    public function getConfiguration(Request $request): JsonResponse {
+        $environment = $request->get('env', 'production');
+        $configFile = config_path("environments/{$environment}.tsk");
+        
+        if (!file_exists($configFile)) {
+            return response()->json(['error' => 'Configuration not found'], 404);
+        }
+        
+        $config = $this->parser->parseFile($configFile);
+        
+        // Remove sensitive data
+        $this->sanitizeConfig($config);
+        
+        return response()->json($config);
+    }
+    
+    public function validateConfiguration(Request $request): JsonResponse {
+        $content = $request->input('content');
+        
+        try {
+            $this->parser->parse($content);
+            return response()->json(['valid' => true]);
+        } catch (\Exception $e) {
+            return response()->json([
+                'valid' => false,
+                'error' => $e->getMessage()
+            ], 400);
+        }
+    }
+    
+    public function reloadConfiguration(): JsonResponse {
+        // Clear configuration cache
+        Cache::forget('tusklang_config');
+        
+        // Reload configuration
+        $config = Cache::remember('tusklang_config', 3600, function() {
+            return $this->parser->parseFile(config_path('app.tsk'));
+        });
+        
+        return response()->json(['status' => 'reloaded']);
+    }
+    
+    private function sanitizeConfig(array &$config): void {
+        $sensitiveKeys = ['password', 'secret', 'key', 'token'];
+        
+        array_walk_recursive($config, function(&$value, $key) use ($sensitiveKeys) {
+            foreach ($sensitiveKeys as $sensitive) {
+                if (stripos($key, $sensitive) !== false) {
+                    $value = '***REDACTED***';
+                }
+            }
+        });
+    }
+}
+
+// GraphQL API
+use GraphQL\Type\Definition\Type;
+use GraphQL\Type\Definition\ObjectType;
+
+$configType = new ObjectType([
+    'name' => 'Configuration',
+    'fields' => [
+        'environment' => Type::string(),
+        'debug' => Type::boolean(),
+        'version' => Type::string(),
+        'features' => Type::listOf(Type::string())
+    ]
+]);
+
+$queryType = new ObjectType([
+    'name' => 'Query',
+    'fields' => [
+        'config' => [
+            'type' => $configType,
+            'args' => [
+                'environment' => Type::string()
+            ],
+            'resolve' => function($root, $args) {
+                $parser = new TuskLangEnhanced();
+                $env = $args['environment'] ?? 'production';
+                return $parser->parseFile("config/{$env}.tsk");
+            }
+        ]
+    ]
+]);
+</pre>
+
+<h3>Monitoring and Observability</h3>
+<pre>
+&lt;?php
+// Prometheus metrics integration
+namespace TuskLang\Metrics;
+
+use Prometheus\CollectorRegistry;
+use Prometheus\Storage\InMemory;
+
+class TuskLangMetrics {
+    private CollectorRegistry $registry;
+    
+    public function __construct() {
+        $this->registry = new CollectorRegistry(new InMemory());
+        $this->setupMetrics();
+    }
+    
+    private function setupMetrics(): void {
+        // Parse time metric
+        $this->registry->getOrRegisterHistogram(
+            'tusklang',
+            'parse_duration_seconds',
+            'Time spent parsing TuskLang files',
+            ['file', 'environment']
+        );
+        
+        // Configuration reload counter
+        $this->registry->getOrRegisterCounter(
+            'tusklang',
+            'config_reloads_total',
+            'Total number of configuration reloads',
+            ['environment', 'source']
+        );
+        
+        // Active configurations gauge
+        $this->registry->getOrRegisterGauge(
+            'tusklang',
+            'active_configs',
+            'Number of active configuration files',
+            ['environment']
+        );
+    }
+    
+    public function recordParseTime(float $duration, string $file, string $env): void {
+        $this->registry->getHistogram('tusklang', 'parse_duration_seconds')
+            ->observe($duration, [$file, $env]);
+    }
+    
+    public function incrementReloads(string $env, string $source): void {
+        $this->registry->getCounter('tusklang', 'config_reloads_total')
+            ->inc([$env, $source]);
+    }
+}
+
+// Health check endpoint
+class ConfigHealthCheck {
+    public function check(): array {
+        $checks = [];
+        
+        // Check configuration file existence
+        $configFile = config_path('app.tsk');
+        $checks['config_file_exists'] = file_exists($configFile);
+        
+        // Check parsing
+        try {
+            $parser = new TuskLangEnhanced();
+            $parser->parseFile($configFile);
+            $checks['config_parseable'] = true;
+        } catch (\Exception $e) {
+            $checks['config_parseable'] = false;
+            $checks['parse_error'] = $e->getMessage();
+        }
+        
+        // Check database connectivity
+        $checks['database_connected'] = $this->checkDatabaseConnection();
+        
+        // Check cache connectivity
+        $checks['cache_connected'] = $this->checkCacheConnection();
+        
+        $checks['overall_health'] = !in_array(false, $checks, true);
+        
+        return $checks;
+    }
+    
+    private function checkDatabaseConnection(): bool {
+        try {
+            DB::connection()->getPdo();
+            return true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+    
+    private function checkCacheConnection(): bool {
+        try {
+            Cache::put('health_check', true, 1);
+            return Cache::get('health_check') === true;
+        } catch (\Exception $e) {
+            return false;
+        }
+    }
+}
+</pre>
+
+<h3>Best Practices for Ecosystem Integration</h3>
+<ul>
+    <li>Create framework-specific service providers and bundles</li>
+    <li>Implement proper dependency injection for TuskLang components</li>
+    <li>Provide CLI commands for configuration management</li>
+    <li>Integrate with existing logging and monitoring systems</li>
+    <li>Support hot-reload in development environments</li>
+    <li>Implement proper caching strategies for production</li>
+    <li>Create health checks for configuration validity</li>
+    <li>Provide migration tools from existing configuration formats</li>
+    <li>Document integration patterns for common use cases</li>
+    <li>Maintain compatibility with ecosystem conventions</li>
+</ul>

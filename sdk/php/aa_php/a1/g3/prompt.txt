@@ -1,0 +1,63 @@
+🎯 AGENT A1 - G3: REDIS & CACHING SYSTEMS
+========================================
+
+⚠️ SEVERE PUNISHMENT WARNING ⚠️
+FAILURE TO FOLLOW INSTRUCTIONS EXACTLY WILL RESULT IN:
+- IMMEDIATE PROJECT TERMINATION
+- PERFORMANCE REVIEW FAILURE  
+- NO EXCEPTIONS OR SECOND CHANCES
+FOLLOW EVERY REQUIREMENT PRECISELY OR FACE CONSEQUENCES
+
+📋 MISSION: Redis Operations & Advanced Caching
+AGENT: A1 | GOAL FOLDER: G3 | LANGUAGE: PHP
+LOCATION: reference/todo-july21/php/a1/g3/
+TIMELINE: 3-4 days | PRIORITY: CRITICAL
+
+🎯 YOUR 4 GOALS:
+
+**GOAL 1: Redis Operator Enhancement**
+- Implement Redis cluster support with automatic failover
+- Add Redis Streams support for event streaming
+- Implement Redis pub/sub with pattern subscriptions
+- Add Redis Sentinel support for high availability
+- Optimize Redis pipeline operations
+
+**GOAL 2: Multi-Level Caching System**
+- Create intelligent cache hierarchy (L1, L2, L3)
+- Implement cache warming and preloading strategies
+- Add cache invalidation patterns and dependencies
+- Implement distributed cache synchronization
+- Add cache analytics and hit/miss tracking
+
+**GOAL 3: Cache Performance Optimization**
+- Implement intelligent cache eviction policies
+- Add cache compression for large objects
+- Implement cache serialization optimization
+- Add cache sharding and partitioning
+- Optimize cache memory usage
+
+**GOAL 4: Advanced Caching Features**
+- Implement cache tagging and grouping
+- Add cache versioning and rollback
+- Implement cache replication across regions
+- Add cache security and encryption
+- Create cache monitoring and alerting
+
+🔧 TECHNICAL REQUIREMENTS:
+- Redis 7.0+ with cluster mode
+- Cache TTL: 1 second to 30 days
+- Compression: LZ4 or Snappy
+- Serialization: MessagePack or Protocol Buffers
+- Memory limit: 80% of available RAM
+- Performance target: <1ms cache operations
+
+⚠️ MANDATORY DELIVERABLES:
+✅ ideas.json - Future enhancement ideas
+✅ status.json - Progress tracking 
+✅ summary.json - Completion summary
+✅ implementation/ - PHP operator files
+✅ tests/ - 100% test coverage required
+✅ docs/ - Complete documentation
+✅ benchmarks/ - Performance test results
+
+🚨 NO TOLERANCE FOR FAILURE - EXCELLENCE IS MANDATORY!

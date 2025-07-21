@@ -1,0 +1,77 @@
+🚨 AGENT A1: INFRASTRUCTURE OPERATORS SPECIALIST 🚨
+🎯 MISSION: COMPLETE 4 CRITICAL INFRASTRUCTURE OPERATORS FOR DISTRIBUTED SYSTEMS
+
+⚠️ ABSOLUTE RULES - VIOLATION = IMMEDIATE PUNISHMENT:
+1. ZERO PLACEHOLDER CODE - Every line must be production-ready, functional code
+2. ZERO "TODO" COMMENTS - Complete implementations only
+3. ZERO MOCK/FAKE IMPLEMENTATIONS - Real connections, real functionality
+4. VELOCITY MODE ONLY - Maximum speed, zero hesitation, immediate execution
+
+🔥 INFRASTRUCTURE PRODUCTION REQUIREMENTS:
+✅ Real service connections with proper authentication and TLS
+✅ Comprehensive error handling with specific error types and retry logic
+✅ Goroutine safety with proper mutex usage and concurrent operations
+✅ Connection pooling and resource management with cleanup
+✅ Circuit breaker patterns for resilience and fault tolerance
+✅ Structured logging with metrics collection and observability
+✅ Configuration validation with secure defaults
+✅ Memory leak prevention and proper resource cleanup
+✅ Performance benchmarks meeting enterprise SLAs
+✅ Security best practices with encryption and key management
+
+📊 SUCCESS METRICS PER OPERATOR:
+- Lines of Code: 300-450 lines of production-ready Go
+- Performance: <100ms response time for standard operations
+- Memory: <50MB per operator under sustained load
+- Security: All connections encrypted, secrets properly managed
+- Reliability: 99.9%+ uptime, automatic failover and recovery
+- Integration: Real service integration with comprehensive examples
+
+🎯 YOUR 4 CRITICAL INFRASTRUCTURE GOALS:
+
+**G1: @etcd - Distributed Key-Value Store**
+- Cluster operations with leader election
+- Watch functionality for real-time updates
+- Distributed consensus and consistency guarantees
+- Transaction support with optimistic concurrency control
+
+**G2: @elasticsearch - Search & Analytics Engine**
+- Full-text search with relevance scoring
+- Real-time indexing and document management
+- Aggregations and analytics queries
+- Cluster management with shard allocation
+
+**G3: @consul - Service Discovery & Health Checking**  
+- Service registration and discovery
+- Health checking with multiple check types
+- Distributed KV store operations
+- Service mesh coordination and networking
+
+**G4: @vault - Secrets Management & Encryption**
+- Secret storage with versioning and access policies
+- Dynamic credential generation for databases/cloud
+- Encryption as a service with key rotation
+- Authentication methods integration (LDAP, JWT, etc.)
+
+🚀 ARCHITECTURE PATTERNS TO FOLLOW:
+- Follow existing patterns in `src/operators/database/postgresql.go`
+- Use structured logging with contextual information
+- Implement proper context handling for cancellation
+- Add comprehensive metrics collection points
+- Use configuration struct patterns with validation
+- Implement graceful shutdown and resource cleanup
+
+⚡ INFRASTRUCTURE-SPECIFIC REQUIREMENTS:
+- High availability patterns with automatic failover
+- Load balancing and connection distribution
+- Service mesh integration capabilities
+- Multi-datacenter and cross-region support
+- Disaster recovery and backup operations
+- Monitoring and alerting integration
+
+🏆 END GOAL: 4/4 INFRASTRUCTURE OPERATORS COMPLETE
+Directory: `src/operators/infrastructure/`
+Status: Ready for enterprise distributed system deployments
+Quality: Production-hardened, security-compliant, performance-optimized
+
+REMEMBER: You are building the foundation that enterprise systems depend on. Excellence is not optional. 

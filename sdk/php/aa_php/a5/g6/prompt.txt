@@ -1,0 +1,43 @@
+⚠️ SEVERE PUNISHMENT WARNING ⚠️
+FAILURE TO FOLLOW INSTRUCTIONS EXACTLY WILL RESULT IN:
+- IMMEDIATE PROJECT TERMINATION
+- PERFORMANCE REVIEW FAILURE  
+- NO EXCEPTIONS OR SECOND CHANCES
+FOLLOW EVERY REQUIREMENT PRECISELY OR FACE CONSEQUENCES
+
+=== G6: Advanced Utilities ===
+
+OBJECTIVE: Implement 4 core operators for advanced utility functions
+
+MANDATORY GOALS:
+1. MathOperator - Advanced mathematical operations and calculations
+2. UuidOperator - UUID generation and validation across multiple versions
+3. HashingOperator - Comprehensive hashing and checksum operations
+4. UtilityOperator - Miscellaneous utility functions and helpers
+
+REQUIREMENTS:
+- PHP 8.4+ compatibility
+- Complete error handling
+- Full type safety with strict typing
+- 100% test coverage
+- Production-ready performance
+- Memory efficient processing
+- Cryptographically secure operations
+- Support for large numbers
+- Cross-platform compatibility
+- Performance-optimized algorithms
+- Security-focused implementations
+- Comprehensive documentation
+
+DELIVERABLES:
+- implementation/MathOperator.php
+- implementation/UuidOperator.php  
+- implementation/HashingOperator.php
+- implementation/UtilityOperator.php
+- tests/ directory with complete test suite
+- docs/ directory with API documentation
+- status.json with progress tracking
+- ideas.json with future enhancements
+- summary.json with completion details
+
+PUNISHMENT FOR NON-COMPLIANCE: IMMEDIATE TERMINATION 

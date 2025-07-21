@@ -1,0 +1,532 @@
+<h1>Built-in Functions with TuskLang in Go</h1>
+
+<h2>Core TuskLang Functions</h2>
+<p>TuskLang provides a comprehensive set of built-in functions for environment variables, file operations, and dynamic content generation in Go applications.</p>
+
+<h3>functions.tsk</h3>
+<pre>
+# Environment functions
+database_url: env("DATABASE_URL", "postgres://localhost/myapp")
+port: env("PORT", 8080)
+debug_mode: env("DEBUG", false)
+api_key: env("API_KEY")
+
+# File operations
+app_config: file("app.json")
+database_schema: file("schema.sql")
+template_content: file("templates/email.html")
+secret_key: file("/etc/secrets/app.key")
+
+# PHP/Go execution
+current_timestamp: go(time.Now().Unix())
+random_id: go(uuid.New().String())
+hash_password: go(bcrypt.GenerateFromPassword([]byte("password"), 10))
+formatted_date: go(time.Now().Format("2006-01-02 15:04:05"))
+
+# String functions
+app_name_upper: upper("myapp")
+app_name_lower: lower("MYAPP")
+trimmed_value: trim("  spaced  ")
+replaced_value: replace("hello world", "world", "Go")
+
+# Math functions
+random_number: random(1, 100)
+rounded_value: round(3.14159, 2)
+max_value: max(10, 20, 5, 15)
+min_value: min(10, 20, 5, 15)
+
+# Array functions
+array_length: length(["one", "two", "three"])
+joined_array: join(["Go", "TuskLang", "Config"], " + ")
+first_item: first(["alpha", "beta", "gamma"])
+last_item: last(["alpha", "beta", "gamma"])
+
+# Date/time functions
+now: now()
+unix_timestamp: unix()
+iso_date: iso()
+custom_format: date("2006-01-02")
+
+# Conditional functions
+default_value: default(env("OPTIONAL_VAR"), "fallback")
+not_empty: notempty(env("CHECK_VAR"), "Variable is empty")
+if_condition: if(env("DEBUG") == "true", "development", "production")
+
+# Encoding functions
+base64_encoded: base64encode("Hello TuskLang")
+base64_decoded: base64decode("SGVsbG8gVHVza0xhbmc=")
+url_encoded: urlencode("hello world & more")
+json_encoded: jsonencode({"name": "TuskLang", "version": "1.0"})
+
+# Hash functions
+md5_hash: md5("TuskLang")
+sha1_hash: sha1("TuskLang")
+sha256_hash: sha256("TuskLang")
+
+# Network functions
+local_ip: localip()
+external_ip: externalip()
+hostname: hostname()
+mac_address: macaddress()
+</pre>
+
+<h3>Go Function Implementation</h3>
+<pre>
+package main
+
+import (
+    "crypto/md5"
+    "crypto/sha1"
+    "crypto/sha256"
+    "encoding/base64"
+    "encoding/json"
+    "fmt"
+    "io"
+    "math"
+    "math/rand"
+    "net"
+    "net/http"
+    "net/url"
+    "os"
+    "os/exec"
+    "strconv"
+    "strings"
+    "time"
+    
+    "github.com/google/uuid"
+    "golang.org/x/crypto/bcrypt"
+)
+
+type FunctionHandler struct {
+    variables map[string]interface{}
+}
+
+func NewFunctionHandler() *FunctionHandler {
+    return &FunctionHandler{
+        variables: make(map[string]interface{}),
+    }
+}
+
+func (fh *FunctionHandler) ProcessFunction(funcCall string) interface{} {
+    if !strings.Contains(funcCall, "(") {
+        return funcCall
+    }
+    
+    // Parse function name and arguments
+    parenIndex := strings.Index(funcCall, "(")
+    funcName := funcCall[:parenIndex]
+    argsStr := funcCall[parenIndex+1 : len(funcCall)-1]
+    
+    args := fh.parseArguments(argsStr)
+    
+    switch funcName {
+    // Environment functions
+    case "env":
+        return fh.handleEnv(args)
+        
+    // File functions
+    case "file":
+        return fh.handleFile(args)
+        
+    // Go execution
+    case "go":
+        return fh.handleGo(args)
+        
+    // String functions
+    case "upper":
+        return fh.handleUpper(args)
+    case "lower":
+        return fh.handleLower(args)
+    case "trim":
+        return fh.handleTrim(args)
+    case "replace":
+        return fh.handleReplace(args)
+        
+    // Math functions
+    case "random":
+        return fh.handleRandom(args)
+    case "round":
+        return fh.handleRound(args)
+    case "max":
+        return fh.handleMax(args)
+    case "min":
+        return fh.handleMin(args)
+        
+    // Array functions
+    case "length":
+        return fh.handleLength(args)
+    case "join":
+        return fh.handleJoin(args)
+    case "first":
+        return fh.handleFirst(args)
+    case "last":
+        return fh.handleLast(args)
+        
+    // Date/time functions
+    case "now":
+        return time.Now().Format("2006-01-02 15:04:05")
+    case "unix":
+        return time.Now().Unix()
+    case "iso":
+        return time.Now().Format(time.RFC3339)
+    case "date":
+        return fh.handleDate(args)
+        
+    // Conditional functions
+    case "default":
+        return fh.handleDefault(args)
+    case "notempty":
+        return fh.handleNotEmpty(args)
+    case "if":
+        return fh.handleIf(args)
+        
+    // Encoding functions
+    case "base64encode":
+        return fh.handleBase64Encode(args)
+    case "base64decode":
+        return fh.handleBase64Decode(args)
+    case "urlencode":
+        return fh.handleURLEncode(args)
+    case "jsonencode":
+        return fh.handleJSONEncode(args)
+        
+    // Hash functions
+    case "md5":
+        return fh.handleMD5(args)
+    case "sha1":
+        return fh.handleSHA1(args)
+    case "sha256":
+        return fh.handleSHA256(args)
+        
+    // Network functions
+    case "localip":
+        return fh.handleLocalIP()
+    case "externalip":
+        return fh.handleExternalIP()
+    case "hostname":
+        return fh.handleHostname()
+        
+    default:
+        return funcCall
+    }
+}
+
+func (fh *FunctionHandler) handleEnv(args []string) interface{} {
+    if len(args) == 0 {
+        return ""
+    }
+    
+    envVar := strings.Trim(args[0], `"`)
+    defaultValue := ""
+    
+    if len(args) > 1 {
+        defaultValue = strings.Trim(args[1], `"`)
+    }
+    
+    if value := os.Getenv(envVar); value != "" {
+        // Try to parse as number or boolean
+        if num, err := strconv.Atoi(value); err == nil {
+            return num
+        }
+        if value == "true" {
+            return true
+        }
+        if value == "false" {
+            return false
+        }
+        return value
+    }
+    
+    // Parse default value type
+    if num, err := strconv.Atoi(defaultValue); err == nil {
+        return num
+    }
+    if defaultValue == "true" {
+        return true
+    }
+    if defaultValue == "false" {
+        return false
+    }
+    
+    return defaultValue
+}
+
+func (fh *FunctionHandler) handleFile(args []string) interface{} {
+    if len(args) == 0 {
+        return ""
+    }
+    
+    filename := strings.Trim(args[0], `"`)
+    content, err := os.ReadFile(filename)
+    if err != nil {
+        return ""
+    }
+    
+    return string(content)
+}
+
+func (fh *FunctionHandler) handleGo(args []string) interface{} {
+    if len(args) == 0 {
+        return ""
+    }
+    
+    goCode := strings.Trim(args[0], `"`)
+    
+    // Simple Go expression evaluation
+    switch {
+    case strings.Contains(goCode, "time.Now().Unix()"):
+        return time.Now().Unix()
+    case strings.Contains(goCode, "uuid.New().String()"):
+        return uuid.New().String()
+    case strings.Contains(goCode, "time.Now().Format"):
+        format := "2006-01-02 15:04:05"
+        if strings.Contains(goCode, `"`) {
+            // Extract format string
+            start := strings.Index(goCode, `"`) + 1
+            end := strings.LastIndex(goCode, `"`)
+            if end > start {
+                format = goCode[start:end]
+            }
+        }
+        return time.Now().Format(format)
+    case strings.Contains(goCode, "bcrypt.GenerateFromPassword"):
+        // Extract password from function call
+        password := "password" // Default
+        hash, _ := bcrypt.GenerateFromPassword([]byte(password), bcrypt.DefaultCost)
+        return string(hash)
+    default:
+        return goCode
+    }
+}
+
+func (fh *FunctionHandler) handleUpper(args []string) interface{} {
+    if len(args) > 0 {
+        return strings.ToUpper(strings.Trim(args[0], `"`))
+    }
+    return ""
+}
+
+func (fh *FunctionHandler) handleLower(args []string) interface{} {
+    if len(args) > 0 {
+        return strings.ToLower(strings.Trim(args[0], `"`))
+    }
+    return ""
+}
+
+func (fh *FunctionHandler) handleTrim(args []string) interface{} {
+    if len(args) > 0 {
+        return strings.TrimSpace(strings.Trim(args[0], `"`))
+    }
+    return ""
+}
+
+func (fh *FunctionHandler) handleReplace(args []string) interface{} {
+    if len(args) >= 3 {
+        text := strings.Trim(args[0], `"`)
+        old := strings.Trim(args[1], `"`)
+        new := strings.Trim(args[2], `"`)
+        return strings.ReplaceAll(text, old, new)
+    }
+    return ""
+}
+
+func (fh *FunctionHandler) handleRandom(args []string) interface{} {
+    if len(args) >= 2 {
+        min, _ := strconv.Atoi(strings.Trim(args[0], `"`))
+        max, _ := strconv.Atoi(strings.Trim(args[1], `"`))
+        return rand.Intn(max-min+1) + min
+    }
+    return rand.Int()
+}
+
+func (fh *FunctionHandler) handleRound(args []string) interface{} {
+    if len(args) >= 2 {
+        value, _ := strconv.ParseFloat(strings.Trim(args[0], `"`), 64)
+        precision, _ := strconv.Atoi(strings.Trim(args[1], `"`))
+        multiplier := math.Pow(10, float64(precision))
+        return math.Round(value*multiplier) / multiplier
+    }
+    return 0
+}
+
+func (fh *FunctionHandler) handleMax(args []string) interface{} {
+    if len(args) == 0 {
+        return 0
+    }
+    
+    max, _ := strconv.ParseFloat(strings.Trim(args[0], `"`), 64)
+    for _, arg := range args[1:] {
+        if val, err := strconv.ParseFloat(strings.Trim(arg, `"`), 64); err == nil && val > max {
+            max = val
+        }
+    }
+    return max
+}
+
+func (fh *FunctionHandler) handleMin(args []string) interface{} {
+    if len(args) == 0 {
+        return 0
+    }
+    
+    min, _ := strconv.ParseFloat(strings.Trim(args[0], `"`), 64)
+    for _, arg := range args[1:] {
+        if val, err := strconv.ParseFloat(strings.Trim(arg, `"`), 64); err == nil && val < min {
+            min = val
+        }
+    }
+    return min
+}
+
+func (fh *FunctionHandler) handleBase64Encode(args []string) interface{} {
+    if len(args) > 0 {
+        text := strings.Trim(args[0], `"`)
+        return base64.StdEncoding.EncodeToString([]byte(text))
+    }
+    return ""
+}
+
+func (fh *FunctionHandler) handleBase64Decode(args []string) interface{} {
+    if len(args) > 0 {
+        encoded := strings.Trim(args[0], `"`)
+        if decoded, err := base64.StdEncoding.DecodeString(encoded); err == nil {
+            return string(decoded)
+        }
+    }
+    return ""
+}
+
+func (fh *FunctionHandler) handleURLEncode(args []string) interface{} {
+    if len(args) > 0 {
+        text := strings.Trim(args[0], `"`)
+        return url.QueryEscape(text)
+    }
+    return ""
+}
+
+func (fh *FunctionHandler) handleJSONEncode(args []string) interface{} {
+    if len(args) > 0 {
+        // This is simplified - real implementation would parse the object
+        data := map[string]interface{}{
+            "encoded": strings.Trim(args[0], `"`),
+        }
+        if bytes, err := json.Marshal(data); err == nil {
+            return string(bytes)
+        }
+    }
+    return ""
+}
+
+func (fh *FunctionHandler) handleMD5(args []string) interface{} {
+    if len(args) > 0 {
+        text := strings.Trim(args[0], `"`)
+        hash := md5.Sum([]byte(text))
+        return fmt.Sprintf("%x", hash)
+    }
+    return ""
+}
+
+func (fh *FunctionHandler) handleSHA1(args []string) interface{} {
+    if len(args) > 0 {
+        text := strings.Trim(args[0], `"`)
+        hash := sha1.Sum([]byte(text))
+        return fmt.Sprintf("%x", hash)
+    }
+    return ""
+}
+
+func (fh *FunctionHandler) handleSHA256(args []string) interface{} {
+    if len(args) > 0 {
+        text := strings.Trim(args[0], `"`)
+        hash := sha256.Sum256([]byte(text))
+        return fmt.Sprintf("%x", hash)
+    }
+    return ""
+}
+
+func (fh *FunctionHandler) handleLocalIP() interface{} {
+    conn, err := net.Dial("udp", "8.8.8.8:80")
+    if err != nil {
+        return "127.0.0.1"
+    }
+    defer conn.Close()
+    
+    localAddr := conn.LocalAddr().(*net.UDPAddr)
+    return localAddr.IP.String()
+}
+
+func (fh *FunctionHandler) handleExternalIP() interface{} {
+    resp, err := http.Get("https://api.ipify.org")
+    if err != nil {
+        return ""
+    }
+    defer resp.Body.Close()
+    
+    ip, err := io.ReadAll(resp.Body)
+    if err != nil {
+        return ""
+    }
+    
+    return string(ip)
+}
+
+func (fh *FunctionHandler) handleHostname() interface{} {
+    hostname, err := os.Hostname()
+    if err != nil {
+        return ""
+    }
+    return hostname
+}
+
+func (fh *FunctionHandler) parseArguments(argsStr string) []string {
+    if argsStr == "" {
+        return []string{}
+    }
+    
+    var args []string
+    var current strings.Builder
+    var inQuotes bool
+    var bracketDepth int
+    
+    for _, char := range argsStr {
+        switch char {
+        case '"':
+            inQuotes = !inQuotes
+            current.WriteRune(char)
+        case '[':
+            bracketDepth++
+            current.WriteRune(char)
+        case ']':
+            bracketDepth--
+            current.WriteRune(char)
+        case ',':
+            if !inQuotes && bracketDepth == 0 {
+                args = append(args, strings.TrimSpace(current.String()))
+                current.Reset()
+            } else {
+                current.WriteRune(char)
+            }
+        default:
+            current.WriteRune(char)
+        }
+    }
+    
+    if current.Len() > 0 {
+        args = append(args, strings.TrimSpace(current.String()))
+    }
+    
+    return args
+}
+
+func main() {
+    handler := NewFunctionHandler()
+    
+    // Test function calls
+    fmt.Println(handler.ProcessFunction(`env("PORT", 8080)`))
+    fmt.Println(handler.ProcessFunction(`upper("hello")`))
+    fmt.Println(handler.ProcessFunction(`random(1, 100)`))
+    fmt.Println(handler.ProcessFunction(`now()`))
+    fmt.Println(handler.ProcessFunction(`base64encode("TuskLang")`))
+}
+</pre>
+
+<p>TuskLang's built-in functions provide powerful utilities for environment handling, file operations, string manipulation, and system integration in Go applications.</p>

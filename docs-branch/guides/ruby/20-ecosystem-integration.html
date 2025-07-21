@@ -1,0 +1,1057 @@
+<h1>Ecosystem Integration in TuskLang for Ruby</h1>
+
+<h2>Framework and Library Integration</h2>
+<p>TuskLang provides comprehensive integration with the Ruby ecosystem including Rails, Sinatra, Sidekiq, and popular gems.</p>
+
+<h3>ecosystem.tsk</h3>
+<pre>
+# Rails Integration
+rails: {
+    version: env("RAILS_VERSION", "7.0")
+    environment: env("RAILS_ENV", "development")
+    secret_key_base: env("SECRET_KEY_BASE")
+    
+    # Rails-specific configuration
+    config: {
+        time_zone: "UTC"
+        eager_load: env("RAILS_ENV") == "production"
+        consider_all_requests_local: env("RAILS_ENV") == "development"
+        action_controller_allow_forgery_protection: true
+        active_record_encryption_primary_key: env("AR_ENCRYPTION_PRIMARY_KEY")
+        active_record_encryption_deterministic_key: env("AR_ENCRYPTION_DETERMINISTIC_KEY")
+        active_record_encryption_key_derivation_salt: env("AR_ENCRYPTION_KEY_DERIVATION_SALT")
+    }
+    
+    # Asset pipeline
+    assets: {
+        compile: env("RAILS_ENV") != "production"
+        digest: true
+        debug: env("RAILS_ENV") == "development"
+        compress: env("RAILS_ENV") == "production"
+        
+        # Precompile assets
+        precompile: [
+            "application.css",
+            "application.js",
+            "admin.css",
+            "admin.js"
+        ]
+    }
+    
+    # Action Cable
+    action_cable: {
+        adapter: env("CABLE_ADAPTER", "redis")
+        url: env("REDIS_URL", "redis://localhost:6379/1")
+        channel_prefix: "myapp_#{env('RAILS_ENV')}"
+    }
+    
+    # Active Job
+    active_job: {
+        queue_adapter: env("JOB_QUEUE", "sidekiq")
+        queue_name_prefix: "myapp_#{env('RAILS_ENV')}"
+        default_queue_name: "default"
+    }
+    
+    # Action Mailer
+    action_mailer: {
+        delivery_method: env("MAIL_DELIVERY_METHOD", "smtp")
+        perform_deliveries: env("RAILS_ENV") != "test"
+        raise_delivery_errors: env("RAILS_ENV") == "development"
+        default_url_host: env("DEFAULT_URL_HOST", "localhost:3000")
+        
+        smtp_settings: {
+            address: env("SMTP_HOST", "localhost")
+            port: env("SMTP_PORT", 587)
+            domain: env("SMTP_DOMAIN")
+            user_name: env("SMTP_USER")
+            password: env("SMTP_PASSWORD")
+            authentication: "plain"
+            enable_starttls_auto: true
+        }
+    }
+}
+
+# Sinatra Integration
+sinatra: {
+    environment: env("RACK_ENV", "development")
+    port: env("PORT", 4567)
+    bind: env("BIND", "0.0.0.0")
+    
+    # Sinatra-specific settings
+    settings: {
+        show_exceptions: env("RACK_ENV") == "development"
+        dump_errors: env("RACK_ENV") == "development"
+        raise_errors: env("RACK_ENV") == "development"
+        logging: true
+        method_override: true
+        use_common_logger: true
+    }
+    
+    # Session configuration
+    sessions: {
+        enabled: true
+        secret: env("SESSION_SECRET")
+        expire_after: 86400
+        same_site: "strict"
+        http_only: true
+        secure: env("RACK_ENV") == "production"
+    }
+}
+
+# Sidekiq Configuration
+sidekiq: {
+    redis_url: env("REDIS_URL", "redis://localhost:6379/0")
+    concurrency: env("SIDEKIQ_CONCURRENCY", 5)
+    timeout: 25
+    
+    # Queue configuration
+    queues: {
+        critical: 10
+        default: 5
+        mailers: 3
+        low: 1
+    }
+    
+    # Cron jobs (sidekiq-cron)
+    cron_jobs: {
+        cleanup_sessions: {
+            class: "CleanupSessionsWorker"
+            cron: "0 2 * * *"  # Daily at 2 AM
+            queue: "maintenance"
+        }
+        
+        send_digest_emails: {
+            class: "DigestEmailWorker"
+            cron: "0 8 * * 1"  # Monday at 8 AM
+            queue: "mailers"
+        }
+        
+        update_statistics: {
+            class: "StatisticsWorker"
+            cron: "*/15 * * * *"  # Every 15 minutes
+            queue: "default"
+        }
+    }
+    
+    # Middleware
+    middleware: [
+        "Sidekiq::Middleware::Server::RetryJobs",
+        "Sidekiq::Middleware::Server::Logging"
+    ]
+    
+    # Death handlers
+    death_handlers: {
+        notify_admin: true
+        log_to_file: true
+        send_to_bugsnag: env("BUGSNAG_API_KEY") != nil
+    }
+}
+
+# Puma Web Server
+puma: {
+    port: env("PORT", 3000)
+    environment: env("RAILS_ENV", "development")
+    
+    # Threading
+    threads: {
+        min: env("PUMA_MIN_THREADS", 1)
+        max: env("PUMA_MAX_THREADS", 5)
+    }
+    
+    # Workers (for production)
+    workers: env("PUMA_WORKERS", 0)
+    preload_app: env("PUMA_PRELOAD_APP", false)
+    
+    # Bind configuration
+    bind: [
+        "tcp://0.0.0.0:#{env('PORT', 3000)}"
+    ]
+    
+    # Timeouts
+    worker_timeout: 60
+    worker_boot_timeout: 60
+    worker_shutdown_timeout: 30
+    
+    # Lifecycle hooks
+    on_worker_boot: {
+        active_record_establish_connection: true
+        reconnect_redis: true
+    }
+    
+    # Plugins
+    plugins: [
+        "tmp_restart"
+    ]
+}
+
+# Redis Configuration
+redis: {
+    url: env("REDIS_URL", "redis://localhost:6379/0")
+    timeout: 5
+    reconnect_attempts: 3
+    reconnect_delay: 1
+    
+    # Connection pool
+    pool: {
+        size: env("REDIS_POOL_SIZE", 5)
+        timeout: 5
+    }
+    
+    # Sentinel support
+    sentinel: {
+        enabled: env("REDIS_SENTINEL_ENABLED", false)
+        master_name: env("REDIS_MASTER_NAME", "mymaster")
+        sentinels: [
+            {host: env("SENTINEL_1_HOST"), port: env("SENTINEL_1_PORT", 26379)},
+            {host: env("SENTINEL_2_HOST"), port: env("SENTINEL_2_PORT", 26379)}
+        ]
+    }
+    
+    # Namespacing
+    namespace: "myapp:#{env('RAILS_ENV')}"
+}
+
+# Elasticsearch Integration
+elasticsearch: {
+    enabled: env("ELASTICSEARCH_ENABLED", false)
+    host: env("ELASTICSEARCH_HOST", "localhost:9200")
+    
+    # Client configuration
+    client: {
+        hosts: [env("ELASTICSEARCH_HOST", "localhost:9200")]
+        retry_on_failure: 3
+        retry_on_status: [502, 503, 504]
+        request_timeout: 60
+        reload_connections: true
+        reload_on_failure: true
+        randomize_hosts: true
+    }
+    
+    # Index configuration
+    indices: {
+        users: {
+            name: "users_#{env('RAILS_ENV')}"
+            settings: {
+                number_of_shards: 1
+                number_of_replicas: 0
+            }
+        }
+        
+        posts: {
+            name: "posts_#{env('RAILS_ENV')}"
+            settings: {
+                number_of_shards: 2
+                number_of_replicas: 1
+            }
+        }
+    }
+}
+
+# GraphQL Integration (graphql-ruby)
+graphql: {
+    enabled: env("GRAPHQL_ENABLED", false)
+    endpoint: "/graphql"
+    graphiql: env("RAILS_ENV") == "development"
+    
+    # Schema configuration
+    schema: {
+        max_depth: 10
+        max_complexity: 1000
+        introspection: env("RAILS_ENV") != "production"
+        default_page_size: 25
+        max_page_size: 100
+    }
+    
+    # Subscriptions
+    subscriptions: {
+        enabled: false
+        adapter: "redis"
+        redis_url: env("REDIS_URL")
+    }
+    
+    # Tracing
+    tracing: {
+        enabled: env("GRAPHQL_TRACING", false)
+        platform: "scout_apm"  # or datadog, new_relic
+    }
+}
+
+# Monitoring and APM
+monitoring: {
+    # New Relic
+    new_relic: {
+        enabled: env("NEW_RELIC_LICENSE_KEY") != nil
+        license_key: env("NEW_RELIC_LICENSE_KEY")
+        app_name: "#{env('APP_NAME', 'MyApp')} (#{env('RAILS_ENV')})"
+        monitor_mode: env("RAILS_ENV") == "production"
+        developer_mode: env("RAILS_ENV") == "development"
+        log_level: "info"
+        
+        # Distributed tracing
+        distributed_tracing: {
+            enabled: true
+        }
+        
+        # Browser monitoring
+        browser_monitoring: {
+            auto_instrument: true
+        }
+    }
+    
+    # Scout APM
+    scout_apm: {
+        enabled: env("SCOUT_KEY") != nil
+        key: env("SCOUT_KEY")
+        name: "#{env('APP_NAME', 'MyApp')} (#{env('RAILS_ENV')})"
+        monitor: env("RAILS_ENV") == "production"
+        
+        # Detailed traces
+        detailed_middleware: true
+        detailed_sql: true
+    }
+    
+    # Datadog
+    datadog: {
+        enabled: env("DD_API_KEY") != nil
+        service_name: env("DD_SERVICE", "myapp")
+        env: env("RAILS_ENV")
+        version: env("APP_VERSION", "1.0.0")
+        
+        # Tracing
+        tracing: {
+            enabled: true
+            analytics_enabled: true
+            distributed_tracing: true
+        }
+    }
+}
+
+# Error Tracking
+error_tracking: {
+    # Bugsnag
+    bugsnag: {
+        enabled: env("BUGSNAG_API_KEY") != nil
+        api_key: env("BUGSNAG_API_KEY")
+        release_stage: env("RAILS_ENV")
+        notify_release_stages: ["production", "staging"]
+        
+        # Metadata
+        meta_data: {
+            environment: env("RAILS_ENV")
+            hostname: @hostname()
+            version: env("APP_VERSION")
+        }
+    }
+    
+    # Sentry
+    sentry: {
+        enabled: env("SENTRY_DSN") != nil
+        dsn: env("SENTRY_DSN")
+        environment: env("RAILS_ENV")
+        release: env("APP_VERSION")
+        
+        # Performance monitoring
+        traces_sample_rate: env("RAILS_ENV") == "production" ? 0.1 : 1.0
+        
+        # Breadcrumbs
+        breadcrumbs_logger: ["active_support_logger", "http_logger"]
+    }
+    
+    # Honeybadger
+    honeybadger: {
+        enabled: env("HONEYBADGER_API_KEY") != nil
+        api_key: env("HONEYBADGER_API_KEY")
+        environment: env("RAILS_ENV")
+        report_data: env("RAILS_ENV") == "production"
+    }
+}
+
+# File Storage
+storage: {
+    # Active Storage (Rails)
+    active_storage: {
+        service: env("ACTIVE_STORAGE_SERVICE", "local")
+        
+        services: {
+            local: {
+                service: "Disk"
+                root: "./storage"
+            }
+            
+            amazon: {
+                service: "S3"
+                access_key_id: env("AWS_ACCESS_KEY_ID")
+                secret_access_key: env("AWS_SECRET_ACCESS_KEY")
+                region: env("AWS_REGION", "us-east-1")
+                bucket: env("AWS_S3_BUCKET")
+            }
+            
+            google: {
+                service: "GCS"
+                project: env("GOOGLE_CLOUD_PROJECT")
+                credentials: env("GOOGLE_CLOUD_KEYFILE")
+                bucket: env("GOOGLE_CLOUD_BUCKET")
+            }
+        }
+    }
+    
+    # CarrierWave
+    carrierwave: {
+        enabled: env("CARRIERWAVE_ENABLED", false)
+        storage: env("CARRIERWAVE_STORAGE", "file")  # file, fog
+        
+        fog: {
+            provider: "AWS"
+            aws_access_key_id: env("AWS_ACCESS_KEY_ID")
+            aws_secret_access_key: env("AWS_SECRET_ACCESS_KEY")
+            region: env("AWS_REGION")
+        }
+    }
+}
+
+# Background Processing Alternatives
+background_processing: {
+    # Delayed Job
+    delayed_job: {
+        enabled: env("DELAYED_JOB_ENABLED", false)
+        backend: "active_record"
+        sleep_delay: 5
+        max_attempts: 3
+        max_run_time: 5.minutes
+        destroy_failed_jobs: false
+        
+        queues: ["high_priority", "default", "low_priority"]
+    }
+    
+    # Resque
+    resque: {
+        enabled: env("RESQUE_ENABLED", false)
+        redis_url: env("REDIS_URL")
+        namespace: "myapp:resque"
+        
+        # Web interface
+        web: {
+            enabled: env("RESQUE_WEB_ENABLED", false)
+            username: env("RESQUE_WEB_USER")
+            password: env("RESQUE_WEB_PASSWORD")
+        }
+    }
+    
+    # Sneakers (RabbitMQ)
+    sneakers: {
+        enabled: env("SNEAKERS_ENABLED", false)
+        amqp_url: env("RABBITMQ_URL", "amqp://localhost:5672")
+        heartbeat: 30
+        
+        # Worker configuration
+        workers: 4
+        log: "log/sneakers.log"
+        pid_path: "tmp/pids/sneakers.pid"
+        
+        # Exchange settings
+        exchange: {
+            name: "myapp_exchange"
+            type: "direct"
+            durable: true
+        }
+    }
+}
+
+# Testing Frameworks
+testing: {
+    # RSpec
+    rspec: {
+        enabled: env("RSPEC_ENABLED", true)
+        
+        configuration: {
+            formatter: "documentation"
+            color: true
+            fail_fast: false
+            profile: 10
+            
+            # Database cleaner
+            use_transactional_fixtures: false
+            database_cleaner_strategy: "truncation"
+        }
+        
+        # Parallel testing
+        parallel: {
+            enabled: env("PARALLEL_TESTS", false)
+            processes: env("PARALLEL_PROCESSES", 4)
+        }
+    }
+    
+    # Minitest
+    minitest: {
+        enabled: env("MINITEST_ENABLED", false)
+        reporter: "ProgressReporter"
+        parallel: env("MINITEST_PARALLEL", false)
+    }
+    
+    # FactoryBot
+    factory_bot: {
+        enabled: env("FACTORY_BOT_ENABLED", true)
+        definition_file_paths: ["spec/factories", "test/factories"]
+        
+        # Lint factories in CI
+        lint_factories: env("CI") == "true"
+    }
+    
+    # VCR (for HTTP testing)
+    vcr: {
+        enabled: env("VCR_ENABLED", true)
+        cassette_library_dir: "spec/vcr_cassettes"
+        hook_into: ["webmock"]
+        configure_rspec_metadata: true
+        
+        # Record mode
+        record: env("VCR_RECORD_MODE", "once")  # once, new_episodes, all, none
+    }
+}
+
+# API Documentation
+documentation: {
+    # Swagger/OpenAPI
+    swagger: {
+        enabled: env("SWAGGER_ENABLED", false)
+        version: "3.0.0"
+        title: "#{env('APP_NAME', 'MyApp')} API"
+        description: "API documentation for #{env('APP_NAME', 'MyApp')}"
+        
+        # UI configuration
+        ui: {
+            enabled: env("RAILS_ENV") != "production"
+            path: "/api-docs"
+            deep_linking: true
+            display_request_duration: true
+        }
+    }
+    
+    # YARD (Ruby documentation)
+    yard: {
+        enabled: env("YARD_ENABLED", false)
+        output_dir: "doc"
+        markup: "markdown"
+        
+        # Plugin configuration
+        plugins: ["yard-rails", "yard-rspec"]
+    }
+}
+
+# Deployment Configuration
+deployment: {
+    # Capistrano
+    capistrano: {
+        enabled: env("CAPISTRANO_ENABLED", false)
+        application: env("APP_NAME", "myapp")
+        repo_url: env("REPO_URL")
+        branch: env("DEPLOY_BRANCH", "main")
+        
+        # Deployment settings
+        deploy_to: "/var/www/#{env('APP_NAME')}"
+        keep_releases: 5
+        linked_files: ["config/database.yml", "config/secrets.yml"]
+        linked_dirs: ["log", "tmp/pids", "tmp/cache", "tmp/sockets", "public/system"]
+        
+        # Hooks
+        after_restart: ["deploy:cleanup"]
+    }
+    
+    # Docker
+    docker: {
+        enabled: env("DOCKER_ENABLED", false)
+        image: "#{env('APP_NAME')}:#{env('APP_VERSION', 'latest')}"
+        
+        # Environment-specific images
+        images: {
+            development: "#{env('APP_NAME')}:dev"
+            staging: "#{env('APP_NAME')}:staging"
+            production: "#{env('APP_NAME')}:#{env('APP_VERSION', 'latest')}"
+        }
+        
+        # Health check
+        healthcheck: {
+            test: ["CMD", "curl", "-f", "http://localhost:3000/health"]
+            interval: "30s"
+            timeout: "10s"
+            retries: 3
+            start_period: "40s"
+        }
+    }
+    
+    # Kubernetes
+    kubernetes: {
+        enabled: env("KUBERNETES_ENABLED", false)
+        namespace: env("K8S_NAMESPACE", "default")
+        
+        # Deployment configuration
+        deployment: {
+            replicas: env("K8S_REPLICAS", 3)
+            strategy: "RollingUpdate"
+            max_unavailable: 1
+            max_surge: 1
+        }
+        
+        # Service configuration
+        service: {
+            type: "ClusterIP"
+            port: 80
+            target_port: 3000
+        }
+        
+        # Ingress
+        ingress: {
+            enabled: env("K8S_INGRESS_ENABLED", false)
+            host: env("K8S_HOST")
+            tls: env("K8S_TLS_ENABLED", false)
+        }
+    }
+}
+</pre>
+
+<h3>Ruby Ecosystem Manager</h3>
+<pre>
+#!/usr/bin/env ruby
+
+require 'yaml'
+require 'ostruct'
+
+class TuskLangEcosystemManager
+  attr_reader :config, :integrations
+
+  def initialize(config)
+    @config = config
+    @integrations = {}
+    @initialized_services = []
+  end
+
+  def setup_ecosystem
+    # Setup core frameworks
+    setup_rails if @config.rails
+    setup_sinatra if @config.sinatra
+    
+    # Setup background processing
+    setup_sidekiq if @config.sidekiq
+    setup_delayed_job if @config.background_processing&.delayed_job&.enabled
+    setup_resque if @config.background_processing&.resque&.enabled
+    
+    # Setup data stores
+    setup_redis if @config.redis
+    setup_elasticsearch if @config.elasticsearch&.enabled
+    
+    # Setup monitoring
+    setup_monitoring if @config.monitoring
+    setup_error_tracking if @config.error_tracking
+    
+    # Setup storage
+    setup_storage if @config.storage
+    
+    # Setup testing
+    setup_testing if @config.testing
+    
+    # Generate configuration files
+    generate_config_files
+    
+    @initialized_services
+  end
+
+  def validate_dependencies
+    errors = []
+    
+    # Check for required gems
+    required_gems = extract_required_gems
+    required_gems.each do |gem_name, version|
+      unless gem_available?(gem_name, version)
+        errors << "Missing gem: #{gem_name} #{version}"
+      end
+    end
+    
+    # Check environment variables
+    required_env_vars = extract_required_env_vars
+    required_env_vars.each do |env_var|
+      unless ENV[env_var]
+        errors << "Missing environment variable: #{env_var}"
+      end
+    end
+    
+    errors
+  end
+
+  def generate_initializers
+    initializers = {}
+    
+    # Rails initializers
+    if @config.rails
+      initializers['config/initializers/tusklang_rails.rb'] = generate_rails_initializer
+    end
+    
+    # Sidekiq initializer
+    if @config.sidekiq
+      initializers['config/initializers/sidekiq.rb'] = generate_sidekiq_initializer
+    end
+    
+    # Redis initializer
+    if @config.redis
+      initializers['config/initializers/redis.rb'] = generate_redis_initializer
+    end
+    
+    # Error tracking initializers
+    if @config.error_tracking&.bugsnag&.enabled
+      initializers['config/initializers/bugsnag.rb'] = generate_bugsnag_initializer
+    end
+    
+    if @config.error_tracking&.sentry&.enabled
+      initializers['config/initializers/sentry.rb'] = generate_sentry_initializer
+    end
+    
+    initializers
+  end
+
+  private
+
+  def setup_rails
+    return unless defined?(Rails)
+    
+    # Configure Rails application
+    if @config.rails.config
+      @config.rails.config.each do |key, value|
+        Rails.application.config.send("#{key}=", value)
+      end
+    end
+    
+    # Setup Action Cable
+    if @config.rails.action_cable
+      Rails.application.config.action_cable.adapter = @config.rails.action_cable.adapter.to_sym
+      Rails.application.config.action_cable.url = @config.rails.action_cable.url
+    end
+    
+    # Setup Active Job
+    if @config.rails.active_job
+      Rails.application.config.active_job.queue_adapter = @config.rails.active_job.queue_adapter.to_sym
+    end
+    
+    @initialized_services << 'rails'
+  end
+
+  def setup_sinatra
+    return unless defined?(Sinatra)
+    
+    # Configure Sinatra settings
+    if @config.sinatra.settings
+      @config.sinatra.settings.each do |key, value|
+        Sinatra::Base.set key, value
+      end
+    end
+    
+    @initialized_services << 'sinatra'
+  end
+
+  def setup_sidekiq
+    return unless gem_available?('sidekiq')
+    
+    require 'sidekiq'
+    
+    Sidekiq.configure_server do |config|
+      config.redis = {url: @config.sidekiq.redis_url}
+      config.concurrency = @config.sidekiq.concurrency
+    end
+    
+    Sidekiq.configure_client do |config|
+      config.redis = {url: @config.sidekiq.redis_url}
+    end
+    
+    # Setup cron jobs if sidekiq-cron is available
+    if gem_available?('sidekiq-cron') && @config.sidekiq.cron_jobs
+      require 'sidekiq/cron'
+      
+      @config.sidekiq.cron_jobs.each do |name, job_config|
+        Sidekiq::Cron::Job.create(
+          name: name.to_s,
+          cron: job_config.cron,
+          class: job_config.class
+        )
+      end
+    end
+    
+    @initialized_services << 'sidekiq'
+  end
+
+  def setup_redis
+    return unless gem_available?('redis')
+    
+    require 'redis'
+    
+    @integrations[:redis] = Redis.new(
+      url: @config.redis.url,
+      timeout: @config.redis.timeout,
+      reconnect_attempts: @config.redis.reconnect_attempts
+    )
+    
+    @initialized_services << 'redis'
+  end
+
+  def setup_elasticsearch
+    return unless gem_available?('elasticsearch')
+    
+    require 'elasticsearch'
+    
+    @integrations[:elasticsearch] = Elasticsearch::Client.new(
+      @config.elasticsearch.client.to_h
+    )
+    
+    @initialized_services << 'elasticsearch'
+  end
+
+  def setup_monitoring
+    # Setup New Relic
+    if @config.monitoring&.new_relic&.enabled && gem_available?('newrelic_rpm')
+      setup_new_relic
+    end
+    
+    # Setup Scout APM
+    if @config.monitoring&.scout_apm&.enabled && gem_available?('scout_apm')
+      setup_scout_apm
+    end
+    
+    # Setup Datadog
+    if @config.monitoring&.datadog&.enabled && gem_available?('ddtrace')
+      setup_datadog
+    end
+  end
+
+  def setup_error_tracking
+    # Setup Bugsnag
+    if @config.error_tracking&.bugsnag&.enabled && gem_available?('bugsnag')
+      require 'bugsnag'
+      
+      Bugsnag.configure do |config|
+        config.api_key = @config.error_tracking.bugsnag.api_key
+        config.release_stage = @config.error_tracking.bugsnag.release_stage
+        config.notify_release_stages = @config.error_tracking.bugsnag.notify_release_stages
+      end
+      
+      @initialized_services << 'bugsnag'
+    end
+    
+    # Setup Sentry
+    if @config.error_tracking&.sentry&.enabled && gem_available?('sentry-ruby')
+      require 'sentry-ruby'
+      
+      Sentry.init do |config|
+        config.dsn = @config.error_tracking.sentry.dsn
+        config.environment = @config.error_tracking.sentry.environment
+        config.release = @config.error_tracking.sentry.release
+      end
+      
+      @initialized_services << 'sentry'
+    end
+  end
+
+  def setup_storage
+    # Active Storage configuration is handled by Rails
+    # CarrierWave setup
+    if @config.storage&.carrierwave&.enabled && gem_available?('carrierwave')
+      require 'carrierwave'
+      
+      if @config.storage.carrierwave.storage == 'fog' && gem_available?('carrierwave-aws')
+        require 'carrierwave/storage/fog'
+        
+        CarrierWave.configure do |config|
+          config.fog_provider = 'fog/aws'
+          config.fog_credentials = @config.storage.carrierwave.fog.to_h
+        end
+      end
+      
+      @initialized_services << 'carrierwave'
+    end
+  end
+
+  def setup_testing
+    # RSpec configuration
+    if @config.testing&.rspec&.enabled && gem_available?('rspec-rails')
+      # RSpec configuration would typically be in spec/spec_helper.rb
+      @initialized_services << 'rspec'
+    end
+    
+    # FactoryBot configuration
+    if @config.testing&.factory_bot&.enabled && gem_available?('factory_bot_rails')
+      @initialized_services << 'factory_bot'
+    end
+  end
+
+  def extract_required_gems
+    gems = {}
+    
+    # Extract gems from configuration
+    gems['rails'] = @config.rails.version if @config.rails
+    gems['sidekiq'] = nil if @config.sidekiq
+    gems['redis'] = nil if @config.redis
+    gems['elasticsearch'] = nil if @config.elasticsearch&.enabled
+    
+    # Error tracking gems
+    gems['bugsnag'] = nil if @config.error_tracking&.bugsnag&.enabled
+    gems['sentry-ruby'] = nil if @config.error_tracking&.sentry&.enabled
+    
+    # Monitoring gems
+    gems['newrelic_rpm'] = nil if @config.monitoring&.new_relic&.enabled
+    gems['scout_apm'] = nil if @config.monitoring&.scout_apm&.enabled
+    
+    gems
+  end
+
+  def extract_required_env_vars
+    env_vars = []
+    
+    # Rails
+    if @config.rails
+      env_vars << 'SECRET_KEY_BASE'
+      env_vars << 'RAILS_ENV'
+    end
+    
+    # Database
+    env_vars += ['DATABASE_URL'] if @config.database
+    
+    # Redis
+    env_vars += ['REDIS_URL'] if @config.redis
+    
+    # Error tracking
+    env_vars += ['BUGSNAG_API_KEY'] if @config.error_tracking&.bugsnag&.enabled
+    env_vars += ['SENTRY_DSN'] if @config.error_tracking&.sentry&.enabled
+    
+    env_vars
+  end
+
+  def gem_available?(gem_name, version = nil)
+    gem(gem_name, version)
+    true
+  rescue Gem::LoadError
+    false
+  end
+
+  def generate_config_files
+    files = {}
+    
+    # Generate puma.rb
+    if @config.puma
+      files['config/puma.rb'] = generate_puma_config
+    end
+    
+    # Generate sidekiq.yml
+    if @config.sidekiq
+      files['config/sidekiq.yml'] = generate_sidekiq_config
+    end
+    
+    # Generate database.yml
+    if @config.database
+      files['config/database.yml'] = generate_database_config
+    end
+    
+    files
+  end
+
+  def generate_rails_initializer
+    <<~RUBY
+      # TuskLang Rails Configuration
+      # Generated automatically from TuskLang configuration
+      
+      Rails.application.configure do
+        # Time zone configuration
+        config.time_zone = '#{@config.rails.config&.time_zone || 'UTC'}'
+        
+        # Asset pipeline
+        config.assets.compile = #{@config.rails.assets&.compile || false}
+        config.assets.digest = #{@config.rails.assets&.digest || true}
+      end
+    RUBY
+  end
+
+  def generate_sidekiq_initializer
+    <<~RUBY
+      # Sidekiq Configuration
+      require 'sidekiq'
+      
+      Sidekiq.configure_server do |config|
+        config.redis = { url: '#{@config.sidekiq.redis_url}' }
+        config.concurrency = #{@config.sidekiq.concurrency}
+      end
+      
+      Sidekiq.configure_client do |config|
+        config.redis = { url: '#{@config.sidekiq.redis_url}' }
+      end
+    RUBY
+  end
+
+  def generate_puma_config
+    <<~RUBY
+      # Puma Configuration
+      port ENV.fetch('PORT') { #{@config.puma.port} }
+      environment ENV.fetch('RAILS_ENV') { '#{@config.puma.environment}' }
+      
+      threads #{@config.puma.threads.min}, #{@config.puma.threads.max}
+      
+      #{'workers ' + @config.puma.workers.to_s if @config.puma.workers > 0}
+      #{'preload_app!' if @config.puma.preload_app}
+      
+      plugin :tmp_restart
+    RUBY
+  end
+
+  def generate_sidekiq_config
+    config = {
+      'queues' => @config.sidekiq.queues.to_h,
+      'concurrency' => @config.sidekiq.concurrency,
+      'timeout' => @config.sidekiq.timeout
+    }
+    
+    YAML.dump(config)
+  end
+
+  def generate_database_config
+    environments = {}
+    
+    %w[development test production].each do |env|
+      environments[env] = @config.database.to_h.merge(
+        'database' => "#{@config.database.database}_#{env}"
+      )
+    end
+    
+    YAML.dump(environments)
+  end
+
+  # Additional setup methods for specific services...
+  def setup_new_relic; end
+  def setup_scout_apm; end
+  def setup_datadog; end
+  def generate_redis_initializer; end
+  def generate_bugsnag_initializer; end
+  def generate_sentry_initializer; end
+  def setup_delayed_job; end
+  def setup_resque; end
+end
+
+if __FILE__ == $0
+  # Example usage
+  config_data = {
+    rails: { version: '7.0', environment: 'development' },
+    sidekiq: { redis_url: 'redis://localhost:6379/0', concurrency: 5 },
+    redis: { url: 'redis://localhost:6379/0' }
+  }
+  
+  config = OpenStruct.new(config_data)
+  manager = TuskLangEcosystemManager.new(config)
+  
+  puts "Setting up Ruby ecosystem..."
+  services = manager.setup_ecosystem
+  puts "Initialized services: #{services.join(', ')}"
+  
+  errors = manager.validate_dependencies
+  if errors.any?
+    puts "Validation errors:"
+    errors.each { |error| puts "  - #{error}" }
+  else
+    puts "All dependencies satisfied"
+  end
+end
+</pre>
+
+<p>TuskLang's ecosystem integration provides comprehensive support for the Ruby ecosystem, making it easy to configure and manage complex Ruby applications with multiple services and frameworks.</p>

@@ -5,7 +5,6 @@
     "keywords": ["configuration", "parser", "tusktsk", "tsk", "config", "database-queries", "flexible-syntax"],
     "homepage": "https://tuskt.sk",
     "license": "proprietary",
-    "version": "2.0.1",
     
     "authors": [
         {

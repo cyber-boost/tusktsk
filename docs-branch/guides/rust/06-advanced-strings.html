@@ -1,0 +1,623 @@
+<h1>Advanced Strings with TuskLang in Rust</h1>
+
+<h2>String Processing and Manipulation</h2>
+<p>TuskLang provides comprehensive string handling capabilities that integrate seamlessly with Rust's powerful string types and pattern matching.</p>
+
+<h3>String Types and Formats</h3>
+<pre>
+# string-types.tsk
+# Basic string configurations
+app_name: "Rust TuskLang Processor"
+description: "Advanced string processing with TuskLang"
+
+# Multiline strings
+welcome_message: """
+Welcome to our Rust application!
+
+This is a multiline string that preserves
+formatting and can contain special characters.
+
+Visit us at: https://example.com
+Contact: support@example.com
+"""
+
+# Raw strings (no escape processing)
+regex_pattern: r"^\d{4}-\d{2}-\d{2}T\d{2}:\d{2}:\d{2}Z$"
+file_path: r"C:\Program Files\MyApp\config.toml"
+
+# Template strings with substitution
+api_endpoint: "https://api.${ENVIRONMENT}.example.com/v1"
+database_url: "postgresql://${DB_USER}:${DB_PASS}@${DB_HOST}:${DB_PORT}/${DB_NAME}"
+
+# Formatted strings
+log_format: "[{timestamp}] {level} - {message}"
+email_template: "Hello {user_name}, your order #{order_id} has been {status}."
+
+# Encoded strings
+base64_key: "base64:SGVsbG8gV29ybGQh"
+hex_color: "hex:#FF5733"
+json_config: "json:{\"timeout\": 30, \"retries\": 3}"
+</pre>
+
+<h3>Rust String Implementation</h3>
+<pre>
+use serde::{Deserialize, Serialize, Deserializer};
+use std::collections::HashMap;
+use std::fmt;
+use regex::Regex;
+use base64::{Engine as _, engine::general_purpose};
+
+#[derive(Debug, Deserialize, Serialize, Clone)]
+struct StringConfig {
+    app_name: String,
+    description: String,
+    welcome_message: String,
+    
+    #[serde(deserialize_with = "deserialize_regex")]
+    regex_pattern: Regex,
+    
+    file_path: String,
+    
+    #[serde(deserialize_with = "deserialize_template")]
+    api_endpoint: StringTemplate,
+    
+    #[serde(deserialize_with = "deserialize_template")]
+    database_url: StringTemplate,
+    
+    log_format: String,
+    email_template: String,
+    
+    #[serde(deserialize_with = "deserialize_encoded_string")]
+    base64_key: EncodedString,
+    
+    #[serde(deserialize_with = "deserialize_encoded_string")]
+    hex_color: EncodedString,
+    
+    #[serde(deserialize_with = "deserialize_encoded_string")]
+    json_config: EncodedString,
+}
+
+// Custom string template type
+#[derive(Debug, Clone)]
+struct StringTemplate {
+    template: String,
+    variables: Vec<String>,
+}
+
+impl StringTemplate {
+    fn new(template: String) -> Self {
+        let var_regex = Regex::new(r"\$\{([^}]+)\}").unwrap();
+        let variables: Vec<String> = var_regex
+            .captures_iter(&template)
+            .map(|cap| cap[1].to_string())
+            .collect();
+        
+        StringTemplate { template, variables }
+    }
+    
+    fn render(&self, vars: &HashMap<String, String>) -> Result<String, TemplateError> {
+        let var_regex = Regex::new(r"\$\{([^}]+)\}").unwrap();
+        let mut result = self.template.clone();
+        
+        for var in &self.variables {
+            let value = vars.get(var)
+                .ok_or_else(|| TemplateError::MissingVariable(var.clone()))?;
+            
+            let pattern = format!("${{{}}}", var);
+            result = result.replace(&pattern, value);
+        }
+        
+        Ok(result)
+    }
+    
+    fn get_variables(&self) -> &[String] {
+        &self.variables
+    }
+}
+
+// Encoded string type with format detection
+#[derive(Debug, Clone)]
+enum EncodedString {
+    Base64(Vec<u8>),
+    Hex(Vec<u8>),
+    Json(serde_json::Value),
+    Plain(String),
+}
+
+impl EncodedString {
+    fn decode_value(&self) -> Result<String, DecodingError> {
+        match self {
+            EncodedString::Base64(data) => {
+                String::from_utf8(data.clone())
+                    .map_err(|_| DecodingError::InvalidUtf8)
+            }
+            EncodedString::Hex(data) => {
+                String::from_utf8(data.clone())
+                    .map_err(|_| DecodingError::InvalidUtf8)
+            }
+            EncodedString::Json(value) => {
+                Ok(serde_json::to_string_pretty(value)
+                    .map_err(|_| DecodingError::InvalidJson)?)
+            }
+            EncodedString::Plain(s) => Ok(s.clone()),
+        }
+    }
+    
+    fn as_bytes(&self) -> Result<&[u8], DecodingError> {
+        match self {
+            EncodedString::Base64(data) | EncodedString::Hex(data) => Ok(data),
+            _ => Err(DecodingError::NotBinary),
+        }
+    }
+}
+
+// Custom deserializers
+fn deserialize_regex<'de, D>(deserializer: D) -> Result<Regex, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    let pattern = if s.starts_with("r\"") && s.ends_with('"') {
+        // Raw string format
+        s[2..s.len()-1].to_string()
+    } else {
+        s
+    };
+    
+    Regex::new(&pattern).map_err(serde::de::Error::custom)
+}
+
+fn deserialize_template<'de, D>(deserializer: D) -> Result<StringTemplate, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    Ok(StringTemplate::new(s))
+}
+
+fn deserialize_encoded_string<'de, D>(deserializer: D) -> Result<EncodedString, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let s = String::deserialize(deserializer)?;
+    
+    if let Some(encoded) = s.strip_prefix("base64:") {
+        let decoded = general_purpose::STANDARD
+            .decode(encoded)
+            .map_err(serde::de::Error::custom)?;
+        Ok(EncodedString::Base64(decoded))
+    } else if let Some(hex_str) = s.strip_prefix("hex:") {
+        let decoded = hex::decode(hex_str.trim_start_matches('#'))
+            .map_err(serde::de::Error::custom)?;
+        Ok(EncodedString::Hex(decoded))
+    } else if let Some(json_str) = s.strip_prefix("json:") {
+        let value: serde_json::Value = serde_json::from_str(json_str)
+            .map_err(serde::de::Error::custom)?;
+        Ok(EncodedString::Json(value))
+    } else {
+        Ok(EncodedString::Plain(s))
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+enum TemplateError {
+    #[error("Missing template variable: {0}")]
+    MissingVariable(String),
+    
+    #[error("Invalid template format")]
+    InvalidFormat,
+}
+
+#[derive(Debug, thiserror::Error)]
+enum DecodingError {
+    #[error("Invalid UTF-8 sequence")]
+    InvalidUtf8,
+    
+    #[error("Invalid JSON format")]
+    InvalidJson,
+    
+    #[error("Not a binary format")]
+    NotBinary,
+}
+</pre>
+
+<h3>String Validation and Processing</h3>
+<pre>
+# string-validation.tsk
+validation_rules {
+    email_domains: {
+        allowed: ["company.com", "example.org", "trusted-partner.net"]
+        blocked: ["tempmail.com", "guerrillamail.com", "10minutemail.com"]
+    }
+    
+    password_policy {
+        min_length: 12
+        max_length: 128
+        required_patterns: [
+            r"[a-z]",      # lowercase letter
+            r"[A-Z]",      # uppercase letter
+            r"[0-9]",      # digit
+            r"[!@#$%^&*]"  # special character
+        ]
+        forbidden_patterns: [
+            r"(.)\1{2,}",  # no more than 2 consecutive identical chars
+            r"123456",     # common sequences
+            r"password",   # common words
+            r"qwerty"
+        ]
+    }
+    
+    content_filters {
+        profanity_words: ["bad1", "bad2", "inappropriate"]
+        url_patterns: [
+            r"https?://[^\s]+",
+            r"www\.[^\s]+",
+            r"[a-zA-Z0-9.-]+\.[a-zA-Z]{2,}"
+        ]
+        phone_patterns: [
+            r"\+?1?[-.\s]?\(?[0-9]{3}\)?[-.\s]?[0-9]{3}[-.\s]?[0-9]{4}",  # US
+            r"\+?44[-.\s]?[0-9]{4}[-.\s]?[0-9]{6}",                        # UK
+            r"\+?49[-.\s]?[0-9]{3,4}[-.\s]?[0-9]{7,8}"                     # DE
+        ]
+    }
+}
+
+// String validation implementation
+use regex::RegexSet;
+
+#[derive(Debug, Deserialize, Serialize)]
+struct ValidationConfig {
+    validation_rules: ValidationRules,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct ValidationRules {
+    email_domains: EmailDomainRules,
+    password_policy: PasswordPolicy,
+    content_filters: ContentFilters,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct EmailDomainRules {
+    allowed: Vec<String>,
+    blocked: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct PasswordPolicy {
+    min_length: usize,
+    max_length: usize,
+    
+    #[serde(deserialize_with = "deserialize_regex_set")]
+    required_patterns: RegexSet,
+    
+    #[serde(deserialize_with = "deserialize_regex_set")]
+    forbidden_patterns: RegexSet,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct ContentFilters {
+    profanity_words: Vec<String>,
+    
+    #[serde(deserialize_with = "deserialize_regex_set")]
+    url_patterns: RegexSet,
+    
+    #[serde(deserialize_with = "deserialize_regex_set")]
+    phone_patterns: RegexSet,
+}
+
+fn deserialize_regex_set<'de, D>(deserializer: D) -> Result<RegexSet, D::Error>
+where
+    D: Deserializer<'de>,
+{
+    let patterns: Vec<String> = Vec::deserialize(deserializer)?;
+    RegexSet::new(patterns).map_err(serde::de::Error::custom)
+}
+
+// String validation methods
+impl ValidationConfig {
+    fn validate_email(&self, email: &str) -> Result<(), ValidationError> {
+        if let Some(domain) = email.split('@').nth(1) {
+            if self.validation_rules.email_domains.blocked.contains(&domain.to_string()) {
+                return Err(ValidationError::BlockedDomain(domain.to_string()));
+            }
+            
+            if !self.validation_rules.email_domains.allowed.is_empty() &&
+               !self.validation_rules.email_domains.allowed.contains(&domain.to_string()) {
+                return Err(ValidationError::DomainNotAllowed(domain.to_string()));
+            }
+        }
+        
+        Ok(())
+    }
+    
+    fn validate_password(&self, password: &str) -> Result<(), ValidationError> {
+        let policy = &self.validation_rules.password_policy;
+        
+        if password.len() < policy.min_length {
+            return Err(ValidationError::PasswordTooShort(policy.min_length));
+        }
+        
+        if password.len() > policy.max_length {
+            return Err(ValidationError::PasswordTooLong(policy.max_length));
+        }
+        
+        // Check required patterns
+        let matches: Vec<_> = policy.required_patterns.matches(password).collect();
+        if matches.len() < policy.required_patterns.len() {
+            return Err(ValidationError::PasswordMissingRequiredPattern);
+        }
+        
+        // Check forbidden patterns
+        if policy.forbidden_patterns.is_match(password) {
+            return Err(ValidationError::PasswordContainsForbiddenPattern);
+        }
+        
+        Ok(())
+    }
+    
+    fn filter_content(&self, content: &str) -> String {
+        let mut filtered = content.to_string();
+        
+        // Remove profanity
+        for word in &self.validation_rules.content_filters.profanity_words {
+            let replacement = "*".repeat(word.len());
+            filtered = filtered.replace(word, &replacement);
+        }
+        
+        filtered
+    }
+    
+    fn extract_urls(&self, text: &str) -> Vec<String> {
+        let mut urls = Vec::new();
+        for pattern_match in self.validation_rules.content_filters.url_patterns.matches(text) {
+            // Extract the actual URL text (simplified)
+            if let Some(url) = text.lines().find(|line| line.contains("http")) {
+                urls.push(url.to_string());
+            }
+        }
+        urls
+    }
+    
+    fn extract_phone_numbers(&self, text: &str) -> Vec<String> {
+        // Implementation would use the regex patterns to extract phone numbers
+        // This is a simplified version
+        Vec::new()
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+enum ValidationError {
+    #[error("Email domain {0} is blocked")]
+    BlockedDomain(String),
+    
+    #[error("Email domain {0} is not in allowed list")]
+    DomainNotAllowed(String),
+    
+    #[error("Password must be at least {0} characters")]
+    PasswordTooShort(usize),
+    
+    #[error("Password must be no more than {0} characters")]
+    PasswordTooLong(usize),
+    
+    #[error("Password is missing required character types")]
+    PasswordMissingRequiredPattern,
+    
+    #[error("Password contains forbidden patterns")]
+    PasswordContainsForbiddenPattern,
+}
+</pre>
+
+<h3>String Formatting and Templates</h3>
+<pre>
+# string-formatting.tsk
+message_templates {
+    welcome_email: {
+        subject: "Welcome to {app_name}, {user_name}!"
+        body: """
+Hello {user_name},
+
+Welcome to {app_name}! We're excited to have you on board.
+
+Your account details:
+- Username: {username}
+- Email: {email}
+- Member since: {registration_date}
+
+Get started by visiting: {app_url}/dashboard
+
+Best regards,
+The {app_name} Team
+        """
+        variables: ["app_name", "user_name", "username", "email", "registration_date", "app_url"]
+    }
+    
+    error_messages: {
+        not_found: "Resource '{resource_type}' with ID '{resource_id}' was not found."
+        unauthorized: "Access denied for user '{username}' to resource '{resource}'."
+        rate_limited: "Rate limit exceeded. Try again in {retry_after} seconds."
+        validation_failed: "Validation failed for field '{field}': {error_message}"
+    }
+    
+    log_formats: {
+        structured: "[{timestamp}] {level:>5} {module:<20} - {message}"
+        json: "json:{\"timestamp\":\"{timestamp}\",\"level\":\"{level}\",\"module\":\"{module}\",\"message\":\"{message}\"}"
+        simple: "{level}: {message}"
+    }
+}
+
+internationalization {
+    supported_locales: ["en-US", "es-ES", "fr-FR", "de-DE", "ja-JP"]
+    
+    messages: {
+        "en-US": {
+            greeting: "Hello, {name}!"
+            farewell: "Goodbye, {name}!"
+            error: "An error occurred: {details}"
+        }
+        
+        "es-ES": {
+            greeting: "¡Hola, {name}!"
+            farewell: "¡Adiós, {name}!"
+            error: "Ocurrió un error: {details}"
+        }
+        
+        "fr-FR": {
+            greeting: "Bonjour, {name}!"
+            farewell: "Au revoir, {name}!"
+            error: "Une erreur s'est produite: {details}"
+        }
+    }
+}
+
+// Advanced string formatting implementation
+use std::collections::HashMap;
+use chrono::{DateTime, Utc};
+
+#[derive(Debug, Deserialize, Serialize)]
+struct FormattingConfig {
+    message_templates: MessageTemplates,
+    internationalization: I18nConfig,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct MessageTemplates {
+    welcome_email: EmailTemplate,
+    error_messages: HashMap<String, String>,
+    log_formats: HashMap<String, String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct EmailTemplate {
+    subject: String,
+    body: String,
+    variables: Vec<String>,
+}
+
+#[derive(Debug, Deserialize, Serialize)]
+struct I18nConfig {
+    supported_locales: Vec<String>,
+    messages: HashMap<String, HashMap<String, String>>,
+}
+
+// Advanced template processor
+struct TemplateProcessor {
+    config: FormattingConfig,
+    default_locale: String,
+}
+
+impl TemplateProcessor {
+    fn new(config: FormattingConfig) -> Self {
+        TemplateProcessor {
+            config,
+            default_locale: "en-US".to_string(),
+        }
+    }
+    
+    fn format_welcome_email(&self, vars: &HashMap<String, String>) -> Result<(String, String), TemplateError> {
+        let template = &self.config.message_templates.welcome_email;
+        
+        let subject = self.interpolate(&template.subject, vars)?;
+        let body = self.interpolate(&template.body, vars)?;
+        
+        Ok((subject, body))
+    }
+    
+    fn format_error_message(&self, error_type: &str, vars: &HashMap<String, String>) -> Result<String, TemplateError> {
+        if let Some(template) = self.config.message_templates.error_messages.get(error_type) {
+            self.interpolate(template, vars)
+        } else {
+            Err(TemplateError::TemplateNotFound(error_type.to_string()))
+        }
+    }
+    
+    fn format_log(&self, format: &str, level: &str, module: &str, message: &str) -> Result<String, TemplateError> {
+        let template = self.config.message_templates.log_formats
+            .get(format)
+            .ok_or_else(|| TemplateError::TemplateNotFound(format.to_string()))?;
+        
+        let mut vars = HashMap::new();
+        vars.insert("timestamp".to_string(), Utc::now().to_rfc3339());
+        vars.insert("level".to_string(), level.to_string());
+        vars.insert("module".to_string(), module.to_string());
+        vars.insert("message".to_string(), message.to_string());
+        
+        if template.starts_with("json:") {
+            let json_template = template.strip_prefix("json:").unwrap();
+            self.interpolate(json_template, &vars)
+        } else {
+            self.interpolate(template, &vars)
+        }
+    }
+    
+    fn get_localized_message(&self, locale: &str, key: &str, vars: &HashMap<String, String>) -> Result<String, TemplateError> {
+        let locale = if self.config.internationalization.supported_locales.contains(&locale.to_string()) {
+            locale
+        } else {
+            &self.default_locale
+        };
+        
+        let messages = self.config.internationalization.messages
+            .get(locale)
+            .ok_or_else(|| TemplateError::LocaleNotFound(locale.to_string()))?;
+        
+        let template = messages
+            .get(key)
+            .ok_or_else(|| TemplateError::MessageKeyNotFound(key.to_string()))?;
+        
+        self.interpolate(template, vars)
+    }
+    
+    fn interpolate(&self, template: &str, vars: &HashMap<String, String>) -> Result<String, TemplateError> {
+        let var_regex = Regex::new(r"\{([^}]+)\}").unwrap();
+        let mut result = template.to_string();
+        
+        for cap in var_regex.captures_iter(template) {
+            let var_name = &cap[1];
+            let value = vars.get(var_name)
+                .ok_or_else(|| TemplateError::MissingVariable(var_name.to_string()))?;
+            
+            let placeholder = format!("{{{}}}", var_name);
+            result = result.replace(&placeholder, value);
+        }
+        
+        Ok(result)
+    }
+    
+    fn validate_template(&self, template: &str, required_vars: &[String]) -> Result<(), TemplateError> {
+        let var_regex = Regex::new(r"\{([^}]+)\}").unwrap();
+        let template_vars: Vec<String> = var_regex
+            .captures_iter(template)
+            .map(|cap| cap[1].to_string())
+            .collect();
+        
+        for required_var in required_vars {
+            if !template_vars.contains(required_var) {
+                return Err(TemplateError::MissingRequiredVariable(required_var.clone()));
+            }
+        }
+        
+        Ok(())
+    }
+}
+
+#[derive(Debug, thiserror::Error)]
+enum TemplateError {
+    #[error("Template not found: {0}")]
+    TemplateNotFound(String),
+    
+    #[error("Locale not found: {0}")]
+    LocaleNotFound(String),
+    
+    #[error("Message key not found: {0}")]
+    MessageKeyNotFound(String),
+    
+    #[error("Missing template variable: {0}")]
+    MissingVariable(String),
+    
+    #[error("Missing required variable: {0}")]
+    MissingRequiredVariable(String),
+}
+</pre>
+
+<p>TuskLang's advanced string capabilities in Rust provide powerful text processing, template rendering, internationalization, and validation features with excellent performance and type safety.</p>

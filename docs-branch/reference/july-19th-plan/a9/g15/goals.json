@@ -1,0 +1,20 @@
+{
+  "goal_id": "g15",
+  "title": "Data Processing Operators",
+  "description": "Implement data transformation and processing operators",
+  "operators": [
+    "@transform",
+    "@validate",
+    "@aggregate", 
+    "@export"
+  ],
+  "priority": "high",
+  "estimated_time": "100 minutes",
+  "dependencies": ["g1", "g2", "g10"],
+  "files": [
+    "goal_15_1.sh",
+    "goal_15_2.sh",
+    "goal_15_3.sh", 
+    "test_g15.sh"
+  ]
+}

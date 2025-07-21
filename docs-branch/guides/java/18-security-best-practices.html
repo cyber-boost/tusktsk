@@ -1,0 +1,1222 @@
+<h1>Security Best Practices for Java</h1>
+
+<h2>Authentication and Authorization</h2>
+<pre>
+# Security configuration
+security: {
+    # Authentication configuration
+    authentication: {
+        type: env("AUTH_TYPE", "jwt")  # jwt, oauth2, basic, ldap
+        
+        # JWT configuration
+        jwt: {
+            enabled: security.authentication.type == "jwt"
+            secret: env("JWT_SECRET")  # Must be set in production
+            algorithm: "HS256"  # HS256, HS512, RS256, RS512
+            
+            # Token configuration
+            access_token: {
+                expiration: env("JWT_ACCESS_TOKEN_EXPIRATION", "15m")
+                issuer: env("JWT_ISSUER", "myapp")
+                audience: env("JWT_AUDIENCE", "myapp-users")
+            }
+            
+            # Refresh token configuration
+            refresh_token: {
+                enabled: env("JWT_REFRESH_TOKEN_ENABLED", "true") == "true"
+                expiration: env("JWT_REFRESH_TOKEN_EXPIRATION", "7d")
+                secure_cookie: env("ENVIRONMENT", "development") == "production"
+                same_site: "Strict"  # Strict, Lax, None
+            }
+            
+            # Security headers
+            headers: {
+                typ: "JWT"
+                alg: security.authentication.jwt.algorithm
+            }
+        }
+        
+        # OAuth2 configuration
+        oauth2: {
+            enabled: security.authentication.type == "oauth2"
+            
+            # Client registration
+            registration: {
+                google: {
+                    client_id: env("GOOGLE_CLIENT_ID")
+                    client_secret: env("GOOGLE_CLIENT_SECRET")
+                    scope: ["openid", "profile", "email"]
+                    redirect_uri: "{baseUrl}/login/oauth2/code/{registrationId}"
+                },
+                github: {
+                    client_id: env("GITHUB_CLIENT_ID")
+                    client_secret: env("GITHUB_CLIENT_SECRET")
+                    scope: ["user:email", "read:user"]
+                }
+            }
+            
+            # Provider configuration
+            provider: {
+                google: {
+                    authorization_uri: "https://accounts.google.com/o/oauth2/v2/auth"
+                    token_uri: "https://oauth2.googleapis.com/token"
+                    user_info_uri: "https://www.googleapis.com/oauth2/v3/userinfo"
+                    user_name_attribute: "sub"
+                },
+                github: {
+                    authorization_uri: "https://github.com/login/oauth/authorize"
+                    token_uri: "https://github.com/login/oauth/access_token"
+                    user_info_uri: "https://api.github.com/user"
+                    user_name_attribute: "id"
+                }
+            }
+        }
+        
+        # LDAP configuration
+        ldap: {
+            enabled: security.authentication.type == "ldap"
+            url: env("LDAP_URL", "ldap://localhost:389")
+            base: env("LDAP_BASE", "dc=mycompany,dc=com")
+            
+            # User search configuration
+            user_search: {
+                base: "ou=users"
+                filter: "(uid={0})"
+            }
+            
+            # Group search configuration
+            group_search: {
+                base: "ou=groups"
+                filter: "(member={0})"
+                role_attribute: "cn"
+            }
+            
+            # Manager credentials (for search)
+            manager: {
+                dn: env("LDAP_MANAGER_DN")
+                password: env("LDAP_MANAGER_PASSWORD")
+            }
+        }
+    }
+    
+    # Authorization configuration
+    authorization: {
+        # Role-based access control
+        rbac: {
+            enabled: true
+            
+            # Default roles
+            roles: {
+                ADMIN: {
+                    permissions: ["READ", "WRITE", "DELETE", "ADMIN"]
+                    description: "Full system access"
+                },
+                USER: {
+                    permissions: ["READ", "WRITE"]
+                    description: "Standard user access"
+                },
+                VIEWER: {
+                    permissions: ["READ"]
+                    description: "Read-only access"
+                }
+            }
+            
+            # Resource-based permissions
+            resources: {
+                "/api/users/**": {
+                    GET: ["USER", "ADMIN"]
+                    POST: ["ADMIN"]
+                    PUT: ["ADMIN"]
+                    DELETE: ["ADMIN"]
+                },
+                "/api/orders/**": {
+                    GET: ["USER", "ADMIN"]
+                    POST: ["USER", "ADMIN"]
+                    PUT: ["USER", "ADMIN"]
+                    DELETE: ["ADMIN"]
+                },
+                "/api/admin/**": {
+                    "*": ["ADMIN"]
+                }
+            }
+        }
+        
+        # Method-level security
+        method_security: {
+            enabled: true
+            pre_post_enabled: true
+            secured_enabled: true
+            jsr250_enabled: true
+        }
+    }
+    
+    # Password security
+    password: {
+        # Password encoding
+        encoder: "bcrypt"  # bcrypt, scrypt, pbkdf2, argon2
+        strength: 12  # BCrypt strength (4-31)
+        
+        # Password policy
+        policy: {
+            min_length: 8
+            max_length: 128
+            require_uppercase: true
+            require_lowercase: true
+            require_numbers: true
+            require_special_chars: true
+            special_chars: "!@#$%^&*()_+-=[]{}|;:,.<>?"
+            
+            # Complexity rules
+            min_unique_chars: 4
+            no_username_match: true
+            no_common_passwords: true
+            
+            # History and reuse
+            password_history: 5
+            min_age_hours: 1
+            max_age_days: 90
+        }
+        
+        # Account lockout
+        lockout: {
+            enabled: true
+            max_attempts: 5
+            lockout_duration: "30m"
+            reset_after_success: true
+        }
+    }
+    
+    # Session management
+    session: {
+        # Session configuration
+        management: {
+            creation_policy: "IF_REQUIRED"  # ALWAYS, NEVER, IF_REQUIRED, STATELESS
+            maximum_sessions: 1
+            max_sessions_prevents_login: false
+            
+            # Session fixation protection
+            session_fixation: "migrateSession"  # none, newSession, migrateSession, changeSessionId
+            
+            # Invalid session handling
+            invalid_session_url: "/login?expired"
+        }
+        
+        # Session timeout
+        timeout: {
+            inactive: env("SESSION_TIMEOUT", "30m")
+            absolute: env("SESSION_ABSOLUTE_TIMEOUT", "8h")
+            
+            # Remember me
+            remember_me: {
+                enabled: env("REMEMBER_ME_ENABLED", "true") == "true"
+                key: env("REMEMBER_ME_KEY")
+                token_validity: "14d"
+                user_service: "userDetailsService"
+            }
+        }
+        
+        # Session storage
+        storage: {
+            type: env("SESSION_STORE", "memory")  # memory, redis, database
+            
+            # Redis session store
+            redis: {
+                enabled: security.session.storage.type == "redis"
+                host: env("REDIS_HOST", "localhost")
+                port: env("REDIS_PORT", "6379")
+                password: env("REDIS_PASSWORD")
+                database: env("REDIS_SESSION_DB", "1")
+                
+                # Session serialization
+                serializer: "json"  # json, jdk, kryo
+                namespace: "myapp:session"
+            }
+        }
+    }
+}
+</pre>
+
+<h2>Java Security Configuration</h2>
+<pre>
+// SecurityConfiguration.java
+@Configuration
+@EnableWebSecurity
+@EnableGlobalMethodSecurity(prePostEnabled = true, securedEnabled = true, jsr250Enabled = true)
+public class SecurityConfiguration {
+    
+    @Value("#{${security.authentication.jwt}}")
+    private Map&lt;String, Object&gt; jwtConfig;
+    
+    @Value("#{${security.authorization.rbac}}")
+    private Map&lt;String, Object&gt; rbacConfig;
+    
+    @Value("#{${security.password}}")
+    private Map&lt;String, Object&gt; passwordConfig;
+    
+    @Bean
+    public PasswordEncoder passwordEncoder() {
+        String encoder = (String) passwordConfig.get("encoder");
+        Integer strength = (Integer) passwordConfig.get("strength");
+        
+        switch (encoder.toLowerCase()) {
+            case "bcrypt":
+                return new BCryptPasswordEncoder(strength != null ? strength : 12);
+            case "scrypt":
+                return new SCryptPasswordEncoder();
+            case "pbkdf2":
+                return new Pbkdf2PasswordEncoder();
+            case "argon2":
+                return new Argon2PasswordEncoder();
+            default:
+                return new BCryptPasswordEncoder();
+        }
+    }
+    
+    @Bean
+    public JwtEncoder jwtEncoder() {
+        String secret = (String) jwtConfig.get("secret");
+        if (secret == null) {
+            throw new IllegalStateException("JWT secret must be configured");
+        }
+        
+        return new NimbusJwtEncoder(new ImmutableSecret&lt;&gt;(secret.getBytes()));
+    }
+    
+    @Bean
+    public JwtDecoder jwtDecoder() {
+        String secret = (String) jwtConfig.get("secret");
+        return NimbusJwtDecoder.withSecretKey(new SecretKeySpec(secret.getBytes(), "HmacSHA256")).build();
+    }
+    
+    @Bean
+    public JwtAuthenticationConverter jwtAuthenticationConverter() {
+        JwtGrantedAuthoritiesConverter authoritiesConverter = new JwtGrantedAuthoritiesConverter();
+        authoritiesConverter.setAuthorityPrefix("ROLE_");
+        authoritiesConverter.setAuthoritiesClaimName("roles");
+        
+        JwtAuthenticationConverter converter = new JwtAuthenticationConverter();
+        converter.setJwtGrantedAuthoritiesConverter(authoritiesConverter);
+        return converter;
+    }
+    
+    @Bean
+    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+        http
+            .csrf(csrf -&gt; csrf.disable())
+            .sessionManagement(session -&gt; session.sessionCreationPolicy(SessionCreationPolicy.STATELESS))
+            .authorizeHttpRequests(authz -&gt; {
+                // Configure authorization rules from RBAC config
+                configureAuthorizationRules(authz);
+            })
+            .oauth2ResourceServer(oauth2 -&gt; oauth2
+                .jwt(jwt -&gt; jwt
+                    .decoder(jwtDecoder())
+                    .jwtAuthenticationConverter(jwtAuthenticationConverter())
+                )
+            )
+            .exceptionHandling(exceptions -&gt; exceptions
+                .authenticationEntryPoint(new JwtAuthenticationEntryPoint())
+                .accessDeniedHandler(new JwtAccessDeniedHandler())
+            );
+        
+        return http.build();
+    }
+    
+    private void configureAuthorizationRules(AuthorizeHttpRequestsConfigurer&lt;HttpSecurity&gt;.AuthorizationManagerRequestMatcherRegistry authz) {
+        // Public endpoints
+        authz.requestMatchers("/api/auth/**", "/api/public/**", "/actuator/health").permitAll();
+        
+        // Configure resource-based permissions from RBAC config
+        Map&lt;String, Object&gt; resources = (Map&lt;String, Object&gt;) rbacConfig.get("resources");
+        if (resources != null) {
+            resources.forEach((path, permissions) -&gt; {
+                Map&lt;String, Object&gt; pathPermissions = (Map&lt;String, Object&gt;) permissions;
+                pathPermissions.forEach((method, roles) -&gt; {
+                    List&lt;String&gt; roleList = (List&lt;String&gt;) roles;
+                    String[] roleArray = roleList.stream()
+                        .map(role -&gt; "ROLE_" + role)
+                        .toArray(String[]::new);
+                    
+                    if ("*".equals(method)) {
+                        authz.requestMatchers(path).hasAnyRole(roleArray);
+                    } else {
+                        authz.requestMatchers(HttpMethod.valueOf(method.toUpperCase()), path)
+                             .hasAnyRole(roleArray);
+                    }
+                });
+            });
+        }
+        
+        // Default: all other requests require authentication
+        authz.anyRequest().authenticated();
+    }
+}
+
+// JWT Service
+@Service
+public class JwtService {
+    
+    private final JwtEncoder jwtEncoder;
+    private final JwtDecoder jwtDecoder;
+    
+    @Value("#{${security.authentication.jwt.access_token}}")
+    private Map&lt;String, Object&gt; accessTokenConfig;
+    
+    @Value("#{${security.authentication.jwt.refresh_token}}")
+    private Map&lt;String, Object&gt; refreshTokenConfig;
+    
+    public JwtService(JwtEncoder jwtEncoder, JwtDecoder jwtDecoder) {
+        this.jwtEncoder = jwtEncoder;
+        this.jwtDecoder = jwtDecoder;
+    }
+    
+    public String generateAccessToken(UserDetails userDetails) {
+        Instant now = Instant.now();
+        Duration expiration = Duration.parse("PT" + accessTokenConfig.get("expiration"));
+        
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+            .issuer((String) accessTokenConfig.get("issuer"))
+            .audience(Arrays.asList((String) accessTokenConfig.get("audience")))
+            .subject(userDetails.getUsername())
+            .issuedAt(now)
+            .expiresAt(now.plus(expiration))
+            .claim("roles", userDetails.getAuthorities().stream()
+                .map(GrantedAuthority::getAuthority)
+                .collect(Collectors.toList()))
+            .build();
+        
+        return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+    }
+    
+    public String generateRefreshToken(UserDetails userDetails) {
+        Boolean refreshEnabled = (Boolean) refreshTokenConfig.get("enabled");
+        if (refreshEnabled == null || !refreshEnabled) {
+            return null;
+        }
+        
+        Instant now = Instant.now();
+        Duration expiration = Duration.parse("PT" + refreshTokenConfig.get("expiration"));
+        
+        JwtClaimsSet claims = JwtClaimsSet.builder()
+            .issuer((String) accessTokenConfig.get("issuer"))
+            .subject(userDetails.getUsername())
+            .issuedAt(now)
+            .expiresAt(now.plus(expiration))
+            .claim("type", "refresh")
+            .build();
+        
+        return jwtEncoder.encode(JwtEncoderParameters.from(claims)).getTokenValue();
+    }
+    
+    public boolean validateToken(String token) {
+        try {
+            Jwt jwt = jwtDecoder.decode(token);
+            return jwt.getExpiresAt().isAfter(Instant.now());
+        } catch (Exception e) {
+            return false;
+        }
+    }
+    
+    public String getUsernameFromToken(String token) {
+        Jwt jwt = jwtDecoder.decode(token);
+        return jwt.getSubject();
+    }
+    
+    public List&lt;String&gt; getRolesFromToken(String token) {
+        Jwt jwt = jwtDecoder.decode(token);
+        return jwt.getClaimAsStringList("roles");
+    }
+}
+</pre>
+
+<h2>Input Validation and Sanitization</h2>
+<pre>
+# Input validation configuration
+validation: {
+    # General validation settings
+    settings: {
+        fail_fast: env("VALIDATION_FAIL_FAST", "false") == "true"
+        enable_cross_parameter_validation: true
+        
+        # Custom validation messages
+        messages: {
+            resource_bundle: "ValidationMessages"
+            default_locale: "en"
+        }
+    }
+    
+    # Input sanitization
+    sanitization: {
+        enabled: env("INPUT_SANITIZATION", "true") == "true"
+        
+        # HTML sanitization
+        html: {
+            policy: "RELAXED"  # SIMPLETEXT, BASIC, RELAXED, EBAY, IMAGES, LINKS, TABLES, BLOCKS, FORMATTING, STYLES
+            
+            # Custom policies
+            custom_policy: {
+                allowed_elements: ["p", "br", "strong", "em", "ul", "ol", "li"]
+                allowed_attributes: {
+                    "a": ["href", "title"]
+                    "img": ["src", "alt", "width", "height"]
+                }
+                
+                # Protocol restrictions
+                allowed_protocols: ["http", "https", "mailto"]
+            }
+        }
+        
+        # SQL injection prevention
+        sql_injection: {
+            enabled: true
+            
+            # Dangerous patterns
+            blocked_patterns: [
+                "('|(\\||'|\\,|\\\\|'|;|%|\\*)",
+                "(union|select|insert|delete|update|drop|create|alter|exec|execute)",
+                "(script|javascript|vbscript|iframe|object|embed|form)"
+            ]
+            
+            # Parameterized query enforcement
+            require_parameterized_queries: true
+        }
+        
+        # XSS prevention
+        xss_protection: {
+            enabled: true
+            
+            # Content Security Policy
+            csp: {
+                enabled: env("CSP_ENABLED", "true") == "true"
+                policy: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:; frame-ancestors 'none';"
+                report_only: env("CSP_REPORT_ONLY", "false") == "true"
+                report_uri: "/api/security/csp-report"
+            }
+            
+            # Output encoding
+            output_encoding: {
+                html_attribute: true
+                html_content: true
+                javascript: true
+                css: true
+                url: true
+            }
+        }
+    }
+    
+    # Rate limiting for validation
+    rate_limiting: {
+        enabled: env("VALIDATION_RATE_LIMITING", "true") == "true"
+        
+        # Per-IP rate limits
+        ip_limits: {
+            requests_per_minute: 60
+            burst_size: 10
+            
+            # Validation-specific limits
+            validation_errors_per_minute: 10
+            max_validation_errors_before_block: 20
+        }
+        
+        # Per-user rate limits (authenticated requests)
+        user_limits: {
+            requests_per_minute: 120
+            validation_errors_per_minute: 15
+        }
+    }
+    
+    # File upload validation
+    file_upload: {
+        enabled: env("FILE_UPLOAD_ENABLED", "true") == "true"
+        
+        # Size limits
+        max_file_size: env("MAX_FILE_SIZE", "10MB")
+        max_request_size: env("MAX_REQUEST_SIZE", "50MB")
+        
+        # Allowed file types
+        allowed_extensions: [".jpg", ".jpeg", ".png", ".gif", ".pdf", ".doc", ".docx", ".txt"]
+        allowed_mime_types: [
+            "image/jpeg",
+            "image/png", 
+            "image/gif",
+            "application/pdf",
+            "application/msword",
+            "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+            "text/plain"
+        ]
+        
+        # Security scanning
+        virus_scanning: {
+            enabled: env("VIRUS_SCANNING", "false") == "true"
+            engine: "clamav"  # clamav, windows_defender
+            quarantine_infected: true
+        }
+        
+        # Content validation
+        content_validation: {
+            validate_headers: true
+            validate_content_type: true
+            reject_executable: true
+            
+            # Image-specific validation
+            image_validation: {
+                max_width: 4096
+                max_height: 4096
+                validate_image_integrity: true
+            }
+        }
+    }
+}
+</pre>
+
+<h2>Java Input Validation Service</h2>
+<pre>
+// InputValidationService.java
+@Service
+public class InputValidationService {
+    
+    private final PolicyFactory htmlSanitizer;
+    private final Validator validator;
+    private final List&lt;Pattern&gt; sqlInjectionPatterns;
+    
+    @Value("#{${validation.sanitization}}")
+    private Map&lt;String, Object&gt; sanitizationConfig;
+    
+    @Value("#{${validation.file_upload}}")
+    private Map&lt;String, Object&gt; fileUploadConfig;
+    
+    public InputValidationService(Validator validator) {
+        this.validator = validator;
+        this.htmlSanitizer = createHtmlSanitizer();
+        this.sqlInjectionPatterns = compileSqlInjectionPatterns();
+    }
+    
+    // HTML Sanitization
+    public String sanitizeHtml(String input) {
+        if (input == null) return null;
+        
+        Boolean enabled = (Boolean) sanitizationConfig.get("enabled");
+        if (enabled == null || !enabled) {
+            return input;
+        }
+        
+        return htmlSanitizer.sanitize(input);
+    }
+    
+    private PolicyFactory createHtmlSanitizer() {
+        Map&lt;String, Object&gt; htmlConfig = (Map&lt;String, Object&gt;) sanitizationConfig.get("html");
+        if (htmlConfig == null) {
+            return Sanitizers.FORMATTING;
+        }
+        
+        String policy = (String) htmlConfig.get("policy");
+        
+        switch (policy) {
+            case "SIMPLETEXT":
+                return Sanitizers.BLOCKS.and(Sanitizers.FORMATTING);
+            case "BASIC":
+                return Sanitizers.FORMATTING.and(Sanitizers.LINKS);
+            case "RELAXED":
+                return Sanitizers.FORMATTING.and(Sanitizers.LINKS).and(Sanitizers.BLOCKS).and(Sanitizers.IMAGES);
+            case "EBAY":
+                return Sanitizers.FORMATTING.and(Sanitizers.LINKS).and(Sanitizers.BLOCKS);
+            default:
+                return createCustomPolicy(htmlConfig);
+        }
+    }
+    
+    private PolicyFactory createCustomPolicy(Map&lt;String, Object&gt; htmlConfig) {
+        Map&lt;String, Object&gt; customPolicy = (Map&lt;String, Object&gt;) htmlConfig.get("custom_policy");
+        if (customPolicy == null) {
+            return Sanitizers.FORMATTING;
+        }
+        
+        HtmlPolicyBuilder builder = new HtmlPolicyBuilder();
+        
+        // Add allowed elements
+        List&lt;String&gt; allowedElements = (List&lt;String&gt;) customPolicy.get("allowed_elements");
+        if (allowedElements != null) {
+            allowedElements.forEach(builder::allowElements);
+        }
+        
+        // Add allowed attributes
+        Map&lt;String, Object&gt; allowedAttributes = (Map&lt;String, Object&gt;) customPolicy.get("allowed_attributes");
+        if (allowedAttributes != null) {
+            allowedAttributes.forEach((element, attributes) -&gt; {
+                List&lt;String&gt; attrList = (List&lt;String&gt;) attributes;
+                builder.allowAttributes(attrList.toArray(new String[0])).onElements(element);
+            });
+        }
+        
+        // Add allowed protocols
+        List&lt;String&gt; allowedProtocols = (List&lt;String&gt;) customPolicy.get("allowed_protocols");
+        if (allowedProtocols != null) {
+            builder.allowUrlProtocols(allowedProtocols.toArray(new String[0]));
+        }
+        
+        return builder.toFactory();
+    }
+    
+    // SQL Injection Prevention
+    public boolean containsSqlInjection(String input) {
+        if (input == null) return false;
+        
+        return sqlInjectionPatterns.stream()
+            .anyMatch(pattern -&gt; pattern.matcher(input.toLowerCase()).find());
+    }
+    
+    public String sanitizeSqlInput(String input) {
+        if (input == null) return null;
+        
+        if (containsSqlInjection(input)) {
+            throw new SecurityException("Potential SQL injection detected in input");
+        }
+        
+        return input;
+    }
+    
+    private List&lt;Pattern&gt; compileSqlInjectionPatterns() {
+        Map&lt;String, Object&gt; sqlConfig = (Map&lt;String, Object&gt;) sanitizationConfig.get("sql_injection");
+        if (sqlConfig == null) {
+            return Collections.emptyList();
+        }
+        
+        List&lt;String&gt; patterns = (List&lt;String&gt;) sqlConfig.get("blocked_patterns");
+        if (patterns == null) {
+            return Collections.emptyList();
+        }
+        
+        return patterns.stream()
+            .map(pattern -&gt; Pattern.compile(pattern, Pattern.CASE_INSENSITIVE))
+            .collect(Collectors.toList());
+    }
+    
+    // Bean Validation
+    public &lt;T&gt; void validateObject(T object) {
+        Set&lt;ConstraintViolation&lt;T&gt;&gt; violations = validator.validate(object);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
+    }
+    
+    public &lt;T&gt; void validateProperty(T object, String propertyName) {
+        Set&lt;ConstraintViolation&lt;T&gt;&gt; violations = validator.validateProperty(object, propertyName);
+        if (!violations.isEmpty()) {
+            throw new ConstraintViolationException(violations);
+        }
+    }
+    
+    // File Upload Validation
+    public void validateFileUpload(MultipartFile file) {
+        if (file == null || file.isEmpty()) {
+            throw new IllegalArgumentException("File cannot be empty");
+        }
+        
+        validateFileSize(file);
+        validateFileType(file);
+        validateFileContent(file);
+    }
+    
+    private void validateFileSize(MultipartFile file) {
+        String maxSizeStr = (String) fileUploadConfig.get("max_file_size");
+        if (maxSizeStr != null) {
+            DataSize maxSize = DataSize.parse(maxSizeStr);
+            if (file.getSize() > maxSize.toBytes()) {
+                throw new IllegalArgumentException("File size exceeds maximum allowed size: " + maxSizeStr);
+            }
+        }
+    }
+    
+    private void validateFileType(MultipartFile file) {
+        String filename = file.getOriginalFilename();
+        String contentType = file.getContentType();
+        
+        // Validate file extension
+        List&lt;String&gt; allowedExtensions = (List&lt;String&gt;) fileUploadConfig.get("allowed_extensions");
+        if (allowedExtensions != null && filename != null) {
+            String extension = filename.substring(filename.lastIndexOf(".")).toLowerCase();
+            if (!allowedExtensions.contains(extension)) {
+                throw new IllegalArgumentException("File type not allowed: " + extension);
+            }
+        }
+        
+        // Validate MIME type
+        List&lt;String&gt; allowedMimeTypes = (List&lt;String&gt;) fileUploadConfig.get("allowed_mime_types");
+        if (allowedMimeTypes != null && contentType != null) {
+            if (!allowedMimeTypes.contains(contentType.toLowerCase())) {
+                throw new IllegalArgumentException("MIME type not allowed: " + contentType);
+            }
+        }
+    }
+    
+    private void validateFileContent(MultipartFile file) {
+        Map&lt;String, Object&gt; contentValidation = (Map&lt;String, Object&gt;) fileUploadConfig.get("content_validation");
+        if (contentValidation == null) {
+            return;
+        }
+        
+        Boolean rejectExecutable = (Boolean) contentValidation.get("reject_executable");
+        if (rejectExecutable != null && rejectExecutable) {
+            validateNotExecutable(file);
+        }
+        
+        Boolean validateHeaders = (Boolean) contentValidation.get("validate_headers");
+        if (validateHeaders != null && validateHeaders) {
+            validateFileHeaders(file);
+        }
+        
+        // Image-specific validation
+        if (isImageFile(file)) {
+            validateImageContent(file, contentValidation);
+        }
+    }
+    
+    private void validateNotExecutable(MultipartFile file) {
+        String filename = file.getOriginalFilename();
+        if (filename != null) {
+            String extension = filename.substring(filename.lastIndexOf(".")).toLowerCase();
+            List&lt;String&gt; executableExtensions = Arrays.asList(
+                ".exe", ".bat", ".cmd", ".com", ".scr", ".pif", ".jar", ".war"
+            );
+            
+            if (executableExtensions.contains(extension)) {
+                throw new SecurityException("Executable files are not allowed");
+            }
+        }
+    }
+    
+    private void validateFileHeaders(MultipartFile file) {
+        try {
+            byte[] header = new byte[Math.min((int) file.getSize(), 512)];
+            file.getInputStream().read(header);
+            
+            // Check for executable signatures
+            if (startsWithMZHeader(header) || startsWithElfHeader(header)) {
+                throw new SecurityException("File appears to be executable");
+            }
+            
+            // Validate content type matches file signature
+            String contentType = file.getContentType();
+            if (!validateContentTypeSignature(header, contentType)) {
+                throw new SecurityException("File content does not match declared content type");
+            }
+            
+        } catch (IOException e) {
+            throw new RuntimeException("Failed to validate file headers", e);
+        }
+    }
+    
+    private boolean startsWithMZHeader(byte[] header) {
+        return header.length >= 2 && header[0] == 0x4D && header[1] == 0x5A; // "MZ"
+    }
+    
+    private boolean startsWithElfHeader(byte[] header) {
+        return header.length >= 4 && 
+               header[0] == 0x7F && header[1] == 0x45 && header[2] == 0x4C && header[3] == 0x46; // ELF
+    }
+    
+    private boolean validateContentTypeSignature(byte[] header, String contentType) {
+        if (contentType == null) return true;
+        
+        // JPEG
+        if (contentType.startsWith("image/jpeg")) {
+            return header.length >= 3 && 
+                   header[0] == (byte) 0xFF && header[1] == (byte) 0xD8 && header[2] == (byte) 0xFF;
+        }
+        
+        // PNG
+        if (contentType.startsWith("image/png")) {
+            return header.length >= 8 && 
+                   header[0] == (byte) 0x89 && header[1] == 0x50 && header[2] == 0x4E && header[3] == 0x47;
+        }
+        
+        // PDF
+        if (contentType.equals("application/pdf")) {
+            return header.length >= 4 && 
+                   header[0] == 0x25 && header[1] == 0x50 && header[2] == 0x44 && header[3] == 0x46; // %PDF
+        }
+        
+        return true; // Allow other types
+    }
+    
+    private boolean isImageFile(MultipartFile file) {
+        String contentType = file.getContentType();
+        return contentType != null && contentType.startsWith("image/");
+    }
+    
+    private void validateImageContent(MultipartFile file, Map&lt;String, Object&gt; contentValidation) {
+        Map&lt;String, Object&gt; imageValidation = (Map&lt;String, Object&gt;) contentValidation.get("image_validation");
+        if (imageValidation == null) {
+            return;
+        }
+        
+        try {
+            BufferedImage image = ImageIO.read(file.getInputStream());
+            if (image == null) {
+                throw new IllegalArgumentException("Invalid image file");
+            }
+            
+            // Validate dimensions
+            Integer maxWidth = (Integer) imageValidation.get("max_width");
+            Integer maxHeight = (Integer) imageValidation.get("max_height");
+            
+            if (maxWidth != null && image.getWidth() > maxWidth) {
+                throw new IllegalArgumentException("Image width exceeds maximum: " + maxWidth);
+            }
+            
+            if (maxHeight != null && image.getHeight() > maxHeight) {
+                throw new IllegalArgumentException("Image height exceeds maximum: " + maxHeight);
+            }
+            
+        } catch (IOException e) {
+            throw new IllegalArgumentException("Failed to process image file", e);
+        }
+    }
+}
+</pre>
+
+<h2>Security Headers and HTTPS Configuration</h2>
+<pre>
+# Security headers configuration
+security_headers: {
+    # HTTPS configuration
+    https: {
+        enabled: env("HTTPS_ENABLED", "false") == "true"
+        port: env("HTTPS_PORT", "8443")
+        
+        # SSL/TLS configuration
+        ssl: {
+            key_store: env("SSL_KEYSTORE_PATH", "classpath:keystore.p12")
+            key_store_password: env("SSL_KEYSTORE_PASSWORD")
+            key_store_type: "PKCS12"
+            key_alias: env("SSL_KEY_ALIAS", "myapp")
+            
+            # TLS protocol versions
+            enabled_protocols: ["TLSv1.2", "TLSv1.3"]
+            
+            # Cipher suites (secure configurations)
+            cipher_suites: [
+                "TLS_AES_256_GCM_SHA384",
+                "TLS_AES_128_GCM_SHA256",
+                "TLS_ECDHE_RSA_WITH_AES_256_GCM_SHA384",
+                "TLS_ECDHE_RSA_WITH_AES_128_GCM_SHA256"
+            ]
+        }
+        
+        # HTTP to HTTPS redirect
+        redirect_http: env("REDIRECT_HTTP_TO_HTTPS", "true") == "true"
+    }
+    
+    # Security response headers
+    response_headers: {
+        # HTTP Strict Transport Security
+        hsts: {
+            enabled: env("HSTS_ENABLED", "true") == "true"
+            max_age_seconds: 31536000  # 1 year
+            include_subdomains: true
+            preload: false
+        }
+        
+        # Content Security Policy
+        csp: {
+            enabled: env("CSP_ENABLED", "true") == "true"
+            policy: "default-src 'self'; script-src 'self' 'unsafe-inline'; style-src 'self' 'unsafe-inline'; img-src 'self' data: https:; font-src 'self' https:; connect-src 'self' https:; frame-ancestors 'none';"
+            report_only: env("CSP_REPORT_ONLY", "false") == "true"
+        }
+        
+        # X-Frame-Options
+        frame_options: "DENY"  # DENY, SAMEORIGIN, ALLOW-FROM uri
+        
+        # X-Content-Type-Options
+        content_type_options: "nosniff"
+        
+        # X-XSS-Protection
+        xss_protection: "1; mode=block"
+        
+        # Referrer Policy
+        referrer_policy: "strict-origin-when-cross-origin"
+        
+        # Permissions Policy (Feature Policy)
+        permissions_policy: "camera=(), microphone=(), geolocation=()"
+        
+        # Custom security headers
+        custom_headers: {
+            "X-Robots-Tag": "noindex, nofollow"
+            "X-Permitted-Cross-Domain-Policies": "none"
+            "X-Download-Options": "noopen"
+        }
+    }
+    
+    # CORS configuration
+    cors: {
+        enabled: env("CORS_ENABLED", "true") == "true"
+        
+        # Allowed origins
+        allowed_origins: env("CORS_ALLOWED_ORIGINS", "").split(",")
+        allowed_origin_patterns: []
+        
+        # Allowed methods and headers
+        allowed_methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"]
+        allowed_headers: ["Authorization", "Content-Type", "X-Requested-With"]
+        exposed_headers: ["X-Total-Count", "X-Rate-Limit-Remaining"]
+        
+        # Credentials and caching
+        allow_credentials: env("CORS_ALLOW_CREDENTIALS", "true") == "true"
+        max_age: 3600  # 1 hour
+    }
+}
+
+# API security configuration
+api_security: {
+    # Rate limiting
+    rate_limiting: {
+        enabled: env("RATE_LIMITING_ENABLED", "true") == "true"
+        
+        # Global rate limits
+        global: {
+            requests_per_minute: env("GLOBAL_RATE_LIMIT", "1000")
+            burst_capacity: env("GLOBAL_BURST_CAPACITY", "100")
+        }
+        
+        # Per-endpoint rate limits
+        endpoints: {
+            "/api/auth/login": {
+                requests_per_minute: 5
+                burst_capacity: 2
+                window_size: "1m"
+            },
+            "/api/users": {
+                requests_per_minute: 100
+                burst_capacity: 20
+                window_size: "1m"
+            },
+            "/api/orders": {
+                requests_per_minute: 200
+                burst_capacity: 50
+                window_size: "1m"
+            }
+        }
+        
+        # Rate limit storage
+        storage: {
+            type: "redis"  # memory, redis, database
+            redis: {
+                host: env("REDIS_HOST", "localhost")
+                port: env("REDIS_PORT", "6379")
+                key_prefix: "rate_limit:"
+            }
+        }
+    }
+    
+    # API key authentication
+    api_keys: {
+        enabled: env("API_KEYS_ENABLED", "false") == "true"
+        
+        # API key configuration
+        header_name: "X-API-Key"
+        query_param_name: "apiKey"
+        
+        # Key validation
+        key_length: 32
+        key_format: "hex"  # hex, base64, uuid
+        
+        # Rate limiting per API key
+        per_key_limits: {
+            requests_per_hour: 10000
+            burst_capacity: 100
+        }
+        
+        # API key management
+        storage: {
+            type: "database"  # database, redis, memory
+            table_name: "api_keys"
+            
+            # Key rotation
+            rotation_enabled: true
+            rotation_interval: "90d"
+            grace_period: "7d"
+        }
+    }
+    
+    # Request/Response logging for security
+    audit_logging: {
+        enabled: env("AUDIT_LOGGING_ENABLED", "true") == "true"
+        
+        # What to log
+        log_requests: true
+        log_responses: false
+        log_headers: true
+        log_body: false  # Be careful with sensitive data
+        
+        # Sensitive data filtering
+        sensitive_headers: ["Authorization", "X-API-Key", "Cookie"]
+        sensitive_fields: ["password", "ssn", "credit_card"]
+        
+        # Log storage
+        storage: {
+            type: "database"  # database, elasticsearch, file
+            table_name: "audit_logs"
+            retention_days: 90
+        }
+        
+        # Log format
+        format: "json"
+        include_user_agent: true
+        include_ip_address: true
+        include_timestamp: true
+    }
+}
+</pre>
+
+<h2>Java Security Headers Configuration</h2>
+<pre>
+// SecurityHeadersConfiguration.java
+@Configuration
+public class SecurityHeadersConfiguration {
+    
+    @Value("#{${security_headers.response_headers}}")
+    private Map&lt;String, Object&gt; responseHeaders;
+    
+    @Value("#{${security_headers.cors}}")
+    private Map&lt;String, Object&gt; corsConfig;
+    
+    @Bean
+    public FilterRegistrationBean&lt;SecurityHeadersFilter&gt; securityHeadersFilter() {
+        FilterRegistrationBean&lt;SecurityHeadersFilter&gt; registration = new FilterRegistrationBean&lt;&gt;();
+        registration.setFilter(new SecurityHeadersFilter(responseHeaders));
+        registration.addUrlPatterns("/*");
+        registration.setOrder(1);
+        return registration;
+    }
+    
+    @Bean
+    public WebMvcConfigurer corsConfigurer() {
+        return new WebMvcConfigurer() {
+            @Override
+            public void addCorsMappings(CorsRegistry registry) {
+                Boolean enabled = (Boolean) corsConfig.get("enabled");
+                if (enabled != null && enabled) {
+                    CorsRegistration registration = registry.addMapping("/**");
+                    
+                    List&lt;String&gt; allowedOrigins = (List&lt;String&gt;) corsConfig.get("allowed_origins");
+                    if (allowedOrigins != null && !allowedOrigins.isEmpty()) {
+                        registration.allowedOrigins(allowedOrigins.toArray(new String[0]));
+                    }
+                    
+                    List&lt;String&gt; allowedMethods = (List&lt;String&gt;) corsConfig.get("allowed_methods");
+                    if (allowedMethods != null) {
+                        registration.allowedMethods(allowedMethods.toArray(new String[0]));
+                    }
+                    
+                    List&lt;String&gt; allowedHeaders = (List&lt;String&gt;) corsConfig.get("allowed_headers");
+                    if (allowedHeaders != null) {
+                        registration.allowedHeaders(allowedHeaders.toArray(new String[0]));
+                    }
+                    
+                    List&lt;String&gt; exposedHeaders = (List&lt;String&gt;) corsConfig.get("exposed_headers");
+                    if (exposedHeaders != null) {
+                        registration.exposedHeaders(exposedHeaders.toArray(new String[0]));
+                    }
+                    
+                    Boolean allowCredentials = (Boolean) corsConfig.get("allow_credentials");
+                    if (allowCredentials != null) {
+                        registration.allowCredentials(allowCredentials);
+                    }
+                    
+                    Integer maxAge = (Integer) corsConfig.get("max_age");
+                    if (maxAge != null) {
+                        registration.maxAge(maxAge);
+                    }
+                }
+            }
+        };
+    }
+}
+
+// SecurityHeadersFilter.java
+public class SecurityHeadersFilter implements Filter {
+    
+    private final Map&lt;String, Object&gt; headerConfig;
+    
+    public SecurityHeadersFilter(Map&lt;String, Object&gt; headerConfig) {
+        this.headerConfig = headerConfig;
+    }
+    
+    @Override
+    public void doFilter(ServletRequest request, ServletResponse response, FilterChain chain)
+            throws IOException, ServletException {
+        
+        HttpServletResponse httpResponse = (HttpServletResponse) response;
+        
+        // Add security headers
+        addSecurityHeaders(httpResponse);
+        
+        chain.doFilter(request, response);
+    }
+    
+    private void addSecurityHeaders(HttpServletResponse response) {
+        // HSTS
+        Map&lt;String, Object&gt; hsts = (Map&lt;String, Object&gt;) headerConfig.get("hsts");
+        if (hsts != null && Boolean.TRUE.equals(hsts.get("enabled"))) {
+            StringBuilder hstsValue = new StringBuilder();
+            hstsValue.append("max-age=").append(hsts.get("max_age_seconds"));
+            
+            if (Boolean.TRUE.equals(hsts.get("include_subdomains"))) {
+                hstsValue.append("; includeSubDomains");
+            }
+            
+            if (Boolean.TRUE.equals(hsts.get("preload"))) {
+                hstsValue.append("; preload");
+            }
+            
+            response.setHeader("Strict-Transport-Security", hstsValue.toString());
+        }
+        
+        // CSP
+        Map&lt;String, Object&gt; csp = (Map&lt;String, Object&gt;) headerConfig.get("csp");
+        if (csp != null && Boolean.TRUE.equals(csp.get("enabled"))) {
+            String policy = (String) csp.get("policy");
+            String headerName = Boolean.TRUE.equals(csp.get("report_only")) ? 
+                "Content-Security-Policy-Report-Only" : "Content-Security-Policy";
+            response.setHeader(headerName, policy);
+        }
+        
+        // X-Frame-Options
+        String frameOptions = (String) headerConfig.get("frame_options");
+        if (frameOptions != null) {
+            response.setHeader("X-Frame-Options", frameOptions);
+        }
+        
+        // X-Content-Type-Options
+        String contentTypeOptions = (String) headerConfig.get("content_type_options");
+        if (contentTypeOptions != null) {
+            response.setHeader("X-Content-Type-Options", contentTypeOptions);
+        }
+        
+        // X-XSS-Protection
+        String xssProtection = (String) headerConfig.get("xss_protection");
+        if (xssProtection != null) {
+            response.setHeader("X-XSS-Protection", xssProtection);
+        }
+        
+        // Referrer-Policy
+        String referrerPolicy = (String) headerConfig.get("referrer_policy");
+        if (referrerPolicy != null) {
+            response.setHeader("Referrer-Policy", referrerPolicy);
+        }
+        
+        // Permissions-Policy
+        String permissionsPolicy = (String) headerConfig.get("permissions_policy");
+        if (permissionsPolicy != null) {
+            response.setHeader("Permissions-Policy", permissionsPolicy);
+        }
+        
+        // Custom headers
+        Map&lt;String, Object&gt; customHeaders = (Map&lt;String, Object&gt;) headerConfig.get("custom_headers");
+        if (customHeaders != null) {
+            customHeaders.forEach((name, value) -&gt; 
+                response.setHeader(name, value.toString()));
+        }
+    }
+}
+</pre>

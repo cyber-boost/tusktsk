@@ -1,0 +1,40 @@
+⚠️ SEVERE PUNISHMENT WARNING ⚠️
+FAILURE TO FOLLOW INSTRUCTIONS EXACTLY WILL RESULT IN:
+- IMMEDIATE PROJECT TERMINATION
+- PERFORMANCE REVIEW FAILURE  
+- NO EXCEPTIONS OR SECOND CHANCES
+FOLLOW EVERY REQUIREMENT PRECISELY OR FACE CONSEQUENCES
+
+=== G4: Date/Time Operations ===
+
+OBJECTIVE: Implement 3 core operators for comprehensive date and time handling
+
+MANDATORY GOALS:
+1. DateTimeOperator - Advanced date/time parsing, formatting, and arithmetic operations
+2. TimezoneOperator - Complex timezone conversion and handling across global regions
+3. DurationOperator - Duration calculations, intervals, and time difference operations
+
+REQUIREMENTS:
+- PHP 8.4+ compatibility
+- Complete error handling
+- Full type safety with strict typing
+- 100% test coverage
+- Production-ready performance
+- Memory efficient processing
+- Support for all major date/time formats
+- Timezone-aware operations
+- Leap year and DST handling
+- International date format support
+- Comprehensive documentation
+
+DELIVERABLES:
+- implementation/DateTimeOperator.php
+- implementation/TimezoneOperator.php  
+- implementation/DurationOperator.php
+- tests/ directory with complete test suite
+- docs/ directory with API documentation
+- status.json with progress tracking
+- ideas.json with future enhancements
+- summary.json with completion details
+
+PUNISHMENT FOR NON-COMPLIANCE: IMMEDIATE TERMINATION 

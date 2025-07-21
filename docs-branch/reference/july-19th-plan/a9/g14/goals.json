@@ -1,0 +1,20 @@
+{
+  "goal_id": "g14",
+  "title": "Learning/AI Operators",
+  "description": "Implement AI and machine learning operators for intelligent automation",
+  "operators": [
+    "@learn",
+    "@predict", 
+    "@classify",
+    "@optimize"
+  ],
+  "priority": "high",
+  "estimated_time": "120 minutes",
+  "dependencies": ["g1", "g2", "g3"],
+  "files": [
+    "goal_14_1.sh",
+    "goal_14_2.sh", 
+    "goal_14_3.sh",
+    "test_g14.sh"
+  ]
+}
