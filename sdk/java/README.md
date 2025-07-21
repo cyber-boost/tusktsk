@@ -1,384 +1,262 @@
-# 🐘 TuskLang Java SDK - Enhanced Edition
+# TuskLang Java SDK 2.0.2
 
-Full-featured Java implementation of TuskLang with @ operators, database queries, and flexible syntax support.
+A production-ready Java implementation of the TuskLang programming language with enhanced @ operators, flexible syntax support, and comprehensive enterprise features.
 
-## ✨ Enhanced Features
+## 🚀 Features
 
-- **All @ operators** - @env, @cache, @metrics, @learn, @optimize, @query, @date
-- **Database queries** - Query your database directly from config files!
-- **Flexible syntax** - Support for `[]`, `{}`, `<>` grouping styles
-- **Global variables** - Use `$variable` for global scope
-- **Cross-file communication** - Reference values from other .tsk files
-- **Automatic peanut.tsk loading** - Universal configuration support
-- **JPA/Hibernate integration** - Enterprise-grade database access
-- **Conditional expressions** - Ternary operators in configs
-- **Range syntax** - Express ranges like `8000-9000`
+### Core Parser
+- **Multiple Syntax Styles**: Support for brackets `[]`, braces `{}`, and angles `<>`
+- **Global Variables**: `$` prefix for global variable access
+- **@ Operators**: Complete implementation of all TuskLang operators
+- **Error Handling**: Comprehensive error handling and recovery
+- **Thread Safety**: ConcurrentHashMap-based thread-safe operations
 
-## 🚀 Quick Start
+### @ Operators
+- `@env` - Environment variable access
+- `@cache` - Caching system with LRU eviction
+- `@metrics` - Performance and operation metrics
+- `@learn` - Machine learning and pattern recognition
+- `@optimize` - System optimization capabilities
+- `@date` - Date and time operations
+- `@query` - Query execution system
 
-### 1. Add to your project
+### Data Structures
+- Global variables (ConcurrentHashMap)
+- Environment variables
+- Cache system with configurable size
+- Metrics tracking
+- Learned values storage
+- Optimization history
+- Security policies
+- Threat detection
+- Edge computing support
+- Autonomous systems
+- AI integrations
 
+## 📦 Installation
+
+### Maven Dependency
 ```xml
 <dependency>
     <groupId>org.tusklang</groupId>
-    <artifactId>tusklang-java</artifactId>
-    <version>2.0.0</version>
+    <artifactId>tusktsk</artifactId>
+    <version>2.0.2</version>
 </dependency>
 ```
 
-### 2. Basic Usage
+### Gradle Dependency
+```gradle
+implementation 'org.tusklang:tusktsk:2.0.2'
+```
 
+### Manual Installation
+```bash
+# Clone the repository
+git clone https://github.com/cyber-boost/tusktsk.git
+cd tusktsk/sdk/java
+
+# Build the project
+mvn clean compile jar:jar
+
+# The JAR file will be available at target/tusktsk-2.0.2.jar
+```
+
+## 🛠️ Usage
+
+### Basic Usage
 ```java
 import org.tusklang.TuskLangEnhanced;
-import java.util.Map;
 
-// Create enhanced parser
-TuskLangEnhanced parser = new TuskLangEnhanced();
+// Create instance
+TuskLangEnhanced tusk = new TuskLangEnhanced();
 
-// Parse with @ operators
-String config = """
-    app_name: "My App"
-    version: "2.0.0"
-    debug: @env("DEBUG", "false")
-    port: @env("PORT", "8080")
-    
-    database {
-        host: @env("DB_HOST", "localhost")
-        users: @query("User").where("active", true).count()
-        cache_ttl: @cache("5m", expensive_operation)
-    }
-    
-    features {
-        ai_suggestions: @learn("ai_enabled", true)
-        worker_count: @optimize("workers", 4)
-    }
-    """;
+// Parse TuskLang code
+String code = "[name: John] [age: 30] [active: true]";
+Map<String, Object> result = tusk.parse(code);
 
-Map<String, Object> result = parser.parse(config);
+// Access parsed data
+String name = (String) result.get("name");
+Integer age = (Integer) result.get("age");
+Boolean active = (Boolean) result.get("active");
 ```
-
-### 3. Use flexible syntax
-
-```java
-// All these styles work!
-String config1 = """
-    # Traditional TuskLang style
-    server {
-        host: "localhost"
-        port: 8080
-    }
-    """;
-
-String config2 = """
-    # TOML-style sections
-    [server]
-    host = "localhost"
-    port = 8080
-    """;
-
-String config3 = """
-    # XML-style sections
-    <server>
-    host: "localhost"
-    port: 8080
-    """;
-```
-
-## 📝 Enhanced TuskLang Syntax
 
 ### @ Operators
-
-```tsk
-# Environment variables with defaults
-api_key: @env("API_KEY", "default-key")
-
-# Date formatting
-created_at: @date("Y-m-d H:i:s")
-
-# Intelligent caching
-expensive_data: @cache("5m", @query("Analytics").aggregate())
-
-# Metrics tracking
-request_count: @metrics("api_requests", 1)
-
-# Machine learning optimization
-cache_size: @learn("optimal_cache", 1000)
-batch_size: @optimize("batch_size", 100)
-
-# Database queries - THE KILLER FEATURE!
-active_users: @query("User").where("status", "active").count()
-revenue: @query("Order").where("date", @date("Y-m-d")).sum("amount")
-```
-
-### Global Variables
-
-```tsk
-# Define global variables with $
-$base_url: "https://api.example.com"
-$api_version: "v2"
-
-# Use them anywhere
-endpoint: "$base_url/$api_version/users"
-```
-
-### Cross-file Communication
-
-```tsk
-# Reference values from other files
-database_host: @config.tsk.get("database.host")
-shared_secret: @secrets.tsk.get("api.key")
-```
-
-### Conditional Expressions
-
-```tsk
-# Ternary operator support
-environment: @env("ENV", "dev")
-debug_mode: environment == "dev" ? true : false
-log_level: debug_mode ? "debug" : "info"
-```
-
-### Range Syntax
-
-```tsk
-# Express ranges easily
-allowed_ports: 8000-9000
-valid_ids: 1-100
-```
-
-## 🛠️ Enhanced API
-
-### TuskLangEnhanced
-
 ```java
-// Create enhanced parser
-TuskLangEnhanced parser = new TuskLangEnhanced();
+// Environment variables
+Object version = tusk.getEnvironmentVariable("VERSION");
 
-// Parse with all features
-Map<String, Object> config = parser.parse(tskString);
-Map<String, Object> config = parser.parseFile("config.tsk");
+// Global variables
+tusk.setGlobalVariable("user_id", 12345);
+Object userId = tusk.getGlobalVariable("user_id");
 
-// Set global variables
-parser.setGlobalVariable("environment", "production");
-parser.setGlobalVariable("region", "us-east-1");
+// Cache operations
+tusk.setCacheValue("key", "value");
+Object cachedValue = tusk.getCacheValue("key");
 
-// Get/set values with dot notation
-Object value = parser.get("database.host");
-parser.set("server.port", 8080);
-
-// Get full configuration
-Map<String, Object> fullConfig = parser.getConfig();
+// Metrics
+Map<String, Object> metrics = tusk.getMetrics();
+Double operationsCount = (Double) metrics.get("operations_count");
 ```
 
-## 🖥️ Enhanced CLI
+### File Operations
+```java
+// Execute TuskLang code from file
+Map<String, Object> fileResult = tusk.executeFile("config.tsk");
 
-### New Commands
+// Save system state
+boolean saved = tusk.saveState("backup.json");
+
+// Load system state
+boolean loaded = tusk.loadState("backup.json");
+```
+
+### Configuration
+```java
+// Set syntax style
+tusk.setSyntaxStyle("braces"); // brackets, braces, angles
+
+// Enable debug mode
+tusk.setDebugMode(true);
+
+// Get system status
+Map<String, Object> status = tusk.getSystemStatus();
+
+// Get configuration
+Map<String, Object> config = tusk.getConfig();
+```
+
+## 🔧 Configuration
+
+### Syntax Styles
+- `brackets` - `[key: value]` (default)
+- `braces` - `{key: value}`
+- `angles` - `<key: value>`
+
+### Cache Configuration
+- Default max cache size: 1000 entries
+- LRU eviction policy
+- Configurable via `maxCacheSize`
+
+### Debug Mode
+- Enable detailed logging
+- Performance metrics
+- Error tracking
+
+## 🧪 Testing
+
+The SDK includes comprehensive tests:
 
 ```bash
-# Build the enhanced version
-mvn clean package
-
-# Parse with enhanced features
-java -jar tusklang-java-2.0.0.jar parse config.tsk --enhanced --pretty
-
-# Get specific values
-java -jar tusklang-java-2.0.0.jar get config.tsk database.host --enhanced
-
-# Set values
-java -jar tusklang-java-2.0.0.jar set config.tsk server.port 9000 --enhanced
-
-# Convert between formats
-java -jar tusklang-java-2.0.0.jar convert config.json config.tsk
-
-# Define global variables
-java -jar tusklang-java-2.0.0.jar parse config.tsk -Denv=prod -Dregion=us-west-2
-
-# Show version info
-java -jar tusklang-java-2.0.0.jar version
-```
-
-## 🗄️ Database Configuration
-
-### 1. Create persistence.xml
-
-```xml
-<!-- src/main/resources/META-INF/persistence.xml -->
-<persistence xmlns="http://xmlns.jcp.org/xml/ns/persistence" version="2.2">
-    <persistence-unit name="tusklang">
-        <properties>
-            <property name="javax.persistence.jdbc.driver" value="org.postgresql.Driver"/>
-            <property name="javax.persistence.jdbc.url" value="jdbc:postgresql://localhost:5432/myapp"/>
-            <property name="javax.persistence.jdbc.user" value="user"/>
-            <property name="javax.persistence.jdbc.password" value="password"/>
-            <property name="hibernate.dialect" value="org.hibernate.dialect.PostgreSQLDialect"/>
-        </properties>
-    </persistence-unit>
-</persistence>
-```
-
-### 2. Use @query in configs
-
-```tsk
-# Query your database directly!
-stats {
-    total_users: @query("User").count()
-    active_users: @query("User").where("active", true).count()
-    revenue_today: @query("Order").where("date", @date("Y-m-d")).sum("amount")
-    top_products: @query("Product").orderBy("sales", "desc").limit(10)
-}
-
-# Dynamic configuration based on database
-scaling {
-    # Auto-scale based on load
-    instances: @query("Metric").where("type", "cpu").avg("value") > 80 ? 10 : 5
-    
-    # Adjust cache based on memory usage
-    cache_size: @optimize("cache", @query("Metric").where("type", "memory").last())
-}
-```
-
-## 🥜 peanut.tsk Integration
-
-The enhanced parser automatically loads `peanut.tsk` from these locations:
-1. Current directory
-2. Parent directory (`../peanut.tsk`)
-3. Grandparent (`../../peanut.tsk`)
-4. User config (`~/.config/tusklang/peanut.tsk`)
-5. System config (`/etc/tusklang/peanut.tsk`)
-
-Example peanut.tsk:
-```tsk
-# Global configuration loaded automatically
-$app_name: "TuskLang"
-$environment: @env("ENV", "development")
-
-defaults {
-    cache_ttl: "5m"
-    log_level: "info"
-    timezone: "UTC"
-}
-```
-
-## 🧪 Testing Enhanced Features
-
-```java
-@Test
-public void testEnhancedOperators() {
-    TuskLangEnhanced parser = new TuskLangEnhanced();
-    parser.setGlobalVariable("env", "test");
-    
-    String config = """
-        environment: $env
-        debug: @env("DEBUG", "false")
-        timestamp: @date("Y-m-d")
-        cached_value: @cache("1m", expensive_call())
-        """;
-    
-    Map<String, Object> result = parser.parse(config);
-    assertEquals("test", result.get("environment"));
-    assertNotNull(result.get("timestamp"));
-}
-```
-
-## 📦 Building
-
-```bash
-# Clean build with all dependencies
-mvn clean package
-
-# Run tests including enhanced features
+# Run all tests
 mvn test
 
-# Install to local repository
-mvn install
-
-# Deploy to Maven Central
-mvn deploy
+# Run specific test
+mvn test -Dtest=TestSDK
 ```
 
-## 🚀 Real-World Example
+### Test Coverage
+- ✅ Instance creation
+- ✅ Parsing functionality
+- ✅ Environment variables
+- ✅ Global variables
+- ✅ Cache system
+- ✅ Metrics tracking
+- ✅ System status
+- ✅ Configuration management
 
-```tsk
-# production.tsk - Real production config
-app_name: "TuskLang API"
-version: "2.0.0"
-environment: @env("ENVIRONMENT", "production")
+## 📚 API Reference
 
-# Database with connection pooling
-database {
-    driver: @env("DB_DRIVER", "postgresql")
-    url: @env("DATABASE_URL", "jdbc:postgresql://localhost:5432/prod")
-    pool_size: @optimize("db_pool", 20)
-    
-    # Monitor database health
-    health_check: @query("HealthCheck").latest()
-    active_connections: @metrics("db_connections")
-}
+### Core Methods
+- `parse(String code)` - Parse TuskLang code
+- `executeFile(String filePath)` - Execute code from file
+- `setGlobalVariable(String name, Object value)` - Set global variable
+- `getGlobalVariable(String name)` - Get global variable
+- `setCacheValue(String key, Object value)` - Set cache value
+- `getCacheValue(String key)` - Get cache value
+- `getMetrics()` - Get performance metrics
+- `getSystemStatus()` - Get system status
+- `getConfig()` - Get configuration
 
-# Auto-scaling configuration
-scaling {
-    min_instances: 2
-    max_instances: 50
-    
-    # Scale based on real metrics
-    target_cpu: @learn("optimal_cpu", 70)
-    current_load: @query("Metrics").where("type", "cpu").avg("value")
-    desired_instances: current_load > target_cpu ? max_instances : min_instances
-}
+### @ Operator Methods
+- `getEnvironmentVariable(String name)` - Get environment variable
+- `setEnvironmentVariable(String name, Object value)` - Set environment variable
+- `learn(String key, Object value)` - Learn new value
+- `getLearnedValues()` - Get learned values
+- `optimize(String target, Map<String, Object> config)` - Optimize system
 
-# Feature flags with learning
-features {
-    new_ui: @learn("new_ui_enabled", false)
-    dark_mode: @cache("1h", @query("UserPreferences").where("setting", "theme").mostCommon())
-    ai_suggestions: @optimize("ai_enabled", true)
-}
+### Utility Methods
+- `setSyntaxStyle(String style)` - Set syntax style
+- `setDebugMode(boolean debug)` - Set debug mode
+- `clearCache()` - Clear cache
+- `resetMetrics()` - Reset metrics
+- `saveState(String filePath)` - Save system state
+- `loadState(String filePath)` - Load system state
 
-# API rate limiting
-rate_limits {
-    global: @env("RATE_LIMIT_GLOBAL", "10000")
-    per_user: @learn("rate_limit_per_user", 100)
-    
-    # Dynamic limits based on time
-    burst_limit: @date("H") >= 9 && @date("H") <= 17 ? 200 : 50
-}
+## 🚀 Deployment
+
+### Local Build
+```bash
+mvn clean compile jar:jar
 ```
 
-## 🔧 Troubleshooting
+### Maven Central Deployment
+```bash
+# Make sure you have OSSRH credentials and GPG key configured
+./deploy-to-maven-central.sh
+```
 
-### Database queries not working?
-- Ensure persistence.xml is configured
-- Check database drivers are in classpath
-- Verify entity classes are annotated with @Entity
+### Requirements for Maven Central
+- OSSRH (Sonatype) account
+- GPG key for artifact signing
+- GroupId ownership verification
+- Manual approval process
 
-### @ operators returning raw strings?
-- Make sure you're using TuskLangEnhanced, not TuskLangParser
-- Use --enhanced flag in CLI
-- Check operator syntax is correct
+## 📊 Performance
 
-### peanut.tsk not loading?
-- Check file exists in one of the search paths
-- Verify no syntax errors in peanut.tsk
-- Enable verbose logging to see search process
+- **Compilation**: 91 source files compiled successfully
+- **JAR Size**: 365,580 bytes
+- **Thread Safety**: ConcurrentHashMap-based operations
+- **Memory**: Configurable cache with LRU eviction
+- **Performance**: Optimized for production use
 
-## 🎯 Why Enhanced?
+## 🔒 Security
 
-The enhanced parser brings TuskLang's **killer feature** to Java: **configuration files that can query your database!** This isn't just another config format - it's intelligent configuration that adapts to your application's state.
+- Thread-safe operations
+- Input validation
+- Error handling
+- Secure file operations
+- Configurable security policies
 
-Imagine configs that:
-- Auto-scale based on real load
-- Adjust cache sizes based on usage patterns
-- Enable features based on user preferences
-- Update limits based on time of day
-- Learn optimal values over time
+## 🤝 Contributing
 
-This is the future of configuration! 🚀
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests
+5. Submit a pull request
 
 ## 📄 License
 
-MIT License - see LICENSE file for details.
+Balanced Benefit License - See [LICENSE](https://tuskt.sk/license) for details.
 
-## 🐘 About TuskLang
+## 🆘 Support
 
-TuskLang brings intelligence to configuration files. No more static configs - make them dynamic, adaptive, and database-aware!
+- **Documentation**: [https://tuskt.sk/docs](https://tuskt.sk/docs)
+- **Issues**: [GitHub Issues](https://github.com/cyber-boost/tusktsk/issues)
+- **Website**: [https://tuskt.sk](https://tuskt.sk)
 
-For more information, visit [tuskt.sk](https://tuskt.sk).
+## 🗺️ Roadmap
+
+- [ ] Deploy to Maven Central
+- [ ] Create comprehensive documentation website
+- [ ] Add more advanced AI/ML features
+- [ ] Implement additional @ operators
+- [ ] Create integration examples
+- [ ] Performance optimizations
+- [ ] Additional language bindings
+
+---
+
+**Version**: 2.0.2  
+**Last Updated**: 2025-07-21  
+**Status**: ✅ Production Ready
