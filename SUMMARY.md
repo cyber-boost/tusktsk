@@ -15,7 +15,7 @@ We have successfully created **Flask-TSK**, a revolutionary Flask extension that
 
 ### Complete TuskLang SDK Integration
 - **Full TuskLang SDK** - All features from `tusktsk` package
-- **Configuration Management** - Load from `peanut.tsk` files
+- **Configuration Management** - Load from `peanu.tsk` files
 - **Function Execution** - Execute TuskLang functions with arguments
 - **Advanced Parsing** - `parse_enhanced`, `parse_with_comments`
 - **Data Serialization** - `stringify`, `save`, `load`

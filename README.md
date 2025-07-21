@@ -183,13 +183,13 @@ pip install flask-tsk[dev]
 ```python
 app.config.update({
     'TSK_CONFIG_PATH': '/path/to/config.tsk',  # Custom config path
-    'TSK_AUTO_LOAD': True,                     # Auto-load peanut.tsk
+    'TSK_AUTO_LOAD': True,                     # Auto-load peanu.tsk
     'TSK_ENABLE_BLUEPRINT': True,              # Enable API endpoints
     'TSK_ENABLE_CONTEXT': True,                # Enable template context
 })
 ```
 
-### TuskLang Configuration (peanut.tsk)
+### TuskLang Configuration (peanu.tsk)
 
 ```ini
 [database]

@@ -59,13 +59,13 @@ if __name__ == '__main__':
 ```python
 app.config.update({
     'TSK_CONFIG_PATH': '/path/to/config.tsk',  # Custom config path
-    'TSK_AUTO_LOAD': True,                     # Auto-load peanut.tsk
+    'TSK_AUTO_LOAD': True,                     # Auto-load peanu.tsk
     'TSK_ENABLE_BLUEPRINT': True,              # Enable API endpoints
     'TSK_ENABLE_CONTEXT': True,                # Enable template context
 })
 ```
 
-### TuskLang Configuration File (peanut.tsk)
+### TuskLang Configuration File (peanu.tsk)
 
 ```ini
 [database]
