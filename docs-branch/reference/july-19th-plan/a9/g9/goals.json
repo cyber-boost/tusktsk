@@ -1,0 +1,29 @@
+{
+  "goal_id": "g9",
+  "agent_id": "a9",
+  "language": "Bash",
+  "created_at": "2025-07-19T18:58:38Z",
+  "goals": [
+    {
+      "id": "g9.1",
+      "description": "Implement @switch and @for operators for conditional and iterative control flow",
+      "success_criteria": "Switch statements and for loops can be executed with dynamic conditions and actions",
+      "priority": "high"
+    },
+    {
+      "id": "g9.2",
+      "description": "Implement @while and @each operators for loop control and iteration",
+      "success_criteria": "While loops and each iteration can be executed with conditions and data processing",
+      "priority": "high"
+    },
+    {
+      "id": "g9.3",
+      "description": "Implement @filter operator for data filtering and transformation",
+      "success_criteria": "Data can be filtered and transformed based on conditions and patterns",
+      "priority": "high"
+    }
+  ],
+  "dependencies": [],
+  "estimated_time": "45 minutes",
+  "complexity": "high"
+}

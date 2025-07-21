@@ -1,0 +1,38 @@
+{
+  "agent_id": "a4",
+  "specialization": "Import & Dependency Specialist", 
+  "language": "Rust",
+  "assigned_task": "Fix all import statements and dependency issues across operators",
+  "priority": "MEDIUM",
+  "estimated_time": "2-3 hours",
+  "dependencies": ["a2"],
+  "blocks": [],
+  "files_assigned": [
+    "src/operators/core.rs",
+    "src/operators/advanced.rs", 
+    "src/operators/conditional.rs",
+    "src/operators/string_processing.rs",
+    "src/operators/cloud.rs",
+    "src/operators/monitoring.rs",
+    "src/operators/communication.rs",
+    "src/operators/enterprise.rs",
+    "src/operators/integrations.rs",
+    "Cargo.toml"
+  ],
+  "goals": {
+    "g1": "Fix all missing import statements across operator files",
+    "g2": "Resolve dependency version conflicts in Cargo.toml",
+    "g3": "Add missing dependencies for operator functionality", 
+    "g4": "Fix trait import issues for external libraries",
+    "g5": "Test compilation of all assigned operator files"
+  },
+  "completed_goals": 0,
+  "total_goals": 5,
+  "completion_percentage": 0,
+  "status": "waiting_for_a2",
+  "timestamp": "2025-01-26T23:00:00Z",
+  "file_locks": [
+    "Cargo.toml"
+  ],
+  "notes": "BLOCKED until A2 completes error system fixes. Focus on non-security imports."
+} 

@@ -1,0 +1,536 @@
+<h1># Directives & Meta-programming</h1>
+
+<h2>TuskLang Directives for JavaScript Applications</h2>
+<p>Hash directives enable meta-programming and specify how TuskLang files should be processed in JavaScript environments.</p>
+
+<h3>api-endpoint.tsk</h3>
+<pre>
+#!api
+#!route: /api/v1/users
+#!methods: GET, POST, PUT, DELETE
+#!middleware: auth, validateInput, rateLimit
+#!cache: 5m
+#!version: 1.0
+
+# API endpoint configuration
+endpoint {
+    name: "Users API"
+    description: "User management endpoints"
+    
+    # Request schemas
+    schemas {
+        create: {
+            type: "object",
+            required: ["name", "email", "password"],
+            properties: {
+                name: { type: "string", minLength: 2, maxLength: 100 },
+                email: { type: "string", format: "email" },
+                password: { type: "string", minLength: 8 },
+                role: { type: "string", enum: ["user", "admin"], default: "user" }
+            }
+        },
+        
+        update: {
+            type: "object",
+            properties: {
+                name: { type: "string", minLength: 2, maxLength: 100 },
+                email: { type: "string", format: "email" },
+                bio: { type: "string", maxLength: 500 }
+            }
+        }
+    }
+}
+
+# Handler functions
+handlers {
+    GET: {
+        "/": @listUsers({
+            pagination: true,
+            filters: ["status", "role", "created_after"],
+            sort: ["name", "created_at", "updated_at"]
+        }),
+        
+        "/:id": @getUser({
+            include: @query.include || [],
+            fields: @query.fields || null
+        })
+    },
+    
+    POST: {
+        "/": @createUser({
+            validate: @var.endpoint.schemas.create,
+            beforeCreate: @hooks.beforeCreateUser,
+            afterCreate: @hooks.afterCreateUser
+        })
+    },
+    
+    PUT: {
+        "/:id": @updateUser({
+            validate: @var.endpoint.schemas.update,
+            partial: true
+        })
+    },
+    
+    DELETE: {
+        "/:id": @deleteUser({
+            soft: true,
+            cascade: @query.cascade === "true"
+        })
+    }
+}
+</pre>
+
+<h3>cli-command.tsk</h3>
+<pre>
+#!cli
+#!command: db:migrate
+#!description: Run database migrations
+#!schedule: 0 3 * * * # Daily at 3 AM
+
+# CLI command configuration
+command {
+    name: "migrate"
+    version: "1.0.0"
+    
+    # Command arguments
+    arguments: {
+        direction: {
+            description: "Migration direction",
+            choices: ["up", "down"],
+            default: "up"
+        }
+    }
+    
+    # Command options
+    options: {
+        target: {
+            alias: "t",
+            description: "Target migration version",
+            type: "string"
+        },
+        
+        dry_run: {
+            alias: "d",
+            description: "Show what would be migrated without executing",
+            type: "boolean",
+            default: false
+        },
+        
+        force: {
+            alias: "f",
+            description: "Force migration even if dangerous",
+            type: "boolean",
+            default: false
+        }
+    }
+    
+    # Execution handler
+    execute: @async({
+        validate: @validateMigrationOptions,
+        run: @runMigrations,
+        rollback: @rollbackMigrations,
+        report: @generateMigrationReport
+    })
+}
+</pre>
+
+<h3>middleware.tsk</h3>
+<pre>
+#!middleware
+#!name: authentication
+#!priority: 100
+#!routes: /api/*
+#!except: ["/api/auth/login", "/api/auth/register", "/api/public/*"]
+
+# Authentication middleware
+auth {
+    # Token validation
+    validate: {
+        header: @request.headers.authorization
+        token: @auth.extractToken(@auth.validate.header)
+        
+        valid: @auth.verifyToken(@auth.validate.token)
+        expired: @auth.isExpired(@auth.validate.token)
+        
+        user: @auth.validate.valid ? @auth.getUserFromToken(@auth.validate.token) : null
+    }
+    
+    # Response for unauthorized
+    unauthorized: {
+        status: 401,
+        body: {
+            error: "Unauthorized",
+            message: @auth.validate.expired ? "Token expired" : "Invalid token",
+            code: "AUTH_REQUIRED"
+        }
+    }
+    
+    # Middleware logic
+    process: @{
+        valid: @next({ user: @auth.validate.user }),
+        invalid: @response(@auth.unauthorized)
+    }[@auth.validate.valid ? "valid" : "invalid"]
+}
+</pre>
+
+<h3>JavaScript Directive Processor</h3>
+<pre>
+class DirectiveProcessor {
+    constructor() {
+        this.directives = new Map();
+        this.processors = new Map();
+        
+        this.registerProcessors();
+    }
+    
+    registerProcessors() {
+        // API directive processor
+        this.processors.set('api', {
+            validate: (directives) => {
+                const required = ['route', 'methods'];
+                return required.every(key => directives.has(key));
+            },
+            
+            process: (directives, config) => {
+                return {
+                    type: 'api',
+                    route: directives.get('route'),
+                    methods: this.parseList(directives.get('methods')),
+                    middleware: this.parseList(directives.get('middleware') || ''),
+                    cache: directives.get('cache'),
+                    version: directives.get('version'),
+                    config
+                };
+            },
+            
+            generate: (processed) => {
+                return new APIEndpoint(processed);
+            }
+        });
+        
+        // CLI directive processor
+        this.processors.set('cli', {
+            validate: (directives) => {
+                return directives.has('command');
+            },
+            
+            process: (directives, config) => {
+                return {
+                    type: 'cli',
+                    command: directives.get('command'),
+                    description: directives.get('description'),
+                    schedule: directives.get('schedule'),
+                    config
+                };
+            },
+            
+            generate: (processed) => {
+                return new CLICommand(processed);
+            }
+        });
+        
+        // Middleware directive processor
+        this.processors.set('middleware', {
+            validate: (directives) => {
+                return directives.has('name');
+            },
+            
+            process: (directives, config) => {
+                return {
+                    type: 'middleware',
+                    name: directives.get('name'),
+                    priority: parseInt(directives.get('priority') || '100'),
+                    routes: directives.get('routes'),
+                    except: this.parseList(directives.get('except') || '[]'),
+                    config
+                };
+            },
+            
+            generate: (processed) => {
+                return new Middleware(processed);
+            }
+        });
+    }
+    
+    parse(content) {
+        const lines = content.split('\n');
+        const directives = new Map();
+        let configContent = '';
+        let inConfig = false;
+        
+        for (const line of lines) {
+            if (line.startsWith('#!')) {
+                if (!inConfig) {
+                    this.parseDirective(line, directives);
+                }
+            } else if (line.trim() && !line.startsWith('#')) {
+                inConfig = true;
+                configContent += line + '\n';
+            }
+        }
+        
+        // Parse configuration
+        const config = this.parseConfig(configContent);
+        
+        // Process based on main directive
+        const mainDirective = this.getMainDirective(directives);
+        if (!mainDirective) {
+            throw new Error('No main directive found');
+        }
+        
+        const processor = this.processors.get(mainDirective);
+        if (!processor) {
+            throw new Error(`Unknown directive: ${mainDirective}`);
+        }
+        
+        if (!processor.validate(directives)) {
+            throw new Error(`Invalid ${mainDirective} directive configuration`);
+        }
+        
+        const processed = processor.process(directives, config);
+        return processor.generate(processed);
+    }
+    
+    parseDirective(line, directives) {
+        const content = line.substring(2).trim();
+        const colonIndex = content.indexOf(':');
+        
+        if (colonIndex > 0) {
+            const key = content.substring(0, colonIndex).trim();
+            const value = content.substring(colonIndex + 1).trim();
+            directives.set(key, value);
+        } else {
+            directives.set(content, true);
+        }
+    }
+    
+    parseList(value) {
+        if (value.startsWith('[') && value.endsWith(']')) {
+            try {
+                return JSON.parse(value);
+            } catch {
+                return [];
+            }
+        }
+        return value.split(',').map(item => item.trim()).filter(Boolean);
+    }
+    
+    getMainDirective(directives) {
+        const mains = ['api', 'cli', 'middleware', 'service', 'cron'];
+        return mains.find(main => directives.has(main));
+    }
+    
+    parseConfig(content) {
+        // Use TuskLang parser for configuration
+        const parser = new TuskLangParser();
+        return parser.parse(content);
+    }
+}
+
+// API Endpoint class
+class APIEndpoint {
+    constructor(config) {
+        this.config = config;
+        this.router = express.Router();
+        this.cache = new NodeCache({ stdTTL: this.parseTTL(config.cache) });
+        
+        this.setupMiddleware();
+        this.setupRoutes();
+    }
+    
+    setupMiddleware() {
+        // Apply middleware in order
+        this.config.middleware.forEach(mw => {
+            if (typeof mw === 'string') {
+                this.router.use(this.getMiddleware(mw));
+            } else {
+                this.router.use(mw);
+            }
+        });
+    }
+    
+    getMiddleware(name) {
+        const middlewares = {
+            auth: require('./middleware/auth'),
+            validateInput: require('./middleware/validate'),
+            rateLimit: require('./middleware/rateLimit'),
+            cors: require('cors')(),
+            compression: require('compression')()
+        };
+        
+        return middlewares[name] || ((req, res, next) => next());
+    }
+    
+    setupRoutes() {
+        const handlers = this.config.config.handlers;
+        
+        this.config.methods.forEach(method => {
+            const methodHandlers = handlers[method] || {};
+            
+            Object.entries(methodHandlers).forEach(([path, handler]) => {
+                const fullPath = path === '/' ? '' : path;
+                
+                this.router[method.toLowerCase()](fullPath, async (req, res, next) => {
+                    try {
+                        // Check cache
+                        if (method === 'GET' && this.config.cache) {
+                            const cacheKey = this.getCacheKey(req);
+                            const cached = this.cache.get(cacheKey);
+                            
+                            if (cached) {
+                                return res.json(cached);
+                            }
+                        }
+                        
+                        // Execute handler
+                        const result = await this.executeHandler(handler, req);
+                        
+                        // Cache result
+                        if (method === 'GET' && this.config.cache && result) {
+                            const cacheKey = this.getCacheKey(req);
+                            this.cache.set(cacheKey, result);
+                        }
+                        
+                        res.json(result);
+                    } catch (error) {
+                        next(error);
+                    }
+                });
+            });
+        });
+    }
+    
+    getCacheKey(req) {
+        return `${req.method}:${req.path}:${JSON.stringify(req.query)}`;
+    }
+    
+    parseTTL(ttl) {
+        if (!ttl) return 0;
+        
+        const units = { s: 1, m: 60, h: 3600, d: 86400 };
+        const match = ttl.match(/^(\d+)([smhd])$/);
+        
+        if (match) {
+            const [, value, unit] = match;
+            return parseInt(value) * units[unit];
+        }
+        
+        return parseInt(ttl) || 0;
+    }
+    
+    async executeHandler(handler, req) {
+        // Handler would be processed based on @ operators
+        // This is a simplified version
+        if (typeof handler === 'function') {
+            return handler(req);
+        }
+        
+        // Process @ operator handlers
+        return this.processOperatorHandler(handler, req);
+    }
+    
+    processOperatorHandler(handler, req) {
+        // Implement @ operator processing
+        // This would integrate with the @ operator system
+        return { message: 'Handler processed' };
+    }
+    
+    mount(app) {
+        app.use(this.config.route, this.router);
+    }
+}
+
+// CLI Command class
+class CLICommand {
+    constructor(config) {
+        this.config = config;
+    }
+    
+    register(program) {
+        const command = program
+            .command(this.config.command)
+            .description(this.config.description || '');
+        
+        // Add arguments
+        const args = this.config.config.command.arguments || {};
+        Object.entries(args).forEach(([name, config]) => {
+            let arg = `<${name}>`;
+            if (config.default !== undefined) {
+                arg = `[${name}]`;
+            }
+            
+            command.argument(arg, config.description, config.default);
+        });
+        
+        // Add options
+        const options = this.config.config.command.options || {};
+        Object.entries(options).forEach(([name, config]) => {
+            const flags = config.alias 
+                ? `-${config.alias}, --${name}` 
+                : `--${name}`;
+                
+            command.option(
+                flags + (config.type === 'boolean' ? '' : ' <value>'),
+                config.description,
+                config.default
+            );
+        });
+        
+        // Set action
+        command.action(async (...args) => {
+            try {
+                await this.execute(...args);
+            } catch (error) {
+                console.error('Command error:', error);
+                process.exit(1);
+            }
+        });
+        
+        // Schedule if cron pattern provided
+        if (this.config.schedule) {
+            this.scheduleCron();
+        }
+    }
+    
+    async execute(...args) {
+        const execute = this.config.config.command.execute;
+        if (typeof execute === 'function') {
+            return execute(...args);
+        }
+        
+        // Process @ operator execution
+        console.log('Executing command with args:', args);
+    }
+    
+    scheduleCron() {
+        const cron = require('node-cron');
+        
+        cron.schedule(this.config.schedule, async () => {
+            console.log(`Running scheduled command: ${this.config.command}`);
+            await this.execute();
+        });
+    }
+}
+
+// Usage
+const processor = new DirectiveProcessor();
+
+// Process API endpoint
+const apiContent = fs.readFileSync('api-endpoint.tsk', 'utf8');
+const apiEndpoint = processor.parse(apiContent);
+
+// Mount to Express app
+const app = express();
+apiEndpoint.mount(app);
+
+// Process CLI command
+const cliContent = fs.readFileSync('cli-command.tsk', 'utf8');
+const cliCommand = processor.parse(cliContent);
+
+// Register with Commander
+const { program } = require('commander');
+cliCommand.register(program);
+program.parse();
+</pre>
+
+<p>TuskLang directives enable powerful meta-programming capabilities, transforming configuration files into full-featured APIs, CLI tools, and middleware components.</p>

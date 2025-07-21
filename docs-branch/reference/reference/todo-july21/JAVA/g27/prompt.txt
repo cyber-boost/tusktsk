@@ -1,0 +1,128 @@
+TASK: Implement Communication & Messaging Protocols for TuskLang Java SDK
+GOAL: G27 - Communication & Messaging Protocols System
+LANGUAGE: Java
+WORKING DIRECTORY: reference/todo-july21/JAVA/g27
+
+CONTEXT: You are implementing the missing communication and messaging operators for the TuskLang Java SDK. This is HIGH PRIORITY work that enables production messaging and communication protocols. Agent A5 has completed 25 enterprise goals with REAL FUNCTIONALITY - you must match that quality standard.
+
+CRITICAL REQUIREMENTS (Following A5's Success Pattern):
+1. REAL PROTOCOL IMPLEMENTATIONS - No mocks, use actual protocol clients and libraries
+2. PRODUCTION-GRADE CONNECTIONS - Handle real network protocols with proper error handling
+3. ASYNC/NON-BLOCKING - Use async operations where appropriate for high performance
+4. CONNECTION MANAGEMENT - Proper lifecycle management, reconnection, and health monitoring
+5. COMPREHENSIVE TESTING - Integration tests with real messaging systems
+
+GOALS TO IMPLEMENT (6 goals, following A5's multi-goal pattern):
+
+G27.1: gRPC Communication System
+- @grpc.call(service, method, request) - Unary RPC calls with load balancing
+- @grpc.stream(service, method, stream) - Streaming operations (client/server/bidirectional)
+- @grpc.server(port, services) - gRPC server management
+- @grpc.client(target, options) - Client management with connection pooling
+- @grpc.health(service) - Health checking and service discovery
+
+G27.2: WebSocket Real-time Communication System
+- @websocket.connect(url, protocols) - Connect with protocol negotiation
+- @websocket.send(message, type) - Send messages with different types
+- @websocket.listen(events) - Event handling with callbacks
+- @websocket.close(code, reason) - Graceful connection closure
+- @websocket.broadcast(message, clients) - Broadcast to multiple clients
+
+G27.3: Event Streaming (SSE) System
+- @sse.connect(url, headers) - Connect to SSE stream with authentication
+- @sse.listen(eventTypes) - Listen for specific event types
+- @sse.close() - Close SSE connection
+- @sse.filter(criteria) - Filter events based on criteria
+
+G27.4: Message Queue Integration System (NATS/AMQP)
+- @nats.publish(subject, message) - Publish to NATS subjects
+- @nats.subscribe(subject, callback) - Subscribe with queue groups
+- @nats.request(subject, message, timeout) - Request/Reply pattern
+- @amqp.publish(exchange, routingKey, message) - AMQP publishing
+- @amqp.consume(queue, callback) - AMQP message consumption
+- @amqp.queue(name, options) - Queue management and binding
+
+G27.5: Apache Kafka Streaming System
+- @kafka.produce(topic, key, message) - Produce with partitioning
+- @kafka.consume(topics, groupId) - Consumer group management
+- @kafka.admin(operation, config) - Admin operations (topics, partitions)
+- @kafka.stream(topology) - Kafka Streams processing
+- @kafka.connect(connector, config) - Kafka Connect integration
+
+G27.6: Workflow Orchestration (Temporal) System
+- @temporal.workflow(definition, input) - Workflow execution
+- @temporal.activity(name, input) - Activity execution with retries
+- @temporal.schedule(cron, workflow) - Scheduled workflow execution
+- @temporal.signal(workflowId, signal, data) - Workflow signaling
+- @temporal.query(workflowId, query) - Workflow state queries
+
+IMPLEMENTATION GUIDELINES (Following A5's Standards):
+1. Add dependencies to pom.xml with specific versions
+2. Use connection pooling and management for all protocols
+3. Implement comprehensive error handling with retries and circuit breakers
+4. Add performance monitoring and metrics collection
+5. Create integration tests with real messaging systems
+6. Follow A5's concurrent programming patterns (ConcurrentHashMap, thread-safety)
+
+REAL FUNCTIONALITY EXAMPLES (Like A5's Real Algorithms):
+```java
+// REAL gRPC client (not fake)
+ManagedChannel channel = NettyChannelBuilder.forAddress(host, port)
+    .keepAliveTime(30, TimeUnit.SECONDS)
+    .build();
+GreeterGrpc.GreeterBlockingStub stub = GreeterGrpc.newBlockingStub(channel);
+
+// REAL WebSocket connection
+WebSocketClient client = new WebSocketClient(new URI(url)) {
+    @Override
+    public void onMessage(String message) {
+        messageHandler.handle(message);
+    }
+};
+client.connect();
+
+// REAL Kafka producer
+Properties props = new Properties();
+props.put(ProducerConfig.BOOTSTRAP_SERVERS_CONFIG, "localhost:9092");
+KafkaProducer<String, String> producer = new KafkaProducer<>(props);
+producer.send(new ProducerRecord<>(topic, key, value));
+
+// REAL NATS connection
+Connection nc = Nats.connect("nats://localhost:4222");
+nc.publish(subject, message.getBytes());
+```
+
+FILES TO CREATE/MODIFY:
+- Create: src/main/java/tusk/operators/GrpcOperator.java
+- Extend: src/main/java/tusk/operators/WebSocketOperator.java
+- Create: src/main/java/tusk/operators/SSEOperator.java
+- Extend: src/main/java/tusk/operators/MessagingOperators.java
+- Create: src/main/java/tusk/operators/KafkaOperator.java
+- Create: src/main/java/tusk/operators/TemporalOperator.java
+- Create: src/test/java/tusk/operators/CommunicationOperatorsTest.java
+- Modify: pom.xml (add all required dependencies)
+
+INTEGRATION WITH EXISTING SYSTEM:
+- Follow TuskLangEnhanced integration patterns from A5
+- Use existing error handling and logging conventions
+- Maintain compatibility with A5's 25 completed goals
+- Add to existing operator registry system
+
+SUCCESS CRITERIA (A5 Quality Standard):
+- All 6 goals implemented with REAL protocol support
+- Integration tests pass with real messaging systems
+- Support for clustering and high availability
+- Comprehensive error handling for network failures
+- Thread-safe operations under concurrent load
+- Complete documentation with working examples
+
+UPDATE TRACKING FILES (Like A5):
+- Update ideas.json with 5+ innovative messaging ideas
+- Update status.json with completion progress
+- Update summary.json with detailed implementation notes
+
+TIME LIMIT: 2-3 weeks maximum
+
+REMEMBER: Agent A5 completed 25 goals with REAL FUNCTIONALITY including neural networks, Q-learning, genetic algorithms, and production-quality code. Your communication integration must meet the same standard - NO ARCHITECTURAL STUBS, only genuine working protocol implementations.
+
+BEGIN IMMEDIATELY. Focus on REAL protocol implementations with production-grade reliability. 

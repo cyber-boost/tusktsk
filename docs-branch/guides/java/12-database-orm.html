@@ -1,0 +1,783 @@
+<h1>Database and ORM for Java</h1>
+
+<h2>Database Configuration</h2>
+<pre>
+# Primary database configuration
+database: {
+    primary: {
+        driver: "org.postgresql.Driver"
+        url: "jdbc:postgresql://" + env("DB_HOST", "localhost") + ":" + env("DB_PORT", "5432") + "/" + env("DB_NAME", "myapp")
+        username: env("DB_USER", "postgres")
+        password: env("DB_PASS")
+        
+        # Connection pool settings
+        pool: {
+            min_size: 5
+            max_size: 20
+            max_idle_time: "10m"
+            validation_query: "SELECT 1"
+            test_on_borrow: true
+            test_while_idle: true
+        }
+        
+        # JPA/Hibernate settings
+        jpa: {
+            hibernate: {
+                dialect: "org.hibernate.dialect.PostgreSQL10Dialect"
+                hbm2ddl_auto: env("HIBERNATE_DDL_AUTO", "validate")
+                show_sql: env("HIBERNATE_SHOW_SQL", "false") == "true"
+                format_sql: true
+                use_sql_comments: true
+                batch_size: 20
+                fetch_size: 50
+                
+                # Second level cache
+                cache: {
+                    use_second_level_cache: true
+                    provider_class: "org.hibernate.cache.redis.RedisRegionFactory"
+                    redis_host: env("REDIS_HOST", "localhost")
+                    redis_port: env("REDIS_PORT", "6379")
+                }
+            }
+        }
+    }
+    
+    # Read replica configuration
+    replica: {
+        driver: "org.postgresql.Driver"
+        url: "jdbc:postgresql://" + env("DB_REPLICA_HOST", "localhost") + ":" + env("DB_REPLICA_PORT", "5432") + "/" + env("DB_NAME", "myapp")
+        username: env("DB_REPLICA_USER", env("DB_USER", "postgres"))
+        password: env("DB_REPLICA_PASS", env("DB_PASS"))
+        
+        pool: {
+            min_size: 2
+            max_size: 10
+            max_idle_time: "10m"
+        }
+        
+        # Read-only configuration
+        read_only: true
+        connection_timeout: "5s"
+    }
+}
+
+# Multi-tenant database configuration
+multi_tenant: {
+    enabled: env("MULTI_TENANT_ENABLED", "false") == "true"
+    strategy: "SCHEMA"  # SCHEMA, DATABASE, or DISCRIMINATOR
+    
+    tenant_resolver: "header"  # header, subdomain, or path
+    tenant_header: "X-Tenant-ID"
+    default_tenant: "default"
+    
+    # Tenant-specific database mappings
+    tenants: {
+        "tenant1": {
+            schema: "tenant1_schema"
+            cache_prefix: "t1_"
+        },
+        "tenant2": {
+            schema: "tenant2_schema"
+            cache_prefix: "t2_"
+        }
+    }
+}
+</pre>
+
+<h2>Java Database Configuration</h2>
+<pre>
+// DatabaseConfig.java
+@Configuration
+@EnableJpaRepositories(basePackages = "com.myapp.repository")
+@EnableTransactionManagement
+public class DatabaseConfig {
+    
+    @Value("#{${database.primary}}")
+    private Map&lt;String, Object&gt; primaryConfig;
+    
+    @Value("#{${database.replica}}")
+    private Map&lt;String, Object&gt; replicaConfig;
+    
+    @Primary
+    @Bean(name = "primaryDataSource")
+    public DataSource primaryDataSource() {
+        return createDataSource(primaryConfig, "primary");
+    }
+    
+    @Bean(name = "replicaDataSource")
+    public DataSource replicaDataSource() {
+        return createDataSource(replicaConfig, "replica");
+    }
+    
+    private DataSource createDataSource(Map&lt;String, Object&gt; config, String name) {
+        HikariConfig hikariConfig = new HikariConfig();
+        
+        hikariConfig.setDriverClassName((String) config.get("driver"));
+        hikariConfig.setJdbcUrl((String) config.get("url"));
+        hikariConfig.setUsername((String) config.get("username"));
+        hikariConfig.setPassword((String) config.get("password"));
+        
+        // Pool configuration
+        Map&lt;String, Object&gt; poolConfig = (Map&lt;String, Object&gt;) config.get("pool");
+        if (poolConfig != null) {
+            hikariConfig.setMinimumIdle((Integer) poolConfig.get("min_size"));
+            hikariConfig.setMaximumPoolSize((Integer) poolConfig.get("max_size"));
+            
+            String maxIdleTime = (String) poolConfig.get("max_idle_time");
+            if (maxIdleTime != null) {
+                hikariConfig.setIdleTimeout(Duration.parse("PT" + maxIdleTime).toMillis());
+            }
+            
+            String validationQuery = (String) poolConfig.get("validation_query");
+            if (validationQuery != null) {
+                hikariConfig.setConnectionTestQuery(validationQuery);
+            }
+            
+            Boolean testOnBorrow = (Boolean) poolConfig.get("test_on_borrow");
+            if (testOnBorrow != null && testOnBorrow) {
+                hikariConfig.setConnectionTestQuery("SELECT 1");
+            }
+        }
+        
+        hikariConfig.setPoolName(name + "Pool");
+        return new HikariDataSource(hikariConfig);
+    }
+    
+    @Primary
+    @Bean(name = "primaryEntityManagerFactory")
+    public LocalContainerEntityManagerFactoryBean primaryEntityManagerFactory(
+            @Qualifier("primaryDataSource") DataSource primaryDataSource) {
+        
+        return createEntityManagerFactory(primaryDataSource, "primary", primaryConfig);
+    }
+    
+    @Bean(name = "replicaEntityManagerFactory")
+    public LocalContainerEntityManagerFactoryBean replicaEntityManagerFactory(
+            @Qualifier("replicaDataSource") DataSource replicaDataSource) {
+        
+        return createEntityManagerFactory(replicaDataSource, "replica", replicaConfig);
+    }
+    
+    private LocalContainerEntityManagerFactoryBean createEntityManagerFactory(
+            DataSource dataSource, String persistenceUnit, Map&lt;String, Object&gt; config) {
+        
+        LocalContainerEntityManagerFactoryBean em = new LocalContainerEntityManagerFactoryBean();
+        em.setDataSource(dataSource);
+        em.setPackagesToScan("com.myapp.entity");
+        em.setPersistenceUnitName(persistenceUnit);
+        
+        HibernateJpaVendorAdapter vendorAdapter = new HibernateJpaVendorAdapter();
+        em.setJpaVendorAdapter(vendorAdapter);
+        
+        // JPA properties from configuration
+        Properties jpaProperties = new Properties();
+        Map&lt;String, Object&gt; jpaConfig = (Map&lt;String, Object&gt;) config.get("jpa");
+        if (jpaConfig != null) {
+            Map&lt;String, Object&gt; hibernateConfig = (Map&lt;String, Object&gt;) jpaConfig.get("hibernate");
+            if (hibernateConfig != null) {
+                hibernateConfig.forEach((key, value) -&gt; {
+                    String hibernateProperty = "hibernate." + key.replace("_", ".");
+                    jpaProperties.setProperty(hibernateProperty, String.valueOf(value));
+                });
+            }
+        }
+        
+        em.setJpaProperties(jpaProperties);
+        return em;
+    }
+    
+    @Primary
+    @Bean(name = "primaryTransactionManager")
+    public PlatformTransactionManager primaryTransactionManager(
+            @Qualifier("primaryEntityManagerFactory") EntityManagerFactory primaryEntityManagerFactory) {
+        
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(primaryEntityManagerFactory);
+        return transactionManager;
+    }
+    
+    @Bean(name = "replicaTransactionManager")
+    public PlatformTransactionManager replicaTransactionManager(
+            @Qualifier("replicaEntityManagerFactory") EntityManagerFactory replicaEntityManagerFactory) {
+        
+        JpaTransactionManager transactionManager = new JpaTransactionManager();
+        transactionManager.setEntityManagerFactory(replicaEntityManagerFactory);
+        return transactionManager;
+    }
+}
+</pre>
+
+<h2>Entity Definitions and Relationships</h2>
+<pre>
+# Entity mapping configuration
+entities: {
+    User: {
+        table: "users"
+        id_strategy: "IDENTITY"
+        
+        fields: {
+            id: { type: "Long", primary_key: true }
+            username: { type: "String", length: 50, unique: true, nullable: false }
+            email: { type: "String", length: 255, unique: true, nullable: false }
+            password: { type: "String", length: 255, nullable: false }
+            created_at: { type: "LocalDateTime", nullable: false }
+            updated_at: { type: "LocalDateTime" }
+            active: { type: "Boolean", default: true }
+        }
+        
+        relationships: {
+            profile: { type: "OneToOne", target: "UserProfile", cascade: ["ALL"] }
+            orders: { type: "OneToMany", target: "Order", mapped_by: "user" }
+            roles: { type: "ManyToMany", target: "Role", join_table: "user_roles" }
+        }
+        
+        indexes: [
+            { fields: ["username"], unique: true },
+            { fields: ["email"], unique: true },
+            { fields: ["created_at"] }
+        ]
+        
+        validation: {
+            username: { pattern: "^[a-zA-Z0-9_]{3,50}$" }
+            email: { pattern: "^[^@]+@[^@]+\\.[^@]+$" }
+        }
+    }
+    
+    Order: {
+        table: "orders"
+        id_strategy: "UUID"
+        
+        fields: {
+            id: { type: "UUID", primary_key: true }
+            order_number: { type: "String", length: 20, unique: true, nullable: false }
+            user_id: { type: "Long", nullable: false }
+            total: { type: "BigDecimal", precision: 10, scale: 2, nullable: false }
+            status: { type: "OrderStatus", nullable: false }
+            created_at: { type: "LocalDateTime", nullable: false }
+            updated_at: { type: "LocalDateTime" }
+        }
+        
+        relationships: {
+            user: { type: "ManyToOne", target: "User", join_column: "user_id" }
+            items: { type: "OneToMany", target: "OrderItem", mapped_by: "order", cascade: ["ALL"] }
+            payment: { type: "OneToOne", target: "Payment", cascade: ["ALL"] }
+        }
+        
+        # Audit configuration
+        audit: {
+            enabled: true
+            created_by_field: "created_by"
+            modified_by_field: "modified_by"
+            created_date_field: "created_at"
+            modified_date_field: "updated_at"
+        }
+    }
+    
+    Product: {
+        table: "products"
+        id_strategy: "IDENTITY"
+        
+        fields: {
+            id: { type: "Long", primary_key: true }
+            sku: { type: "String", length: 50, unique: true, nullable: false }
+            name: { type: "String", length: 255, nullable: false }
+            description: { type: "Text" }
+            price: { type: "BigDecimal", precision: 10, scale: 2, nullable: false }
+            category_id: { type: "Long" }
+            active: { type: "Boolean", default: true }
+            created_at: { type: "LocalDateTime", nullable: false }
+        }
+        
+        relationships: {
+            category: { type: "ManyToOne", target: "Category", join_column: "category_id" }
+            tags: { type: "ManyToMany", target: "Tag", join_table: "product_tags" }
+            reviews: { type: "OneToMany", target: "ProductReview", mapped_by: "product" }
+        }
+        
+        # Full-text search configuration
+        search: {
+            enabled: true
+            fields: ["name", "description"]
+            analyzer: "standard"
+        }
+        
+        # Soft delete configuration
+        soft_delete: {
+            enabled: true
+            deleted_field: "deleted_at"
+            deleted_value: null
+        }
+    }
+}
+</pre>
+
+<h2>Java Entity Classes</h2>
+<pre>
+// User.java
+@Entity
+@Table(name = "users", indexes = {
+    @Index(name = "idx_username", columnList = "username", unique = true),
+    @Index(name = "idx_email", columnList = "email", unique = true),
+    @Index(name = "idx_created_at", columnList = "created_at")
+})
+@EntityListeners(AuditingEntityListener.class)
+public class User {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    private Long id;
+    
+    @Column(name = "username", length = 50, unique = true, nullable = false)
+    @Pattern(regexp = "^[a-zA-Z0-9_]{3,50}$", message = "Username must be 3-50 characters, alphanumeric and underscore only")
+    private String username;
+    
+    @Column(name = "email", length = 255, unique = true, nullable = false)
+    @Email(message = "Email must be valid")
+    private String email;
+    
+    @Column(name = "password", length = 255, nullable = false)
+    private String password;
+    
+    @CreatedDate
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+    
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @Column(name = "active")
+    private Boolean active = true;
+    
+    // Relationships
+    @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private UserProfile profile;
+    
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List&lt;Order&gt; orders = new ArrayList&lt;&gt;();
+    
+    @ManyToMany(fetch = FetchType.LAZY)
+    @JoinTable(
+        name = "user_roles",
+        joinColumns = @JoinColumn(name = "user_id"),
+        inverseJoinColumns = @JoinColumn(name = "role_id")
+    )
+    private Set&lt;Role&gt; roles = new HashSet&lt;&gt;();
+    
+    // Constructors
+    public User() {}
+    
+    public User(String username, String email, String password) {
+        this.username = username;
+        this.email = email;
+        this.password = password;
+    }
+    
+    // Getters and setters
+    public Long getId() { return id; }
+    public void setId(Long id) { this.id = id; }
+    
+    public String getUsername() { return username; }
+    public void setUsername(String username) { this.username = username; }
+    
+    public String getEmail() { return email; }
+    public void setEmail(String email) { this.email = email; }
+    
+    public String getPassword() { return password; }
+    public void setPassword(String password) { this.password = password; }
+    
+    public LocalDateTime getCreatedAt() { return createdAt; }
+    public void setCreatedAt(LocalDateTime createdAt) { this.createdAt = createdAt; }
+    
+    public LocalDateTime getUpdatedAt() { return updatedAt; }
+    public void setUpdatedAt(LocalDateTime updatedAt) { this.updatedAt = updatedAt; }
+    
+    public Boolean getActive() { return active; }
+    public void setActive(Boolean active) { this.active = active; }
+    
+    public UserProfile getProfile() { return profile; }
+    public void setProfile(UserProfile profile) { this.profile = profile; }
+    
+    public List&lt;Order&gt; getOrders() { return orders; }
+    public void setOrders(List&lt;Order&gt; orders) { this.orders = orders; }
+    
+    public Set&lt;Role&gt; getRoles() { return roles; }
+    public void setRoles(Set&lt;Role&gt; roles) { this.roles = roles; }
+    
+    // Helper methods
+    public void addRole(Role role) {
+        roles.add(role);
+        role.getUsers().add(this);
+    }
+    
+    public void removeRole(Role role) {
+        roles.remove(role);
+        role.getUsers().remove(this);
+    }
+    
+    public boolean hasRole(String roleName) {
+        return roles.stream().anyMatch(role -&gt; role.getName().equals(roleName));
+    }
+    
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (!(o instanceof User)) return false;
+        User user = (User) o;
+        return Objects.equals(id, user.id);
+    }
+    
+    @Override
+    public int hashCode() {
+        return Objects.hash(id);
+    }
+}
+
+// Order.java
+@Entity
+@Table(name = "orders")
+@EntityListeners(AuditingEntityListener.class)
+public class Order {
+    
+    @Id
+    @GeneratedValue(strategy = GenerationType.AUTO)
+    @Column(columnDefinition = "uuid")
+    private UUID id;
+    
+    @Column(name = "order_number", length = 20, unique = true, nullable = false)
+    private String orderNumber;
+    
+    @Column(name = "user_id", nullable = false)
+    private Long userId;
+    
+    @Column(name = "total", precision = 10, scale = 2, nullable = false)
+    private BigDecimal total;
+    
+    @Enumerated(EnumType.STRING)
+    @Column(name = "status", nullable = false)
+    private OrderStatus status;
+    
+    @CreatedDate
+    @Column(name = "created_at", nullable = false)
+    private LocalDateTime createdAt;
+    
+    @LastModifiedDate
+    @Column(name = "updated_at")
+    private LocalDateTime updatedAt;
+    
+    @CreatedBy
+    @Column(name = "created_by")
+    private String createdBy;
+    
+    @LastModifiedBy
+    @Column(name = "modified_by")
+    private String modifiedBy;
+    
+    // Relationships
+    @ManyToOne(fetch = FetchType.LAZY)
+    @JoinColumn(name = "user_id", insertable = false, updatable = false)
+    private User user;
+    
+    @OneToMany(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private List&lt;OrderItem&gt; items = new ArrayList&lt;&gt;();
+    
+    @OneToOne(mappedBy = "order", cascade = CascadeType.ALL, fetch = FetchType.LAZY)
+    private Payment payment;
+    
+    // Constructors
+    public Order() {
+        this.orderNumber = generateOrderNumber();
+        this.status = OrderStatus.PENDING;
+        this.total = BigDecimal.ZERO;
+    }
+    
+    public Order(Long userId) {
+        this();
+        this.userId = userId;
+    }
+    
+    private String generateOrderNumber() {
+        return "ORD-" + System.currentTimeMillis() + "-" + 
+               (int) (Math.random() * 1000);
+    }
+    
+    // Business methods
+    public void addItem(OrderItem item) {
+        items.add(item);
+        item.setOrder(this);
+        recalculateTotal();
+    }
+    
+    public void removeItem(OrderItem item) {
+        items.remove(item);
+        item.setOrder(null);
+        recalculateTotal();
+    }
+    
+    public void recalculateTotal() {
+        this.total = items.stream()
+            .map(item -&gt; item.getPrice().multiply(BigDecimal.valueOf(item.getQuantity())))
+            .reduce(BigDecimal.ZERO, BigDecimal::add);
+    }
+    
+    public boolean canBeCancelled() {
+        return status == OrderStatus.PENDING || status == OrderStatus.CONFIRMED;
+    }
+    
+    public void cancel() {
+        if (!canBeCancelled()) {
+            throw new IllegalStateException("Order cannot be cancelled in current status: " + status);
+        }
+        this.status = OrderStatus.CANCELLED;
+    }
+    
+    // Getters and setters (similar pattern as User)
+    // ... (abbreviated for brevity)
+}
+
+// OrderStatus.java
+public enum OrderStatus {
+    PENDING,
+    CONFIRMED,
+    PROCESSING,
+    SHIPPED,
+    DELIVERED,
+    CANCELLED,
+    REFUNDED
+}
+</pre>
+
+<h2>Repository Layer with TuskLang Query Integration</h2>
+<pre>
+# Repository configuration
+repositories: {
+    User: {
+        # Custom query methods
+        queries: {
+            findActiveUsers: query("User").where("active", true).orderBy("username").find()
+            findByRole: query("User").join("roles").where("roles.name", @var.role_name).find()
+            findRecentUsers: query("User").where("created_at", "&gt;", java("LocalDateTime.now().minusDays(30)")).find()
+            
+            # Cached queries
+            findAllActiveUsersCount: @cache("5m", query("User").where("active", true).count())
+        }
+        
+        # Query optimization
+        batch_size: 50
+        fetch_graphs: {
+            "user.profile": ["profile"]
+            "user.orders": ["orders", "orders.items"]
+            "user.full": ["profile", "orders", "roles"]
+        }
+    }
+    
+    Order: {
+        queries: {
+            findByStatus: query("Order").where("status", @var.status).orderBy("created_at", "desc").find()
+            findByUser: query("Order").where("user_id", @var.user_id).orderBy("created_at", "desc").find()
+            findRecentOrders: query("Order").where("created_at", "&gt;", @var.since_date).find()
+            
+            # Business queries
+            findPendingPayments: query("Order").join("payment").where("payment.status", "PENDING").find()
+            calculateDailySales: query("Order").where("created_at", "&gt;=", @var.start_date).where("created_at", "&lt;", @var.end_date).sum("total")
+        }
+        
+        # Performance settings
+        default_fetch_size: 20
+        max_results: 1000
+    }
+}
+</pre>
+
+<h2>Java Repository Implementation</h2>
+<pre>
+// UserRepository.java
+@Repository
+public interface UserRepository extends JpaRepository&lt;User, Long&gt;, UserRepositoryCustom {
+    
+    // Spring Data JPA query methods
+    List&lt;User&gt; findByActiveTrue();
+    
+    Optional&lt;User&gt; findByUsername(String username);
+    
+    Optional&lt;User&gt; findByEmail(String email);
+    
+    @Query("SELECT u FROM User u JOIN u.roles r WHERE r.name = :roleName")
+    List&lt;User&gt; findByRoleName(@Param("roleName") String roleName);
+    
+    @Query("SELECT u FROM User u WHERE u.createdAt &gt; :since")
+    List&lt;User&gt; findRecentUsers(@Param("since") LocalDateTime since);
+    
+    @Query("SELECT COUNT(u) FROM User u WHERE u.active = true")
+    long countActiveUsers();
+    
+    // Named entity graphs for fetch optimization
+    @EntityGraph(attributePaths = {"profile"})
+    @Query("SELECT u FROM User u WHERE u.id = :id")
+    Optional&lt;User&gt; findByIdWithProfile(@Param("id") Long id);
+    
+    @EntityGraph(attributePaths = {"orders", "orders.items"})
+    @Query("SELECT u FROM User u WHERE u.id = :id")
+    Optional&lt;User&gt; findByIdWithOrders(@Param("id") Long id);
+    
+    @EntityGraph(attributePaths = {"profile", "orders", "roles"})
+    @Query("SELECT u FROM User u WHERE u.id = :id")
+    Optional&lt;User&gt; findByIdWithFull(@Param("id") Long id);
+}
+
+// UserRepositoryCustom.java
+public interface UserRepositoryCustom {
+    List&lt;User&gt; findUsersWithTuskLangQuery(String tuskLangQuery);
+    Page&lt;User&gt; findUsersWithPagination(String tuskLangQuery, Pageable pageable);
+    long countUsersWithTuskLangQuery(String tuskLangQuery);
+}
+
+// UserRepositoryImpl.java
+@Repository
+public class UserRepositoryImpl implements UserRepositoryCustom {
+    
+    @PersistenceContext
+    private EntityManager entityManager;
+    
+    private final TuskLangQueryProcessor queryProcessor;
+    
+    public UserRepositoryImpl(TuskLangQueryProcessor queryProcessor) {
+        this.queryProcessor = queryProcessor;
+    }
+    
+    @Override
+    public List&lt;User&gt; findUsersWithTuskLangQuery(String tuskLangQuery) {
+        Query query = queryProcessor.buildJPAQuery(tuskLangQuery, entityManager);
+        return query.getResultList();
+    }
+    
+    @Override
+    public Page&lt;User&gt; findUsersWithPagination(String tuskLangQuery, Pageable pageable) {
+        // Build count query
+        Query countQuery = queryProcessor.buildCountQuery(tuskLangQuery, entityManager);
+        long total = (Long) countQuery.getSingleResult();
+        
+        // Build data query with pagination
+        Query dataQuery = queryProcessor.buildJPAQuery(tuskLangQuery, entityManager);
+        dataQuery.setFirstResult((int) pageable.getOffset());
+        dataQuery.setMaxResults(pageable.getPageSize());
+        
+        List&lt;User&gt; content = dataQuery.getResultList();
+        return new PageImpl&lt;&gt;(content, pageable, total);
+    }
+    
+    @Override
+    public long countUsersWithTuskLangQuery(String tuskLangQuery) {
+        Query countQuery = queryProcessor.buildCountQuery(tuskLangQuery, entityManager);
+        return (Long) countQuery.getSingleResult();
+    }
+}
+
+// TuskLangQueryProcessor.java
+@Service
+public class TuskLangQueryProcessor {
+    
+    private final TuskLangParser tuskLangParser;
+    private final Map&lt;String, String&gt; entityMappings = new HashMap&lt;&gt;();
+    
+    public TuskLangQueryProcessor(TuskLangParser tuskLangParser) {
+        this.tuskLangParser = tuskLangParser;
+        initializeEntityMappings();
+    }
+    
+    private void initializeEntityMappings() {
+        entityMappings.put("User", "com.myapp.entity.User");
+        entityMappings.put("Order", "com.myapp.entity.Order");
+        entityMappings.put("Product", "com.myapp.entity.Product");
+    }
+    
+    public Query buildJPAQuery(String tuskLangQuery, EntityManager entityManager) {
+        // Parse TuskLang query and convert to JPQL
+        String jpql = convertToJPQL(tuskLangQuery);
+        return entityManager.createQuery(jpql);
+    }
+    
+    public Query buildCountQuery(String tuskLangQuery, EntityManager entityManager) {
+        String jpql = convertToCountJPQL(tuskLangQuery);
+        return entityManager.createQuery(jpql);
+    }
+    
+    private String convertToJPQL(String tuskLangQuery) {
+        // Convert TuskLang query syntax to JPQL
+        // This is a simplified implementation
+        
+        if (tuskLangQuery.contains("query(\"User\")")) {
+            StringBuilder jpql = new StringBuilder("SELECT u FROM User u");
+            
+            if (tuskLangQuery.contains("where(\"active\", true)")) {
+                jpql.append(" WHERE u.active = true");
+            }
+            
+            if (tuskLangQuery.contains("orderBy(\"username\")")) {
+                jpql.append(" ORDER BY u.username");
+            }
+            
+            return jpql.toString();
+        }
+        
+        throw new IllegalArgumentException("Unsupported TuskLang query: " + tuskLangQuery);
+    }
+    
+    private String convertToCountJPQL(String tuskLangQuery) {
+        String baseJpql = convertToJPQL(tuskLangQuery);
+        return baseJpql.replaceFirst("SELECT .* FROM", "SELECT COUNT(u) FROM")
+                      .replaceAll("ORDER BY .*", "");
+    }
+}
+</pre>
+
+<h2>Database Migrations and Schema Management</h2>
+<pre>
+# Database migration configuration
+migrations: {
+    enabled: true
+    locations: ["classpath:db/migration"]
+    baseline_on_migrate: true
+    validate_on_migrate: true
+    
+    # Flyway configuration
+    flyway: {
+        schemas: [env("DB_SCHEMA", "public")]
+        table: "flyway_schema_history"
+        sql_migration_prefix: "V"
+        sql_migration_suffix: ".sql"
+        
+        # Placeholders for SQL scripts
+        placeholders: {
+            "db_name": env("DB_NAME", "myapp")
+            "app_user": env("DB_USER", "postgres")
+        }
+    }
+    
+    # Migration scripts naming convention
+    naming: {
+        pattern: "V{version}__{description}.sql"
+        version_format: "yyyyMMddHHmm"
+    }
+}
+
+# Database seeding
+seed_data: {
+    enabled: env("SEED_DATA_ENABLED", "false") == "true"
+    environment: env("ENVIRONMENT", "development")
+    
+    # Seed data files
+    files: [
+        "seed/01_roles.sql",
+        "seed/02_users.sql",
+        "seed/03_categories.sql",
+        "seed/04_products.sql"
+    ]
+    
+    # Conditional seeding
+    conditions: {
+        "seed/01_roles.sql": "SELECT COUNT(*) FROM roles = 0"
+        "seed/02_users.sql": "SELECT COUNT(*) FROM users = 0"
+    }
+}
+</pre>

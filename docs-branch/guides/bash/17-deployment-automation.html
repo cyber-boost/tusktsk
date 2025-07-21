@@ -1,0 +1,1520 @@
+<h1>Deployment & Automation</h1>
+
+<h2>Deployment and Automation with TuskLang in Bash</h2>
+<p>Automate deployments, CI/CD pipelines, and infrastructure management using TuskLang configuration.</p>
+
+<h3>deployment.tsk</h3>
+<pre>
+# Deployment configuration
+deployment {
+    # Application configuration
+    application: {
+        name: @app.name
+        version: @app.version
+        
+        # Build configuration
+        build: {
+            commands: [
+                "npm ci",
+                "npm run test",
+                "npm run build",
+                "tusk validate config/**/*.tsk"
+            ]
+            
+            artifacts: {
+                dist: "./dist"
+                config: "./config"
+                static: "./public"
+            }
+            
+            # Docker build
+            docker: {
+                enabled: true
+                dockerfile: "./Dockerfile"
+                image: "${@registry.url}/${@app.name}:${@app.version}"
+                
+                build_args: {
+                    NODE_ENV: @env.NODE_ENV
+                    APP_VERSION: @app.version
+                }
+            }
+        }
+        
+        # Health checks
+        health: {
+            startup: {
+                path: "/health/startup"
+                timeout: "60s"
+                interval: "10s"
+            }
+            
+            readiness: {
+                path: "/health/ready"
+                timeout: "5s"
+                interval: "10s"
+            }
+            
+            liveness: {
+                path: "/health/live"
+                timeout: "5s"
+                interval: "30s"
+            }
+        }
+    }
+    
+    # Environment configurations
+    environments: {
+        development: {
+            replicas: 1
+            
+            resources: {
+                cpu: "100m"
+                memory: "256Mi"
+            }
+            
+            config: {
+                DEBUG: true
+                LOG_LEVEL: "debug"
+                DATABASE_URL: "postgresql://localhost/myapp_dev"
+            }
+            
+            ingress: {
+                enabled: false
+            }
+        }
+        
+        staging: {
+            replicas: 2
+            
+            resources: {
+                cpu: "200m"
+                memory: "512Mi"
+            }
+            
+            config: {
+                DEBUG: false
+                LOG_LEVEL: "info"
+                DATABASE_URL: @env.STAGING_DATABASE_URL
+                REDIS_URL: @env.STAGING_REDIS_URL
+            }
+            
+            ingress: {
+                enabled: true
+                host: "staging.example.com"
+                tls: true
+            }
+            
+            # Auto-scaling
+            autoscaling: {
+                enabled: true
+                min_replicas: 2
+                max_replicas: 5
+                target_cpu: 70
+            }
+        }
+        
+        production: {
+            replicas: 3
+            
+            resources: {
+                cpu: "500m"
+                memory: "1Gi"
+                
+                limits: {
+                    cpu: "1000m"
+                    memory: "2Gi"
+                }
+            }
+            
+            config: {
+                DEBUG: false
+                LOG_LEVEL: "warn"
+                DATABASE_URL: @env.PROD_DATABASE_URL
+                REDIS_URL: @env.PROD_REDIS_URL
+            }
+            
+            ingress: {
+                enabled: true
+                host: "api.example.com"
+                tls: true
+                
+                annotations: {
+                    "nginx.ingress.kubernetes.io/rate-limit": "100"
+                    "nginx.ingress.kubernetes.io/ssl-redirect": "true"
+                }
+            }
+            
+            # Production-specific settings
+            autoscaling: {
+                enabled: true
+                min_replicas: 3
+                max_replicas: 10
+                target_cpu: 60
+                target_memory: 80
+            }
+            
+            monitoring: {
+                enabled: true
+                alerts: true
+            }
+            
+            backup: {
+                enabled: true
+                schedule: "0 2 * * *"  # Daily at 2 AM
+                retention: "30d"
+            }
+        }
+    }
+    
+    # Deployment strategies
+    strategies: {
+        rolling: {
+            type: "RollingUpdate"
+            
+            rolling_update: {
+                max_unavailable: "25%"
+                max_surge: "25%"
+            }
+            
+            revision_history_limit: 10
+        }
+        
+        blue_green: {
+            type: "BlueGreen"
+            
+            auto_promotion: {
+                enabled: true
+                
+                steps: [
+                    { wait: "30s" },
+                    { analysis: { templates: ["success-rate", "latency"] } },
+                    { wait: "5m" },
+                    { promote: true }
+                ]
+            }
+            
+            scale_down_delay: "30s"
+        }
+        
+        canary: {
+            type: "Canary"
+            
+            steps: [
+                { set_weight: 10 },
+                { pause: "1m" },
+                { set_weight: 20 },
+                { pause: { duration: "10m" } },
+                { set_weight: 50 },
+                { pause: { duration: "10m" } },
+                { set_weight: 100 }
+            ]
+            
+            analysis: {
+                templates: ["success-rate", "latency"]
+                start_delay: "30s"
+                interval: "1m"
+            }
+        }
+    }
+    
+    # Infrastructure as Code
+    infrastructure: {
+        # Terraform configuration
+        terraform: {
+            version: "1.5.0"
+            
+            providers: {
+                aws: {
+                    region: @env.AWS_REGION
+                    version: "~> 5.0"
+                }
+                
+                kubernetes: {
+                    host: @env.K8S_HOST
+                    token: @env.K8S_TOKEN
+                }
+            }
+            
+            modules: {
+                vpc: {
+                    source: "./modules/vpc"
+                    cidr: "10.0.0.0/16"
+                    availability_zones: ["us-west-2a", "us-west-2b", "us-west-2c"]
+                }
+                
+                eks: {
+                    source: "./modules/eks"
+                    cluster_name: "${@app.name}-cluster"
+                    node_groups: {
+                        main: {
+                            instance_types: ["t3.medium"]
+                            capacity_type: "ON_DEMAND"
+                            scaling_config: {
+                                desired_size: 3
+                                max_size: 10
+                                min_size: 1
+                            }
+                        }
+                    }
+                }
+                
+                rds: {
+                    source: "./modules/rds"
+                    engine: "postgres"
+                    engine_version: "14.9"
+                    instance_class: "db.t3.micro"
+                    allocated_storage: 20
+                    backup_retention_period: 7
+                }
+            }
+        }
+        
+        # Kubernetes manifests
+        kubernetes: {
+            namespace: @app.name
+            
+            # Deployment
+            deployment: {
+                apiVersion: "apps/v1"
+                kind: "Deployment"
+                
+                metadata: {
+                    name: @app.name
+                    labels: @labels
+                }
+                
+                spec: {
+                    replicas: @env_config.replicas
+                    
+                    selector: {
+                        matchLabels: @labels
+                    }
+                    
+                    template: {
+                        metadata: {
+                            labels: @labels
+                        }
+                        
+                        spec: {
+                            containers: [{
+                                name: @app.name
+                                image: @app.build.docker.image
+                                
+                                ports: [{
+                                    containerPort: 3000
+                                    name: "http"
+                                }]
+                                
+                                env: @envVars(@env_config.config)
+                                
+                                resources: @env_config.resources
+                                
+                                livenessProbe: {
+                                    httpGet: {
+                                        path: @app.health.liveness.path
+                                        port: "http"
+                                    }
+                                    initialDelaySeconds: 30
+                                    periodSeconds: 30
+                                    timeoutSeconds: 5
+                                }
+                                
+                                readinessProbe: {
+                                    httpGet: {
+                                        path: @app.health.readiness.path
+                                        port: "http"
+                                    }
+                                    initialDelaySeconds: 5
+                                    periodSeconds: 10
+                                    timeoutSeconds: 5
+                                }
+                            }]
+                        }
+                    }
+                }
+            }
+            
+            # Service
+            service: {
+                apiVersion: "v1"
+                kind: "Service"
+                
+                metadata: {
+                    name: @app.name
+                    labels: @labels
+                }
+                
+                spec: {
+                    selector: @labels
+                    
+                    ports: [{
+                        port: 80
+                        targetPort: "http"
+                        protocol: "TCP"
+                        name: "http"
+                    }]
+                    
+                    type: "ClusterIP"
+                }
+            }
+            
+            # Ingress
+            ingress: @if(@env_config.ingress.enabled, {
+                apiVersion: "networking.k8s.io/v1"
+                kind: "Ingress"
+                
+                metadata: {
+                    name: @app.name
+                    labels: @labels
+                    annotations: @env_config.ingress.annotations || {}
+                }
+                
+                spec: {
+                    tls: @if(@env_config.ingress.tls, [{
+                        hosts: [@env_config.ingress.host]
+                        secretName: "${@app.name}-tls"
+                    }])
+                    
+                    rules: [{
+                        host: @env_config.ingress.host
+                        http: {
+                            paths: [{
+                                path: "/"
+                                pathType: "Prefix"
+                                backend: {
+                                    service: {
+                                        name: @app.name
+                                        port: { number: 80 }
+                                    }
+                                }
+                            }]
+                        }
+                    }]
+                }
+            })
+        }
+    }
+    
+    # CI/CD Pipeline
+    pipeline: {
+        # GitHub Actions
+        github_actions: {
+            name: "Deploy"
+            
+            on: {
+                push: {
+                    branches: ["main", "develop"]
+                }
+                
+                pull_request: {
+                    branches: ["main"]
+                }
+            }
+            
+            env: {
+                REGISTRY: "ghcr.io"
+                IMAGE_NAME: @app.name
+            }
+            
+            jobs: {
+                test: {
+                    "runs-on": "ubuntu-latest"
+                    
+                    steps: [
+                        { uses: "actions/checkout@v3" },
+                        { uses: "actions/setup-node@v3", with: { "node-version": "18" } },
+                        { run: "npm ci" },
+                        { run: "npm run test" },
+                        { run: "npm run lint" },
+                        { run: "tusk validate" }
+                    ]
+                }
+                
+                build: {
+                    "runs-on": "ubuntu-latest"
+                    needs: "test"
+                    
+                    permissions: {
+                        contents: "read"
+                        packages: "write"
+                    }
+                    
+                    steps: [
+                        { uses: "actions/checkout@v3" },
+                        { uses: "docker/login-action@v2", with: {
+                            registry: "${{ env.REGISTRY }}",
+                            username: "${{ github.actor }}",
+                            password: "${{ secrets.GITHUB_TOKEN }}"
+                        }},
+                        { uses: "docker/build-push-action@v4", with: {
+                            context: ".",
+                            push: true,
+                            tags: "${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}"
+                        }}
+                    ]
+                }
+                
+                deploy: {
+                    "runs-on": "ubuntu-latest"
+                    needs: ["test", "build"]
+                    if: "github.ref == 'refs/heads/main'"
+                    
+                    environment: "production"
+                    
+                    steps: [
+                        { uses: "actions/checkout@v3" },
+                        { run: "tusk deploy production --image=${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}:${{ github.sha }}" }
+                    ]
+                }
+            }
+        }
+        
+        # GitLab CI
+        gitlab_ci: {
+            stages: ["test", "build", "deploy"]
+            
+            variables: {
+                DOCKER_DRIVER: "overlay2"
+                REGISTRY: "$CI_REGISTRY"
+                IMAGE: "$CI_REGISTRY_IMAGE"
+            }
+            
+            test: {
+                stage: "test"
+                image: "node:18"
+                
+                script: [
+                    "npm ci",
+                    "npm run test",
+                    "npm run lint",
+                    "tusk validate"
+                ]
+                
+                coverage: "/Coverage: \\d+\\.\\d+%/"
+            }
+            
+            build: {
+                stage: "build"
+                image: "docker:20.10.16"
+                services: ["docker:20.10.16-dind"]
+                
+                before_script: [
+                    "docker login -u $CI_REGISTRY_USER -p $CI_REGISTRY_PASSWORD $CI_REGISTRY"
+                ]
+                
+                script: [
+                    "docker build -t $IMAGE:$CI_COMMIT_SHA .",
+                    "docker push $IMAGE:$CI_COMMIT_SHA"
+                ]
+                
+                only: ["main", "develop"]
+            }
+            
+            deploy_staging: {
+                stage: "deploy"
+                
+                script: ["tusk deploy staging --image=$IMAGE:$CI_COMMIT_SHA"]
+                
+                environment: {
+                    name: "staging"
+                    url: "https://staging.example.com"
+                }
+                
+                only: ["develop"]
+            }
+            
+            deploy_production: {
+                stage: "deploy"
+                
+                script: ["tusk deploy production --image=$IMAGE:$CI_COMMIT_SHA"]
+                
+                environment: {
+                    name: "production"
+                    url: "https://api.example.com"
+                }
+                
+                when: "manual"
+                only: ["main"]
+            }
+        }
+    }
+    
+    # Monitoring and rollback
+    monitoring: {
+        deployment_metrics: {
+            success_rate: "sum(rate(http_requests_total{status!~'5..'}[5m])) / sum(rate(http_requests_total[5m]))"
+            latency_p95: "histogram_quantile(0.95, rate(http_request_duration_seconds_bucket[5m]))"
+            error_rate: "sum(rate(http_requests_total{status=~'5..'}[5m])) / sum(rate(http_requests_total[5m]))"
+        }
+        
+        rollback_triggers: {
+            high_error_rate: {
+                condition: @metrics.error_rate > 0.05
+                duration: "2m"
+                action: "rollback"
+            }
+            
+            high_latency: {
+                condition: @metrics.latency_p95 > 2.0
+                duration: "5m"
+                action: "rollback"
+            }
+            
+            low_success_rate: {
+                condition: @metrics.success_rate < 0.95
+                duration: "3m"
+                action: "rollback"
+            }
+        }
+    }
+}
+</pre>
+
+<h3>Bash Deployment Implementation</h3>
+<pre>
+#!/bin/bash
+
+# TuskLang Deployment & Automation Library
+
+# Global deployment state
+declare -A DEPLOY_CONFIG
+declare -A DEPLOY_STATE
+DEPLOY_LOG_FILE="./logs/deployment.log"
+
+# Initialize deployment system
+tusk_deploy_init() {
+    # Create directories
+    mkdir -p ./logs ./tmp/deploy
+    
+    # Load deployment configuration
+    DEPLOY_CONFIG[app_name]="${APP_NAME:-myapp}"
+    DEPLOY_CONFIG[environment]="${ENVIRONMENT:-development}"
+    DEPLOY_CONFIG[registry]="${REGISTRY:-docker.io}"
+    
+    # Initialize state
+    DEPLOY_STATE[start_time]=$(date +%s)
+    DEPLOY_STATE[stage]="init"
+    
+    tusk_deploy_log "info" "Deployment system initialized"
+}
+
+# Deployment logging
+tusk_deploy_log() {
+    local level="$1"
+    local message="$2"
+    local context="${3:-{}}"
+    
+    local timestamp=$(date -u +"%Y-%m-%dT%H:%M:%SZ")
+    local log_entry=$(cat <<EOF
+{
+    "timestamp": "$timestamp",
+    "level": "$level",
+    "stage": "${DEPLOY_STATE[stage]}",
+    "message": "$message",
+    "context": $context
+}
+EOF
+    )
+    
+    echo "$log_entry" >> "$DEPLOY_LOG_FILE"
+    
+    # Console output
+    local color=""
+    case "$level" in
+        info)  color="\033[34m" ;;    # blue
+        warn)  color="\033[33m" ;;    # yellow
+        error) color="\033[31m" ;;    # red
+        success) color="\033[32m" ;;  # green
+    esac
+    
+    echo -e "${color}[${level^^}]\033[0m $message"
+}
+
+# Build application
+tusk_deploy_build() {
+    local build_commands=("$@")
+    
+    DEPLOY_STATE[stage]="build"
+    tusk_deploy_log "info" "Starting build process"
+    
+    for cmd in "${build_commands[@]}"; do
+        tusk_deploy_log "info" "Executing: $cmd"
+        
+        if ! eval "$cmd"; then
+            tusk_deploy_log "error" "Build command failed: $cmd"
+            return 1
+        fi
+    done
+    
+    tusk_deploy_log "success" "Build completed successfully"
+    return 0
+}
+
+# Docker operations
+tusk_deploy_docker_build() {
+    local dockerfile="${1:-Dockerfile}"
+    local image_name="$2"
+    local build_args="$3"
+    
+    DEPLOY_STATE[stage]="docker_build"
+    tusk_deploy_log "info" "Building Docker image" \
+        "{\"dockerfile\":\"$dockerfile\",\"image\":\"$image_name\"}"
+    
+    local build_cmd="docker build -f $dockerfile -t $image_name"
+    
+    # Add build args
+    if [ -n "$build_args" ]; then
+        while IFS='=' read -r key value; do
+            build_cmd="$build_cmd --build-arg $key=$value"
+        done <<< "$build_args"
+    fi
+    
+    build_cmd="$build_cmd ."
+    
+    if eval "$build_cmd"; then
+        tusk_deploy_log "success" "Docker image built successfully"
+        return 0
+    else
+        tusk_deploy_log "error" "Docker build failed"
+        return 1
+    fi
+}
+
+tusk_deploy_docker_push() {
+    local image_name="$1"
+    local registry="${2:-${DEPLOY_CONFIG[registry]}}"
+    
+    local full_image="$registry/$image_name"
+    
+    tusk_deploy_log "info" "Pushing Docker image" "{\"image\":\"$full_image\"}"
+    
+    # Tag image
+    docker tag "$image_name" "$full_image"
+    
+    # Push image
+    if docker push "$full_image"; then
+        tusk_deploy_log "success" "Docker image pushed successfully"
+        DEPLOY_STATE[image]="$full_image"
+        return 0
+    else
+        tusk_deploy_log "error" "Docker push failed"
+        return 1
+    fi
+}
+
+# Kubernetes deployment
+tusk_deploy_k8s() {
+    local environment="$1"
+    local image="$2"
+    local namespace="${3:-${DEPLOY_CONFIG[app_name]}}"
+    
+    DEPLOY_STATE[stage]="k8s_deploy"
+    DEPLOY_STATE[environment]="$environment"
+    
+    tusk_deploy_log "info" "Deploying to Kubernetes" \
+        "{\"environment\":\"$environment\",\"image\":\"$image\",\"namespace\":\"$namespace\"}"
+    
+    # Create namespace if it doesn't exist
+    kubectl create namespace "$namespace" --dry-run=client -o yaml | kubectl apply -f -
+    
+    # Generate manifests
+    tusk_deploy_k8s_generate_manifests "$environment" "$image" "$namespace"
+    
+    # Apply manifests
+    if kubectl apply -f "./tmp/deploy/k8s-$environment.yaml" -n "$namespace"; then
+        tusk_deploy_log "success" "Kubernetes deployment applied"
+        
+        # Wait for rollout
+        tusk_deploy_k8s_wait_rollout "$environment" "$namespace"
+    else
+        tusk_deploy_log "error" "Kubernetes deployment failed"
+        return 1
+    fi
+}
+
+tusk_deploy_k8s_generate_manifests() {
+    local environment="$1"
+    local image="$2"
+    local namespace="$3"
+    
+    local app_name="${DEPLOY_CONFIG[app_name]}"
+    local replicas=1
+    local cpu_request="100m"
+    local memory_request="256Mi"
+    
+    # Environment-specific configuration
+    case "$environment" in
+        staging)
+            replicas=2
+            cpu_request="200m"
+            memory_request="512Mi"
+            ;;
+        production)
+            replicas=3
+            cpu_request="500m"
+            memory_request="1Gi"
+            ;;
+    esac
+    
+    # Generate deployment manifest
+    cat > "./tmp/deploy/k8s-$environment.yaml" << EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $app_name
+  labels:
+    app: $app_name
+    environment: $environment
+spec:
+  replicas: $replicas
+  selector:
+    matchLabels:
+      app: $app_name
+  template:
+    metadata:
+      labels:
+        app: $app_name
+        environment: $environment
+    spec:
+      containers:
+      - name: $app_name
+        image: $image
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          value: $environment
+        - name: PORT
+          value: "3000"
+        resources:
+          requests:
+            cpu: $cpu_request
+            memory: $memory_request
+          limits:
+            cpu: $(echo "$cpu_request" | sed 's/m//')m
+            memory: $memory_request
+        livenessProbe:
+          httpGet:
+            path: /health/live
+            port: http
+          initialDelaySeconds: 30
+          periodSeconds: 30
+        readinessProbe:
+          httpGet:
+            path: /health/ready
+            port: http
+          initialDelaySeconds: 5
+          periodSeconds: 10
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: $app_name
+  labels:
+    app: $app_name
+spec:
+  selector:
+    app: $app_name
+  ports:
+  - port: 80
+    targetPort: http
+    protocol: TCP
+    name: http
+  type: ClusterIP
+EOF
+    
+    # Add ingress for staging/production
+    if [ "$environment" != "development" ]; then
+        local host
+        case "$environment" in
+            staging) host="staging.example.com" ;;
+            production) host="api.example.com" ;;
+        esac
+        
+        cat >> "./tmp/deploy/k8s-$environment.yaml" << EOF
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: $app_name
+  labels:
+    app: $app_name
+  annotations:
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+spec:
+  tls:
+  - hosts:
+    - $host
+    secretName: $app_name-tls
+  rules:
+  - host: $host
+    http:
+      paths:
+      - path: /
+        pathType: Prefix
+        backend:
+          service:
+            name: $app_name
+            port:
+              number: 80
+EOF
+    fi
+    
+    tusk_deploy_log "info" "Kubernetes manifests generated"
+}
+
+tusk_deploy_k8s_wait_rollout() {
+    local environment="$1"
+    local namespace="$2"
+    local app_name="${DEPLOY_CONFIG[app_name]}"
+    
+    tusk_deploy_log "info" "Waiting for deployment rollout"
+    
+    # Wait for rollout with timeout
+    if timeout 300 kubectl rollout status deployment/"$app_name" -n "$namespace"; then
+        tusk_deploy_log "success" "Deployment rollout completed"
+        
+        # Verify deployment
+        tusk_deploy_k8s_verify "$environment" "$namespace"
+    else
+        tusk_deploy_log "error" "Deployment rollout timed out"
+        return 1
+    fi
+}
+
+tusk_deploy_k8s_verify() {
+    local environment="$1"
+    local namespace="$2"
+    local app_name="${DEPLOY_CONFIG[app_name]}"
+    
+    tusk_deploy_log "info" "Verifying deployment"
+    
+    # Check pod status
+    local ready_pods=$(kubectl get pods -n "$namespace" -l app="$app_name" -o jsonpath='{.items[*].status.containerStatuses[0].ready}' | tr ' ' '\n' | grep -c true)
+    local total_pods=$(kubectl get pods -n "$namespace" -l app="$app_name" --no-headers | wc -l)
+    
+    if [ "$ready_pods" -eq "$total_pods" ] && [ "$total_pods" -gt 0 ]; then
+        tusk_deploy_log "success" "All pods are ready" \
+            "{\"ready\":$ready_pods,\"total\":$total_pods}"
+        
+        # Health check
+        if tusk_deploy_health_check "$environment" "$namespace"; then
+            tusk_deploy_log "success" "Deployment verification completed"
+            return 0
+        fi
+    fi
+    
+    tusk_deploy_log "error" "Deployment verification failed" \
+        "{\"ready\":$ready_pods,\"total\":$total_pods}"
+    return 1
+}
+
+# Health checks
+tusk_deploy_health_check() {
+    local environment="$1"
+    local namespace="$2"
+    local app_name="${DEPLOY_CONFIG[app_name]}"
+    
+    tusk_deploy_log "info" "Running health checks"
+    
+    # Get service endpoint
+    local service_port=$(kubectl get service "$app_name" -n "$namespace" -o jsonpath='{.spec.ports[0].port}')
+    
+    # Port forward for testing
+    kubectl port-forward service/"$app_name" 8080:$service_port -n "$namespace" >/dev/null 2>&1 &
+    local pf_pid=$!
+    
+    sleep 5  # Wait for port forward to establish
+    
+    # Test health endpoints
+    local health_ok=0
+    
+    for endpoint in "/health/ready" "/health/live"; do
+        if curl -f -s "http://localhost:8080$endpoint" >/dev/null; then
+            tusk_deploy_log "info" "Health check passed: $endpoint"
+            ((health_ok++))
+        else
+            tusk_deploy_log "warn" "Health check failed: $endpoint"
+        fi
+    done
+    
+    # Cleanup port forward
+    kill $pf_pid 2>/dev/null || true
+    
+    if [ $health_ok -eq 2 ]; then
+        tusk_deploy_log "success" "All health checks passed"
+        return 0
+    else
+        tusk_deploy_log "error" "Some health checks failed"
+        return 1
+    fi
+}
+
+# Rollback functionality
+tusk_deploy_rollback() {
+    local environment="$1"
+    local namespace="${2:-${DEPLOY_CONFIG[app_name]}}"
+    local app_name="${DEPLOY_CONFIG[app_name]}"
+    
+    DEPLOY_STATE[stage]="rollback"
+    tusk_deploy_log "warn" "Starting rollback process" \
+        "{\"environment\":\"$environment\"}"
+    
+    # Rollback to previous deployment
+    if kubectl rollout undo deployment/"$app_name" -n "$namespace"; then
+        tusk_deploy_log "info" "Rollback initiated"
+        
+        # Wait for rollback to complete
+        if kubectl rollout status deployment/"$app_name" -n "$namespace" --timeout=300s; then
+            tusk_deploy_log "success" "Rollback completed successfully"
+            return 0
+        else
+            tusk_deploy_log "error" "Rollback failed or timed out"
+            return 1
+        fi
+    else
+        tusk_deploy_log "error" "Failed to initiate rollback"
+        return 1
+    fi
+}
+
+# Canary deployment
+tusk_deploy_canary() {
+    local environment="$1"
+    local image="$2"
+    local canary_weight="${3:-10}"
+    local namespace="${4:-${DEPLOY_CONFIG[app_name]}}"
+    
+    DEPLOY_STATE[stage]="canary"
+    tusk_deploy_log "info" "Starting canary deployment" \
+        "{\"weight\":$canary_weight,\"image\":\"$image\"}"
+    
+    # Create canary deployment
+    local app_name="${DEPLOY_CONFIG[app_name]}"
+    local canary_name="${app_name}-canary"
+    
+    # Generate canary manifest
+    cat > "./tmp/deploy/canary-$environment.yaml" << EOF
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: $canary_name
+  labels:
+    app: $app_name
+    version: canary
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: $app_name
+      version: canary
+  template:
+    metadata:
+      labels:
+        app: $app_name
+        version: canary
+    spec:
+      containers:
+      - name: $app_name
+        image: $image
+        ports:
+        - containerPort: 3000
+          name: http
+        env:
+        - name: NODE_ENV
+          value: $environment
+        - name: VERSION
+          value: canary
+EOF
+    
+    # Apply canary deployment
+    kubectl apply -f "./tmp/deploy/canary-$environment.yaml" -n "$namespace"
+    
+    # Wait for canary to be ready
+    kubectl rollout status deployment/"$canary_name" -n "$namespace"
+    
+    # Monitor canary metrics
+    tusk_deploy_canary_monitor "$environment" "$namespace" "$canary_weight"
+}
+
+tusk_deploy_canary_monitor() {
+    local environment="$1"
+    local namespace="$2"
+    local weight="$3"
+    
+    tusk_deploy_log "info" "Monitoring canary deployment"
+    
+    # Simple monitoring loop
+    for i in {1..10}; do
+        sleep 30
+        
+        # Check error rate (simplified)
+        local error_rate=0  # Would query actual metrics
+        
+        if [ "$error_rate" -gt 5 ]; then
+            tusk_deploy_log "error" "High error rate detected, rolling back canary"
+            tusk_deploy_canary_rollback "$environment" "$namespace"
+            return 1
+        fi
+        
+        tusk_deploy_log "info" "Canary monitoring: iteration $i/10, error_rate=${error_rate}%"
+    done
+    
+    tusk_deploy_log "success" "Canary monitoring completed successfully"
+    
+    # Promote canary
+    tusk_deploy_canary_promote "$environment" "$namespace"
+}
+
+tusk_deploy_canary_promote() {
+    local environment="$1"
+    local namespace="$2"
+    local app_name="${DEPLOY_CONFIG[app_name]}"
+    local canary_name="${app_name}-canary"
+    
+    tusk_deploy_log "info" "Promoting canary to production"
+    
+    # Get canary image
+    local canary_image=$(kubectl get deployment "$canary_name" -n "$namespace" -o jsonpath='{.spec.template.spec.containers[0].image}')
+    
+    # Update main deployment with canary image
+    kubectl set image deployment/"$app_name" "$app_name=$canary_image" -n "$namespace"
+    
+    # Wait for rollout
+    kubectl rollout status deployment/"$app_name" -n "$namespace"
+    
+    # Remove canary deployment
+    kubectl delete deployment "$canary_name" -n "$namespace"
+    
+    tusk_deploy_log "success" "Canary promoted successfully"
+}
+
+# Main deployment orchestrator
+tusk_deploy_run() {
+    local environment="$1"
+    local strategy="${2:-rolling}"
+    local image="$3"
+    
+    tusk_deploy_init
+    
+    tusk_deploy_log "info" "Starting deployment" \
+        "{\"environment\":\"$environment\",\"strategy\":\"$strategy\"}"
+    
+    case "$strategy" in
+        rolling)
+            tusk_deploy_k8s "$environment" "$image"
+            ;;
+        canary)
+            tusk_deploy_canary "$environment" "$image"
+            ;;
+        blue-green)
+            tusk_deploy_blue_green "$environment" "$image"
+            ;;
+        *)
+            tusk_deploy_log "error" "Unknown deployment strategy: $strategy"
+            return 1
+            ;;
+    esac
+    
+    local deploy_result=$?
+    local end_time=$(date +%s)
+    local duration=$((end_time - ${DEPLOY_STATE[start_time]}))
+    
+    if [ $deploy_result -eq 0 ]; then
+        tusk_deploy_log "success" "Deployment completed successfully" \
+            "{\"duration\":${duration}s}"
+    else
+        tusk_deploy_log "error" "Deployment failed" \
+            "{\"duration\":${duration}s}"
+    fi
+    
+    return $deploy_result
+}
+
+# Infrastructure as Code
+tusk_deploy_terraform() {
+    local action="${1:-plan}"
+    local workspace="${2:-default}"
+    
+    DEPLOY_STATE[stage]="terraform"
+    tusk_deploy_log "info" "Running Terraform $action" \
+        "{\"workspace\":\"$workspace\"}"
+    
+    # Initialize Terraform
+    terraform init
+    
+    # Select workspace
+    terraform workspace select "$workspace" || terraform workspace new "$workspace"
+    
+    case "$action" in
+        plan)
+            terraform plan -out=tfplan
+            ;;
+        apply)
+            terraform apply -auto-approve tfplan
+            ;;
+        destroy)
+            terraform destroy -auto-approve
+            ;;
+        *)
+            tusk_deploy_log "error" "Unknown Terraform action: $action"
+            return 1
+            ;;
+    esac
+    
+    local tf_result=$?
+    
+    if [ $tf_result -eq 0 ]; then
+        tusk_deploy_log "success" "Terraform $action completed"
+    else
+        tusk_deploy_log "error" "Terraform $action failed"
+    fi
+    
+    return $tf_result
+}
+
+# Cleanup
+tusk_deploy_cleanup() {
+    rm -rf ./tmp/deploy
+    tusk_deploy_log "info" "Deployment cleanup completed"
+}
+</pre>
+
+<h3>Usage Example</h3>
+<pre>
+#!/bin/bash
+
+# Load deployment library
+source /usr/local/lib/tusklang-deployment.sh
+
+echo "=== Deployment & Automation Demo ==="
+
+# Set up environment
+export APP_NAME="demo-app"
+export ENVIRONMENT="staging"
+export REGISTRY="localhost:5000"
+
+# 1. Initialize deployment
+echo -e "\n1. Initialize Deployment:"
+tusk_deploy_init
+
+# 2. Build application
+echo -e "\n2. Build Application:"
+
+# Simulate build commands
+build_commands=(
+    "echo 'Installing dependencies...'"
+    "sleep 1"
+    "echo 'Running tests...'"
+    "sleep 1"
+    "echo 'Building application...'"
+    "sleep 1"
+    "echo 'Validating configuration...'"
+)
+
+if tusk_deploy_build "${build_commands[@]}"; then
+    echo "✓ Build successful"
+else
+    echo "✗ Build failed"
+fi
+
+# 3. Docker operations
+echo -e "\n3. Docker Build & Push:"
+
+# Create a simple Dockerfile
+cat > Dockerfile << 'EOF'
+FROM node:18-alpine
+WORKDIR /app
+COPY package*.json ./
+RUN npm ci --only=production
+COPY . .
+EXPOSE 3000
+CMD ["npm", "start"]
+EOF
+
+# Create package.json
+cat > package.json << 'EOF'
+{
+    "name": "demo-app",
+    "version": "1.0.0",
+    "scripts": {
+        "start": "node server.js"
+    }
+}
+EOF
+
+# Create simple server
+cat > server.js << 'EOF'
+const http = require('http');
+const server = http.createServer((req, res) => {
+    if (req.url === '/health/ready' || req.url === '/health/live') {
+        res.writeHead(200, {'Content-Type': 'application/json'});
+        res.end(JSON.stringify({status: 'ok'}));
+    } else {
+        res.writeHead(200, {'Content-Type': 'text/plain'});
+        res.end('Hello from Demo App!');
+    }
+});
+server.listen(3000, () => console.log('Server running on port 3000'));
+EOF
+
+# Build Docker image
+image_name="demo-app:v1.0.0"
+echo "Building Docker image: $image_name"
+
+if command -v docker >/dev/null 2>&1; then
+    if tusk_deploy_docker_build "Dockerfile" "$image_name"; then
+        echo "✓ Docker build successful"
+        
+        # Simulate push (if registry is available)
+        echo "Simulating Docker push..."
+        tusk_deploy_log "info" "Docker push simulated (registry not available)"
+    else
+        echo "✗ Docker build failed"
+    fi
+else
+    echo "Docker not available, simulating build..."
+    tusk_deploy_log "info" "Docker build simulated (Docker not installed)"
+fi
+
+# 4. Kubernetes manifest generation
+echo -e "\n4. Kubernetes Deployment:"
+
+# Generate K8s manifests
+if tusk_deploy_k8s_generate_manifests "staging" "$image_name" "demo-namespace"; then
+    echo "✓ Kubernetes manifests generated"
+    
+    echo "Generated manifest preview:"
+    head -20 "./tmp/deploy/k8s-staging.yaml"
+    echo "... (truncated)"
+else
+    echo "✗ Manifest generation failed"
+fi
+
+# 5. Health check simulation
+echo -e "\n5. Health Check Simulation:"
+
+# Mock health check endpoints
+simulate_health_check() {
+    local endpoint="$1"
+    echo "Testing endpoint: $endpoint"
+    
+    # Simulate HTTP response
+    case "$endpoint" in
+        "/health/ready"|"/health/live")
+            echo "HTTP/1.1 200 OK"
+            echo '{"status":"ok"}'
+            return 0
+            ;;
+        *)
+            echo "HTTP/1.1 404 Not Found"
+            return 1
+            ;;
+    esac
+}
+
+for endpoint in "/health/ready" "/health/live" "/unknown"; do
+    echo -n "Health check $endpoint: "
+    if simulate_health_check "$endpoint" >/dev/null; then
+        echo "✓ Passed"
+    else
+        echo "✗ Failed"
+    fi
+done
+
+# 6. Deployment strategies
+echo -e "\n6. Deployment Strategies:"
+
+# Simulate different deployment strategies
+echo "Available deployment strategies:"
+echo "  - rolling: Rolling update deployment"
+echo "  - canary: Canary deployment with gradual rollout"
+echo "  - blue-green: Blue-green deployment"
+
+# Rolling deployment simulation
+echo -e "\nSimulating rolling deployment:"
+for i in {1..3}; do
+    echo "  Updating replica $i/3..."
+    sleep 0.5
+done
+echo "  ✓ Rolling deployment completed"
+
+# Canary deployment simulation
+echo -e "\nSimulating canary deployment:"
+weights=(10 25 50 75 100)
+for weight in "${weights[@]}"; do
+    echo "  Canary traffic: ${weight}%"
+    sleep 0.3
+done
+echo "  ✓ Canary deployment completed"
+
+# 7. Monitoring and metrics
+echo -e "\n7. Deployment Monitoring:"
+
+# Simulate deployment metrics
+echo "Deployment metrics:"
+echo "  Success rate: 99.5%"
+echo "  Average latency: 120ms"
+echo "  Error rate: 0.1%"
+echo "  Deployment time: 5m 30s"
+
+# 8. Rollback simulation
+echo -e "\n8. Rollback Capability:"
+
+echo "Simulating deployment rollback..."
+tusk_deploy_log "warn" "Initiating rollback due to high error rate"
+
+rollback_steps=(
+    "Stopping new deployments"
+    "Scaling down new version"
+    "Scaling up previous version"
+    "Updating service routing"
+    "Verifying rollback"
+)
+
+for step in "${rollback_steps[@]}"; do
+    echo "  $step..."
+    sleep 0.3
+done
+
+tusk_deploy_log "success" "Rollback completed successfully"
+
+# 9. Infrastructure as Code
+echo -e "\n9. Infrastructure as Code:"
+
+# Create sample Terraform configuration
+cat > main.tf << 'EOF'
+terraform {
+  required_version = ">= 1.0"
+  required_providers {
+    aws = {
+      source  = "hashicorp/aws"
+      version = "~> 5.0"
+    }
+  }
+}
+
+provider "aws" {
+  region = var.aws_region
+}
+
+variable "aws_region" {
+  description = "AWS region"
+  type        = string
+  default     = "us-west-2"
+}
+
+resource "aws_vpc" "main" {
+  cidr_block           = "10.0.0.0/16"
+  enable_dns_hostnames = true
+  enable_dns_support   = true
+
+  tags = {
+    Name = "demo-vpc"
+  }
+}
+
+output "vpc_id" {
+  value = aws_vpc.main.id
+}
+EOF
+
+echo "Terraform configuration created: main.tf"
+echo "Simulating Terraform operations:"
+
+if command -v terraform >/dev/null 2>&1; then
+    echo "  terraform init..."
+    echo "  terraform plan..."
+    echo "  (terraform apply would be run in real deployment)"
+else
+    echo "  Terraform not installed, simulating operations"
+fi
+
+# 10. CI/CD Pipeline
+echo -e "\n10. CI/CD Pipeline Configuration:"
+
+# Create GitHub Actions workflow
+mkdir -p .github/workflows
+cat > .github/workflows/deploy.yml << 'EOF'
+name: Deploy Application
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v3
+      - uses: actions/setup-node@v3
+        with:
+          node-version: '18'
+      - run: npm ci
+      - run: npm test
+      - run: tusk validate
+
+  build:
+    runs-on: ubuntu-latest
+    needs: test
+    steps:
+      - uses: actions/checkout@v3
+      - name: Build Docker image
+        run: docker build -t ${{ github.repository }}:${{ github.sha }} .
+
+  deploy:
+    runs-on: ubuntu-latest
+    needs: [test, build]
+    if: github.ref == 'refs/heads/main'
+    steps:
+      - uses: actions/checkout@v3
+      - name: Deploy to staging
+        run: tusk deploy staging --image=${{ github.repository }}:${{ github.sha }}
+EOF
+
+echo "GitHub Actions workflow created: .github/workflows/deploy.yml"
+
+# 11. Deployment summary
+echo -e "\n11. Deployment Summary:"
+
+# Generate deployment report
+cat > deployment-report.json << EOF
+{
+    "deployment_id": "$(uuidgen | tr '[:upper:]' '[:lower:]')",
+    "application": "$APP_NAME",
+    "environment": "$ENVIRONMENT",
+    "version": "v1.0.0",
+    "strategy": "rolling",
+    "start_time": "$(date -u +%Y-%m-%dT%H:%M:%SZ)",
+    "duration": "5m 30s",
+    "status": "success",
+    "artifacts": {
+        "docker_image": "$image_name",
+        "manifests": "./tmp/deploy/k8s-staging.yaml"
+    },
+    "metrics": {
+        "success_rate": 99.5,
+        "error_rate": 0.1,
+        "avg_latency_ms": 120
+    }
+}
+EOF
+
+echo "Deployment report generated: deployment-report.json"
+cat deployment-report.json | jq '.'
+
+# Cleanup
+echo -e "\n12. Cleanup:"
+tusk_deploy_cleanup
+
+# Remove created files
+rm -f Dockerfile package.json server.js main.tf deployment-report.json
+rm -rf .github
+
+echo -e "\n=== Deployment demonstration complete ==="
+</pre>
+
+<p>TuskLang deployment and automation in bash enables comprehensive DevOps workflows including Docker builds, Kubernetes deployments, Infrastructure as Code, CI/CD pipelines, and monitoring with multiple deployment strategies.</p>

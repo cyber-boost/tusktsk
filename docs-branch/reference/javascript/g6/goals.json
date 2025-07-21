@@ -1,0 +1,29 @@
+{
+  "goal_id": "g6",
+  "agent_id": "a3",
+  "language": "JavaScript",
+  "created_at": "2025-07-19T18:58:38Z",
+  "goals": [
+    {
+      "id": "g6.1",
+      "description": "Goal 1 for JavaScript agent a3 goal 6",
+      "success_criteria": "Success criteria for goal 1",
+      "priority": "high"
+    },
+    {
+      "id": "g6.2",
+      "description": "Goal 2 for JavaScript agent a3 goal 6", 
+      "success_criteria": "Success criteria for goal 2",
+      "priority": "medium"
+    },
+    {
+      "id": "g6.3",
+      "description": "Goal 3 for JavaScript agent a3 goal 6",
+      "success_criteria": "Success criteria for goal 3", 
+      "priority": "low"
+    }
+  ],
+  "dependencies": [],
+  "estimated_time": "15 minutes",
+  "complexity": "medium"
+}

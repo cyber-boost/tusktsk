@@ -1,0 +1,108 @@
+TASK: Implement Database & Storage Operators for TuskLang Java SDK
+AGENT: A1 - Database & Storage Specialist
+LANGUAGE: Java
+WORKING DIRECTORY: reference/todo-july21/a1
+
+CONTEXT: You are implementing the missing database and storage operators for the TuskLang Java SDK. This is HIGH PRIORITY work that enables production database connectivity. Agent A5 has completed 25 enterprise goals - now you need to add the missing database operators.
+
+CRITICAL REQUIREMENTS:
+1. REAL IMPLEMENTATIONS ONLY - No simulations, no HashMaps pretending to be databases
+2. ACTUAL DATABASE CONNECTIONS - Use real database drivers and clients
+3. PRODUCTION QUALITY - Connection pooling, error handling, performance optimization
+4. THREAD SAFETY - All operations must be thread-safe for concurrent use
+5. COMPREHENSIVE TESTING - Integration tests with real database instances
+
+OPERATORS TO IMPLEMENT:
+1. @mongodb - MongoDB operations with real MongoDB driver
+   - @mongodb.find(collection, query) - Find documents
+   - @mongodb.insert(collection, document) - Insert documents
+   - @mongodb.update(collection, query, update) - Update documents
+   - @mongodb.delete(collection, query) - Delete documents
+   - @mongodb.aggregate(collection, pipeline) - Aggregation operations
+
+2. @mysql - MySQL operations with JDBC
+   - @mysql.query(sql, params) - Execute SELECT queries
+   - @mysql.insert(table, data) - Insert operations
+   - @mysql.update(table, data, where) - Update operations
+   - @mysql.delete(table, where) - Delete operations
+   - @mysql.transaction(operations) - Transaction management
+
+3. @redis - Redis operations with Jedis
+   - @redis.get(key) - Get value
+   - @redis.set(key, value) - Set value
+   - @redis.hget(key, field) - Hash operations
+   - @redis.lpush(key, value) - List operations
+   - @redis.publish(channel, message) - Pub/Sub
+
+4. @elasticsearch - Search operations
+   - @elasticsearch.search(index, query) - Search documents
+   - @elasticsearch.index(index, id, document) - Index documents
+   - @elasticsearch.bulk(operations) - Bulk operations
+   - @elasticsearch.aggregate(index, aggregation) - Analytics
+
+5. @etcd - Distributed key-value store
+   - @etcd.get(key) - Get value
+   - @etcd.put(key, value) - Put value
+   - @etcd.watch(key) - Watch for changes
+   - @etcd.lease(ttl) - Lease management
+
+IMPLEMENTATION GUIDELINES:
+1. Add dependencies to pom.xml:
+   - MongoDB: org.mongodb:mongodb-driver-sync:4.11.1
+   - MySQL: mysql:mysql-connector-java:8.0.33
+   - Redis: redis.clients:jedis:4.4.3
+   - Elasticsearch: org.elasticsearch.client:elasticsearch-rest-high-level-client:7.17.13
+   - etcd: io.etcd:jetcd-core:0.7.5
+   - Connection Pool: com.zaxxer:HikariCP:5.0.1
+
+2. Connection Management:
+   - Use connection pooling for all databases
+   - Implement proper connection lifecycle management
+   - Handle connection failures and retries
+   - Support for clustering and high availability
+
+3. Error Handling:
+   - Comprehensive exception handling
+   - Meaningful error messages with context
+   - Retry logic for transient failures
+   - Connection health monitoring
+
+4. Performance:
+   - Optimize for high throughput operations
+   - Implement batch operations where applicable
+   - Use prepared statements for SQL
+   - Connection pooling and reuse
+
+5. Testing:
+   - Create integration tests with real database instances
+   - Test connection failures and recovery
+   - Performance testing under load
+   - Concurrent access testing
+
+FILES TO CREATE/MODIFY:
+- Extend: src/main/java/tusk/operators/DatabaseOperators.java
+- Create: src/main/java/tusk/operators/StorageOperators.java
+- Create: src/test/java/tusk/operators/DatabaseOperatorsTest.java
+- Modify: pom.xml (add dependencies)
+
+INTEGRATION POINTS:
+- Integrate with existing TuskLangEnhanced class
+- Use existing error handling patterns
+- Follow existing logging conventions
+- Maintain compatibility with A5's work
+
+SUCCESS CRITERIA:
+- All 5 operators implemented with real functionality
+- Integration tests pass with real database instances
+- Performance benchmarks meet production requirements
+- Documentation with working code examples
+- Thread-safe concurrent operations
+
+TIME LIMIT: 1-2 weeks maximum
+
+COORDINATION:
+- No conflicts with other agents (A2-A6 work on different operators)
+- Daily sync on integration points
+- Shared test infrastructure coordination
+
+BEGIN IMMEDIATELY. Focus on REAL database connectivity, not architectural stubs. 

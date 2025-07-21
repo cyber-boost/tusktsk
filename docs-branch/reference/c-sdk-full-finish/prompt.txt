@@ -1,0 +1,238 @@
+# Universal TuskLang SDK Completion Prompt
+# ========================================
+# Use this prompt to instruct agents to complete any TuskLang SDK to 100% feature parity
+
+## YOUR MISSION
+You are tasked with achieving 100% feature parity for the [LANGUAGE] SDK in the TuskLang project. Your goal is to implement ALL 85 operators to match the complete PHP SDK implementation.
+
+## CRITICAL INSTRUCTIONS
+1. **NEVER claim 100% completion unless you have implemented ALL 85 operators**
+2. **ALWAYS reference the php_src.txt file for exact implementation details**
+3. **ALWAYS check the [LANGUAGE]_completion.txt file for current status**
+4. **ALWAYS implement operators in the priority order specified**
+
+## REFERENCE FILES
+- `/opt/tsk_git/reference/c-sdk-full-finish/php_src.txt` - Complete 85 operator reference
+- `/opt/tsk_git/reference/c-sdk-full-finish/[LANGUAGE]_completion.txt` - Current completion status
+- `/opt/tsk_git/fujsen/src/CoreOperators/` - PHP operator implementations
+
+## CURRENT STATUS FOR [LANGUAGE]
+Based on the completion analysis, the [LANGUAGE] SDK has significant gaps that need to be addressed:
+
+### IMPLEMENTATION PRIORITY
+1. **HIGH PRIORITY**: Missing core operators that are essential for basic functionality
+2. **MEDIUM PRIORITY**: Advanced operators needed for enterprise features
+3. **LOW PRIORITY**: Specialized operators for specific use cases
+
+## OPERATOR CATEGORIES TO IMPLEMENT (Total: 85)
+
+### 1. CORE LANGUAGE FEATURES (7 operators)
+- @variable, @env, @date, @file, @json, @query, @cache
+
+### 2. ADVANCED @ OPERATORS (22 operators)
+- @graphql, @grpc, @websocket, @sse, @nats, @amqp, @kafka
+- @etcd, @elasticsearch, @prometheus, @jaeger, @zipkin, @grafana
+- @istio, @consul, @vault, @temporal, @mongodb, @redis, @postgresql, @mysql, @influxdb
+
+### 3. CONDITIONAL & CONTROL FLOW (6 operators)
+- @if, @switch, @for, @while, @each, @filter
+
+### 4. STRING & DATA PROCESSING (8 operators)
+- @string, @regex, @hash, @base64, @xml, @yaml, @csv, @template
+
+### 5. SECURITY & ENCRYPTION (6 operators)
+- @encrypt, @decrypt, @jwt, @oauth, @saml, @ldap
+
+### 6. CLOUD & PLATFORM (12 operators)
+- @kubernetes, @docker, @aws, @azure, @gcp, @terraform
+- @ansible, @puppet, @chef, @jenkins, @github, @gitlab
+
+### 7. MONITORING & OBSERVABILITY (6 operators)
+- @metrics, @logs, @alerts, @health, @status, @uptime
+
+### 8. COMMUNICATION & MESSAGING (6 operators)
+- @email, @sms, @slack, @teams, @discord, @webhook
+
+### 9. ENTERPRISE FEATURES (6 operators)
+- @rbac, @audit, @compliance, @governance, @policy, @workflow
+
+### 10. ADVANCED INTEGRATIONS (6 operators)
+- @ai, @blockchain, @iot, @edge, @quantum, @neural
+
+## IMPLEMENTATION REQUIREMENTS
+
+### Code Quality Standards
+1. **Follow existing code patterns** in the [LANGUAGE] SDK
+2. **Match PHP functionality exactly** - reference php_src.txt
+3. **Include comprehensive error handling** with proper exceptions
+4. **Add thorough logging** for debugging and monitoring
+5. **Write complete unit tests** for each operator
+6. **Document all operators** with examples and usage
+
+### Configuration Pattern
+Each operator must support this configuration pattern:
+```
+@operator_name({
+    param1: "value1",
+    param2: @variable("var_name"),
+    param3: @env("ENV_VAR"),
+    timeout: 30,
+    retry: 3
+})
+```
+
+### Error Handling
+- All operators must handle connection failures gracefully
+- Implement retry logic with exponential backoff
+- Return meaningful error messages
+- Support timeout configurations
+- Log all errors with context
+
+### Performance Requirements
+- Implement connection pooling where applicable
+- Cache results when appropriate
+- Support async operations for I/O-bound operators
+- Optimize for high-throughput scenarios
+
+## STEP-BY-STEP IMPLEMENTATION PROCESS
+
+### Phase 1: Assessment (Week 1)
+1. Read your language's completion analysis file
+2. Identify which operators are missing
+3. Prioritize implementation based on importance
+4. Set up development environment and tools
+
+### Phase 2: Core Implementation (Weeks 2-12)
+1. Implement missing core operators first
+2. Add advanced operators in priority order
+3. Test each operator thoroughly
+4. Document implementation details
+
+### Phase 3: Integration & Testing (Weeks 13-16)
+1. Run comprehensive integration tests
+2. Test with real-world scenarios
+3. Optimize performance bottlenecks
+4. Complete documentation
+
+### Phase 4: Validation (Week 17)
+1. Verify all 85 operators are implemented
+2. Run complete test suite
+3. Validate against PHP SDK behavior
+4. Create completion summary
+
+## REPORTING REQUIREMENTS
+
+### Weekly Progress Reports
+- Number of operators implemented
+- Current completion percentage
+- Blockers and challenges encountered
+- Next week's implementation targets
+
+### Final Completion Report
+- List all 85 implemented operators
+- Test coverage statistics
+- Performance benchmarks
+- Documentation completeness
+
+## LANGUAGE-SPECIFIC GUIDELINES
+
+### For Go SDK
+- Use goroutines for concurrent operations
+- Implement proper context handling
+- Use standard library where possible
+- Follow Go naming conventions
+
+### For Python SDK
+- Use asyncio for async operations
+- Implement proper type hints
+- Use virtual environments
+- Follow PEP 8 coding standards
+
+### For JavaScript SDK
+- Use async/await patterns
+- Implement proper error handling
+- Use npm packages judiciously
+- Support both Node.js and browser
+
+### For Rust SDK
+- Use tokio for async operations
+- Implement proper error handling with Result<T>
+- Use cargo for dependency management
+- Follow Rust ownership patterns
+
+### For C# SDK
+- Use async/await patterns
+- Implement proper IDisposable
+- Use NuGet packages
+- Follow C# naming conventions
+
+### For Java SDK
+- Use CompletableFuture for async operations
+- Implement proper exception handling
+- Use Maven/Gradle for dependencies
+- Follow Java naming conventions
+
+### For Ruby SDK
+- Use fiber for concurrent operations
+- Implement proper error handling
+- Use gems judiciously
+- Follow Ruby conventions
+
+### For Bash SDK
+- Use proper process management
+- Implement error handling with exit codes
+- Use standard Unix tools
+- Follow shell scripting best practices
+
+## SUCCESS CRITERIA
+
+### Technical Completion
+- ✅ All 85 operators implemented
+- ✅ 100% test coverage achieved
+- ✅ Performance benchmarks met
+- ✅ Documentation complete
+
+### Quality Assurance
+- ✅ All operators match PHP SDK behavior
+- ✅ Error handling is comprehensive
+- ✅ Code follows language conventions
+- ✅ Security best practices implemented
+
+### Validation
+- ✅ Integration tests pass
+- ✅ Real-world scenarios tested
+- ✅ Performance requirements met
+- ✅ Documentation is complete
+
+## COMMON PITFALLS TO AVOID
+
+1. **Don't claim completion without implementing ALL 85 operators**
+2. **Don't skip error handling and logging**
+3. **Don't ignore performance considerations**
+4. **Don't forget to write comprehensive tests**
+5. **Don't deviate from PHP SDK behavior**
+6. **Don't use deprecated or insecure libraries**
+7. **Don't forget to document your implementation**
+
+## SUPPORT RESOURCES
+
+### Reference Implementation
+- PHP SDK in `/opt/tsk_git/fujsen/src/CoreOperators/`
+- Complete operator mapping in `php_src.txt`
+- Existing [LANGUAGE] SDK for patterns
+
+### Documentation
+- TuskLang language specification
+- [LANGUAGE] SDK documentation
+- Operator usage examples
+
+### Testing
+- Unit test frameworks for [LANGUAGE]
+- Integration test suites
+- Performance testing tools
+
+## FINAL REMINDER
+
+Your mission is to achieve TRUE 100% feature parity - implementing ALL 85 operators with identical functionality to the PHP SDK. Anything less than 85 implemented operators is NOT completion.
+
+Good luck! 🚀

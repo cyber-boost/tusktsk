@@ -1,0 +1,1022 @@
+<h1>Performance Optimization in TuskLang for Ruby</h1>
+
+<h2>Performance Tuning and Optimization</h2>
+<p>TuskLang provides comprehensive performance optimization features for Ruby applications including caching, profiling, and resource management.</p>
+
+<h3>performance.tsk</h3>
+<pre>
+# Performance Configuration
+performance: {
+    # Ruby VM optimizations
+    ruby: {
+        gc: {
+            heap_growth_factor: 1.8
+            heap_growth_max_slots: 0
+            heap_init_slots: 10000
+            heap_free_slots: 4096
+            heap_slots_increment: 10000
+            
+            # GC tuning for different environments
+            tuning: {
+                development: {
+                    malloc_limit: 16777216      # 16MB
+                    oldmalloc_limit: 16777216   # 16MB
+                }
+                production: {
+                    malloc_limit: 67108864      # 64MB
+                    oldmalloc_limit: 134217728  # 128MB
+                }
+            }
+        }
+        
+        # JIT compilation (Ruby 2.6+)
+        jit: {
+            enabled: env("RUBY_JIT", false)
+            options: {
+                max_cache: 10000
+                min_calls: 10000
+            }
+        }
+    }
+    
+    # Application server optimization
+    server: {
+        # Puma configuration
+        puma: {
+            workers: env("WEB_WORKERS", cpu_count())
+            threads: {
+                min: env("MIN_THREADS", 1)
+                max: env("MAX_THREADS", 5)
+            }
+            
+            # Clustering options
+            preload_app: true
+            worker_timeout: 60
+            worker_boot_timeout: 10
+            worker_shutdown_timeout: 30
+            
+            # Memory management
+            before_fork: "GC.compact"
+            on_worker_boot: "GC.compact"
+        }
+        
+        # Unicorn configuration (alternative)
+        unicorn: {
+            worker_processes: env("WEB_WORKERS", cpu_count())
+            timeout: 30
+            preload_app: true
+            
+            # Memory limits
+            before_exec: "GC.start"
+            before_fork: "GC.start"
+        }
+    }
+    
+    # Database performance
+    database: {
+        # Connection pooling
+        pool: {
+            size: env("DB_POOL", 25)
+            checkout_timeout: 5
+            reaping_frequency: 10
+            idle_timeout: 300
+        }
+        
+        # Query optimization
+        query: {
+            # Prepared statements
+            prepared_statements: true
+            statement_limit: 1000
+            
+            # Query caching
+            query_cache: true
+            query_cache_size: "64MB"
+            
+            # Slow query detection
+            slow_query_threshold: 1000  # milliseconds
+            log_slow_queries: true
+            
+            # Connection optimization
+            tcp_keepalives_idle: 600
+            tcp_keepalives_interval: 30
+            tcp_keepalives_count: 3
+        }
+        
+        # Index optimization
+        indexing: {
+            auto_analyze: true
+            maintenance_work_mem: "256MB"
+            random_page_cost: 1.1
+            effective_cache_size: "1GB"
+        }
+    }
+    
+    # Caching strategies
+    caching: {
+        # Application-level caching
+        app_cache: {
+            store: env("CACHE_STORE", "redis")
+            default_ttl: 3600
+            
+            # Cache stores configuration
+            stores: {
+                memory: {
+                    type: "memory_store"
+                    size: "64MB"
+                    compress: true
+                }
+                
+                redis: {
+                    type: "redis_cache_store"
+                    url: env("REDIS_URL")
+                    pool_size: 5
+                    pool_timeout: 5
+                    reconnect_attempts: 3
+                    
+                    # Redis-specific optimizations
+                    tcp_keepalive: true
+                    compression: true
+                    compress_threshold: 1024
+                }
+                
+                memcached: {
+                    type: "mem_cache_store"
+                    servers: env("MEMCACHED_SERVERS", "localhost:11211")
+                    pool_size: 5
+                    failover: true
+                    compression: true
+                }
+            }
+        }
+        
+        # HTTP caching
+        http_cache: {
+            # ETags
+            etags: {
+                enabled: true
+                weak: false
+            }
+            
+            # Cache-Control headers
+            cache_control: {
+                public_assets: "public, max-age=31536000"  # 1 year
+                private_content: "private, max-age=0"
+                api_responses: "public, max-age=300"       # 5 minutes
+            }
+            
+            # CDN integration
+            cdn: {
+                enabled: env("CDN_ENABLED", false)
+                provider: env("CDN_PROVIDER", "cloudfront")
+                domain: env("CDN_DOMAIN")
+                
+                # Cache invalidation
+                invalidation: {
+                    auto: true
+                    max_paths: 3000
+                    batch_size: 100
+                }
+            }
+        }
+        
+        # Fragment caching
+        fragment_cache: {
+            enabled: true
+            default_expires_in: 1800  # 30 minutes
+            
+            # Cache keys
+            key_strategy: "sha256"
+            include_hostname: false
+            include_params: true
+            
+            # Cache sweeping
+            auto_sweep: true
+            sweep_on_update: true
+        }
+        
+        # Page caching
+        page_cache: {
+            enabled: env("PAGE_CACHE", false)
+            directory: "public/cache"
+            gzip: true
+            
+            # Cache rules
+            cache_everything: false
+            cache_anonymous_only: true
+            ignore_params: ["utm_source", "utm_medium", "utm_campaign"]
+        }
+    }
+    
+    # Asset optimization
+    assets: {
+        # Compilation
+        compilation: {
+            # CSS optimization
+            css: {
+                minify: true
+                remove_comments: true
+                remove_whitespace: true
+                optimize_fonts: true
+                
+                # Critical CSS
+                critical_css: {
+                    enabled: env("CRITICAL_CSS", false)
+                    inline_threshold: "14KB"
+                    extract_critical: true
+                }
+            }
+            
+            # JavaScript optimization
+            javascript: {
+                minify: true
+                mangle: true
+                compress: true
+                tree_shake: true
+                
+                # Code splitting
+                code_splitting: {
+                    enabled: true
+                    strategy: "async"
+                    max_parallel_requests: 30
+                }
+                
+                # Bundle optimization
+                bundle_splitting: {
+                    vendor_chunk: true
+                    runtime_chunk: true
+                    commons_chunk: true
+                }
+            }
+            
+            # Image optimization
+            images: {
+                optimize: true
+                quality: 85
+                progressive: true
+                
+                # Format conversion
+                webp: {
+                    enabled: true
+                    quality: 80
+                    fallback: true
+                }
+                
+                avif: {
+                    enabled: env("AVIF_SUPPORT", false)
+                    quality: 75
+                }
+                
+                # Responsive images
+                responsive: {
+                    enabled: true
+                    breakpoints: [480, 768, 1024, 1440, 1920]
+                    formats: ["webp", "jpg"]
+                }
+            }
+        }
+        
+        # Delivery optimization
+        delivery: {
+            # Compression
+            gzip: {
+                enabled: true
+                compression_level: 6
+                vary_header: true
+            }
+            
+            brotli: {
+                enabled: env("BROTLI", true)
+                compression_level: 4
+                static_compression: true
+            }
+            
+            # HTTP/2 optimization
+            http2: {
+                enabled: true
+                server_push: env("HTTP2_PUSH", false)
+                push_resources: [
+                    {path: "/assets/application.css", type: "style"},
+                    {path: "/assets/application.js", type: "script"}
+                ]
+            }
+        }
+        
+        # Asset fingerprinting
+        fingerprinting: {
+            enabled: true
+            algorithm: "sha256"
+            length: 32
+        }
+    }
+    
+    # Memory optimization
+    memory: {
+        # Memory monitoring
+        monitoring: {
+            enabled: true
+            threshold_mb: 1024
+            alert_threshold_mb: 1536
+            
+            # Memory profiling
+            profiling: {
+                enabled: env("MEMORY_PROFILING", false)
+                interval: 60  # seconds
+                detailed_reports: false
+            }
+        }
+        
+        # Garbage collection optimization
+        gc_optimization: {
+            # Automatic GC tuning
+            auto_tune: env("GC_AUTO_TUNE", false)
+            
+            # Manual GC settings
+            manual_settings: {
+                heap_growth_factor: 1.8
+                heap_growth_max_slots: 0
+                heap_init_slots: 10000
+                heap_free_slots: 4096
+                
+                # Major GC settings
+                major_gc_count: 0
+                remembered_wb_unprotected_objects_limit: 0.01
+                remembered_wb_unprotected_objects: 0.01
+                old_objects_limit: 0.01
+                oldmalloc_limit_min: 16777216
+                oldmalloc_limit_max: 134217728
+                oldmalloc_limit_growth_factor: 1.2
+            }
+        }
+        
+        # Memory leak detection
+        leak_detection: {
+            enabled: env("LEAK_DETECTION", false)
+            check_interval: 300  # seconds
+            threshold_growth: 0.1  # 10% growth
+            
+            # Object tracking
+            track_objects: true
+            track_allocations: env("TRACK_ALLOCATIONS", false)
+        }
+    }
+    
+    # Background job optimization
+    background_jobs: {
+        # Sidekiq optimization
+        sidekiq: {
+            # Concurrency settings
+            concurrency: env("SIDEKIQ_CONCURRENCY", cpu_count() * 2)
+            
+            # Queue prioritization
+            queues: {
+                critical: 8
+                high: 4
+                default: 2
+                low: 1
+            }
+            
+            # Batch processing
+            batch_processing: {
+                enabled: true
+                batch_size: 1000
+                parallel_batches: 4
+            }
+            
+            # Performance monitoring
+            monitoring: {
+                slow_job_threshold: 30  # seconds
+                memory_usage_tracking: true
+                queue_depth_monitoring: true
+            }
+        }
+        
+        # Job optimization strategies
+        strategies: {
+            # Bulk operations
+            bulk_operations: {
+                enabled: true
+                batch_size: 500
+                parallel_processing: true
+            }
+            
+            # Connection pooling for jobs
+            connection_pooling: {
+                pool_size: 25
+                checkout_timeout: 5
+            }
+            
+            # Job scheduling optimization
+            scheduling: {
+                distribute_load: true
+                avoid_peak_hours: [9, 10, 11, 12, 13, 14, 15, 16, 17]
+                prefer_off_hours: [2, 3, 4, 5]
+            }
+        }
+    }
+    
+    # Network optimization
+    network: {
+        # Connection optimization
+        connections: {
+            # Keep-alive settings
+            keep_alive: {
+                enabled: true
+                timeout: 60
+                max_requests: 1000
+            }
+            
+            # Connection pooling
+            pooling: {
+                enabled: true
+                pool_size: 10
+                pool_timeout: 5
+                
+                # External APIs
+                external_apis: {
+                    default_timeout: 30
+                    read_timeout: 30
+                    open_timeout: 10
+                    ssl_timeout: 10
+                }
+            }
+        }
+        
+        # Request optimization
+        requests: {
+            # Request queuing
+            queuing: {
+                enabled: env("REQUEST_QUEUING", false)
+                max_queue_size: 1000
+                queue_timeout: 30
+                priority_classes: ["critical", "normal", "low"]
+            }
+            
+            # Rate limiting
+            rate_limiting: {
+                enabled: true
+                requests_per_minute: 60
+                burst_allowance: 10
+                
+                # Progressive penalties
+                progressive: {
+                    enabled: true
+                    penalties: [
+                        {threshold: 100, delay: 1},
+                        {threshold: 200, delay: 5},
+                        {threshold: 500, delay: 30}
+                    ]
+                }
+            }
+        }
+    }
+    
+    # Monitoring and profiling
+    monitoring: {
+        # Application Performance Monitoring
+        apm: {
+            enabled: env("APM_ENABLED", false)
+            provider: env("APM_PROVIDER", "new_relic")
+            sampling_rate: env("APM_SAMPLING", 0.1)
+            
+            # Custom metrics
+            custom_metrics: {
+                business_metrics: true
+                infrastructure_metrics: true
+                user_experience_metrics: true
+            }
+        }
+        
+        # Profiling
+        profiling: {
+            # Ruby profiler
+            ruby_prof: {
+                enabled: env("RUBY_PROF", false)
+                mode: "wall_time"
+                exclude_threads: ["GC"]
+            }
+            
+            # Memory profiler
+            memory_profiler: {
+                enabled: env("MEMORY_PROF", false)
+                track_object_creation: false
+                allow_files: true
+            }
+            
+            # Stackprof
+            stackprof: {
+                enabled: env("STACKPROF", false)
+                mode: "cpu"
+                interval: 1000
+                save_every: 1000
+            }
+        }
+        
+        # Performance alerts
+        alerts: {
+            response_time_threshold: 5000  # milliseconds
+            error_rate_threshold: 0.05    # 5%
+            memory_threshold: 1024        # MB
+            cpu_threshold: 0.8           # 80%
+            
+            # Alert channels
+            channels: {
+                email: env("ALERT_EMAIL")
+                slack: env("SLACK_WEBHOOK")
+                pagerduty: env("PAGERDUTY_KEY")
+            }
+        }
+    }
+    
+    # Environment-specific optimizations
+    environments: {
+        development: {
+            # Disable expensive operations
+            asset_compilation: false
+            eager_loading: false
+            
+            # Enable debugging aids
+            query_debugging: true
+            template_debugging: true
+            
+            # Reduced caching
+            cache_ttl_multiplier: 0.1
+        }
+        
+        test: {
+            # Optimize for test speed
+            transactional_fixtures: true
+            parallel_tests: env("PARALLEL_TESTS", false)
+            
+            # Minimal caching
+            cache_store: "null_store"
+            
+            # Fast GC
+            gc_compact_on_test_end: true
+        }
+        
+        production: {
+            # Maximum optimization
+            eager_loading: true
+            asset_precompilation: true
+            
+            # Aggressive caching
+            cache_ttl_multiplier: 1.0
+            
+            # Production GC settings
+            gc_optimization: true
+            jit_compilation: env("RUBY_JIT", false)
+        }
+    }
+}
+</pre>
+
+<h3>Ruby Performance Optimizer</h3>
+<pre>
+#!/usr/bin/env ruby
+
+require 'benchmark'
+require 'gc'
+
+class TuskLangPerformanceOptimizer
+  attr_reader :config, :metrics
+
+  def initialize(config)
+    @config = config
+    @metrics = {}
+    @baseline_metrics = nil
+  end
+
+  def optimize_application
+    puts "Starting TuskLang performance optimization..."
+    
+    # Capture baseline metrics
+    @baseline_metrics = capture_baseline_metrics
+    
+    # Apply optimizations
+    optimize_ruby_vm if @config.performance&.ruby
+    optimize_database if @config.performance&.database
+    optimize_caching if @config.performance&.caching
+    optimize_memory if @config.performance&.memory
+    optimize_assets if @config.performance&.assets
+    
+    # Measure improvements
+    final_metrics = capture_performance_metrics
+    report_improvements(@baseline_metrics, final_metrics)
+  end
+
+  def benchmark_operation(name, &block)
+    puts "Benchmarking #{name}..."
+    
+    GC.start
+    GC.disable
+    
+    result = Benchmark.measure(&block)
+    
+    GC.enable
+    GC.start
+    
+    @metrics[name] = {
+      real_time: result.real,
+      cpu_time: result.total,
+      memory_before: get_memory_usage,
+      memory_after: get_memory_usage
+    }
+    
+    puts "  Time: #{result.real.round(4)}s"
+    puts "  CPU: #{result.total.round(4)}s"
+    
+    result
+  end
+
+  def optimize_ruby_vm
+    return unless @config.performance.ruby
+
+    puts "Optimizing Ruby VM..."
+    
+    # Apply GC tuning
+    if @config.performance.ruby.gc
+      apply_gc_tuning(@config.performance.ruby.gc)
+    end
+    
+    # Enable JIT if configured
+    if @config.performance.ruby.jit&.enabled
+      enable_jit_compilation(@config.performance.ruby.jit)
+    end
+  end
+
+  def optimize_database
+    return unless @config.performance.database
+
+    puts "Optimizing database performance..."
+    
+    # Configure connection pool
+    if @config.performance.database.pool
+      configure_connection_pool(@config.performance.database.pool)
+    end
+    
+    # Setup query optimization
+    if @config.performance.database.query
+      setup_query_optimization(@config.performance.database.query)
+    end
+  end
+
+  def optimize_caching
+    return unless @config.performance.caching
+
+    puts "Optimizing caching strategies..."
+    
+    # Configure application cache
+    if @config.performance.caching.app_cache
+      setup_application_cache(@config.performance.caching.app_cache)
+    end
+    
+    # Setup HTTP caching
+    if @config.performance.caching.http_cache
+      configure_http_caching(@config.performance.caching.http_cache)
+    end
+  end
+
+  def optimize_memory
+    return unless @config.performance.memory
+
+    puts "Optimizing memory usage..."
+    
+    # Setup memory monitoring
+    if @config.performance.memory.monitoring&.enabled
+      setup_memory_monitoring(@config.performance.memory.monitoring)
+    end
+    
+    # Apply GC optimization
+    if @config.performance.memory.gc_optimization
+      optimize_garbage_collection(@config.performance.memory.gc_optimization)
+    end
+  end
+
+  def optimize_assets
+    return unless @config.performance.assets
+
+    puts "Optimizing asset delivery..."
+    
+    # Configure asset compilation
+    if @config.performance.assets.compilation
+      optimize_asset_compilation(@config.performance.assets.compilation)
+    end
+    
+    # Setup delivery optimization
+    if @config.performance.assets.delivery
+      configure_asset_delivery(@config.performance.assets.delivery)
+    end
+  end
+
+  private
+
+  def capture_baseline_metrics
+    {
+      memory_usage: get_memory_usage,
+      gc_count: GC.count,
+      gc_time: GC.total_time,
+      object_count: ObjectSpace.count_objects[:TOTAL],
+      load_time: measure_load_time,
+      response_time: measure_response_time
+    }
+  end
+
+  def capture_performance_metrics
+    {
+      memory_usage: get_memory_usage,
+      gc_count: GC.count,
+      gc_time: GC.total_time,
+      object_count: ObjectSpace.count_objects[:TOTAL],
+      load_time: measure_load_time,
+      response_time: measure_response_time
+    }
+  end
+
+  def get_memory_usage
+    `ps -o rss= -p #{Process.pid}`.to_i * 1024 # Convert KB to bytes
+  rescue
+    0
+  end
+
+  def measure_load_time
+    start_time = Time.now
+    # Simulate application load
+    yield if block_given?
+    Time.now - start_time
+  end
+
+  def measure_response_time
+    # This would measure actual response time in a real scenario
+    0.1 # Placeholder
+  end
+
+  def apply_gc_tuning(gc_config)
+    environment = ENV['RAILS_ENV'] || 'development'
+    tuning = gc_config.tuning&.send(environment) || {}
+    
+    # Set GC environment variables
+    ENV['RUBY_GC_HEAP_GROWTH_FACTOR'] = gc_config.heap_growth_factor.to_s if gc_config.heap_growth_factor
+    ENV['RUBY_GC_HEAP_GROWTH_MAX_SLOTS'] = gc_config.heap_growth_max_slots.to_s if gc_config.heap_growth_max_slots
+    ENV['RUBY_GC_HEAP_INIT_SLOTS'] = gc_config.heap_init_slots.to_s if gc_config.heap_init_slots
+    ENV['RUBY_GC_HEAP_FREE_SLOTS'] = gc_config.heap_free_slots.to_s if gc_config.heap_free_slots
+    
+    # Apply environment-specific tuning
+    if tuning.malloc_limit
+      ENV['RUBY_GC_MALLOC_LIMIT'] = tuning.malloc_limit.to_s
+    end
+    
+    if tuning.oldmalloc_limit
+      ENV['RUBY_GC_OLDMALLOC_LIMIT'] = tuning.oldmalloc_limit.to_s
+    end
+    
+    puts "  Applied GC tuning for #{environment}"
+  end
+
+  def enable_jit_compilation(jit_config)
+    ENV['RUBY_JIT'] = 'true'
+    
+    if jit_config.options
+      ENV['RUBY_JIT_MAX_CACHE'] = jit_config.options.max_cache.to_s if jit_config.options.max_cache
+      ENV['RUBY_JIT_MIN_CALLS'] = jit_config.options.min_calls.to_s if jit_config.options.min_calls
+    end
+    
+    puts "  Enabled JIT compilation"
+  end
+
+  def configure_connection_pool(pool_config)
+    if defined?(ActiveRecord)
+      ActiveRecord::Base.establish_connection(
+        ActiveRecord::Base.connection_config.merge(
+          pool: pool_config.size,
+          checkout_timeout: pool_config.checkout_timeout,
+          reaping_frequency: pool_config.reaping_frequency
+        )
+      )
+      
+      puts "  Configured database connection pool (size: #{pool_config.size})"
+    end
+  end
+
+  def setup_query_optimization(query_config)
+    if defined?(ActiveRecord)
+      # Enable prepared statements if configured
+      if query_config.prepared_statements
+        ActiveRecord::Base.connection.execute("SET SESSION sql_mode = 'PREPARED_STATEMENTS'") rescue nil
+      end
+      
+      # Setup slow query logging
+      if query_config.log_slow_queries && query_config.slow_query_threshold
+        setup_slow_query_logging(query_config.slow_query_threshold)
+      end
+      
+      puts "  Applied query optimizations"
+    end
+  end
+
+  def setup_application_cache(cache_config)
+    store_type = cache_config.store || 'memory'
+    store_config = cache_config.stores&.send(store_type)
+    
+    if defined?(Rails)
+      case store_type
+      when 'redis'
+        Rails.cache = ActiveSupport::Cache::RedisCacheStore.new(
+          url: store_config&.url || ENV['REDIS_URL'],
+          pool_size: store_config&.pool_size || 5,
+          pool_timeout: store_config&.pool_timeout || 5
+        )
+      when 'memcached'
+        Rails.cache = ActiveSupport::Cache::MemCacheStore.new(
+          store_config&.servers || 'localhost:11211'
+        )
+      else
+        Rails.cache = ActiveSupport::Cache::MemoryStore.new(
+          size: store_config&.size || 64.megabytes
+        )
+      end
+      
+      puts "  Configured #{store_type} cache store"
+    end
+  end
+
+  def configure_http_caching(http_config)
+    # This would configure HTTP caching headers and CDN settings
+    puts "  Configured HTTP caching"
+  end
+
+  def setup_memory_monitoring(monitoring_config)
+    if monitoring_config.profiling&.enabled
+      Thread.new do
+        loop do
+          memory_usage = get_memory_usage
+          
+          if memory_usage > (monitoring_config.threshold_mb * 1024 * 1024)
+            puts "WARNING: Memory usage (#{memory_usage / 1024 / 1024}MB) exceeds threshold"
+          end
+          
+          sleep monitoring_config.profiling.interval || 60
+        end
+      end
+      
+      puts "  Started memory monitoring"
+    end
+  end
+
+  def optimize_garbage_collection(gc_config)
+    if gc_config.auto_tune
+      # Implement automatic GC tuning based on application metrics
+      auto_tune_gc
+    elsif gc_config.manual_settings
+      # Apply manual GC settings
+      apply_manual_gc_settings(gc_config.manual_settings)
+    end
+    
+    puts "  Applied GC optimizations"
+  end
+
+  def optimize_asset_compilation(compilation_config)
+    # This would configure asset compilation optimizations
+    puts "  Optimized asset compilation"
+  end
+
+  def configure_asset_delivery(delivery_config)
+    # This would configure asset delivery optimizations
+    puts "  Configured asset delivery optimization"
+  end
+
+  def setup_slow_query_logging(threshold_ms)
+    if defined?(ActiveSupport)
+      ActiveSupport::Notifications.subscribe('sql.active_record') do |name, start, finish, id, payload|
+        duration = (finish - start) * 1000
+        
+        if duration > threshold_ms
+          Rails.logger.warn "SLOW QUERY (#{duration.round(2)}ms): #{payload[:sql]}"
+        end
+      end
+    end
+  end
+
+  def auto_tune_gc
+    # Implement automatic GC tuning algorithm
+    current_stats = GC.stat
+    
+    # Adjust heap size based on allocation rate
+    if current_stats[:heap_allocated_pages] > current_stats[:heap_available_slots] * 0.8
+      new_init_slots = current_stats[:heap_init_slots] * 1.2
+      ENV['RUBY_GC_HEAP_INIT_SLOTS'] = new_init_slots.to_i.to_s
+    end
+  end
+
+  def apply_manual_gc_settings(settings)
+    settings.each do |key, value|
+      env_key = "RUBY_GC_#{key.to_s.upcase}"
+      ENV[env_key] = value.to_s
+    end
+  end
+
+  def report_improvements(baseline, final)
+    puts "\nPerformance Optimization Results:"
+    puts "=" * 50
+    
+    memory_improvement = ((baseline[:memory_usage] - final[:memory_usage]).to_f / baseline[:memory_usage] * 100).round(2)
+    puts "Memory usage: #{memory_improvement > 0 ? '-' : '+'}#{memory_improvement.abs}%"
+    
+    gc_improvement = ((baseline[:gc_time] - final[:gc_time]).to_f / baseline[:gc_time] * 100).round(2)
+    puts "GC time: #{gc_improvement > 0 ? '-' : '+'}#{gc_improvement.abs}%"
+    
+    object_improvement = ((baseline[:object_count] - final[:object_count]).to_f / baseline[:object_count] * 100).round(2)
+    puts "Object count: #{object_improvement > 0 ? '-' : '+'}#{object_improvement.abs}%"
+    
+    puts "\nOptimization completed successfully!"
+  end
+end
+
+# Performance monitoring middleware
+class TuskLangPerformanceMiddleware
+  def initialize(app, config = {})
+    @app = app
+    @config = config
+    @metrics = {}
+  end
+
+  def call(env)
+    start_time = Time.now
+    memory_before = get_memory_usage
+    
+    status, headers, response = @app.call(env)
+    
+    end_time = Time.now
+    memory_after = get_memory_usage
+    
+    # Record metrics
+    record_request_metrics(
+      env,
+      duration: end_time - start_time,
+      memory_delta: memory_after - memory_before,
+      status: status
+    )
+    
+    [status, headers, response]
+  end
+
+  private
+
+  def get_memory_usage
+    `ps -o rss= -p #{Process.pid}`.to_i * 1024
+  rescue
+    0
+  end
+
+  def record_request_metrics(env, metrics)
+    path = env['PATH_INFO']
+    method = env['REQUEST_METHOD']
+    
+    @metrics["#{method} #{path}"] ||= {
+      count: 0,
+      total_time: 0.0,
+      total_memory: 0,
+      avg_time: 0.0,
+      avg_memory: 0.0
+    }
+    
+    @metrics["#{method} #{path}"][:count] += 1
+    @metrics["#{method} #{path}"][:total_time] += metrics[:duration]
+    @metrics["#{method} #{path}"][:total_memory] += metrics[:memory_delta]
+    
+    # Calculate averages
+    count = @metrics["#{method} #{path}"][:count]
+    @metrics["#{method} #{path}"][:avg_time] = @metrics["#{method} #{path}"][:total_time] / count
+    @metrics["#{method} #{path}"][:avg_memory] = @metrics["#{method} #{path}"][:total_memory] / count
+    
+    # Log slow requests
+    if metrics[:duration] > (@config[:slow_request_threshold] || 1.0)
+      puts "SLOW REQUEST: #{method} #{path} (#{metrics[:duration].round(4)}s)"
+    end
+  end
+end
+
+if __FILE__ == $0
+  # Example usage
+  config = OpenStruct.new(
+    performance: OpenStruct.new(
+      ruby: OpenStruct.new(
+        gc: OpenStruct.new(
+          heap_growth_factor: 1.8,
+          heap_init_slots: 10000
+        )
+      )
+    )
+  )
+  
+  optimizer = TuskLangPerformanceOptimizer.new(config)
+  
+  # Benchmark a sample operation
+  optimizer.benchmark_operation("sample_calculation") do
+    (1..1000000).map { |i| i * 2 }.sum
+  end
+  
+  puts "Performance optimization demo completed"
+end
+</pre>
+
+<p>TuskLang's performance optimization features provide comprehensive tuning capabilities for Ruby applications with advanced monitoring, profiling, and resource management.</p>

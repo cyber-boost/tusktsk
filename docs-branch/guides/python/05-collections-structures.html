@@ -1,0 +1,656 @@
+<h1>Collections and Data Structures in TuskLang Python</h1>
+
+<h2>Advanced Collections Support</h2>
+<p>TuskLang provides sophisticated collection types that map to Python's data structures including lists, dictionaries, sets, and custom objects.</p>
+
+<h3>collections.tsk</h3>
+<pre>
+# Simple Arrays (Python Lists)
+fruits: ["apple", "banana", "cherry", "date"]
+numbers: [1, 2, 3, 4, 5]
+mixed_types: [1, "two", 3.14, true, null]
+empty_list: []
+
+# Nested Arrays
+matrix: [
+    [1, 2, 3],
+    [4, 5, 6],
+    [7, 8, 9]
+]
+
+coordinates: [
+    {"x": 10, "y": 20},
+    {"x": 30, "y": 40},
+    {"x": 50, "y": 60}
+]
+
+# Multi-line Arrays
+api_endpoints: [
+    "https://api.example.com/users",
+    "https://api.example.com/posts",
+    "https://api.example.com/comments",
+    "https://api.example.com/analytics"
+]
+
+# Objects (Python Dictionaries)
+user_profile {
+    id: 12345
+    username: "pythondev"
+    email: "dev@example.com"
+    is_active: true
+    created_at: "2024-01-15T10:30:00Z"
+    
+    preferences {
+        theme: "dark"
+        language: "en"
+        notifications: true
+        timezone: "UTC"
+    }
+    
+    roles: ["user", "developer", "admin"]
+    permissions: {
+        read: true
+        write: true
+        delete: false
+        admin: false
+    }
+}
+
+# Database Configuration
+databases {
+    primary {
+        engine: "postgresql"
+        host: env("PRIMARY_DB_HOST", "localhost")
+        port: env("PRIMARY_DB_PORT", 5432)
+        name: env("PRIMARY_DB_NAME", "main")
+        pool_size: 20
+        max_overflow: 30
+        
+        connection_params {
+            sslmode: "require"
+            connect_timeout: 10
+            application_name: "myapp"
+        }
+    }
+    
+    replica {
+        engine: "postgresql"
+        host: env("REPLICA_DB_HOST", "replica.example.com")
+        port: 5432
+        name: env("REPLICA_DB_NAME", "main")
+        readonly: true
+        pool_size: 10
+    }
+    
+    cache {
+        engine: "redis"
+        host: env("REDIS_HOST", "localhost")
+        port: env("REDIS_PORT", 6379)
+        db: env("REDIS_DB", 0)
+        password: env("REDIS_PASSWORD", null)
+        
+        settings {
+            max_connections: 100
+            socket_timeout: 5
+            socket_keepalive: true
+            retry_on_timeout: true
+        }
+    }
+}
+
+# Server Configuration with Arrays
+load_balancer {
+    algorithm: "round_robin"
+    health_check_interval: 30
+    
+    upstream_servers: [
+        {
+            host: "server1.example.com"
+            port: 8080
+            weight: 100
+            max_fails: 3
+            fail_timeout: 30
+        },
+        {
+            host: "server2.example.com"
+            port: 8080
+            weight: 100
+            max_fails: 3
+            fail_timeout: 30
+        },
+        {
+            host: "server3.example.com"
+            port: 8080
+            weight: 50
+            backup: true
+        }
+    ]
+}
+
+# API Configuration
+api_config {
+    version: "v1"
+    base_url: "https://api.example.com"
+    timeout: 30
+    retry_attempts: 3
+    
+    endpoints {
+        users {
+            list: {
+                method: "GET"
+                path: "/users"
+                params: ["page", "limit", "sort"]
+                cache_ttl: 300
+            }
+            
+            create: {
+                method: "POST"
+                path: "/users"
+                required_fields: ["username", "email", "password"]
+                optional_fields: ["first_name", "last_name", "phone"]
+            }
+            
+            update: {
+                method: "PUT"
+                path: "/users/{id}"
+                required_fields: ["id"]
+                optional_fields: ["username", "email", "first_name", "last_name"]
+            }
+        }
+        
+        posts {
+            list: {
+                method: "GET"
+                path: "/posts"
+                params: ["author_id", "category", "published", "page"]
+            }
+            
+            create: {
+                method: "POST"
+                path: "/posts"
+                required_fields: ["title", "content", "author_id"]
+                optional_fields: ["category", "tags", "published"]
+            }
+        }
+    }
+}
+
+# Logging Configuration
+logging {
+    version: 1
+    disable_existing_loggers: false
+    
+    formatters {
+        detailed {
+            format: "%(asctime)s - %(name)s - %(levelname)s - %(message)s"
+            datefmt: "%Y-%m-%d %H:%M:%S"
+        }
+        
+        simple {
+            format: "%(levelname)s - %(message)s"
+        }
+        
+        json {
+            format: '{"timestamp": "%(asctime)s", "level": "%(levelname)s", "logger": "%(name)s", "message": "%(message)s"}'
+        }
+    }
+    
+    handlers {
+        console {
+            class: "logging.StreamHandler"
+            level: "INFO"
+            formatter: "simple"
+            stream: "ext://sys.stdout"
+        }
+        
+        file {
+            class: "logging.handlers.RotatingFileHandler"
+            level: "DEBUG"
+            formatter: "detailed"
+            filename: "/var/log/myapp/app.log"
+            maxBytes: 10485760
+            backupCount: 5
+        }
+        
+        error_file {
+            class: "logging.handlers.RotatingFileHandler"
+            level: "ERROR"
+            formatter: "json"
+            filename: "/var/log/myapp/error.log"
+            maxBytes: 10485760
+            backupCount: 10
+        }
+    }
+    
+    loggers {
+        myapp {
+            level: "DEBUG"
+            handlers: ["console", "file", "error_file"]
+            propagate: false
+        }
+        
+        sqlalchemy {
+            level: "WARN"
+            handlers: ["file"]
+            propagate: false
+        }
+    }
+    
+    root {
+        level: "INFO"
+        handlers: ["console"]
+    }
+}
+</pre>
+
+<h3>Python Collections Parser</h3>
+<pre>
+from typing import Any, Dict, List, Union, Optional, Set, Tuple
+from dataclasses import dataclass, field
+from collections import defaultdict, OrderedDict
+import json
+import re
+
+@dataclass
+class CollectionConfig:
+    """Configuration for collection parsing."""
+    preserve_order: bool = True
+    allow_duplicate_keys: bool = False
+    strict_types: bool = False
+    convert_sets: bool = True
+
+class TuskLangCollectionsParser:
+    """Advanced parser for TuskLang collections and structures."""
+    
+    def __init__(self, config: Optional[CollectionConfig] = None):
+        self.config = config or CollectionConfig()
+        self.indent_level = 0
+        
+    def parse_file(self, filename: str) -> Dict[str, Any]:
+        """Parse TuskLang file with full collection support."""
+        with open(filename, 'r', encoding='utf-8') as f:
+            return self.parse(f.read())
+    
+    def parse(self, content: str) -> Dict[str, Any]:
+        """Parse TuskLang content with advanced collection handling."""
+        lines = content.split('\n')
+        return self._parse_lines(lines)
+    
+    def _parse_lines(self, lines: List[str]) -> Dict[str, Any]:
+        """Parse lines into nested structure."""
+        result = OrderedDict() if self.config.preserve_order else {}
+        i = 0
+        
+        while i < len(lines):
+            line = lines[i].strip()
+            
+            # Skip empty lines and comments
+            if not line or line.startswith('#'):
+                i += 1
+                continue
+            
+            # Handle object/section start
+            if line.endswith(' {') or line.endswith('{'):
+                key = line.replace('{', '').strip()
+                obj_lines, consumed = self._extract_object_lines(lines, i + 1)
+                result[key] = self._parse_lines(obj_lines)
+                i += consumed + 1
+                continue
+            
+            # Handle array definitions
+            if '[' in line and ']' not in line:
+                key, array_lines, consumed = self._extract_array_lines(lines, i)
+                result[key] = self._parse_array(array_lines)
+                i += consumed
+                continue
+            
+            # Handle single-line arrays
+            if '[' in line and ']' in line:
+                key, value = self._parse_key_value(line)
+                result[key] = self._parse_inline_array(value)
+                i += 1
+                continue
+            
+            # Handle regular key-value pairs
+            if ':' in line or '=' in line:
+                key, value = self._parse_key_value(line)
+                result[key] = self._convert_value(value)
+                i += 1
+                continue
+            
+            i += 1
+        
+        return result
+    
+    def _extract_object_lines(self, lines: List[str], start: int) -> Tuple[List[str], int]:
+        """Extract lines belonging to an object."""
+        obj_lines = []
+        brace_count = 1
+        i = start
+        
+        while i < len(lines) and brace_count > 0:
+            line = lines[i].strip()
+            
+            if line.endswith('{'):
+                brace_count += 1
+            elif line == '}':
+                brace_count -= 1
+                if brace_count == 0:
+                    break
+            
+            if brace_count > 0:
+                obj_lines.append(lines[i])
+            
+            i += 1
+        
+        return obj_lines, i - start
+    
+    def _extract_array_lines(self, lines: List[str], start: int) -> Tuple[str, List[str], int]:
+        """Extract lines belonging to a multiline array."""
+        line = lines[start]
+        key = line.split('[')[0].split(':')[0].strip()
+        
+        array_lines = []
+        bracket_count = line.count('[') - line.count(']')
+        current_content = line.split('[', 1)[1] if '[' in line else ""
+        
+        i = start + 1
+        while i < len(lines) and bracket_count > 0:
+            next_line = lines[i]
+            current_content += "\n" + next_line
+            bracket_count += next_line.count('[') - next_line.count(']')
+            i += 1
+        
+        # Remove the closing bracket
+        current_content = current_content.rstrip().rstrip(']')
+        array_lines = [current_content]
+        
+        return key, array_lines, i - start
+    
+    def _parse_array(self, array_lines: List[str]) -> List[Any]:
+        """Parse multiline array content."""
+        content = '\n'.join(array_lines).strip()
+        return self._parse_array_content(content)
+    
+    def _parse_inline_array(self, value: str) -> List[Any]:
+        """Parse inline array [item1, item2, item3]."""
+        if not value.startswith('[') or not value.endswith(']'):
+            return [self._convert_value(value)]
+        
+        content = value[1:-1].strip()
+        return self._parse_array_content(content)
+    
+    def _parse_array_content(self, content: str) -> List[Any]:
+        """Parse array content with support for complex nested structures."""
+        if not content.strip():
+            return []
+        
+        items = []
+        current_item = ""
+        in_quotes = False
+        quote_char = None
+        bracket_depth = 0
+        brace_depth = 0
+        
+        i = 0
+        while i < len(content):
+            char = content[i]
+            
+            # Handle quotes
+            if char in ('"', "'") and (i == 0 or content[i-1] != '\\'):
+                if not in_quotes:
+                    in_quotes = True
+                    quote_char = char
+                elif char == quote_char:
+                    in_quotes = False
+                    quote_char = None
+                current_item += char
+            
+            # Handle brackets and braces
+            elif not in_quotes:
+                if char in '[(':
+                    bracket_depth += 1
+                    current_item += char
+                elif char in '])':
+                    bracket_depth -= 1
+                    current_item += char
+                elif char == '{':
+                    brace_depth += 1
+                    current_item += char
+                elif char == '}':
+                    brace_depth -= 1
+                    current_item += char
+                elif char == ',' and bracket_depth == 0 and brace_depth == 0:
+                    # End of item
+                    if current_item.strip():
+                        items.append(self._parse_array_item(current_item.strip()))
+                    current_item = ""
+                elif char == '\n' and bracket_depth == 0 and brace_depth == 0:
+                    # New line can also separate items
+                    if current_item.strip():
+                        items.append(self._parse_array_item(current_item.strip()))
+                    current_item = ""
+                else:
+                    current_item += char
+            else:
+                current_item += char
+            
+            i += 1
+        
+        # Add the last item
+        if current_item.strip():
+            items.append(self._parse_array_item(current_item.strip()))
+        
+        return items
+    
+    def _parse_array_item(self, item: str) -> Any:
+        """Parse individual array item."""
+        item = item.strip()
+        
+        # Handle nested objects
+        if item.startswith('{') and item.endswith('}'):
+            return self._parse_object_literal(item)
+        
+        # Handle nested arrays
+        if item.startswith('[') and item.endswith(']'):
+            return self._parse_inline_array(item)
+        
+        # Handle regular values
+        return self._convert_value(item)
+    
+    def _parse_object_literal(self, obj_str: str) -> Dict[str, Any]:
+        """Parse object literal like {key: value, key2: value2}."""
+        content = obj_str[1:-1].strip()
+        
+        if not content:
+            return {}
+        
+        result = OrderedDict() if self.config.preserve_order else {}
+        current_pair = ""
+        in_quotes = False
+        quote_char = None
+        brace_depth = 0
+        
+        for char in content:
+            if char in ('"', "'") and (not current_pair or current_pair[-1] != '\\'):
+                if not in_quotes:
+                    in_quotes = True
+                    quote_char = char
+                elif char == quote_char:
+                    in_quotes = False
+                    quote_char = None
+                current_pair += char
+            elif char == '{' and not in_quotes:
+                brace_depth += 1
+                current_pair += char
+            elif char == '}' and not in_quotes:
+                brace_depth -= 1
+                current_pair += char
+            elif char == ',' and not in_quotes and brace_depth == 0:
+                if current_pair.strip():
+                    key, value = self._parse_object_pair(current_pair.strip())
+                    result[key] = value
+                current_pair = ""
+            else:
+                current_pair += char
+        
+        # Handle the last pair
+        if current_pair.strip():
+            key, value = self._parse_object_pair(current_pair.strip())
+            result[key] = value
+        
+        return result
+    
+    def _parse_object_pair(self, pair: str) -> Tuple[str, Any]:
+        """Parse key-value pair from object literal."""
+        if ':' in pair:
+            key, value = pair.split(':', 1)
+        elif '=' in pair:
+            key, value = pair.split('=', 1)
+        else:
+            return pair.strip(), None
+        
+        key = key.strip()
+        if key.startswith('"') and key.endswith('"'):
+            key = key[1:-1]
+        
+        return key, self._convert_value(value.strip())
+    
+    def _parse_key_value(self, line: str) -> Tuple[str, str]:
+        """Parse key-value line."""
+        if ':' in line:
+            key, value = line.split(':', 1)
+        elif '=' in line:
+            key, value = line.split('=', 1)
+        else:
+            return line.strip(), ""
+        
+        return key.strip(), value.strip()
+    
+    def _convert_value(self, value: str) -> Any:
+        """Convert string value to appropriate Python type."""
+        if not value:
+            return ""
+        
+        value = value.strip()
+        
+        # Handle null
+        if value.lower() == 'null':
+            return None
+        
+        # Handle booleans
+        if value.lower() in ('true', 'yes', 'on'):
+            return True
+        elif value.lower() in ('false', 'no', 'off'):
+            return False
+        
+        # Handle quoted strings
+        if (value.startswith('"') and value.endswith('"')) or \
+           (value.startswith("'") and value.endswith("'")):
+            return value[1:-1]
+        
+        # Handle numbers
+        try:
+            if '.' in value or 'e' in value.lower():
+                return float(value)
+            else:
+                return int(value)
+        except ValueError:
+            pass
+        
+        # Handle environment variables
+        if value.startswith('env('):
+            return self._parse_env_function(value)
+        
+        # Return as string
+        return value
+    
+    def _parse_env_function(self, value: str) -> Any:
+        """Parse environment variable function."""
+        import os
+        import re
+        
+        match = re.match(r'env\("([^"]+)"(?:,\s*([^)]+))?\)', value)
+        if match:
+            env_var = match.group(1)
+            default_val = match.group(2)
+            
+            if default_val:
+                default_val = self._convert_value(default_val.strip())
+            else:
+                default_val = ""
+            
+            return os.getenv(env_var, default_val)
+        
+        return value
+
+# Example usage with complex collections
+def demonstrate_collections():
+    """Demonstrate advanced collection parsing."""
+    
+    complex_config = '''
+# Complex nested structure
+application {
+    name: "Advanced Python App"
+    services: [
+        {
+            name: "web_server"
+            port: 8000
+            replicas: 3
+            health_check: {
+                path: "/health"
+                interval: 30
+                timeout: 5
+            }
+        },
+        {
+            name: "worker"
+            replicas: 2
+            queue: "tasks"
+            max_tasks: 100
+        }
+    ]
+    
+    databases: [
+        "postgresql://user:pass@db1:5432/main",
+        "redis://redis:6379/0",
+        "mongodb://mongo:27017/logs"
+    ]
+}
+
+# Feature flags with complex values
+features {
+    auth {
+        enabled: true
+        providers: ["oauth2", "saml", "ldap"]
+        settings: {
+            session_timeout: 3600
+            max_sessions: 5
+            require_2fa: true
+        }
+    }
+    
+    api_rate_limiting {
+        enabled: true
+        rules: [
+            {rule: "user", limit: 1000, window: 3600},
+            {rule: "ip", limit: 100, window: 60},
+            {rule: "endpoint:/api/upload", limit: 10, window: 60}
+        ]
+    }
+}
+'''
+    
+    parser = TuskLangCollectionsParser()
+    config = parser.parse(complex_config)
+    
+    print("Parsed complex collections:")
+    print(json.dumps(config, indent=2, default=str))
+    
+    return config
+
+if __name__ == "__main__":
+    demonstrate_collections()
+</pre>
+
+<p>TuskLang's collections system provides powerful data structure capabilities that integrate seamlessly with Python's native types and complex nested configurations.</p>

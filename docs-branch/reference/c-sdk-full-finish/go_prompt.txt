@@ -1,0 +1,266 @@
+# Go SDK Completion Prompt
+# ========================
+
+## YOUR MISSION
+You are tasked with achieving 100% feature parity for the **Go SDK** in the TuskLang project. Your goal is to implement ALL 85 operators to match the complete PHP SDK implementation.
+
+## CURRENT STATUS: 23/85 (27.1% COMPLETE)
+You have implemented only 23 operators out of 85 required. **You are NOT complete and have 62 operators remaining.**
+
+## CRITICAL INSTRUCTIONS
+1. **NEVER claim 100% completion - you have 62 operators missing**
+2. **ALWAYS reference /opt/tsk_git/reference/c-sdk-full-finish/php_src.txt for exact implementation details**
+3. **ALWAYS check /opt/tsk_git/reference/c-sdk-full-finish/go_completion.txt for current status**
+4. **ALWAYS implement operators in the priority order specified below**
+
+## IMPLEMENTED OPERATORS (23/85) - DO NOT REIMPLEMENT
+✅ @variable, @env, @date, @file, @json, @query, @cache, @if, @string, @regex, @hash, @base64, @xml, @yaml, @csv, @template, @encrypt, @decrypt, @jwt, @email, @sms, @webhook, @metrics
+
+## MISSING OPERATORS (62/85) - YOUR TASK
+❌ **Advanced Messaging**: @graphql, @grpc, @websocket, @sse, @nats, @amqp  
+❌ **Distributed Systems**: @kafka, @etcd, @elasticsearch, @prometheus, @jaeger, @zipkin, @grafana, @istio, @consul  
+❌ **Security**: @vault, @oauth, @saml, @ldap  
+❌ **Database**: @mongodb, @redis, @postgresql, @mysql, @influxdb  
+❌ **Control Flow**: @switch, @for, @while, @each, @filter  
+❌ **Cloud**: @kubernetes, @docker, @aws, @azure, @gcp, @terraform, @ansible, @puppet, @chef, @jenkins, @github, @gitlab  
+❌ **Monitoring**: @logs, @alerts, @health, @status, @uptime  
+❌ **Communication**: @slack, @teams, @discord  
+❌ **Enterprise**: @rbac, @audit, @compliance, @governance, @policy, @workflow  
+❌ **Advanced**: @ai, @blockchain, @iot, @edge, @quantum, @neural, @temporal  
+
+## IMPLEMENTATION PRIORITY FOR GO SDK
+
+### Phase 1: High Priority Database & Messaging (2-3 weeks)
+1. **@mongodb** - Use official MongoDB Go driver
+2. **@redis** - Use go-redis/redis client
+3. **@postgresql** - Use lib/pq or pgx driver
+4. **@mysql** - Use go-sql-driver/mysql
+5. **@kafka** - Use Shopify/sarama or confluent-kafka-go
+6. **@nats** - Use nats-io/nats.go
+7. **@amqp** - Use streadway/amqp
+
+### Phase 2: Cloud & DevOps (4-6 weeks)
+8. **@kubernetes** - Use client-go library
+9. **@docker** - Use docker/docker client
+10. **@aws** - Use aws/aws-sdk-go-v2
+11. **@terraform** - Use hashicorp/terraform API
+12. **@jenkins** - Use bndr/gojenkins
+13. **@github** - Use google/go-github
+14. **@gitlab** - Use xanzy/go-gitlab
+
+### Phase 3: Advanced Communication (2-3 weeks)
+15. **@graphql** - Use 99designs/gqlgen or machinebox/graphql
+16. **@grpc** - Use google.golang.org/grpc
+17. **@websocket** - Use gorilla/websocket
+18. **@sse** - Use custom http streaming
+
+### Phase 4: Enterprise Features (3-4 weeks)
+19. **@rbac** - Custom implementation with roles/permissions
+20. **@audit** - Custom audit logging system
+21. **@compliance** - Custom compliance checks
+22. **@oauth** - Use golang.org/x/oauth2
+23. **@saml** - Use crewjam/saml
+24. **@vault** - Use hashicorp/vault/api
+
+## GO-SPECIFIC IMPLEMENTATION GUIDELINES
+
+### Code Structure
+```go
+// File: operators/mongodb_operator.go
+package operators
+
+import (
+    "context"
+    "go.mongodb.org/mongo-driver/mongo"
+    "go.mongodb.org/mongo-driver/mongo/options"
+)
+
+type MongoDBOperator struct {
+    client *mongo.Client
+    config MongoDBConfig
+}
+
+func (m *MongoDBOperator) Execute(ctx context.Context, params map[string]interface{}) (interface{}, error) {
+    // Implementation here
+}
+```
+
+### Error Handling Pattern
+```go
+func (op *BaseOperator) Execute(ctx context.Context, params map[string]interface{}) (interface{}, error) {
+    if err := op.validate(params); err != nil {
+        return nil, fmt.Errorf("validation failed: %w", err)
+    }
+    
+    result, err := op.executeInternal(ctx, params)
+    if err != nil {
+        op.logger.Error("operator failed", "error", err, "params", params)
+        return nil, err
+    }
+    
+    return result, nil
+}
+```
+
+### Concurrency Pattern
+```go
+func (op *KafkaOperator) Execute(ctx context.Context, params map[string]interface{}) (interface{}, error) {
+    // Use goroutines for concurrent operations
+    resultChan := make(chan interface{}, 1)
+    errorChan := make(chan error, 1)
+    
+    go func() {
+        result, err := op.executeKafkaOperation(ctx, params)
+        if err != nil {
+            errorChan <- err
+            return
+        }
+        resultChan <- result
+    }()
+    
+    select {
+    case result := <-resultChan:
+        return result, nil
+    case err := <-errorChan:
+        return nil, err
+    case <-ctx.Done():
+        return nil, ctx.Err()
+    }
+}
+```
+
+## TESTING REQUIREMENTS
+
+### Unit Tests
+```go
+// File: operators/mongodb_operator_test.go
+func TestMongoDBOperator_Execute(t *testing.T) {
+    op := NewMongoDBOperator()
+    
+    tests := []struct {
+        name    string
+        params  map[string]interface{}
+        want    interface{}
+        wantErr bool
+    }{
+        {
+            name: "valid query",
+            params: map[string]interface{}{
+                "collection": "users",
+                "query": map[string]interface{}{"active": true},
+            },
+            want: []map[string]interface{}{},
+            wantErr: false,
+        },
+    }
+    
+    for _, tt := range tests {
+        t.Run(tt.name, func(t *testing.T) {
+            got, err := op.Execute(context.Background(), tt.params)
+            if (err != nil) != tt.wantErr {
+                t.Errorf("Execute() error = %v, wantErr %v", err, tt.wantErr)
+                return
+            }
+            if !reflect.DeepEqual(got, tt.want) {
+                t.Errorf("Execute() got = %v, want %v", got, tt.want)
+            }
+        })
+    }
+}
+```
+
+## PERFORMANCE REQUIREMENTS
+
+### Connection Pooling
+```go
+type OperatorPool struct {
+    pool sync.Pool
+}
+
+func NewOperatorPool() *OperatorPool {
+    return &OperatorPool{
+        pool: sync.Pool{
+            New: func() interface{} {
+                return NewOperatorInstance()
+            },
+        },
+    }
+}
+```
+
+### Context Handling
+```go
+func (op *BaseOperator) Execute(ctx context.Context, params map[string]interface{}) (interface{}, error) {
+    // Always respect context cancellation
+    select {
+    case <-ctx.Done():
+        return nil, ctx.Err()
+    default:
+    }
+    
+    // Set timeout from config
+    timeout := op.getTimeout(params)
+    ctx, cancel := context.WithTimeout(ctx, timeout)
+    defer cancel()
+    
+    return op.executeWithContext(ctx, params)
+}
+```
+
+## COMPLETION CHECKLIST
+
+### Database Operators (5 missing)
+- [ ] @mongodb - MongoDB operations with aggregation support
+- [ ] @redis - Redis operations with pub/sub support
+- [ ] @postgresql - PostgreSQL operations with prepared statements
+- [ ] @mysql - MySQL operations with connection pooling
+- [ ] @influxdb - InfluxDB time series operations
+
+### Messaging Operators (9 missing)
+- [ ] @kafka - Producer/consumer with partition support
+- [ ] @nats - Publish/subscribe with clustering
+- [ ] @amqp - RabbitMQ operations with exchanges
+- [ ] @graphql - Query/mutation/subscription support
+- [ ] @grpc - Client/server with reflection
+- [ ] @websocket - Full-duplex communication
+- [ ] @sse - Server-sent events streaming
+- [ ] @etcd - Distributed key-value operations
+- [ ] @elasticsearch - Search and analytics
+
+### Cloud Operators (12 missing)
+- [ ] @kubernetes - Pod/service/deployment management
+- [ ] @docker - Container lifecycle management
+- [ ] @aws - EC2/S3/Lambda operations
+- [ ] @azure - Resource management
+- [ ] @gcp - Compute/storage operations
+- [ ] @terraform - Infrastructure as code
+- [ ] @ansible - Configuration management
+- [ ] @puppet - Configuration management
+- [ ] @chef - Configuration management
+- [ ] @jenkins - CI/CD pipeline management
+- [ ] @github - Repository/issues/PR management
+- [ ] @gitlab - Repository/CI/CD management
+
+### Enterprise Operators (6 missing)
+- [ ] @rbac - Role-based access control
+- [ ] @audit - Comprehensive audit logging
+- [ ] @compliance - SOC2/HIPAA/GDPR checks
+- [ ] @governance - Data governance policies
+- [ ] @policy - Policy engine with rules
+- [ ] @workflow - Workflow management system
+
+## FINAL VALIDATION
+
+Before claiming completion, verify:
+- [ ] All 85 operators are implemented
+- [ ] All operators match PHP SDK behavior
+- [ ] Comprehensive test coverage (>90%)
+- [ ] Performance benchmarks met
+- [ ] Documentation complete
+- [ ] Integration tests pass
+
+## ESTIMATED TIMELINE: 13-19 weeks
+
+**Remember**: You currently have 23/85 operators. You need 62 more operators to achieve true 100% completion. Focus on the high-priority operators first, then work through the remaining categories systematically.
+
+**DO NOT claim completion until ALL 85 operators are implemented and tested.**

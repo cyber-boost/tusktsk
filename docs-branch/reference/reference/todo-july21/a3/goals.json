@@ -1,0 +1,125 @@
+{
+  "goal_id": "a3",
+  "agent_id": "a3",
+  "language": "Java", 
+  "created_at": "2025-07-21T10:00:00Z",
+  "specialization": "Infrastructure & Monitoring Operators",
+  "priority": "MEDIUM",
+  "estimated_time": "1-2 weeks",
+  "goals": [
+    {
+      "id": "a3.1",
+      "description": "Implement @prometheus operator for metrics collection and export",
+      "success_criteria": "Full Prometheus metrics integration with custom metrics and exporters",
+      "priority": "high",
+      "operators": ["@prometheus.counter", "@prometheus.gauge", "@prometheus.histogram", "@prometheus.summary"],
+      "requirements": [
+        "Prometheus Java client library",
+        "Metrics registry and collection",
+        "HTTP metrics endpoint",
+        "Custom metric types",
+        "Metric labeling and grouping"
+      ]
+    },
+    {
+      "id": "a3.2",
+      "description": "Implement @jaeger operator for distributed tracing",
+      "success_criteria": "Full distributed tracing with span creation and context propagation",
+      "priority": "high",
+      "operators": ["@jaeger.trace", "@jaeger.span", "@jaeger.tag", "@jaeger.log"],
+      "requirements": [
+        "Jaeger Java client",
+        "Span creation and management",
+        "Context propagation",
+        "Trace sampling",
+        "Integration with OpenTracing"
+      ]
+    },
+    {
+      "id": "a3.3", 
+      "description": "Implement @zipkin operator for tracing and span management",
+      "success_criteria": "Full Zipkin tracing with span reporting and trace visualization",
+      "priority": "medium",
+      "operators": ["@zipkin.span", "@zipkin.trace", "@zipkin.tag", "@zipkin.annotation"],
+      "requirements": [
+        "Zipkin Java client (Brave)",
+        "Span reporting to Zipkin server",
+        "Trace context propagation",
+        "Sampling configuration",
+        "HTTP/gRPC tracing integration"
+      ]
+    },
+    {
+      "id": "a3.4",
+      "description": "Implement @grafana operator for dashboard and visualization integration", 
+      "success_criteria": "Grafana API integration for dashboard management and alerting",
+      "priority": "medium",
+      "operators": ["@grafana.dashboard", "@grafana.alert", "@grafana.datasource", "@grafana.panel"],
+      "requirements": [
+        "Grafana HTTP API client",
+        "Dashboard creation and management",
+        "Alert rule management",
+        "Data source configuration",
+        "Panel and visualization management"
+      ]
+    },
+    {
+      "id": "a3.5",
+      "description": "Implement @consul operator for service discovery and configuration",
+      "success_criteria": "Full Consul integration with service registration and KV operations",
+      "priority": "medium", 
+      "operators": ["@consul.service", "@consul.kv", "@consul.health", "@consul.catalog"],
+      "requirements": [
+        "Consul Java client",
+        "Service registration and discovery",
+        "Key-Value store operations",
+        "Health check management",
+        "Catalog and node management"
+      ]
+    },
+    {
+      "id": "a3.6",
+      "description": "Implement @vault operator for secret management",
+      "success_criteria": "Full HashiCorp Vault integration with secret operations and auth",
+      "priority": "high",
+      "operators": ["@vault.read", "@vault.write", "@vault.delete", "@vault.auth"],
+      "requirements": [
+        "Vault Java client",
+        "Secret engine operations",
+        "Authentication methods",
+        "Dynamic secrets",
+        "Lease management"
+      ]
+    },
+    {
+      "id": "a3.7",
+      "description": "Implement @istio operator for service mesh operations",
+      "success_criteria": "Istio API integration for service mesh configuration and policies",
+      "priority": "low",
+      "operators": ["@istio.policy", "@istio.route", "@istio.security", "@istio.telemetry"],
+      "requirements": [
+        "Istio Kubernetes API client",
+        "Traffic management policies",
+        "Security policy configuration",
+        "Telemetry collection setup",
+        "Service mesh monitoring"
+      ]
+    }
+  ],
+  "dependencies": ["a1", "a2"],
+  "files_to_modify": [
+    "src/main/java/tusk/operators/MonitoringOperators.java",
+    "src/main/java/tusk/operators/InfrastructureOperators.java",
+    "src/test/java/tusk/operators/MonitoringOperatorsTest.java",
+    "pom.xml"
+  ],
+  "external_dependencies": [
+    "io.prometheus:simpleclient:0.16.0",
+    "io.prometheus:simpleclient_httpserver:0.16.0",
+    "io.jaegertracing:jaeger-client:1.8.1",
+    "io.zipkin.brave:brave:5.15.1",
+    "com.orbitz.consul:consul-client:1.5.3",
+    "io.github.jopenlibs:vault-java-driver:5.1.0",
+    "io.fabric8:kubernetes-client:6.8.1"
+  ]
+} 

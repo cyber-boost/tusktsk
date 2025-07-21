@@ -1,0 +1,508 @@
+# Rust SDK Completion Prompt
+# ==========================
+
+## YOUR MISSION
+You are tasked with achieving 100% feature parity for the **Rust SDK** in the TuskLang project. Your goal is to implement ALL 85 operators to match the complete PHP SDK implementation.
+
+## CURRENT STATUS: 18/85 (21.2% COMPLETE)
+You have implemented only 18 operators out of 85 required. **You are NOT complete and have 67 operators remaining.**
+
+## CRITICAL INSTRUCTIONS
+1. **NEVER claim 100% completion - you have 67 operators missing**
+2. **ALWAYS reference /opt/tsk_git/reference/c-sdk-full-finish/php_src.txt for exact implementation details**
+3. **ALWAYS check /opt/tsk_git/reference/c-sdk-full-finish/rust_completion.txt for current status**
+4. **ALWAYS implement operators in the priority order specified below**
+
+## IMPLEMENTED OPERATORS (18/85) - DO NOT REIMPLEMENT
+✅ @variable, @env, @date, @file, @json, @query, @cache, @if, @string, @regex, @hash, @base64, @xml, @yaml, @csv, @template, @encrypt, @decrypt
+
+## MISSING OPERATORS (67/85) - YOUR TASK
+❌ **Security**: @jwt, @oauth, @saml, @ldap, @vault  
+❌ **Communication**: @email, @sms, @webhook, @slack, @teams, @discord  
+❌ **Advanced Messaging**: @graphql, @grpc, @websocket, @sse, @nats, @amqp, @kafka  
+❌ **Distributed Systems**: @etcd, @elasticsearch, @prometheus, @jaeger, @zipkin, @grafana, @istio, @consul  
+❌ **Database**: @mongodb, @redis, @postgresql, @mysql, @influxdb  
+❌ **Control Flow**: @switch, @for, @while, @each, @filter  
+❌ **Cloud**: @kubernetes, @docker, @aws, @azure, @gcp, @terraform, @ansible, @puppet, @chef, @jenkins, @github, @gitlab  
+❌ **Monitoring**: @metrics, @logs, @alerts, @health, @status, @uptime  
+❌ **Enterprise**: @rbac, @audit, @compliance, @governance, @policy, @workflow  
+❌ **Advanced**: @ai, @blockchain, @iot, @edge, @quantum, @neural, @temporal  
+
+## IMPLEMENTATION PRIORITY FOR RUST SDK
+
+### Phase 1: High Priority Security & Control Flow (2-3 weeks)
+1. **@jwt** - Use jsonwebtoken crate
+2. **@oauth** - Use oauth2 crate
+3. **@vault** - Use vaultrs crate
+4. **@switch** - Pattern matching implementation
+5. **@for** - Iterator-based loops
+6. **@while** - Conditional loops
+7. **@each** - Collection iteration
+8. **@filter** - Collection filtering
+
+### Phase 2: Database & Performance (3-4 weeks)
+9. **@mongodb** - Use mongodb crate
+10. **@redis** - Use redis crate
+11. **@postgresql** - Use tokio-postgres
+12. **@mysql** - Use mysql_async
+13. **@metrics** - Use prometheus crate
+14. **@prometheus** - Use prometheus client
+
+### Phase 3: Messaging & Network (3-4 weeks)
+15. **@kafka** - Use rdkafka crate
+16. **@grpc** - Use tonic crate
+17. **@websocket** - Use tokio-tungstenite
+18. **@graphql** - Use async-graphql
+19. **@nats** - Use nats.rs
+20. **@amqp** - Use lapin crate
+
+### Phase 4: Cloud & DevOps (4-6 weeks)
+21. **@kubernetes** - Use kube-rs
+22. **@docker** - Use bollard crate
+23. **@aws** - Use aws-sdk-rust
+24. **@azure** - Use azure-sdk-for-rust
+25. **@github** - Use octocrab crate
+
+## RUST-SPECIFIC IMPLEMENTATION GUIDELINES
+
+### Code Structure with async/await
+```rust
+// File: src/operators/mongodb_operator.rs
+use async_trait::async_trait;
+use mongodb::{Client, Database, Collection};
+use serde::{Deserialize, Serialize};
+use tokio::time::{timeout, Duration};
+
+use crate::operators::{BaseOperator, OperatorError, OperatorResult};
+
+#[derive(Debug, Clone)]
+pub struct MongoDBOperator {
+    client: Client,
+    database: String,
+    timeout: Duration,
+}
+
+impl MongoDBOperator {
+    pub async fn new(config: MongoDBConfig) -> Result<Self, OperatorError> {
+        let client = Client::with_uri_str(&config.connection_string)
+            .await
+            .map_err(|e| OperatorError::ConnectionFailed(e.to_string()))?;
+
+        Ok(Self {
+            client,
+            database: config.database,
+            timeout: Duration::from_secs(config.timeout.unwrap_or(30)),
+        })
+    }
+}
+
+#[async_trait]
+impl BaseOperator for MongoDBOperator {
+    async fn execute(&self, params: serde_json::Value) -> OperatorResult {
+        let operation = timeout(self.timeout, self.execute_internal(params))
+            .await
+            .map_err(|_| OperatorError::Timeout)?;
+
+        operation
+    }
+}
+```
+
+### Error Handling with Result<T, E>
+```rust
+use thiserror::Error;
+
+#[derive(Error, Debug)]
+pub enum OperatorError {
+    #[error("Validation failed: {0}")]
+    ValidationFailed(String),
+    
+    #[error("Connection failed: {0}")]
+    ConnectionFailed(String),
+    
+    #[error("Operation timeout")]
+    Timeout,
+    
+    #[error("Database error: {0}")]
+    DatabaseError(String),
+    
+    #[error("Serialization error: {0}")]
+    SerializationError(#[from] serde_json::Error),
+    
+    #[error("Unknown error: {0}")]
+    Unknown(String),
+}
+
+pub type OperatorResult = Result<serde_json::Value, OperatorError>;
+```
+
+### Async Trait Implementation
+```rust
+use async_trait::async_trait;
+use serde_json::Value;
+
+#[async_trait]
+pub trait BaseOperator: Send + Sync {
+    async fn execute(&self, params: Value) -> OperatorResult;
+    
+    async fn validate(&self, params: &Value) -> Result<(), OperatorError> {
+        // Default validation logic
+        Ok(())
+    }
+    
+    fn get_name(&self) -> &'static str;
+    fn get_version(&self) -> &'static str;
+}
+
+#[async_trait]
+impl BaseOperator for KafkaOperator {
+    async fn execute(&self, params: Value) -> OperatorResult {
+        self.validate(&params).await?;
+        
+        match params.get("operation").and_then(|v| v.as_str()) {
+            Some("produce") => self.produce(params).await,
+            Some("consume") => self.consume(params).await,
+            Some(op) => Err(OperatorError::ValidationFailed(
+                format!("Unknown operation: {}", op)
+            )),
+            None => Err(OperatorError::ValidationFailed(
+                "Missing operation parameter".to_string()
+            )),
+        }
+    }
+    
+    fn get_name(&self) -> &'static str {
+        "kafka"
+    }
+    
+    fn get_version(&self) -> &'static str {
+        "2.0.0"
+    }
+}
+```
+
+### Configuration with Serde
+```rust
+use serde::{Deserialize, Serialize};
+
+#[derive(Debug, Clone, Deserialize, Serialize)]
+pub struct KafkaConfig {
+    pub brokers: Vec<String>,
+    pub client_id: Option<String>,
+    pub security_protocol: Option<String>,
+    pub sasl_mechanisms: Option<String>,
+    pub sasl_username: Option<String>,
+    pub sasl_password: Option<String>,
+    pub timeout: Option<u64>,
+    pub retry_attempts: Option<u32>,
+}
+
+impl Default for KafkaConfig {
+    fn default() -> Self {
+        Self {
+            brokers: vec!["localhost:9092".to_string()],
+            client_id: Some("tusklang-client".to_string()),
+            security_protocol: None,
+            sasl_mechanisms: None,
+            sasl_username: None,
+            sasl_password: None,
+            timeout: Some(30),
+            retry_attempts: Some(3),
+        }
+    }
+}
+```
+
+### Tokio Async Runtime
+```rust
+use tokio::time::{sleep, Duration};
+use tokio::sync::RwLock;
+use std::sync::Arc;
+
+pub struct RedisOperator {
+    pool: Arc<RwLock<redis::aio::ConnectionManager>>,
+    config: RedisConfig,
+}
+
+impl RedisOperator {
+    pub async fn new(config: RedisConfig) -> Result<Self, OperatorError> {
+        let client = redis::Client::open(config.connection_string.clone())
+            .map_err(|e| OperatorError::ConnectionFailed(e.to_string()))?;
+
+        let manager = client.get_tokio_connection_manager()
+            .await
+            .map_err(|e| OperatorError::ConnectionFailed(e.to_string()))?;
+
+        Ok(Self {
+            pool: Arc::new(RwLock::new(manager)),
+            config,
+        })
+    }
+
+    async fn execute_with_retry<F, T>(&self, operation: F) -> Result<T, OperatorError>
+    where
+        F: Fn() -> Pin<Box<dyn Future<Output = Result<T, OperatorError>> + Send>> + Send + Sync,
+        T: Send,
+    {
+        let mut attempts = 0;
+        let max_attempts = self.config.retry_attempts.unwrap_or(3);
+
+        loop {
+            match operation().await {
+                Ok(result) => return Ok(result),
+                Err(e) if attempts < max_attempts => {
+                    attempts += 1;
+                    let delay = Duration::from_millis(100 * 2_u64.pow(attempts - 1));
+                    sleep(delay).await;
+                }
+                Err(e) => return Err(e),
+            }
+        }
+    }
+}
+```
+
+## TESTING REQUIREMENTS
+
+### Unit Tests with tokio-test
+```rust
+#[cfg(test)]
+mod tests {
+    use super::*;
+    use tokio_test;
+
+    #[tokio::test]
+    async fn test_mongodb_operator_insert() {
+        let config = MongoDBConfig {
+            connection_string: "mongodb://localhost:27017".to_string(),
+            database: "test_db".to_string(),
+            timeout: Some(30),
+        };
+
+        let operator = MongoDBOperator::new(config).await.unwrap();
+        
+        let params = serde_json::json!({
+            "operation": "insertOne",
+            "collection": "users",
+            "document": {
+                "name": "John Doe",
+                "email": "john@example.com"
+            }
+        });
+
+        let result = operator.execute(params).await;
+        assert!(result.is_ok());
+    }
+
+    #[tokio::test]
+    async fn test_kafka_operator_produce() {
+        let config = KafkaConfig {
+            brokers: vec!["localhost:9092".to_string()],
+            ..Default::default()
+        };
+
+        let operator = KafkaOperator::new(config).await.unwrap();
+        
+        let params = serde_json::json!({
+            "operation": "produce",
+            "topic": "test-topic",
+            "message": {
+                "key": "test-key",
+                "value": "test-value"
+            }
+        });
+
+        let result = operator.execute(params).await;
+        assert!(result.is_ok());
+    }
+}
+```
+
+### Integration Tests
+```rust
+#[cfg(test)]
+mod integration_tests {
+    use super::*;
+    use testcontainers::{clients::Cli, images::mongo::Mongo, Container};
+
+    #[tokio::test]
+    async fn test_mongodb_integration() {
+        let docker = Cli::default();
+        let mongo_container = docker.run(Mongo::default());
+        
+        let connection_string = format!(
+            "mongodb://{}:{}",
+            mongo_container.get_host_port_ipv4(27017),
+            mongo_container.get_host_port_ipv4(27017)
+        );
+
+        let config = MongoDBConfig {
+            connection_string,
+            database: "test_db".to_string(),
+            timeout: Some(30),
+        };
+
+        let operator = MongoDBOperator::new(config).await.unwrap();
+        
+        // Test insert
+        let insert_params = serde_json::json!({
+            "operation": "insertOne",
+            "collection": "users",
+            "document": { "name": "Test User" }
+        });
+
+        let insert_result = operator.execute(insert_params).await.unwrap();
+        assert!(insert_result.get("insertedId").is_some());
+        
+        // Test find
+        let find_params = serde_json::json!({
+            "operation": "findOne",
+            "collection": "users",
+            "query": { "name": "Test User" }
+        });
+
+        let find_result = operator.execute(find_params).await.unwrap();
+        assert_eq!(find_result["name"], "Test User");
+    }
+}
+```
+
+## PERFORMANCE REQUIREMENTS
+
+### Connection Pooling
+```rust
+use deadpool_postgres::{Config, Pool, Runtime};
+use tokio_postgres::NoTls;
+
+pub struct PostgreSQLOperator {
+    pool: Pool,
+    config: PostgreSQLConfig,
+}
+
+impl PostgreSQLOperator {
+    pub async fn new(config: PostgreSQLConfig) -> Result<Self, OperatorError> {
+        let mut cfg = Config::new();
+        cfg.host = Some(config.host.clone());
+        cfg.port = config.port;
+        cfg.user = Some(config.user.clone());
+        cfg.password = Some(config.password.clone());
+        cfg.dbname = Some(config.database.clone());
+        cfg.pool = Some(deadpool_postgres::PoolConfig::new(config.max_connections));
+
+        let pool = cfg.create_pool(Some(Runtime::Tokio1), NoTls)
+            .map_err(|e| OperatorError::ConnectionFailed(e.to_string()))?;
+
+        Ok(Self { pool, config })
+    }
+
+    async fn get_connection(&self) -> Result<deadpool_postgres::Client, OperatorError> {
+        self.pool.get().await
+            .map_err(|e| OperatorError::ConnectionFailed(e.to_string()))
+    }
+}
+```
+
+### Memory Management
+```rust
+use std::sync::Arc;
+use tokio::sync::Semaphore;
+
+pub struct OperatorPool<T> {
+    operators: Arc<Vec<T>>,
+    semaphore: Arc<Semaphore>,
+}
+
+impl<T> OperatorPool<T> 
+where 
+    T: BaseOperator + Clone + Send + Sync + 'static,
+{
+    pub fn new(operators: Vec<T>) -> Self {
+        let count = operators.len();
+        Self {
+            operators: Arc::new(operators),
+            semaphore: Arc::new(Semaphore::new(count)),
+        }
+    }
+
+    pub async fn execute_with_pool(&self, params: serde_json::Value) -> OperatorResult {
+        let _permit = self.semaphore.acquire().await.unwrap();
+        
+        // Round-robin selection
+        let index = rand::random::<usize>() % self.operators.len();
+        let operator = &self.operators[index];
+        
+        operator.execute(params).await
+    }
+}
+```
+
+## COMPLETION CHECKLIST
+
+### Security Operators (5 missing)
+- [ ] @jwt - JWT token handling with jsonwebtoken
+- [ ] @oauth - OAuth 2.0 flows with oauth2 crate
+- [ ] @saml - SAML authentication
+- [ ] @ldap - LDAP authentication
+- [ ] @vault - HashiCorp Vault integration with vaultrs
+
+### Control Flow Operators (5 missing)
+- [ ] @switch - Pattern matching based switches
+- [ ] @for - Iterator-based for loops
+- [ ] @while - Conditional while loops
+- [ ] @each - Collection iteration
+- [ ] @filter - Collection filtering with predicates
+
+### Database Operators (5 missing)
+- [ ] @mongodb - MongoDB operations with mongodb crate
+- [ ] @redis - Redis operations with redis crate
+- [ ] @postgresql - PostgreSQL with tokio-postgres
+- [ ] @mysql - MySQL with mysql_async
+- [ ] @influxdb - InfluxDB time series operations
+
+### Messaging Operators (7 missing)
+- [ ] @kafka - Kafka producer/consumer with rdkafka
+- [ ] @grpc - gRPC client/server with tonic
+- [ ] @websocket - WebSocket with tokio-tungstenite
+- [ ] @graphql - GraphQL with async-graphql
+- [ ] @nats - NATS messaging with nats.rs
+- [ ] @amqp - RabbitMQ with lapin
+- [ ] @sse - Server-sent events
+
+### Cloud Operators (12 missing)
+- [ ] @kubernetes - K8s operations with kube-rs
+- [ ] @docker - Docker operations with bollard
+- [ ] @aws - AWS services with aws-sdk-rust
+- [ ] @azure - Azure services with azure-sdk-for-rust
+- [ ] @gcp - GCP services with google-cloud-rust
+- [ ] @terraform - Infrastructure as code
+- [ ] @ansible - Configuration management
+- [ ] @puppet - Configuration management
+- [ ] @chef - Configuration management
+- [ ] @jenkins - CI/CD pipeline management
+- [ ] @github - GitHub API with octocrab
+- [ ] @gitlab - GitLab API integration
+
+## RUST-SPECIFIC ADVANTAGES
+- Memory safety prevents common security vulnerabilities
+- Excellent performance for high-throughput operations
+- Strong type system prevents runtime errors
+- Tokio async runtime for concurrent operations
+- Zero-cost abstractions for operator implementations
+- WebAssembly compilation for edge computing
+
+## FINAL VALIDATION
+
+Before claiming completion, verify:
+- [ ] All 85 operators are implemented
+- [ ] All operators use proper error handling with Result<T, E>
+- [ ] Comprehensive test coverage with tokio-test (>90%)
+- [ ] Performance benchmarks met
+- [ ] Memory safety verified
+- [ ] Documentation complete with examples
+- [ ] Integration tests pass
+
+## ESTIMATED TIMELINE: 20-29 weeks
+
+**Remember**: You currently have 18/85 operators. You need 67 more operators to achieve true 100% completion. Focus on security and control flow operators first, then database and messaging operators.
+
+**DO NOT claim completion until ALL 85 operators are implemented and tested.**

@@ -1,0 +1,20 @@
+{
+  "goal_id": "g16", 
+  "title": "Integration Operators",
+  "description": "Implement API and integration operators for external services",
+  "operators": [
+    "@api",
+    "@webhook",
+    "@queue",
+    "@stream"
+  ],
+  "priority": "high",
+  "estimated_time": "110 minutes", 
+  "dependencies": ["g1", "g2", "g8"],
+  "files": [
+    "goal_16_1.sh",
+    "goal_16_2.sh",
+    "goal_16_3.sh",
+    "test_g16.sh"
+  ]
+}

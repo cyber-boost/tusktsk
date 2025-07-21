@@ -1,0 +1,393 @@
+<h1>Data Types & Variables</h1>
+
+<h2>Working with TuskLang Data Types in Bash</h2>
+<p>TuskLang's type system maps to bash variables with type checking and conversion utilities.</p>
+
+<h3>types.tsk</h3>
+<pre>
+# String types
+strings {
+    simple: "Hello World"
+    quoted: "He said \"Hello\""
+    multiline: "Line 1
+Line 2
+Line 3"
+    template: "Hello, @var.user_name!"
+    escaped: "Tab:\t Newline:\n Backslash:\\"
+}
+
+# Number types
+numbers {
+    integer: 42
+    negative: -17
+    float: 3.14159
+    scientific: 1.23e-4
+    hex: 0xFF
+    octal: 0o755
+    binary: 0b1010
+}
+
+# Boolean types
+booleans {
+    is_enabled: true
+    is_disabled: false
+    computed: @var.count > 0
+}
+
+# Null/undefined
+nulls {
+    empty: null
+    undefined: @var.nonexistent
+    fallback: @var.missing || "default"
+}
+
+# Arrays
+arrays {
+    simple: [1, 2, 3, 4, 5]
+    mixed: ["string", 42, true, null]
+    nested: [[1, 2], [3, 4], [5, 6]]
+    empty: []
+}
+
+# Objects/Maps
+objects {
+    inline: { name: "John", age: 30 }
+    nested: {
+        user: {
+            name: "Jane"
+            email: "jane@example.com"
+            roles: ["admin", "user"]
+        }
+    }
+}
+
+# Special types
+special {
+    date: @date("2024-01-01")
+    timestamp: @timestamp()
+    uuid: @uuid()
+    regex: @regex("^[a-z]+$")
+    duration: @duration("5m30s")
+}
+</pre>
+
+<h3>Bash Type Handling</h3>
+<pre>
+#!/bin/bash
+
+# Type detection and conversion utilities
+tusk_type_of() {
+    local value="$1"
+    
+    # Check for null/empty
+    if [ -z "$value" ] || [ "$value" = "null" ]; then
+        echo "null"
+        return
+    fi
+    
+    # Check for boolean
+    if [ "$value" = "true" ] || [ "$value" = "false" ]; then
+        echo "boolean"
+        return
+    fi
+    
+    # Check for number
+    if [[ "$value" =~ ^-?[0-9]+$ ]]; then
+        echo "integer"
+        return
+    fi
+    
+    if [[ "$value" =~ ^-?[0-9]+\.[0-9]+$ ]]; then
+        echo "float"
+        return
+    fi
+    
+    # Check for array (bash array variable)
+    if declare -p "$value" 2>/dev/null | grep -q '^declare -a'; then
+        echo "array"
+        return
+    fi
+    
+    # Default to string
+    echo "string"
+}
+
+# String manipulation
+tusk_string_trim() {
+    local str="$1"
+    # Remove leading/trailing whitespace
+    str="${str#"${str%%[![:space:]]*}"}"
+    str="${str%"${str##*[![:space:]]}"}"
+    echo "$str"
+}
+
+tusk_string_lower() {
+    echo "${1,,}"
+}
+
+tusk_string_upper() {
+    echo "${1^^}"
+}
+
+tusk_string_replace() {
+    local str="$1"
+    local search="$2"
+    local replace="$3"
+    echo "${str//$search/$replace}"
+}
+
+tusk_string_split() {
+    local str="$1"
+    local delimiter="$2"
+    local array_name="$3"
+    
+    IFS="$delimiter" read -ra "$array_name" <<< "$str"
+}
+
+# Number operations
+tusk_number_add() {
+    echo $(( $1 + $2 ))
+}
+
+tusk_number_subtract() {
+    echo $(( $1 - $2 ))
+}
+
+tusk_number_multiply() {
+    echo $(( $1 * $2 ))
+}
+
+tusk_number_divide() {
+    echo $(( $1 / $2 ))
+}
+
+tusk_number_round() {
+    printf "%.0f" "$1"
+}
+
+tusk_number_format() {
+    local number="$1"
+    local decimals="${2:-2}"
+    printf "%.${decimals}f" "$number"
+}
+
+# Float operations (using bc)
+tusk_float_calc() {
+    echo "$1" | bc -l
+}
+
+tusk_float_compare() {
+    local a="$1"
+    local op="$2"
+    local b="$3"
+    
+    case "$op" in
+        "==") [ $(echo "$a == $b" | bc) -eq 1 ] ;;
+        "!=") [ $(echo "$a != $b" | bc) -eq 1 ] ;;
+        "<")  [ $(echo "$a < $b" | bc) -eq 1 ] ;;
+        "<=") [ $(echo "$a <= $b" | bc) -eq 1 ] ;;
+        ">")  [ $(echo "$a > $b" | bc) -eq 1 ] ;;
+        ">=") [ $(echo "$a >= $b" | bc) -eq 1 ] ;;
+    esac
+}
+
+# Boolean operations
+tusk_bool_and() {
+    [ "$1" = "true" ] && [ "$2" = "true" ] && echo "true" || echo "false"
+}
+
+tusk_bool_or() {
+    { [ "$1" = "true" ] || [ "$2" = "true" ]; } && echo "true" || echo "false"
+}
+
+tusk_bool_not() {
+    [ "$1" = "true" ] && echo "false" || echo "true"
+}
+
+# Array operations
+tusk_array_length() {
+    local array_name="$1"
+    eval "echo \${#${array_name}[@]}"
+}
+
+tusk_array_push() {
+    local array_name="$1"
+    local value="$2"
+    eval "${array_name}+=('$value')"
+}
+
+tusk_array_pop() {
+    local array_name="$1"
+    eval "unset ${array_name}[-1]"
+}
+
+tusk_array_shift() {
+    local array_name="$1"
+    eval "${array_name}=(\"\${${array_name}[@]:1}\")"
+}
+
+tusk_array_unshift() {
+    local array_name="$1"
+    local value="$2"
+    eval "${array_name}=('$value' \"\${${array_name}[@]}\")"
+}
+
+tusk_array_join() {
+    local array_name="$1"
+    local delimiter="$2"
+    local result=""
+    local first=1
+    
+    eval "for item in \"\${${array_name}[@]}\"; do
+        if [ \$first -eq 1 ]; then
+            result=\"\$item\"
+            first=0
+        else
+            result=\"\${result}\${delimiter}\${item}\"
+        fi
+    done"
+    
+    echo "$result"
+}
+
+tusk_array_contains() {
+    local array_name="$1"
+    local search="$2"
+    
+    eval "for item in \"\${${array_name}[@]}\"; do
+        [ \"\$item\" = \"$search\" ] && return 0
+    done"
+    
+    return 1
+}
+
+# Object/associative array operations (Bash 4+)
+tusk_object_keys() {
+    local array_name="$1"
+    eval "echo \${!${array_name}[@]}"
+}
+
+tusk_object_values() {
+    local array_name="$1"
+    eval "echo \${${array_name}[@]}"
+}
+
+tusk_object_has_key() {
+    local array_name="$1"
+    local key="$2"
+    eval "[ -v ${array_name}[$key] ]"
+}
+
+# Type conversion
+tusk_to_string() {
+    echo "$1"
+}
+
+tusk_to_number() {
+    local value="$1"
+    # Remove non-numeric characters
+    value="${value//[^0-9.-]/}"
+    echo "${value:-0}"
+}
+
+tusk_to_bool() {
+    local value="$1"
+    case "${value,,}" in
+        "true"|"yes"|"y"|"1"|"on") echo "true" ;;
+        *) echo "false" ;;
+    esac
+}
+
+tusk_to_array() {
+    local value="$1"
+    local array_name="$2"
+    
+    # If already an array, copy it
+    if declare -p "$value" 2>/dev/null | grep -q '^declare -a'; then
+        eval "${array_name}=(\"\${${value}[@]}\")"
+    else
+        # Convert string to single-element array
+        eval "${array_name}=('$value')"
+    fi
+}
+</pre>
+
+<h3>Usage Example</h3>
+<pre>
+#!/bin/bash
+
+# Load TuskLang and type utilities
+source /usr/local/lib/tusklang.sh
+source /usr/local/lib/tusklang-types.sh
+
+# Parse configuration
+eval "$(tusk_parse types.tsk)"
+
+# Working with strings
+echo "Original: $strings_simple"
+echo "Lowercase: $(tusk_string_lower "$strings_simple")"
+echo "Uppercase: $(tusk_string_upper "$strings_simple")"
+
+# Template replacement
+template="$strings_template"
+user_name="Alice"
+echo "Rendered: ${template//@var.user_name/$user_name}"
+
+# Working with numbers
+result=$(tusk_number_add "$numbers_integer" "$numbers_negative")
+echo "42 + (-17) = $result"
+
+# Float calculations
+pi="$numbers_float"
+area=$(tusk_float_calc "$pi * 10 * 10")
+echo "Area of circle (r=10): $area"
+
+# Boolean logic
+enabled="$booleans_is_enabled"
+disabled="$booleans_is_disabled"
+echo "Enabled AND Disabled: $(tusk_bool_and "$enabled" "$disabled")"
+echo "Enabled OR Disabled: $(tusk_bool_or "$enabled" "$disabled")"
+
+# Array operations
+declare -a my_array=()
+tusk_array_push my_array "first"
+tusk_array_push my_array "second"
+tusk_array_push my_array "third"
+
+echo "Array length: $(tusk_array_length my_array)"
+echo "Array joined: $(tusk_array_join my_array ", ")"
+
+if tusk_array_contains my_array "second"; then
+    echo "Array contains 'second'"
+fi
+
+# Type checking
+for var in "$strings_simple" "$numbers_integer" "$booleans_is_enabled"; do
+    type=$(tusk_type_of "$var")
+    echo "Value '$var' is type: $type"
+done
+
+# Associative arrays (objects)
+declare -A user_object
+user_object[name]="John Doe"
+user_object[email]="john@example.com"
+user_object[age]=30
+
+echo "User keys: $(tusk_object_keys user_object)"
+echo "User values: $(tusk_object_values user_object)"
+
+if tusk_object_has_key user_object "email"; then
+    echo "User email: ${user_object[email]}"
+fi
+
+# Type conversion examples
+string_number="123.45"
+converted=$(tusk_to_number "$string_number")
+echo "String '$string_number' as number: $converted"
+
+bool_string="yes"
+converted=$(tusk_to_bool "$bool_string")
+echo "String '$bool_string' as boolean: $converted"
+</pre>
+
+<p>TuskLang provides comprehensive type handling in bash, with utilities for type detection, conversion, and manipulation across all supported data types.</p>

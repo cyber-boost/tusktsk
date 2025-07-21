@@ -1,0 +1,641 @@
+# Ruby SDK Completion Prompt
+# ===========================
+
+## YOUR MISSION
+You are tasked with achieving 100% feature parity for the **Ruby SDK** in the TuskLang project. Your goal is to implement ALL 85 operators to match the complete PHP SDK implementation.
+
+## CURRENT STATUS: 22/85 (25.9% COMPLETE)
+You have implemented only 22 operators out of 85 required. **You are NOT complete and have 63 operators remaining.**
+
+## CRITICAL INSTRUCTIONS
+1. **NEVER claim 100% completion - you have 63 operators missing**
+2. **ALWAYS reference /opt/tsk_git/reference/c-sdk-full-finish/php_src.txt for exact implementation details**
+3. **ALWAYS check /opt/tsk_git/reference/c-sdk-full-finish/ruby_completion.txt for current status**
+4. **ALWAYS implement operators in the priority order specified below**
+
+## IMPLEMENTED OPERATORS (22/85) - DO NOT REIMPLEMENT
+✅ @variable, @env, @date, @file, @json, @query, @cache, @if, @string, @regex, @hash, @base64, @xml, @yaml, @csv, @template, @encrypt, @decrypt, @jwt, @email, @sms, @webhook
+
+## MISSING OPERATORS (63/85) - YOUR TASK
+❌ **Security**: @oauth, @saml, @ldap, @vault  
+❌ **Advanced Messaging**: @graphql, @grpc, @websocket, @sse, @nats, @amqp, @kafka  
+❌ **Distributed Systems**: @etcd, @elasticsearch, @prometheus, @jaeger, @zipkin, @grafana, @istio, @consul  
+❌ **Database**: @mongodb, @redis, @postgresql, @mysql, @influxdb  
+❌ **Control Flow**: @switch, @for, @while, @each, @filter  
+❌ **Cloud**: @kubernetes, @docker, @aws, @azure, @gcp, @terraform, @ansible, @puppet, @chef, @jenkins, @github, @gitlab  
+❌ **Monitoring**: @metrics, @logs, @alerts, @health, @status, @uptime  
+❌ **Communication**: @slack, @teams, @discord  
+❌ **Enterprise**: @rbac, @audit, @compliance, @governance, @policy, @workflow  
+❌ **Advanced**: @ai, @blockchain, @iot, @edge, @quantum, @neural, @temporal  
+
+## IMPLEMENTATION PRIORITY FOR RUBY SDK
+
+### Phase 1: High Priority Control Flow & Web (1-2 weeks)
+1. **@switch** - Ruby case statements
+2. **@for** - Ruby for loops
+3. **@while** - Ruby while loops
+4. **@each** - Ruby each/map/select
+5. **@filter** - Ruby select/reject
+6. **@graphql** - Use graphql-client gem
+7. **@websocket** - Use websocket-client-simple gem
+
+### Phase 2: Database & Authentication (2-3 weeks)
+8. **@mongodb** - Use mongo gem
+9. **@redis** - Use redis gem
+10. **@postgresql** - Use pg gem
+11. **@mysql** - Use mysql2 gem
+12. **@oauth** - Use oauth2 gem
+13. **@saml** - Use ruby-saml gem
+14. **@ldap** - Use net-ldap gem
+
+### Phase 3: Messaging & Communication (2-3 weeks)
+15. **@kafka** - Use ruby-kafka gem
+16. **@nats** - Use nats-pure gem
+17. **@amqp** - Use bunny gem
+18. **@grpc** - Use grpc gem
+19. **@slack** - Use slack-ruby-client gem
+
+### Phase 4: Cloud & DevOps (4-6 weeks)
+20. **@kubernetes** - Use kubeclient gem
+21. **@docker** - Use docker-api gem
+22. **@aws** - Use aws-sdk-ruby
+23. **@azure** - Use azure-sdk-for-ruby
+24. **@gcp** - Use google-cloud gems
+25. **@github** - Use octokit gem
+26. **@gitlab** - Use gitlab gem
+
+## RUBY-SPECIFIC IMPLEMENTATION GUIDELINES
+
+### Code Structure with Modules
+```ruby
+# File: lib/tusklang/operators/mongodb_operator.rb
+require 'mongo'
+require 'concurrent'
+
+module TuskLang
+  module Operators
+    class MongoDBOperator < BaseOperator
+      def initialize(config = {})
+        super(config)
+        @client = Mongo::Client.new(config[:connection_string] || 'mongodb://localhost:27017')
+        @database = @client.database(config[:database_name] || 'tusklang')
+        @timeout = config[:timeout] || 30
+      end
+
+      def execute(parameters)
+        validate_parameters(parameters)
+        
+        Concurrent::Promise.execute(executor: :io) do
+          execute_internal(parameters)
+        end.value!(@timeout)
+      rescue Concurrent::TimeoutError
+        raise OperatorError, "MongoDB operation timed out after #{@timeout} seconds"
+      rescue => e
+        logger.error("MongoDB operation failed: #{e.message}")
+        raise OperatorError, "MongoDB operation failed: #{e.message}"
+      end
+
+      private
+
+      def execute_internal(parameters)
+        operation = parameters[:operation] || parameters['operation']
+        collection_name = parameters[:collection] || parameters['collection']
+        
+        collection = @database.collection(collection_name)
+        
+        case operation
+        when 'find'
+          execute_find(collection, parameters)
+        when 'insert_one'
+          execute_insert_one(collection, parameters)
+        when 'update_one'
+          execute_update_one(collection, parameters)
+        when 'delete_one'
+          execute_delete_one(collection, parameters)
+        else
+          raise ArgumentError, "Unknown operation: #{operation}"
+        end
+      end
+
+      def execute_find(collection, parameters)
+        query = parameters[:query] || parameters['query'] || {}
+        limit = parameters[:limit] || parameters['limit']
+        
+        cursor = collection.find(query)
+        cursor = cursor.limit(limit) if limit
+        
+        cursor.to_a
+      end
+
+      def execute_insert_one(collection, parameters)
+        document = parameters[:document] || parameters['document']
+        raise ArgumentError, "Document is required for insert_one" unless document
+        
+        result = collection.insert_one(document)
+        {
+          inserted_id: result.inserted_id.to_s,
+          acknowledged: result.acknowledged?
+        }
+      end
+    end
+  end
+end
+```
+
+### Base Operator Class
+```ruby
+# File: lib/tusklang/operators/base_operator.rb
+require 'logger'
+require 'concurrent'
+
+module TuskLang
+  module Operators
+    class BaseOperator
+      attr_reader :config, :logger
+
+      def initialize(config = {})
+        @config = config
+        @logger = Logger.new(STDOUT)
+        @logger.level = config[:log_level] || Logger::INFO
+      end
+
+      def name
+        self.class.name.split('::').last.gsub(/Operator$/, '').downcase
+      end
+
+      def version
+        '2.0.0'
+      end
+
+      def execute(parameters)
+        raise NotImplementedError, "Subclasses must implement execute method"
+      end
+
+      def validate_parameters(parameters)
+        required_fields.each do |field|
+          unless parameters.key?(field) || parameters.key?(field.to_s)
+            raise ValidationError, "Missing required field: #{field}"
+          end
+        end
+      end
+
+      def required_fields
+        []
+      end
+
+      private
+
+      def symbolize_keys(hash)
+        return hash unless hash.is_a?(Hash)
+        
+        hash.each_with_object({}) do |(key, value), result|
+          result[key.to_sym] = value.is_a?(Hash) ? symbolize_keys(value) : value
+        end
+      end
+
+      def stringify_keys(hash)
+        return hash unless hash.is_a?(Hash)
+        
+        hash.each_with_object({}) do |(key, value), result|
+          result[key.to_s] = value.is_a?(Hash) ? stringify_keys(value) : value
+        end
+      end
+    end
+
+    class OperatorError < StandardError; end
+    class ValidationError < OperatorError; end
+    class TimeoutError < OperatorError; end
+  end
+end
+```
+
+### Async Execution with Concurrent Ruby
+```ruby
+# File: lib/tusklang/operators/kafka_operator.rb
+require 'kafka'
+require 'concurrent'
+
+module TuskLang
+  module Operators
+    class KafkaOperator < BaseOperator
+      def initialize(config = {})
+        super(config)
+        @kafka = Kafka.new(
+          seed_brokers: config[:brokers] || ['localhost:9092'],
+          client_id: config[:client_id] || 'tusklang-client',
+          logger: logger
+        )
+        @timeout = config[:timeout] || 30
+      end
+
+      def execute(parameters)
+        validate_parameters(parameters)
+        
+        operation = parameters[:operation] || parameters['operation']
+        
+        case operation
+        when 'produce'
+          execute_produce(parameters)
+        when 'consume'
+          execute_consume(parameters)
+        else
+          raise ArgumentError, "Unknown operation: #{operation}"
+        end
+      end
+
+      private
+
+      def execute_produce(parameters)
+        topic = parameters[:topic] || parameters['topic']
+        message = parameters[:message] || parameters['message']
+        key = parameters[:key] || parameters['key']
+        
+        producer = @kafka.producer
+        
+        Concurrent::Promise.execute(executor: :io) do
+          producer.produce(
+            message.to_json,
+            topic: topic,
+            key: key
+          )
+          producer.deliver_messages
+          
+          {
+            topic: topic,
+            partition: 0, # Simplified for now
+            offset: -1,   # Simplified for now
+            timestamp: Time.now.to_f
+          }
+        end.value!(@timeout)
+      ensure
+        producer&.shutdown
+      end
+
+      def execute_consume(parameters)
+        topic = parameters[:topic] || parameters['topic']
+        group_id = parameters[:group_id] || parameters['group_id'] || 'tusklang-consumer'
+        
+        consumer = @kafka.consumer(group_id: group_id)
+        consumer.subscribe(topic)
+        
+        Concurrent::Promise.execute(executor: :io) do
+          messages = []
+          
+          consumer.each_message(automatically_mark_as_processed: true) do |message|
+            messages << {
+              topic: message.topic,
+              partition: message.partition,
+              offset: message.offset,
+              key: message.key,
+              value: JSON.parse(message.value),
+              timestamp: message.create_time.to_f
+            }
+            
+            # For now, just return the first message
+            break if messages.size >= 1
+          end
+          
+          messages.first
+        end.value!(@timeout)
+      ensure
+        consumer&.stop
+      end
+
+      def required_fields
+        [:operation, :topic]
+      end
+    end
+  end
+end
+```
+
+### Configuration with Dry-Configurable
+```ruby
+# File: lib/tusklang/configuration.rb
+require 'dry-configurable'
+
+module TuskLang
+  class Configuration
+    extend Dry::Configurable
+
+    # MongoDB Configuration
+    setting :mongodb do
+      setting :connection_string, default: 'mongodb://localhost:27017'
+      setting :database_name, default: 'tusklang'
+      setting :timeout, default: 30
+    end
+
+    # Redis Configuration
+    setting :redis do
+      setting :host, default: 'localhost'
+      setting :port, default: 6379
+      setting :password, default: nil
+      setting :database, default: 0
+      setting :timeout, default: 30
+    end
+
+    # Kafka Configuration
+    setting :kafka do
+      setting :brokers, default: ['localhost:9092']
+      setting :client_id, default: 'tusklang-client'
+      setting :timeout, default: 30
+    end
+
+    # GraphQL Configuration
+    setting :graphql do
+      setting :endpoint, default: 'http://localhost:4000/graphql'
+      setting :timeout, default: 30
+    end
+  end
+end
+```
+
+## TESTING REQUIREMENTS
+
+### Unit Tests with RSpec
+```ruby
+# File: spec/operators/mongodb_operator_spec.rb
+require 'spec_helper'
+
+RSpec.describe TuskLang::Operators::MongoDBOperator do
+  let(:config) do
+    {
+      connection_string: 'mongodb://localhost:27017',
+      database_name: 'test_db',
+      timeout: 30
+    }
+  end
+  
+  let(:operator) { described_class.new(config) }
+  let(:mock_client) { instance_double(Mongo::Client) }
+  let(:mock_database) { instance_double(Mongo::Database) }
+  let(:mock_collection) { instance_double(Mongo::Collection) }
+
+  before do
+    allow(Mongo::Client).to receive(:new).and_return(mock_client)
+    allow(mock_client).to receive(:database).and_return(mock_database)
+    allow(mock_database).to receive(:collection).and_return(mock_collection)
+  end
+
+  describe '#execute' do
+    context 'with valid insert_one operation' do
+      let(:parameters) do
+        {
+          operation: 'insert_one',
+          collection: 'users',
+          document: { name: 'John Doe', email: 'john@example.com' }
+        }
+      end
+
+      it 'executes successfully' do
+        insert_result = instance_double(Mongo::Operation::Result)
+        allow(insert_result).to receive(:inserted_id).and_return(BSON::ObjectId.new)
+        allow(insert_result).to receive(:acknowledged?).and_return(true)
+        
+        expect(mock_collection).to receive(:insert_one).with(parameters[:document])
+                                                       .and_return(insert_result)
+
+        result = operator.execute(parameters)
+
+        expect(result).to include(:inserted_id, :acknowledged)
+        expect(result[:acknowledged]).to be true
+      end
+    end
+
+    context 'with missing required fields' do
+      let(:parameters) { { operation: 'insert_one' } }
+
+      it 'raises ValidationError' do
+        expect { operator.execute(parameters) }
+          .to raise_error(TuskLang::Operators::ValidationError, /Missing required field/)
+      end
+    end
+
+    context 'with unknown operation' do
+      let(:parameters) do
+        {
+          operation: 'unknown_operation',
+          collection: 'users'
+        }
+      end
+
+      it 'raises ArgumentError' do
+        expect { operator.execute(parameters) }
+          .to raise_error(ArgumentError, /Unknown operation/)
+      end
+    end
+  end
+end
+```
+
+### Integration Tests
+```ruby
+# File: spec/integration/mongodb_integration_spec.rb
+require 'spec_helper'
+
+RSpec.describe 'MongoDB Integration', :integration do
+  let(:config) do
+    {
+      connection_string: ENV['MONGODB_URL'] || 'mongodb://localhost:27017',
+      database_name: 'integration_test',
+      timeout: 30
+    }
+  end
+  
+  let(:operator) { TuskLang::Operators::MongoDBOperator.new(config) }
+
+  before do
+    # Clean up test data
+    client = Mongo::Client.new(config[:connection_string])
+    client.database(config[:database_name]).collection('test_users').drop
+    client.close
+  end
+
+  describe 'insert and find operations' do
+    it 'successfully inserts and finds documents' do
+      # Insert document
+      insert_params = {
+        operation: 'insert_one',
+        collection: 'test_users',
+        document: { name: 'Integration Test', email: 'integration@example.com' }
+      }
+
+      insert_result = operator.execute(insert_params)
+      expect(insert_result[:inserted_id]).to be_present
+      expect(insert_result[:acknowledged]).to be true
+
+      # Find document
+      find_params = {
+        operation: 'find',
+        collection: 'test_users',
+        query: { name: 'Integration Test' }
+      }
+
+      find_result = operator.execute(find_params)
+      expect(find_result).to be_an(Array)
+      expect(find_result.size).to eq(1)
+      expect(find_result.first['name']).to eq('Integration Test')
+      expect(find_result.first['email']).to eq('integration@example.com')
+    end
+  end
+end
+```
+
+## PERFORMANCE REQUIREMENTS
+
+### Connection Pooling
+```ruby
+# File: lib/tusklang/connection_pool.rb
+require 'concurrent'
+
+module TuskLang
+  class ConnectionPool
+    def initialize(size = 10)
+      @pool = Concurrent::ThreadPoolExecutor.new(
+        min_threads: 1,
+        max_threads: size,
+        max_queue: size * 2,
+        fallback_policy: :caller_runs
+      )
+      @connections = Concurrent::Hash.new
+    end
+
+    def with_connection(key, &block)
+      connection = @connections[key] ||= yield
+      
+      Concurrent::Promise.execute(executor: @pool) do
+        block.call(connection)
+      end
+    end
+
+    def shutdown
+      @pool.shutdown
+      @pool.wait_for_termination(30)
+    end
+  end
+end
+```
+
+### Caching with Redis
+```ruby
+# File: lib/tusklang/cache.rb
+require 'redis'
+require 'json'
+
+module TuskLang
+  class Cache
+    def initialize(config = {})
+      @redis = Redis.new(
+        host: config[:host] || 'localhost',
+        port: config[:port] || 6379,
+        password: config[:password],
+        db: config[:database] || 0
+      )
+      @default_ttl = config[:ttl] || 3600
+    end
+
+    def get(key)
+      value = @redis.get(key)
+      value ? JSON.parse(value) : nil
+    rescue JSON::ParserError
+      nil
+    end
+
+    def set(key, value, ttl: @default_ttl)
+      @redis.setex(key, ttl, value.to_json)
+    end
+
+    def delete(key)
+      @redis.del(key)
+    end
+
+    def exists?(key)
+      @redis.exists?(key)
+    end
+
+    def clear
+      @redis.flushdb
+    end
+  end
+end
+```
+
+## COMPLETION CHECKLIST
+
+### Security Operators (4 missing)
+- [ ] @oauth - OAuth 2.0 flows with oauth2 gem
+- [ ] @saml - SAML authentication with ruby-saml gem
+- [ ] @ldap - LDAP authentication with net-ldap gem
+- [ ] @vault - HashiCorp Vault integration
+
+### Control Flow Operators (5 missing)
+- [ ] @switch - Ruby case statements
+- [ ] @for - Ruby for loops
+- [ ] @while - Ruby while loops
+- [ ] @each - Ruby each/map/select methods
+- [ ] @filter - Ruby select/reject methods
+
+### Database Operators (5 missing)
+- [ ] @mongodb - MongoDB operations with mongo gem
+- [ ] @redis - Redis operations with redis gem
+- [ ] @postgresql - PostgreSQL operations with pg gem
+- [ ] @mysql - MySQL operations with mysql2 gem
+- [ ] @influxdb - InfluxDB time series operations
+
+### Messaging Operators (7 missing)
+- [ ] @graphql - GraphQL with graphql-client gem
+- [ ] @grpc - gRPC with grpc gem
+- [ ] @websocket - WebSocket with websocket-client-simple gem
+- [ ] @sse - Server-sent events
+- [ ] @kafka - Kafka with ruby-kafka gem
+- [ ] @nats - NATS with nats-pure gem
+- [ ] @amqp - RabbitMQ with bunny gem
+
+### Cloud Operators (12 missing)
+- [ ] @kubernetes - K8s with kubeclient gem
+- [ ] @docker - Docker with docker-api gem
+- [ ] @aws - AWS with aws-sdk-ruby
+- [ ] @azure - Azure with azure-sdk-for-ruby
+- [ ] @gcp - GCP with google-cloud gems
+- [ ] @terraform - Infrastructure as code
+- [ ] @ansible - Configuration management
+- [ ] @puppet - Configuration management
+- [ ] @chef - Configuration management
+- [ ] @jenkins - CI/CD pipeline management
+- [ ] @github - GitHub API with octokit gem
+- [ ] @gitlab - GitLab API with gitlab gem
+
+### Enterprise Operators (6 missing)
+- [ ] @rbac - Role-based access control
+- [ ] @audit - Comprehensive audit logging
+- [ ] @compliance - SOC2/HIPAA/GDPR checks
+- [ ] @governance - Data governance policies
+- [ ] @policy - Policy engine with rules
+- [ ] @workflow - Workflow management system
+
+## RUBY-SPECIFIC ADVANTAGES
+- Excellent Rails ecosystem for web-based operators
+- Strong metaprogramming capabilities for DSL creation
+- Native JSON and YAML support
+- Great gem ecosystem for cloud providers and services
+- ActiveRecord for database operations
+- Strong HTTP client libraries for API integrations
+- Sidekiq for background processing
+- Flexible syntax ideal for configuration languages
+
+## FINAL VALIDATION
+
+Before claiming completion, verify:
+- [ ] All 85 operators are implemented
+- [ ] All operators use proper error handling
+- [ ] Comprehensive test coverage with RSpec (>90%)
+- [ ] Performance benchmarks met with concurrent execution
+- [ ] Documentation complete with YARD
+- [ ] Integration tests pass
+- [ ] Gem dependencies properly managed
+
+## ESTIMATED TIMELINE: 20-29 weeks
+
+**Remember**: You currently have 22/85 operators. You need 63 more operators to achieve true 100% completion. Focus on control flow and database operators first, then messaging and cloud operators.
+
+**DO NOT claim completion until ALL 85 operators are implemented and tested.**

@@ -1,0 +1,345 @@
+# Python SDK Completion Prompt
+# ============================
+
+## YOUR MISSION
+You are tasked with achieving 100% feature parity for the **Python SDK** in the TuskLang project. Your goal is to implement ALL 85 operators to match the complete PHP SDK implementation.
+
+## CURRENT STATUS: 31/85 (36.5% COMPLETE)
+You have implemented only 31 operators out of 85 required. **You are NOT complete and have 54 operators remaining.**
+
+## CRITICAL INSTRUCTIONS
+1. **NEVER claim 100% completion - you have 54 operators missing**
+2. **ALWAYS reference /opt/tsk_git/reference/c-sdk-full-finish/php_src.txt for exact implementation details**
+3. **ALWAYS check /opt/tsk_git/reference/c-sdk-full-finish/python_completion.txt for current status**
+4. **ALWAYS implement operators in the priority order specified below**
+
+## IMPLEMENTED OPERATORS (31/85) - DO NOT REIMPLEMENT
+✅ @variable, @env, @date, @file, @json, @query, @cache, @if, @string, @regex, @hash, @base64, @xml, @yaml, @csv, @template, @encrypt, @decrypt, @jwt, @email, @sms, @webhook, @metrics, @mongodb, @redis, @postgresql, @switch, @for, @while, @each, @filter
+
+## MISSING OPERATORS (54/85) - YOUR TASK
+❌ **Advanced Messaging**: @graphql, @grpc, @websocket, @sse, @nats, @amqp  
+❌ **Distributed Systems**: @kafka, @etcd, @elasticsearch, @prometheus, @jaeger, @zipkin, @grafana, @istio, @consul  
+❌ **Security**: @vault, @oauth, @saml, @ldap  
+❌ **Database**: @mysql, @influxdb  
+❌ **Cloud**: @kubernetes, @docker, @aws, @azure, @gcp, @terraform, @ansible, @puppet, @chef, @jenkins, @github, @gitlab  
+❌ **Monitoring**: @logs, @alerts, @health, @status, @uptime  
+❌ **Communication**: @slack, @teams, @discord  
+❌ **Enterprise**: @rbac, @audit, @compliance, @governance, @policy, @workflow  
+❌ **Advanced**: @ai, @blockchain, @iot, @edge, @quantum, @neural, @temporal  
+
+## IMPLEMENTATION PRIORITY FOR PYTHON SDK
+
+### Phase 1: High Priority Messaging & Cloud (2-3 weeks)
+1. **@kafka** - Use confluent-kafka-python
+2. **@nats** - Use nats-py
+3. **@amqp** - Use pika for RabbitMQ
+4. **@kubernetes** - Use kubernetes-client
+5. **@docker** - Use docker-py
+6. **@aws** - Use boto3
+
+### Phase 2: Advanced Communication (2-3 weeks)
+7. **@graphql** - Use gql or graphql-core
+8. **@grpc** - Use grpcio
+9. **@websocket** - Use websockets
+10. **@sse** - Use aiohttp for server-sent events
+
+### Phase 3: Enterprise Features (3-4 weeks)
+11. **@rbac** - Custom implementation with roles/permissions
+12. **@audit** - Custom audit logging system
+13. **@compliance** - Custom compliance checks
+14. **@oauth** - Use authlib
+15. **@saml** - Use python3-saml
+16. **@vault** - Use hvac
+
+### Phase 4: Monitoring & Analytics (2-3 weeks)
+17. **@elasticsearch** - Use elasticsearch-py
+18. **@prometheus** - Use prometheus-client
+19. **@grafana** - Use grafana-api
+20. **@influxdb** - Use influxdb-client
+
+## PYTHON-SPECIFIC IMPLEMENTATION GUIDELINES
+
+### Code Structure
+```python
+# File: operators/mongodb_operator.py
+import asyncio
+from typing import Dict, Any, Optional
+from .base_operator import BaseOperator
+
+class MongoDBOperator(BaseOperator):
+    """MongoDB operations with async support"""
+    
+    def __init__(self, config: Dict[str, Any]):
+        super().__init__(config)
+        self.client = None
+        
+    async def execute(self, params: Dict[str, Any]) -> Any:
+        """Execute MongoDB operation"""
+        await self.validate(params)
+        
+        try:
+            result = await self._execute_internal(params)
+            return result
+        except Exception as e:
+            self.logger.error(f"MongoDB operation failed: {e}", extra={"params": params})
+            raise
+```
+
+### Async Implementation Pattern
+```python
+import asyncio
+import aiohttp
+from typing import Dict, Any
+
+class GraphQLOperator(BaseOperator):
+    """GraphQL client with async support"""
+    
+    async def execute(self, params: Dict[str, Any]) -> Any:
+        async with aiohttp.ClientSession() as session:
+            async with session.post(
+                params['endpoint'],
+                json={'query': params['query'], 'variables': params.get('variables', {})},
+                headers=self._build_headers(params)
+            ) as response:
+                result = await response.json()
+                
+                if 'errors' in result:
+                    self._handle_graphql_errors(result['errors'])
+                    
+                return result.get('data', result)
+```
+
+### Error Handling Pattern
+```python
+import logging
+from typing import Dict, Any, Optional
+
+class BaseOperator:
+    """Base operator with comprehensive error handling"""
+    
+    def __init__(self, config: Dict[str, Any]):
+        self.config = config
+        self.logger = logging.getLogger(self.__class__.__name__)
+        
+    async def execute(self, params: Dict[str, Any]) -> Any:
+        try:
+            await self.validate(params)
+            return await self._execute_internal(params)
+        except ValidationError as e:
+            self.logger.error(f"Validation failed: {e}")
+            raise
+        except Exception as e:
+            self.logger.error(f"Operator failed: {e}", extra={"params": params})
+            raise OperatorError(f"Failed to execute {self.__class__.__name__}: {e}") from e
+```
+
+### Configuration Pattern
+```python
+from dataclasses import dataclass
+from typing import Dict, Any, Optional
+
+@dataclass
+class KafkaConfig:
+    """Kafka operator configuration"""
+    bootstrap_servers: str
+    topic: str
+    group_id: Optional[str] = None
+    auto_offset_reset: str = 'earliest'
+    timeout: int = 30
+    retry_attempts: int = 3
+    
+    @classmethod
+    def from_dict(cls, config: Dict[str, Any]) -> 'KafkaConfig':
+        return cls(**config)
+```
+
+## TESTING REQUIREMENTS
+
+### Unit Tests with pytest
+```python
+# File: tests/test_mongodb_operator.py
+import pytest
+import asyncio
+from unittest.mock import AsyncMock, Mock
+from operators.mongodb_operator import MongoDBOperator
+
+class TestMongoDBOperator:
+    @pytest.fixture
+    def operator(self):
+        config = {
+            'connection_string': 'mongodb://localhost:27017',
+            'database': 'test_db'
+        }
+        return MongoDBOperator(config)
+    
+    @pytest.mark.asyncio
+    async def test_execute_valid_query(self, operator):
+        params = {
+            'collection': 'users',
+            'operation': 'find',
+            'query': {'active': True}
+        }
+        
+        # Mock the database operation
+        operator.client = AsyncMock()
+        operator.client.test_db.users.find.return_value.to_list.return_value = [
+            {'_id': '1', 'name': 'John', 'active': True}
+        ]
+        
+        result = await operator.execute(params)
+        
+        assert len(result) == 1
+        assert result[0]['name'] == 'John'
+    
+    @pytest.mark.asyncio
+    async def test_execute_invalid_params(self, operator):
+        params = {}  # Missing required parameters
+        
+        with pytest.raises(ValidationError):
+            await operator.execute(params)
+```
+
+### Integration Tests
+```python
+# File: tests/integration/test_kafka_integration.py
+import pytest
+import asyncio
+from operators.kafka_operator import KafkaOperator
+
+class TestKafkaIntegration:
+    @pytest.mark.integration
+    @pytest.mark.asyncio
+    async def test_kafka_produce_consume(self):
+        producer_config = {
+            'bootstrap_servers': 'localhost:9092',
+            'topic': 'test-topic',
+            'operation': 'produce'
+        }
+        
+        consumer_config = {
+            'bootstrap_servers': 'localhost:9092',
+            'topic': 'test-topic',
+            'group_id': 'test-group',
+            'operation': 'consume'
+        }
+        
+        producer = KafkaOperator(producer_config)
+        consumer = KafkaOperator(consumer_config)
+        
+        # Produce message
+        await producer.execute({'message': 'test message'})
+        
+        # Consume message
+        result = await consumer.execute({'timeout': 10})
+        
+        assert result['message'] == 'test message'
+```
+
+## PERFORMANCE REQUIREMENTS
+
+### Connection Pooling
+```python
+import asyncio
+from typing import Dict, Any
+import aioredis
+
+class RedisOperator(BaseOperator):
+    """Redis operator with connection pooling"""
+    
+    def __init__(self, config: Dict[str, Any]):
+        super().__init__(config)
+        self.pool = None
+        
+    async def _get_connection(self):
+        if self.pool is None:
+            self.pool = aioredis.ConnectionPool.from_url(
+                self.config['connection_string'],
+                max_connections=10,
+                retry_on_timeout=True
+            )
+        return aioredis.Redis(connection_pool=self.pool)
+```
+
+### Async Context Management
+```python
+import asyncio
+from contextlib import asynccontextmanager
+
+class BaseOperator:
+    @asynccontextmanager
+    async def get_client(self):
+        """Async context manager for client connections"""
+        client = await self._create_client()
+        try:
+            yield client
+        finally:
+            await client.close()
+            
+    async def execute(self, params: Dict[str, Any]) -> Any:
+        async with self.get_client() as client:
+            return await self._execute_with_client(client, params)
+```
+
+## COMPLETION CHECKLIST
+
+### Database Operators (2 missing)
+- [ ] @mysql - MySQL operations with aiomysql
+- [ ] @influxdb - InfluxDB time series with influxdb-client
+
+### Messaging Operators (10 missing)
+- [ ] @kafka - Producer/consumer with confluent-kafka
+- [ ] @nats - Publish/subscribe with nats-py
+- [ ] @amqp - RabbitMQ with pika
+- [ ] @graphql - Query/mutation/subscription with gql
+- [ ] @grpc - Client/server with grpcio
+- [ ] @websocket - Full-duplex with websockets
+- [ ] @sse - Server-sent events with aiohttp
+- [ ] @etcd - Distributed key-value with etcd3
+- [ ] @elasticsearch - Search with elasticsearch-py
+- [ ] @prometheus - Metrics with prometheus-client
+
+### Cloud Operators (12 missing)
+- [ ] @kubernetes - Pod/service management with kubernetes-client
+- [ ] @docker - Container management with docker-py
+- [ ] @aws - AWS services with boto3
+- [ ] @azure - Azure services with azure-sdk-for-python
+- [ ] @gcp - GCP services with google-cloud libraries
+- [ ] @terraform - Infrastructure with python-terraform
+- [ ] @ansible - Automation with ansible-runner
+- [ ] @puppet - Configuration with puppet API
+- [ ] @chef - Configuration with chef API
+- [ ] @jenkins - CI/CD with jenkins-py
+- [ ] @github - Repository management with PyGithub
+- [ ] @gitlab - Repository management with python-gitlab
+
+### Enterprise Operators (6 missing)
+- [ ] @rbac - Role-based access control
+- [ ] @audit - Comprehensive audit logging
+- [ ] @compliance - SOC2/HIPAA/GDPR checks
+- [ ] @governance - Data governance policies
+- [ ] @policy - Policy engine with rules
+- [ ] @workflow - Workflow management system
+
+## PYTHON-SPECIFIC ADVANTAGES
+- Excellent async/await support with asyncio
+- Rich ecosystem for AI/ML operators (TensorFlow, PyTorch, scikit-learn)
+- Strong cloud provider SDKs (boto3, google-cloud, azure-sdk)
+- Comprehensive testing framework with pytest
+- Great data processing libraries (pandas, numpy)
+
+## FINAL VALIDATION
+
+Before claiming completion, verify:
+- [ ] All 85 operators are implemented
+- [ ] All operators use async/await patterns
+- [ ] Comprehensive test coverage with pytest (>90%)
+- [ ] Type hints for all functions
+- [ ] Performance benchmarks met
+- [ ] Documentation complete with examples
+- [ ] Integration tests pass
+
+## ESTIMATED TIMELINE: 13-19 weeks
+
+**Remember**: You currently have 31/85 operators. You need 54 more operators to achieve true 100% completion. Focus on the high-priority messaging and cloud operators first, then work through enterprise and advanced features.
+
+**DO NOT claim completion until ALL 85 operators are implemented and tested.**

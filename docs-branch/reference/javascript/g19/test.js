@@ -1,0 +1,11 @@
+const { Goal19Implementation } = require("./src/goal19-implementation");
+const g19 = new Goal19Implementation();
+g19.initialize();
+g19.createQubit("q1", [1, 0]);
+g19.applyHadamard("q1");
+const measurement = g19.measureQubit("q1");
+g19.generateECCKeyPair("key1");
+const signature = g19.signMessage("key1", "test message");
+const verification = g19.verifySignature(signature.id);
+console.log("✅ G19 Quantum measurement:", measurement.measurement);
+console.log("✅ G19 Signature valid:", verification.isValid);

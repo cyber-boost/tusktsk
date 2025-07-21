@@ -1,0 +1,116 @@
+TASK: Implement Communication & Messaging Operators for TuskLang Java SDK
+AGENT: A2 - Communication & Messaging Specialist  
+LANGUAGE: Java
+WORKING DIRECTORY: reference/todo-july21/a2
+
+CONTEXT: You are implementing the missing communication and messaging operators for the TuskLang Java SDK. This is HIGH PRIORITY work that enables production messaging and communication protocols. Agent A5 has completed 25 enterprise goals - now you need to add the missing communication operators.
+
+CRITICAL REQUIREMENTS:
+1. REAL PROTOCOL IMPLEMENTATIONS - No mocks, use actual protocol clients and libraries
+2. PRODUCTION-GRADE CONNECTIONS - Handle real network protocols with proper error handling
+3. ASYNC/NON-BLOCKING - Use async operations where appropriate for high performance
+4. CONNECTION MANAGEMENT - Proper lifecycle management, reconnection, and health monitoring
+5. COMPREHENSIVE TESTING - Integration tests with real messaging systems
+
+OPERATORS TO IMPLEMENT:
+1. @grpc - gRPC operations with real gRPC implementation
+   - @grpc.call(service, method, request) - Unary RPC calls
+   - @grpc.stream(service, method, stream) - Streaming operations
+   - @grpc.server(port, services) - Server operations
+   - @grpc.client(target, options) - Client management
+
+2. @websocket - WebSocket operations (extend existing)
+   - @websocket.connect(url, protocols) - Connect to WebSocket
+   - @websocket.send(message, type) - Send messages
+   - @websocket.listen(events) - Event handling
+   - @websocket.close(code, reason) - Close connection
+
+3. @sse - Server-Sent Events streaming
+   - @sse.connect(url, headers) - Connect to SSE stream
+   - @sse.listen(eventTypes) - Listen for events
+   - @sse.close() - Close connection
+
+4. @nats - NATS messaging operations
+   - @nats.publish(subject, message) - Publish messages
+   - @nats.subscribe(subject, callback) - Subscribe to subjects
+   - @nats.request(subject, message, timeout) - Request/Reply
+   - @nats.queue(subject, queue, callback) - Queue groups
+
+5. @amqp - RabbitMQ/AMQP operations
+   - @amqp.publish(exchange, routingKey, message) - Publish
+   - @amqp.consume(queue, callback) - Consume messages
+   - @amqp.queue(name, options) - Queue management
+   - @amqp.exchange(name, type, options) - Exchange management
+
+6. @kafka - Apache Kafka operations
+   - @kafka.produce(topic, key, message) - Produce messages
+   - @kafka.consume(topics, groupId) - Consume messages
+   - @kafka.admin(operation, config) - Admin operations
+   - @kafka.stream(topology) - Kafka Streams
+
+IMPLEMENTATION GUIDELINES:
+1. Add dependencies to pom.xml:
+   - gRPC: io.grpc:grpc-netty-shaded:1.57.2
+   - WebSocket: org.java-websocket:Java-WebSocket:1.5.4
+   - NATS: io.nats:jnats:2.16.14
+   - AMQP: com.rabbitmq:amqp-client:5.18.0
+   - Kafka: org.apache.kafka:kafka-clients:3.5.1
+
+2. Connection Management:
+   - Implement connection pooling where applicable
+   - Handle connection failures and automatic reconnection
+   - Connection health monitoring and heartbeats
+   - Graceful shutdown and cleanup
+
+3. Protocol Implementation:
+   - Use official client libraries (not custom implementations)
+   - Support all major protocol features
+   - Handle message serialization/deserialization
+   - Implement proper protocol handshakes
+
+4. Error Handling:
+   - Comprehensive exception handling for network issues
+   - Retry logic with exponential backoff
+   - Circuit breaker patterns for failing services
+   - Meaningful error messages with context
+
+5. Performance:
+   - Async/non-blocking operations where possible
+   - Connection reuse and pooling
+   - Batch operations for high throughput
+   - Memory-efficient message handling
+
+6. Testing:
+   - Integration tests with real messaging systems
+   - Test connection failures and recovery
+   - Load testing for high throughput scenarios
+   - Protocol compliance testing
+
+FILES TO CREATE/MODIFY:
+- Extend: src/main/java/tusk/operators/MessagingOperators.java
+- Create: src/main/java/tusk/operators/CommunicationOperators.java
+- Extend: src/main/java/tusk/operators/WebSocketOperator.java
+- Create: src/test/java/tusk/operators/CommunicationOperatorsTest.java
+- Modify: pom.xml (add dependencies)
+
+INTEGRATION POINTS:
+- Integrate with existing TuskLangEnhanced class
+- Use existing error handling patterns
+- Follow existing logging conventions
+- Coordinate with A1 (databases) for message persistence
+
+SUCCESS CRITERIA:
+- All 6 operators implemented with real protocol support
+- Integration tests pass with real messaging systems
+- Support for clustering and high availability
+- Documentation with working code examples
+- Production-ready performance and reliability
+
+TIME LIMIT: 1-2 weeks maximum
+
+COORDINATION:
+- No conflicts with A1 (databases) or A3-A6
+- Coordinate on shared messaging patterns
+- Integration testing with other agents' work
+
+BEGIN IMMEDIATELY. Focus on REAL protocol implementations with production-grade reliability. 

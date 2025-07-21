@@ -1,0 +1,112 @@
+{
+  "goal_id": "a2",
+  "agent_id": "a2", 
+  "language": "Java",
+  "created_at": "2025-07-21T10:00:00Z",
+  "specialization": "Communication & Messaging Operators",
+  "priority": "HIGH",
+  "estimated_time": "1-2 weeks",
+  "goals": [
+    {
+      "id": "a2.1",
+      "description": "Implement @grpc operator with real gRPC client/server operations",
+      "success_criteria": "Full gRPC client operations with service discovery and load balancing",
+      "priority": "high",
+      "operators": ["@grpc.call", "@grpc.stream", "@grpc.server", "@grpc.client"],
+      "requirements": [
+        "gRPC Java implementation",
+        "Service discovery integration",
+        "Load balancing support",
+        "Streaming operations (client/server/bidirectional)",
+        "Error handling and retries"
+      ]
+    },
+    {
+      "id": "a2.2", 
+      "description": "Extend @websocket operator with full WebSocket client operations",
+      "success_criteria": "Complete WebSocket client with connection management and event handling",
+      "priority": "high",
+      "operators": ["@websocket.connect", "@websocket.send", "@websocket.close", "@websocket.listen"],
+      "requirements": [
+        "Java-WebSocket client library",
+        "Connection lifecycle management",
+        "Message framing and protocols",
+        "Reconnection logic",
+        "Event-driven message handling"
+      ]
+    },
+    {
+      "id": "a2.3",
+      "description": "Implement @sse operator for Server-Sent Events streaming",
+      "success_criteria": "Full SSE client with event parsing and reconnection",
+      "priority": "high", 
+      "operators": ["@sse.connect", "@sse.listen", "@sse.close"],
+      "requirements": [
+        "SSE client implementation",
+        "Event parsing and handling",
+        "Automatic reconnection",
+        "Event filtering and routing",
+        "Connection health monitoring"
+      ]
+    },
+    {
+      "id": "a2.4",
+      "description": "Implement @nats operator for NATS messaging operations",
+      "success_criteria": "Full NATS pub/sub with clustering and queue groups",
+      "priority": "medium",
+      "operators": ["@nats.publish", "@nats.subscribe", "@nats.request", "@nats.queue"],
+      "requirements": [
+        "NATS Java client (jnats)",
+        "Publish/Subscribe messaging",
+        "Request/Reply patterns",
+        "Queue groups and load balancing",
+        "Cluster and failover support"
+      ]
+    },
+    {
+      "id": "a2.5",
+      "description": "Implement @amqp operator for RabbitMQ/AMQP messaging",
+      "success_criteria": "Full AMQP operations with queues, exchanges, and routing",
+      "priority": "medium",
+      "operators": ["@amqp.publish", "@amqp.consume", "@amqp.queue", "@amqp.exchange"],
+      "requirements": [
+        "RabbitMQ Java client",
+        "Queue and exchange management",
+        "Message routing and binding",
+        "Dead letter queues",
+        "Connection recovery and clustering"
+      ]
+    },
+    {
+      "id": "a2.6",
+      "description": "Implement @kafka operator for Apache Kafka operations", 
+      "success_criteria": "Full Kafka producer/consumer with partitioning and offset management",
+      "priority": "medium",
+      "operators": ["@kafka.produce", "@kafka.consume", "@kafka.admin", "@kafka.stream"],
+      "requirements": [
+        "Kafka Java client",
+        "Producer with partitioning",
+        "Consumer groups and offset management", 
+        "Admin operations (topics, partitions)",
+        "Kafka Streams integration"
+      ]
+    }
+  ],
+  "dependencies": [],
+  "files_to_modify": [
+    "src/main/java/tusk/operators/MessagingOperators.java",
+    "src/main/java/tusk/operators/CommunicationOperators.java", 
+    "src/main/java/tusk/operators/WebSocketOperator.java",
+    "src/test/java/tusk/operators/CommunicationOperatorsTest.java",
+    "pom.xml"
+  ],
+  "external_dependencies": [
+    "io.grpc:grpc-netty-shaded:1.57.2",
+    "io.grpc:grpc-protobuf:1.57.2", 
+    "io.grpc:grpc-stub:1.57.2",
+    "org.java-websocket:Java-WebSocket:1.5.4",
+    "io.nats:jnats:2.16.14",
+    "com.rabbitmq:amqp-client:5.18.0",
+    "org.apache.kafka:kafka-clients:3.5.1"
+  ]
+} 

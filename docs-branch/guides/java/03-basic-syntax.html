@@ -1,0 +1,268 @@
+<h1>Basic Syntax for Java</h1>
+
+<h2>Key-Value Pairs</h2>
+<pre>
+# Both = and : syntax supported
+app_name: "JavaApplication"
+version = "1.0.0"
+debug: true
+port: 8080
+timeout: 30.5
+
+# Java equivalent
+public class AppConfig {
+    private String appName = "JavaApplication";
+    private String version = "1.0.0";
+    private boolean debug = true;
+    private int port = 8080;
+    private double timeout = 30.5;
+}
+</pre>
+
+<h2>Objects and Nested Configuration</h2>
+<pre>
+# TuskLang nested objects
+server {
+    host: "localhost"
+    port: 8080
+    ssl {
+        enabled: true
+        keystore: "/path/to/keystore.jks"
+        password: env("SSL_PASSWORD")
+    }
+}
+
+database {
+    primary {
+        driver: "org.postgresql.Driver"
+        url: "jdbc:postgresql://localhost:5432/mydb"
+        username: env("DB_USER")
+        password: env("DB_PASS")
+    }
+    secondary {
+        driver: "org.h2.Driver"
+        url: "jdbc:h2:mem:testdb"
+        username: "sa"
+        password: ""
+    }
+}
+</pre>
+
+<h2>Java Bean Mapping</h2>
+<pre>
+// ServerConfig.java
+@ConfigurationProperties(prefix = "server")
+@Component
+public class ServerConfig {
+    private String host;
+    private int port;
+    private SslConfig ssl;
+    
+    // Getters and setters
+    public String getHost() { return host; }
+    public void setHost(String host) { this.host = host; }
+    
+    public int getPort() { return port; }
+    public void setPort(int port) { this.port = port; }
+    
+    public SslConfig getSsl() { return ssl; }
+    public void setSsl(SslConfig ssl) { this.ssl = ssl; }
+    
+    public static class SslConfig {
+        private boolean enabled;
+        private String keystore;
+        private String password;
+        
+        // Getters and setters
+        public boolean isEnabled() { return enabled; }
+        public void setEnabled(boolean enabled) { this.enabled = enabled; }
+        
+        public String getKeystore() { return keystore; }
+        public void setKeystore(String keystore) { this.keystore = keystore; }
+        
+        public String getPassword() { return password; }
+        public void setPassword(String password) { this.password = password; }
+    }
+}
+</pre>
+
+<h2>Arrays and Lists</h2>
+<pre>
+# TuskLang arrays
+allowed_origins: ["http://localhost:3000", "https://myapp.com"]
+supported_formats: ["json", "xml", "yaml"]
+server_ports: [8080, 8081, 8082]
+
+# Complex array objects
+users: [
+    {
+        name: "admin"
+        roles: ["ADMIN", "USER"]
+        active: true
+    },
+    {
+        name: "guest"
+        roles: ["USER"]
+        active: false
+    }
+]
+</pre>
+
+<h2>Java Collection Mapping</h2>
+<pre>
+// AppConfig.java
+@ConfigurationProperties
+@Component
+public class AppConfig {
+    private List&lt;String&gt; allowedOrigins;
+    private List&lt;String&gt; supportedFormats;
+    private List&lt;Integer&gt; serverPorts;
+    private List&lt;UserConfig&gt; users;
+    
+    // Getters and setters
+    public List&lt;String&gt; getAllowedOrigins() { return allowedOrigins; }
+    public void setAllowedOrigins(List&lt;String&gt; allowedOrigins) { 
+        this.allowedOrigins = allowedOrigins; 
+    }
+    
+    public List&lt;UserConfig&gt; getUsers() { return users; }
+    public void setUsers(List&lt;UserConfig&gt; users) { this.users = users; }
+    
+    public static class UserConfig {
+        private String name;
+        private List&lt;String&gt; roles;
+        private boolean active;
+        
+        // Getters and setters
+        public String getName() { return name; }
+        public void setName(String name) { this.name = name; }
+        
+        public List&lt;String&gt; getRoles() { return roles; }
+        public void setRoles(List&lt;String&gt; roles) { this.roles = roles; }
+        
+        public boolean isActive() { return active; }
+        public void setActive(boolean active) { this.active = active; }
+    }
+}
+</pre>
+
+<h2>Comments and Documentation</h2>
+<pre>
+# Application configuration for Java Spring Boot
+# Version: 1.0.0
+# Last updated: 2024-01-15
+
+app {
+    # Application metadata
+    name: "MyJavaApp"          # Application display name
+    version: "1.0.0"           # Current version
+    
+    # Feature flags
+    features {
+        caching: true          # Enable Redis caching
+        metrics: true          # Enable Micrometer metrics
+        security: true         # Enable Spring Security
+    }
+}
+
+# Database configuration
+# Supports PostgreSQL and H2 databases
+database {
+    # Primary database (PostgreSQL)
+    url: env("DATABASE_URL", "jdbc:postgresql://localhost:5432/myapp")
+    username: env("DB_USER", "postgres")
+    password: env("DB_PASS", "password")
+    
+    # Connection pool settings
+    pool {
+        min_size: 5           # Minimum connections
+        max_size: 20          # Maximum connections
+        timeout: 30000        # Connection timeout (ms)
+    }
+}
+</pre>
+
+<h2>String Handling and Escaping</h2>
+<pre>
+# Various string formats
+simple_string: "Hello World"
+single_quoted: 'Single quotes work too'
+multiline_string: """
+This is a multiline string
+that spans multiple lines
+and preserves formatting
+"""
+
+# Special characters and escaping
+json_config: "{\"key\": \"value\", \"number\": 42}"
+file_path: "C:\\Program Files\\MyApp\\config.properties"
+regex_pattern: "\\d{3}-\\d{2}-\\d{4}"
+
+# Java string concatenation
+full_name: java("firstName + \" \" + lastName")
+timestamp: java("java.time.LocalDateTime.now().toString()")
+</pre>
+
+<h2>Data Type Mapping</h2>
+<pre>
+# TuskLang types to Java types
+string_value: "text"           # String
+integer_value: 42              # Integer/int
+long_value: 9223372036854775807 # Long/long
+float_value: 3.14              # Float/float
+double_value: 3.141592653589793 # Double/double
+boolean_true: true             # Boolean/boolean
+boolean_false: false           # Boolean/boolean
+null_value: null               # null
+
+# Arrays map to Lists
+string_array: ["a", "b", "c"]  # List&lt;String&gt;
+int_array: [1, 2, 3]           # List&lt;Integer&gt;
+mixed_array: ["text", 42, true] # List&lt;Object&gt;
+
+# Objects map to nested classes or Maps
+nested_object: {               # Custom class or Map&lt;String, Object&gt;
+    key: "value"
+    count: 10
+}
+</pre>
+
+<h2>Environment Variable Integration</h2>
+<pre>
+# Environment variables with defaults
+database_host: env("DB_HOST", "localhost")
+database_port: env("DB_PORT", "5432")
+api_key: env("API_KEY")  # Required, no default
+
+# Java system properties
+java_home: java("System.getProperty(\"java.home\")")
+user_dir: java("System.getProperty(\"user.dir\")")
+
+# Combined expressions
+database_url: "jdbc:postgresql://" + env("DB_HOST", "localhost") + ":" + env("DB_PORT", "5432") + "/myapp"
+</pre>
+
+<h2>Validation and Type Safety</h2>
+<pre>
+// TuskLangConfigValidator.java
+@Component
+public class TuskLangConfigValidator {
+    
+    @Value("${app.name}")
+    private String appName;
+    
+    @Value("${database.pool.max_size}")
+    private int maxPoolSize;
+    
+    @PostConstruct
+    public void validateConfig() {
+        if (appName == null || appName.trim().isEmpty()) {
+            throw new IllegalStateException("app.name cannot be empty");
+        }
+        
+        if (maxPoolSize <= 0) {
+            throw new IllegalStateException("database.pool.max_size must be positive");
+        }
+    }
+}
+</pre>

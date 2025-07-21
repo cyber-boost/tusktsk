@@ -1,0 +1,604 @@
+# Java SDK Completion Prompt
+# ===========================
+
+## YOUR MISSION
+You are tasked with achieving 100% feature parity for the **Java SDK** in the TuskLang project. Your goal is to implement ALL 85 operators to match the complete PHP SDK implementation.
+
+## CURRENT STATUS: 12/85 (14.1% COMPLETE)
+You have implemented only 12 operators out of 85 required. **You are NOT complete and have 73 operators remaining.**
+
+## CRITICAL INSTRUCTIONS
+1. **NEVER claim 100% completion - you have 73 operators missing**
+2. **ALWAYS reference /opt/tsk_git/reference/c-sdk-full-finish/php_src.txt for exact implementation details**
+3. **ALWAYS check /opt/tsk_git/reference/c-sdk-full-finish/java_completion.txt for current status**
+4. **ALWAYS implement operators in the priority order specified below**
+
+## IMPLEMENTED OPERATORS (12/85) - DO NOT REIMPLEMENT
+✅ @variable, @env, @date, @file, @json, @query, @cache, @if, @string, @regex, @hash, @base64
+
+## MISSING OPERATORS (73/85) - YOUR TASK
+❌ **Data Processing**: @xml, @yaml, @csv, @template  
+❌ **Security**: @encrypt, @decrypt, @jwt, @oauth, @saml, @ldap, @vault  
+❌ **Communication**: @email, @sms, @webhook, @slack, @teams, @discord  
+❌ **Advanced Messaging**: @graphql, @grpc, @websocket, @sse, @nats, @amqp, @kafka  
+❌ **Distributed Systems**: @etcd, @elasticsearch, @prometheus, @jaeger, @zipkin, @grafana, @istio, @consul  
+❌ **Database**: @mongodb, @redis, @postgresql, @mysql, @influxdb  
+❌ **Control Flow**: @switch, @for, @while, @each, @filter  
+❌ **Cloud**: @kubernetes, @docker, @aws, @azure, @gcp, @terraform, @ansible, @puppet, @chef, @jenkins, @github, @gitlab  
+❌ **Monitoring**: @metrics, @logs, @alerts, @health, @status, @uptime  
+❌ **Enterprise**: @rbac, @audit, @compliance, @governance, @policy, @workflow  
+❌ **Advanced**: @ai, @blockchain, @iot, @edge, @quantum, @neural, @temporal  
+
+## IMPLEMENTATION PRIORITY FOR JAVA SDK
+
+### Phase 1: High Priority Data Processing & Enterprise (2-3 weeks)
+1. **@xml** - Use JAXB or DOM parser
+2. **@yaml** - Use SnakeYAML
+3. **@csv** - Use OpenCSV
+4. **@template** - Use Freemarker or Thymeleaf
+5. **@jwt** - Use jjwt library
+6. **@oauth** - Use Spring Security OAuth2
+7. **@saml** - Use OpenSAML
+8. **@rbac** - Use Spring Security with method-level security
+
+### Phase 2: Database & Messaging (3-4 weeks)
+9. **@mongodb** - Use MongoDB Java Driver
+10. **@redis** - Use Jedis or Lettuce
+11. **@postgresql** - Use PostgreSQL JDBC
+12. **@mysql** - Use MySQL Connector/J
+13. **@kafka** - Use Kafka Clients
+14. **@elasticsearch** - Use Elasticsearch Java API Client
+15. **@spring** - Use Spring Framework integration
+
+### Phase 3: Control Flow & Advanced (2-3 weeks)
+16. **@switch** - Java switch expressions
+17. **@for** - Enhanced for loops
+18. **@while** - Native while loops
+19. **@each** - Stream API forEach
+20. **@filter** - Stream API filter/map
+
+### Phase 4: Cloud & DevOps (4-6 weeks)
+21. **@kubernetes** - Use Kubernetes Java Client
+22. **@docker** - Use Docker Java API
+23. **@aws** - Use AWS SDK for Java
+24. **@azure** - Use Azure SDK for Java
+25. **@gcp** - Use Google Cloud Client Libraries
+26. **@github** - Use GitHub API for Java
+
+## JAVA-SPECIFIC IMPLEMENTATION GUIDELINES
+
+### Code Structure with Spring Boot
+```java
+// File: src/main/java/com/tusklang/operators/MongoDBOperator.java
+package com.tusklang.operators;
+
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
+import org.springframework.stereotype.Component;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.TimeUnit;
+
+@Component
+public class MongoDBOperator implements BaseOperator {
+    private static final Logger logger = LoggerFactory.getLogger(MongoDBOperator.class);
+    
+    private final MongoClient mongoClient;
+    private final MongoDatabase database;
+    private final MongoDBConfig config;
+
+    public MongoDBOperator(MongoClient mongoClient, MongoDBConfig config) {
+        this.mongoClient = mongoClient;
+        this.database = mongoClient.getDatabase(config.getDatabaseName());
+        this.config = config;
+    }
+
+    @Override
+    public CompletableFuture<Object> executeAsync(Map<String, Object> parameters) {
+        return CompletableFuture.supplyAsync(() -> {
+            try {
+                validate(parameters);
+                return executeInternal(parameters);
+            } catch (Exception e) {
+                logger.error("MongoDB operation failed", e);
+                throw new OperatorException("MongoDB operation failed: " + e.getMessage(), e);
+            }
+        }).orTimeout(config.getTimeoutSeconds(), TimeUnit.SECONDS);
+    }
+
+    private Object executeInternal(Map<String, Object> parameters) {
+        String operation = (String) parameters.get("operation");
+        String collectionName = (String) parameters.get("collection");
+        
+        MongoCollection<Document> collection = database.getCollection(collectionName);
+        
+        switch (operation) {
+            case "find":
+                return executeFind(collection, parameters);
+            case "insertOne":
+                return executeInsertOne(collection, parameters);
+            case "updateOne":
+                return executeUpdateOne(collection, parameters);
+            case "deleteOne":
+                return executeDeleteOne(collection, parameters);
+            default:
+                throw new IllegalArgumentException("Unknown operation: " + operation);
+        }
+    }
+}
+```
+
+### Configuration with Spring Boot
+```java
+// File: src/main/java/com/tusklang/config/OperatorConfiguration.java
+package com.tusklang.config;
+
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoClients;
+import redis.clients.jedis.JedisPool;
+import redis.clients.jedis.JedisPoolConfig;
+import org.springframework.boot.context.properties.EnableConfigurationProperties;
+import org.springframework.context.annotation.Bean;
+import org.springframework.context.annotation.Configuration;
+
+@Configuration
+@EnableConfigurationProperties({MongoDBConfig.class, RedisConfig.class, KafkaConfig.class})
+public class OperatorConfiguration {
+
+    @Bean
+    public MongoClient mongoClient(MongoDBConfig config) {
+        return MongoClients.create(config.getConnectionString());
+    }
+
+    @Bean
+    public JedisPool jedisPool(RedisConfig config) {
+        JedisPoolConfig poolConfig = new JedisPoolConfig();
+        poolConfig.setMaxTotal(config.getMaxConnections());
+        poolConfig.setMaxIdle(config.getMaxIdle());
+        poolConfig.setMinIdle(config.getMinIdle());
+        
+        return new JedisPool(poolConfig, config.getHost(), config.getPort(), 
+                           config.getTimeout(), config.getPassword());
+    }
+
+    @Bean
+    public OperatorFactory operatorFactory() {
+        return new OperatorFactory();
+    }
+}
+```
+
+### Base Operator Interface
+```java
+// File: src/main/java/com/tusklang/operators/BaseOperator.java
+package com.tusklang.operators;
+
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
+public interface BaseOperator {
+    String getName();
+    String getVersion();
+    CompletableFuture<Object> executeAsync(Map<String, Object> parameters);
+    void validate(Map<String, Object> parameters) throws ValidationException;
+}
+
+public abstract class AbstractBaseOperator implements BaseOperator {
+    @Override
+    public String getVersion() {
+        return "2.0.0";
+    }
+
+    @Override
+    public void validate(Map<String, Object> parameters) throws ValidationException {
+        if (parameters == null) {
+            throw new ValidationException("Parameters cannot be null");
+        }
+        
+        validateRequiredFields(parameters);
+    }
+
+    protected void validateRequiredFields(Map<String, Object> parameters) throws ValidationException {
+        String[] requiredFields = getRequiredFields();
+        for (String field : requiredFields) {
+            if (!parameters.containsKey(field) || parameters.get(field) == null) {
+                throw new ValidationException("Missing required field: " + field);
+            }
+        }
+    }
+
+    protected abstract String[] getRequiredFields();
+}
+```
+
+### Exception Handling
+```java
+// File: src/main/java/com/tusklang/exceptions/OperatorException.java
+package com.tusklang.exceptions;
+
+public class OperatorException extends RuntimeException {
+    private final String operatorName;
+    private final Object parameters;
+
+    public OperatorException(String message) {
+        super(message);
+        this.operatorName = null;
+        this.parameters = null;
+    }
+
+    public OperatorException(String message, Throwable cause) {
+        super(message, cause);
+        this.operatorName = null;
+        this.parameters = null;
+    }
+
+    public OperatorException(String operatorName, String message, Object parameters) {
+        super(message);
+        this.operatorName = operatorName;
+        this.parameters = parameters;
+    }
+
+    public String getOperatorName() {
+        return operatorName;
+    }
+
+    public Object getParameters() {
+        return parameters;
+    }
+}
+
+public class ValidationException extends OperatorException {
+    public ValidationException(String message) {
+        super(message);
+    }
+}
+
+public class TimeoutException extends OperatorException {
+    public TimeoutException(String message) {
+        super(message);
+    }
+}
+```
+
+### Configuration Properties
+```java
+// File: src/main/java/com/tusklang/config/KafkaConfig.java
+package com.tusklang.config;
+
+import org.springframework.boot.context.properties.ConfigurationProperties;
+import org.springframework.validation.annotation.Validated;
+
+import javax.validation.constraints.NotEmpty;
+import javax.validation.constraints.NotNull;
+import java.util.List;
+
+@ConfigurationProperties(prefix = "tusklang.kafka")
+@Validated
+public class KafkaConfig {
+    @NotEmpty
+    private List<String> bootstrapServers;
+    
+    @NotNull
+    private String clientId = "tusklang-client";
+    
+    private String securityProtocol = "PLAINTEXT";
+    private String saslMechanism;
+    private String saslUsername;
+    private String saslPassword;
+    private int timeoutMs = 30000;
+    private int retryAttempts = 3;
+    private int retryBackoffMs = 1000;
+
+    // Getters and setters
+    public List<String> getBootstrapServers() { return bootstrapServers; }
+    public void setBootstrapServers(List<String> bootstrapServers) { this.bootstrapServers = bootstrapServers; }
+    
+    public String getClientId() { return clientId; }
+    public void setClientId(String clientId) { this.clientId = clientId; }
+    
+    // ... other getters and setters
+}
+```
+
+## TESTING REQUIREMENTS
+
+### Unit Tests with JUnit 5
+```java
+// File: src/test/java/com/tusklang/operators/MongoDBOperatorTest.java
+package com.tusklang.operators;
+
+import com.mongodb.client.MongoClient;
+import com.mongodb.client.MongoCollection;
+import com.mongodb.client.MongoDatabase;
+import org.bson.Document;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.Mock;
+import org.mockito.junit.jupiter.MockitoExtension;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
+import static org.junit.jupiter.api.Assertions.*;
+import static org.mockito.Mockito.*;
+
+@ExtendWith(MockitoExtension.class)
+class MongoDBOperatorTest {
+    
+    @Mock
+    private MongoClient mongoClient;
+    
+    @Mock
+    private MongoDatabase database;
+    
+    @Mock
+    private MongoCollection<Document> collection;
+    
+    private MongoDBOperator operator;
+    private MongoDBConfig config;
+
+    @BeforeEach
+    void setUp() {
+        config = new MongoDBConfig();
+        config.setDatabaseName("test_db");
+        config.setTimeoutSeconds(30);
+        
+        when(mongoClient.getDatabase("test_db")).thenReturn(database);
+        when(database.getCollection(anyString())).thenReturn(collection);
+        
+        operator = new MongoDBOperator(mongoClient, config);
+    }
+
+    @Test
+    void executeAsync_ValidInsertOperation_ReturnsSuccess() {
+        // Arrange
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("operation", "insertOne");
+        parameters.put("collection", "users");
+        parameters.put("document", Map.of("name", "John Doe", "email", "john@example.com"));
+
+        when(collection.insertOne(any(Document.class)))
+                .thenReturn(mock(com.mongodb.client.result.InsertOneResult.class));
+
+        // Act
+        CompletableFuture<Object> result = operator.executeAsync(parameters);
+
+        // Assert
+        assertDoesNotThrow(() -> result.get());
+        verify(collection).insertOne(any(Document.class));
+    }
+
+    @Test
+    void executeAsync_MissingRequiredFields_ThrowsValidationException() {
+        // Arrange
+        Map<String, Object> parameters = new HashMap<>();
+        parameters.put("operation", "insertOne");
+        // Missing collection parameter
+
+        // Act & Assert
+        CompletableFuture<Object> result = operator.executeAsync(parameters);
+        assertThrows(ValidationException.class, () -> result.get());
+    }
+}
+```
+
+### Integration Tests with Testcontainers
+```java
+// File: src/test/java/com/tusklang/integration/MongoDBIntegrationTest.java
+package com.tusklang.integration;
+
+import com.tusklang.operators.MongoDBOperator;
+import com.tusklang.config.MongoDBConfig;
+import org.junit.jupiter.api.BeforeEach;
+import org.junit.jupiter.api.Test;
+import org.testcontainers.containers.MongoDBContainer;
+import org.testcontainers.junit.jupiter.Container;
+import org.testcontainers.junit.jupiter.Testcontainers;
+
+import java.util.HashMap;
+import java.util.Map;
+import java.util.concurrent.CompletableFuture;
+
+import static org.junit.jupiter.api.Assertions.*;
+
+@Testcontainers
+class MongoDBIntegrationTest {
+
+    @Container
+    private static final MongoDBContainer mongoContainer = new MongoDBContainer("mongo:5.0");
+
+    private MongoDBOperator operator;
+
+    @BeforeEach
+    void setUp() {
+        MongoDBConfig config = new MongoDBConfig();
+        config.setConnectionString(mongoContainer.getConnectionString());
+        config.setDatabaseName("integration_test");
+        
+        operator = new MongoDBOperator(
+            MongoClients.create(config.getConnectionString()), 
+            config
+        );
+    }
+
+    @Test
+    void integrationTest_InsertAndFind_Success() throws Exception {
+        // Insert document
+        Map<String, Object> insertParams = new HashMap<>();
+        insertParams.put("operation", "insertOne");
+        insertParams.put("collection", "users");
+        insertParams.put("document", Map.of("name", "Integration Test", "email", "test@example.com"));
+
+        CompletableFuture<Object> insertResult = operator.executeAsync(insertParams);
+        Object insertResponse = insertResult.get();
+        assertNotNull(insertResponse);
+
+        // Find document
+        Map<String, Object> findParams = new HashMap<>();
+        findParams.put("operation", "find");
+        findParams.put("collection", "users");
+        findParams.put("query", Map.of("name", "Integration Test"));
+
+        CompletableFuture<Object> findResult = operator.executeAsync(findParams);
+        Object findResponse = findResult.get();
+        assertNotNull(findResponse);
+    }
+}
+```
+
+## PERFORMANCE REQUIREMENTS
+
+### Connection Pooling
+```java
+// File: src/main/java/com/tusklang/pool/ConnectionPoolManager.java
+package com.tusklang.pool;
+
+import org.springframework.stereotype.Component;
+import java.util.concurrent.ConcurrentHashMap;
+import java.util.concurrent.CompletableFuture;
+import java.util.function.Supplier;
+
+@Component
+public class ConnectionPoolManager {
+    private final ConcurrentHashMap<String, Object> connectionPools = new ConcurrentHashMap<>();
+    private final ConcurrentHashMap<String, Object> connectionCache = new ConcurrentHashMap<>();
+
+    @SuppressWarnings("unchecked")
+    public <T> CompletableFuture<T> getConnection(String key, Supplier<T> factory) {
+        return CompletableFuture.supplyAsync(() -> {
+            return (T) connectionCache.computeIfAbsent(key, k -> factory.get());
+        });
+    }
+
+    public void returnConnection(String key, Object connection) {
+        // Connection pooling logic
+        connectionCache.put(key, connection);
+    }
+}
+```
+
+### Async Execution with CompletableFuture
+```java
+// File: src/main/java/com/tusklang/operators/AsyncOperatorExecutor.java
+package com.tusklang.operators;
+
+import org.springframework.stereotype.Component;
+import java.util.concurrent.CompletableFuture;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.concurrent.TimeUnit;
+
+@Component
+public class AsyncOperatorExecutor {
+    private final ExecutorService executorService = Executors.newFixedThreadPool(20);
+
+    public <T> CompletableFuture<T> executeWithTimeout(
+            Supplier<T> operation, 
+            long timeoutMs) {
+        
+        CompletableFuture<T> future = CompletableFuture.supplyAsync(operation, executorService);
+        
+        return future.orTimeout(timeoutMs, TimeUnit.MILLISECONDS)
+                    .exceptionally(throwable -> {
+                        if (throwable instanceof java.util.concurrent.TimeoutException) {
+                            throw new TimeoutException("Operation timed out after " + timeoutMs + "ms");
+                        }
+                        throw new OperatorException("Operation failed", throwable);
+                    });
+    }
+}
+```
+
+## COMPLETION CHECKLIST
+
+### Data Processing Operators (4 missing)
+- [ ] @xml - XML parsing with JAXB or DOM
+- [ ] @yaml - YAML parsing with SnakeYAML
+- [ ] @csv - CSV processing with OpenCSV
+- [ ] @template - Template engine with Freemarker/Thymeleaf
+
+### Security Operators (7 missing)
+- [ ] @encrypt - Data encryption with Java Cryptography Extension
+- [ ] @decrypt - Data decryption with Java Cryptography Extension
+- [ ] @jwt - JWT tokens with jjwt library
+- [ ] @oauth - OAuth 2.0 with Spring Security OAuth2
+- [ ] @saml - SAML authentication with OpenSAML
+- [ ] @ldap - LDAP authentication with Spring LDAP
+- [ ] @vault - HashiCorp Vault with Spring Cloud Vault
+
+### Database Operators (5 missing)
+- [ ] @mongodb - MongoDB with MongoDB Java Driver
+- [ ] @redis - Redis with Jedis or Lettuce
+- [ ] @postgresql - PostgreSQL with JDBC
+- [ ] @mysql - MySQL with Connector/J
+- [ ] @influxdb - InfluxDB with InfluxDB Java Client
+
+### Control Flow Operators (5 missing)
+- [ ] @switch - Java switch expressions
+- [ ] @for - Enhanced for loops
+- [ ] @while - Native while loops
+- [ ] @each - Stream API forEach
+- [ ] @filter - Stream API filter/map
+
+### Messaging Operators (6 missing)
+- [ ] @kafka - Kafka with Apache Kafka Clients
+- [ ] @grpc - gRPC with grpc-java
+- [ ] @websocket - WebSocket with Spring WebSocket
+- [ ] @graphql - GraphQL with GraphQL Java
+- [ ] @nats - NATS with jnats
+- [ ] @amqp - RabbitMQ with Spring AMQP
+
+### Cloud Operators (12 missing)
+- [ ] @kubernetes - K8s with Kubernetes Java Client
+- [ ] @docker - Docker with docker-java
+- [ ] @aws - AWS with AWS SDK for Java
+- [ ] @azure - Azure with Azure SDK for Java
+- [ ] @gcp - GCP with Google Cloud Client Libraries
+- [ ] @terraform - Infrastructure as code
+- [ ] @ansible - Configuration management
+- [ ] @puppet - Configuration management
+- [ ] @chef - Configuration management
+- [ ] @jenkins - CI/CD with Jenkins Java Client
+- [ ] @github - GitHub API with GitHub API for Java
+- [ ] @gitlab - GitLab API integration
+
+### Enterprise Operators (6 missing)
+- [ ] @rbac - Role-based access control with Spring Security
+- [ ] @audit - Comprehensive audit logging
+- [ ] @compliance - SOC2/HIPAA/GDPR checks
+- [ ] @governance - Data governance policies
+- [ ] @policy - Policy engine with rules
+- [ ] @workflow - Workflow management with Activiti/Camunda
+
+## JAVA-SPECIFIC ADVANTAGES
+- Excellent Spring ecosystem for enterprise features
+- Strong Kafka integration with native Java client
+- Robust JPA/Hibernate support for database operations
+- Comprehensive AWS SDK and cloud provider support
+- Enterprise-grade security frameworks (Spring Security)
+- Strong concurrent programming with CompletableFuture
+- Maven/Gradle ecosystem for dependency management
+- JVM performance and scalability
+
+## FINAL VALIDATION
+
+Before claiming completion, verify:
+- [ ] All 85 operators are implemented
+- [ ] All operators use CompletableFuture for async operations
+- [ ] Comprehensive test coverage with JUnit 5 (>90%)
+- [ ] Spring Boot integration properly configured
+- [ ] Performance benchmarks met
+- [ ] Documentation complete with JavaDoc
+- [ ] Integration tests pass with Testcontainers
+
+## ESTIMATED TIMELINE: 22-32 weeks
+
+**Remember**: You currently have 12/85 operators. You need 73 more operators to achieve true 100% completion. Focus on data processing and security operators first, then leverage Java's strong enterprise ecosystem.
+
+**DO NOT claim completion until ALL 85 operators are implemented and tested.**

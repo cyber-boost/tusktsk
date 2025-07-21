@@ -1,0 +1,288 @@
+<h1>Built-in Functions</h1>
+
+<h2>TuskLang Built-in Functions in PHP</h2>
+<p>TuskLang provides powerful built-in functions for environment variables, file operations, date/time, and more.</p>
+
+<h3>Environment Functions</h3>
+<pre>
+# Basic environment variable access
+api_key: env("API_KEY")
+debug_mode: env("DEBUG", false)
+port: env("PORT", 8080)
+
+# Type conversion
+max_connections: int(env("MAX_CONN", "100"))
+timeout: float(env("TIMEOUT", "30.5"))
+ssl_enabled: bool(env("SSL", "true"))
+
+# Complex defaults
+data_dir: env("DATA_DIR", "/var/lib/app")
+log_level: env("LOG_LEVEL", "info")
+</pre>
+
+<h3>File Operations</h3>
+<pre>
+# Include other configuration files
+database_config: file("config/database.tsk")
+api_settings: file("api.tsk")
+secrets: file("/etc/secrets.tsk")
+
+# Conditional file loading
+environment: env("APP_ENV", "production")
+env_config: file("config/" + environment + ".tsk")
+
+# JSON file loading
+package_info: json("composer.json")
+api_spec: json("openapi.json")
+</pre>
+
+<h3>Date and Time Functions</h3>
+<pre>
+# Current date/time
+current_time: date("Y-m-d H:i:s")
+timestamp: date("U")
+iso_date: date("c")
+
+# Relative dates
+tomorrow: date("Y-m-d", "+1 day")
+next_week: date("Y-m-d", "+1 week")
+last_month: date("Y-m-d", "-1 month")
+
+# Custom formatting
+log_date: date("Y/m/d H:i:s")
+file_suffix: date("Ymd_His")
+human_date: date("F j, Y")
+</pre>
+
+<h3>PHP Code Execution</h3>
+<pre>
+# Execute PHP expressions
+server_memory: php("memory_get_usage(true)")
+random_token: php("bin2hex(random_bytes(16))")
+server_load: php("sys_getloadavg()[0]")
+
+# File system operations
+disk_free: php("disk_free_space('/')")
+file_exists: php("file_exists('/path/to/file')")
+
+# Server information
+php_version: php("PHP_VERSION")
+server_name: php("$_SERVER['SERVER_NAME'] ?? 'localhost'")
+</pre>
+
+<h3>String Functions</h3>
+<pre>
+# String manipulation
+app_slug: slug(app_name)
+api_token: hash("sha256", api_key + secret_salt)
+encoded_data: base64(sensitive_info)
+
+# String formatting
+welcome_msg: sprintf("Welcome %s to %s", username, app_name)
+template: format("Hello {name}, you have {count} messages", user_data)
+</pre>
+
+<h3>PHP Implementation</h3>
+<pre>
+&lt;?php
+namespace TuskLang\Functions;
+
+class BuiltInFunctions {
+    /**
+     * Environment variable with default
+     */
+    public static function env(string $key, $default = null) {
+        return $_ENV[$key] ?? getenv($key) ?: $default;
+    }
+    
+    /**
+     * Include file and parse as TuskLang
+     */
+    public static function file(string $path): array {
+        if (!file_exists($path)) {
+            throw new \Exception("File not found: $path");
+        }
+        
+        $parser = new \TuskLang\TuskLangEnhanced();
+        return $parser->parseFile($path);
+    }
+    
+    /**
+     * Load and parse JSON file
+     */
+    public static function json(string $path): array {
+        if (!file_exists($path)) {
+            throw new \Exception("JSON file not found: $path");
+        }
+        
+        $content = file_get_contents($path);
+        $decoded = json_decode($content, true);
+        
+        if (json_last_error() !== JSON_ERROR_NONE) {
+            throw new \Exception("Invalid JSON in $path: " . json_last_error_msg());
+        }
+        
+        return $decoded;
+    }
+    
+    /**
+     * Date formatting with optional modifier
+     */
+    public static function date(string $format, string $modifier = null): string {
+        $date = new \DateTime();
+        
+        if ($modifier) {
+            $date->modify($modifier);
+        }
+        
+        return $date->format($format);
+    }
+    
+    /**
+     * Execute PHP code safely
+     */
+    public static function php(string $expression) {
+        // Whitelist safe functions
+        $allowed = [
+            'memory_get_usage', 'memory_get_peak_usage',
+            'sys_getloadavg', 'disk_free_space',
+            'file_exists', 'is_file', 'is_dir',
+            'bin2hex', 'random_bytes', 'uniqid',
+            'time', 'microtime'
+        ];
+        
+        // Basic security check
+        foreach ($allowed as $func) {
+            if (strpos($expression, $func) === 0) {
+                return eval("return $expression;");
+            }
+        }
+        
+        // Check for constants
+        if (defined($expression)) {
+            return constant($expression);
+        }
+        
+        throw new \Exception("Unsafe PHP expression: $expression");
+    }
+    
+    /**
+     * Type conversion functions
+     */
+    public static function int($value): int {
+        return (int) $value;
+    }
+    
+    public static function float($value): float {
+        return (float) $value;
+    }
+    
+    public static function bool($value): bool {
+        if (is_string($value)) {
+            return in_array(strtolower($value), ['true', '1', 'yes', 'on']);
+        }
+        return (bool) $value;
+    }
+    
+    public static function string($value): string {
+        return (string) $value;
+    }
+    
+    /**
+     * String utility functions
+     */
+    public static function slug(string $text): string {
+        $text = strtolower($text);
+        $text = preg_replace('/[^a-z0-9]+/', '-', $text);
+        return trim($text, '-');
+    }
+    
+    public static function hash(string $algo, string $data): string {
+        return hash($algo, $data);
+    }
+    
+    public static function base64(string $data): string {
+        return base64_encode($data);
+    }
+}
+</pre>
+
+<h3>Advanced Examples</h3>
+<pre>
+# Complex configuration using built-in functions
+app {
+    name: env("APP_NAME", "TuskLang App")
+    version: json("composer.json").version
+    environment: env("APP_ENV", "production")
+    
+    # Dynamic configuration based on environment
+    config: file("config/" + environment + ".tsk")
+    
+    # Server information
+    server {
+        memory: php("memory_get_usage(true) / 1024 / 1024") + "MB"
+        load: php("sys_getloadavg()[0]")
+        uptime: date("Y-m-d H:i:s", "-" + php("(int)(file_get_contents('/proc/uptime'))") + " seconds")
+    }
+    
+    # Security
+    session_key: hash("sha256", env("SECRET_KEY") + date("Ymd"))
+    csrf_token: php("bin2hex(random_bytes(32))")
+}
+
+# Database configuration with fallbacks
+database {
+    host: env("DB_HOST", "localhost")
+    port: int(env("DB_PORT", "3306"))
+    name: env("DB_NAME", "app_" + slug(app.name))
+    
+    # Connection string building
+    dsn: "mysql:host=" + host + ";port=" + string(port) + ";dbname=" + name
+}
+
+# Logging configuration
+logging {
+    level: env("LOG_LEVEL", "info")
+    file: env("LOG_FILE", "/var/log/" + slug(app.name) + ".log")
+    
+    # Rotate log files daily
+    current_file: logging.file + "." + date("Y-m-d")
+    
+    # Conditional debug logging
+    debug_enabled: app.environment == "development" || bool(env("FORCE_DEBUG", false))
+}
+</pre>
+
+<h3>Error Handling</h3>
+<pre>
+&lt;?php
+// Graceful error handling for built-in functions
+class SafeFunctionCaller {
+    public static function call(string $function, ...$args) {
+        try {
+            return BuiltInFunctions::$function(...$args);
+        } catch (\Exception $e) {
+            // Log error and return safe default
+            error_log("TuskLang function error: {$e->getMessage()}");
+            return null;
+        }
+    }
+}
+
+// Usage in config parsing
+$config = [
+    'api_key' => SafeFunctionCaller::call('env', 'API_KEY', 'default-key'),
+    'timestamp' => SafeFunctionCaller::call('date', 'Y-m-d H:i:s'),
+];
+</pre>
+
+<h3>Best Practices</h3>
+<ul>
+    <li>Always provide defaults for env() functions</li>
+    <li>Use absolute paths for file() functions in production</li>
+    <li>Validate file existence before using file() or json()</li>
+    <li>Be cautious with php() function - whitelist allowed operations</li>
+    <li>Use type conversion functions for explicit casting</li>
+    <li>Cache results of expensive built-in functions</li>
+    <li>Handle errors gracefully with try-catch blocks</li>
+</ul>

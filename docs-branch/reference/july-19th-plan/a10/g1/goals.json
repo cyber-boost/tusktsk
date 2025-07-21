@@ -1,0 +1,29 @@
+{
+  "goal_id": "g1",
+  "agent_id": "a10",
+  "language": "Multi-Language",
+  "created_at": "2025-07-19T18:58:38Z",
+  "goals": [
+    {
+      "id": "g1.1",
+      "description": "Create unified multi-language CLI coordinator that can invoke commands across all language SDKs",
+      "success_criteria": "CLI can execute tsk commands in Python, Rust, JavaScript, Ruby, C#, Go, PHP, Java, and Bash with consistent interface",
+      "priority": "high"
+    },
+    {
+      "id": "g1.2",
+      "description": "Implement cross-language configuration management system using peanu.tsk files",
+      "success_criteria": "Single peanu.tsk file can configure all language SDKs with hierarchical override support",
+      "priority": "high"
+    },
+    {
+      "id": "g1.3",
+      "description": "Create multi-language package management and dependency resolution system",
+      "success_criteria": "Can install, update, and manage dependencies across all supported languages from single interface",
+      "priority": "medium"
+    }
+  ],
+  "dependencies": [],
+  "estimated_time": "45 minutes",
+  "complexity": "high"
+}

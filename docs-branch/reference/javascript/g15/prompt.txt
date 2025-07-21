@@ -1,0 +1,41 @@
+TASK: Execute goals for JavaScript agent a3 goal 15
+LANGUAGE: JavaScript
+WORKING DIRECTORY: g15
+
+CONTEXT: You are working on the TuskLang JavaScript SDK (a3 agent). Complete the specified goals efficiently and update the tracking files.
+
+EXECUTION REQUIREMENTS:
+1. Complete the following goals (see goals.json for details):
+   - g15.1: Goal 1 implementation
+   - g15.2: Goal 2 implementation  
+   - g15.3: Goal 3 implementation
+
+2. TIME LIMIT: Complete all tasks within 15 minutes maximum
+
+3. Upon completion, update these files:
+   - ../status.json: Set "g15": true and increment completed_goals
+   - ../summary.json: Add entry with timestamp, tasks completed, methods used
+   - ../ideas.json: Add at least one innovative approach discovered or feature that should be built or problem to be addressed ! important, !! very important, !!! absolutely urgent life or death
+
+4. Use minimal testing - basic functionality verification only
+
+5. Before writing any file, check for locks using file locking mechanism:
+   - Check if ../status.json has "file_locks" entry for current operation
+   - Use timestamp-based locking: create lock with current timestamp
+   - Release lock after operation completes
+
+6. All file paths must be relative to current directory
+
+IMPLEMENTATION GUIDELINES:
+- Focus on JavaScript-specific best practices
+- Implement proper error handling
+- Use appropriate testing frameworks
+- Optimize for performance where applicable
+- Follow language conventions and patterns
+
+REFERENCES:
+- Parent directory files: ../status.json, ../summary.json, ../ideas.json
+- Current goals: ./goals.json
+- JavaScript SDK location: ../../sdk/javascript/
+
+BEGIN IMMEDIATELY. Time is critical.

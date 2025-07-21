@@ -1,0 +1,449 @@
+# JavaScript SDK Completion Prompt
+# =================================
+
+## YOUR MISSION
+You are tasked with achieving 100% feature parity for the **JavaScript SDK** in the TuskLang project. Your goal is to implement ALL 85 operators to match the complete PHP SDK implementation.
+
+## CURRENT STATUS: 28/85 (32.9% COMPLETE)
+You have implemented only 28 operators out of 85 required. **You are NOT complete and have 57 operators remaining.**
+
+## CRITICAL INSTRUCTIONS
+1. **NEVER claim 100% completion - you have 57 operators missing**
+2. **ALWAYS reference /opt/tsk_git/reference/c-sdk-full-finish/php_src.txt for exact implementation details**
+3. **ALWAYS check /opt/tsk_git/reference/c-sdk-full-finish/javascript_completion.txt for current status**
+4. **ALWAYS implement operators in the priority order specified below**
+
+## IMPLEMENTED OPERATORS (28/85) - DO NOT REIMPLEMENT
+✅ @variable, @env, @date, @file, @json, @query, @cache, @if, @string, @regex, @hash, @base64, @xml, @yaml, @csv, @template, @encrypt, @decrypt, @jwt, @email, @sms, @webhook, @metrics, @websocket, @mongodb, @redis, @graphql, @switch
+
+## MISSING OPERATORS (57/85) - YOUR TASK
+❌ **Advanced Messaging**: @grpc, @sse, @nats, @amqp, @kafka  
+❌ **Distributed Systems**: @etcd, @elasticsearch, @prometheus, @jaeger, @zipkin, @grafana, @istio, @consul, @vault  
+❌ **Security**: @oauth, @saml, @ldap  
+❌ **Database**: @mysql, @postgresql, @influxdb  
+❌ **Control Flow**: @for, @while, @each, @filter  
+❌ **Cloud**: @kubernetes, @docker, @aws, @azure, @gcp, @terraform, @ansible, @puppet, @chef, @jenkins, @github, @gitlab  
+❌ **Monitoring**: @logs, @alerts, @health, @status, @uptime  
+❌ **Communication**: @slack, @teams, @discord  
+❌ **Enterprise**: @rbac, @audit, @compliance, @governance, @policy, @workflow  
+❌ **Advanced**: @ai, @blockchain, @iot, @edge, @quantum, @neural, @temporal  
+
+## IMPLEMENTATION PRIORITY FOR JAVASCRIPT SDK
+
+### Phase 1: High Priority Control Flow & Database (1-2 weeks)
+1. **@for** - For loop implementation
+2. **@while** - While loop implementation  
+3. **@each** - Array iteration
+4. **@filter** - Array filtering
+5. **@mysql** - Use mysql2 package
+6. **@postgresql** - Use pg package
+7. **@influxdb** - Use @influxdata/influxdb-client
+
+### Phase 2: Advanced Messaging (2-3 weeks)
+8. **@grpc** - Use @grpc/grpc-js
+9. **@sse** - Use EventSource or custom implementation
+10. **@kafka** - Use kafkajs
+11. **@nats** - Use nats.js
+12. **@amqp** - Use amqplib
+
+### Phase 3: Cloud & DevOps (4-6 weeks)
+13. **@kubernetes** - Use @kubernetes/client-node
+14. **@docker** - Use dockerode
+15. **@aws** - Use aws-sdk
+16. **@azure** - Use @azure/arm-* packages
+17. **@gcp** - Use @google-cloud/* packages
+18. **@github** - Use @octokit/rest
+19. **@gitlab** - Use @gitbeaker/node
+
+### Phase 4: Enterprise Features (3-4 weeks)
+20. **@rbac** - Custom implementation
+21. **@audit** - Custom audit logging
+22. **@oauth** - Use passport or custom OAuth2
+23. **@vault** - Use node-vault
+
+## JAVASCRIPT-SPECIFIC IMPLEMENTATION GUIDELINES
+
+### Code Structure (ES6+ with async/await)
+```javascript
+// File: operators/KafkaOperator.js
+import { BaseOperator } from './BaseOperator.js';
+import { Kafka } from 'kafkajs';
+
+export class KafkaOperator extends BaseOperator {
+    constructor(config) {
+        super(config);
+        this.kafka = new Kafka({
+            clientId: config.clientId || 'tusklang-client',
+            brokers: config.brokers || ['localhost:9092']
+        });
+    }
+
+    async execute(params) {
+        await this.validate(params);
+        
+        try {
+            const result = await this.executeInternal(params);
+            return result;
+        } catch (error) {
+            this.logger.error('Kafka operation failed:', error, { params });
+            throw error;
+        }
+    }
+
+    async executeInternal(params) {
+        switch (params.operation) {
+            case 'produce':
+                return await this.produce(params);
+            case 'consume':
+                return await this.consume(params);
+            default:
+                throw new Error(`Unknown operation: ${params.operation}`);
+        }
+    }
+}
+```
+
+### Async/Await Pattern
+```javascript
+import axios from 'axios';
+
+export class GraphQLOperator extends BaseOperator {
+    async execute(params) {
+        const { endpoint, query, variables = {}, headers = {} } = params;
+        
+        try {
+            const response = await axios.post(endpoint, {
+                query,
+                variables
+            }, {
+                headers: {
+                    'Content-Type': 'application/json',
+                    ...headers
+                },
+                timeout: this.config.timeout || 30000
+            });
+
+            if (response.data.errors) {
+                this.handleGraphQLErrors(response.data.errors);
+            }
+
+            return response.data.data || response.data;
+        } catch (error) {
+            this.logger.error('GraphQL request failed:', error);
+            throw error;
+        }
+    }
+}
+```
+
+### Error Handling Pattern
+```javascript
+export class BaseOperator {
+    constructor(config) {
+        this.config = config;
+        this.logger = this.createLogger();
+    }
+
+    async execute(params) {
+        try {
+            await this.validate(params);
+            return await this.executeInternal(params);
+        } catch (error) {
+            if (error instanceof ValidationError) {
+                this.logger.error('Validation failed:', error.message);
+                throw error;
+            }
+            
+            this.logger.error('Operator execution failed:', error, { params });
+            throw new OperatorError(
+                `${this.constructor.name} failed: ${error.message}`,
+                error
+            );
+        }
+    }
+
+    async validate(params) {
+        const requiredFields = this.getRequiredFields();
+        for (const field of requiredFields) {
+            if (!(field in params)) {
+                throw new ValidationError(`Missing required field: ${field}`);
+            }
+        }
+    }
+}
+```
+
+### Event-Driven Pattern
+```javascript
+import { EventEmitter } from 'events';
+
+export class WebSocketOperator extends BaseOperator {
+    constructor(config) {
+        super(config);
+        this.eventEmitter = new EventEmitter();
+    }
+
+    async execute(params) {
+        const { url, message, operation } = params;
+        
+        switch (operation) {
+            case 'send':
+                return await this.sendMessage(url, message);
+            case 'listen':
+                return await this.listenForMessages(url, params);
+            default:
+                throw new Error(`Unknown WebSocket operation: ${operation}`);
+        }
+    }
+
+    async sendMessage(url, message) {
+        return new Promise((resolve, reject) => {
+            const ws = new WebSocket(url);
+            
+            ws.on('open', () => {
+                ws.send(JSON.stringify(message));
+            });
+            
+            ws.on('message', (data) => {
+                resolve(JSON.parse(data));
+                ws.close();
+            });
+            
+            ws.on('error', reject);
+        });
+    }
+}
+```
+
+## TESTING REQUIREMENTS
+
+### Unit Tests with Jest
+```javascript
+// File: tests/KafkaOperator.test.js
+import { KafkaOperator } from '../operators/KafkaOperator.js';
+import { jest } from '@jest/globals';
+
+describe('KafkaOperator', () => {
+    let operator;
+    
+    beforeEach(() => {
+        operator = new KafkaOperator({
+            brokers: ['localhost:9092']
+        });
+    });
+
+    describe('execute', () => {
+        test('should produce message successfully', async () => {
+            const params = {
+                operation: 'produce',
+                topic: 'test-topic',
+                message: { key: 'value' }
+            };
+
+            // Mock the Kafka producer
+            const mockProducer = {
+                send: jest.fn().mockResolvedValue({ topic: 'test-topic' })
+            };
+            operator.kafka.producer = jest.fn().mockReturnValue(mockProducer);
+
+            const result = await operator.execute(params);
+
+            expect(result).toBeDefined();
+            expect(mockProducer.send).toHaveBeenCalledWith({
+                topic: 'test-topic',
+                messages: [{ value: JSON.stringify({ key: 'value' }) }]
+            });
+        });
+
+        test('should throw error for invalid operation', async () => {
+            const params = {
+                operation: 'invalid',
+                topic: 'test-topic'
+            };
+
+            await expect(operator.execute(params))
+                .rejects
+                .toThrow('Unknown operation: invalid');
+        });
+    });
+});
+```
+
+### Integration Tests
+```javascript
+// File: tests/integration/mongodb.integration.test.js
+import { MongoDBOperator } from '../../operators/MongoDBOperator.js';
+import { MongoMemoryServer } from 'mongodb-memory-server';
+
+describe('MongoDB Integration', () => {
+    let mongoServer;
+    let operator;
+
+    beforeAll(async () => {
+        mongoServer = await MongoMemoryServer.create();
+        const mongoUri = mongoServer.getUri();
+        
+        operator = new MongoDBOperator({
+            connectionString: mongoUri,
+            database: 'test'
+        });
+    });
+
+    afterAll(async () => {
+        await mongoServer.stop();
+    });
+
+    test('should insert and find documents', async () => {
+        // Insert document
+        const insertResult = await operator.execute({
+            operation: 'insertOne',
+            collection: 'users',
+            document: { name: 'John', email: 'john@example.com' }
+        });
+
+        expect(insertResult.insertedId).toBeDefined();
+
+        // Find document
+        const findResult = await operator.execute({
+            operation: 'findOne',
+            collection: 'users',
+            query: { name: 'John' }
+        });
+
+        expect(findResult.name).toBe('John');
+        expect(findResult.email).toBe('john@example.com');
+    });
+});
+```
+
+## PERFORMANCE REQUIREMENTS
+
+### Connection Pooling
+```javascript
+export class RedisOperator extends BaseOperator {
+    constructor(config) {
+        super(config);
+        this.pool = new Redis.Cluster(config.nodes || [{ host: 'localhost', port: 6379 }], {
+            maxRetriesPerRequest: 3,
+            retryDelayOnFailover: 500,
+            redisOptions: {
+                connectTimeout: 10000,
+                commandTimeout: 5000
+            }
+        });
+    }
+
+    async execute(params) {
+        const client = this.pool;
+        
+        try {
+            return await this.executeWithClient(client, params);
+        } catch (error) {
+            this.logger.error('Redis operation failed:', error);
+            throw error;
+        }
+    }
+}
+```
+
+### Timeout and Retry Logic
+```javascript
+export class BaseOperator {
+    async executeWithRetry(operation, params, maxRetries = 3) {
+        let lastError;
+        
+        for (let attempt = 1; attempt <= maxRetries; attempt++) {
+            try {
+                return await this.executeWithTimeout(operation, params);
+            } catch (error) {
+                lastError = error;
+                
+                if (attempt < maxRetries) {
+                    const delay = Math.pow(2, attempt) * 1000; // Exponential backoff
+                    await new Promise(resolve => setTimeout(resolve, delay));
+                }
+            }
+        }
+        
+        throw lastError;
+    }
+
+    async executeWithTimeout(operation, params) {
+        const timeout = params.timeout || this.config.timeout || 30000;
+        
+        return Promise.race([
+            operation(params),
+            new Promise((_, reject) => 
+                setTimeout(() => reject(new Error('Operation timeout')), timeout)
+            )
+        ]);
+    }
+}
+```
+
+## COMPLETION CHECKLIST
+
+### Control Flow Operators (4 missing)
+- [ ] @for - For loop with break/continue support
+- [ ] @while - While loop with condition evaluation
+- [ ] @each - Array iteration with index/value
+- [ ] @filter - Array filtering with predicates
+
+### Database Operators (3 missing)
+- [ ] @mysql - MySQL operations with mysql2
+- [ ] @postgresql - PostgreSQL operations with pg
+- [ ] @influxdb - InfluxDB time series operations
+
+### Messaging Operators (5 missing)
+- [ ] @grpc - gRPC client/server with @grpc/grpc-js
+- [ ] @sse - Server-sent events with EventSource
+- [ ] @kafka - Kafka producer/consumer with kafkajs
+- [ ] @nats - NATS messaging with nats.js
+- [ ] @amqp - RabbitMQ with amqplib
+
+### Cloud Operators (12 missing)
+- [ ] @kubernetes - K8s operations with client-node
+- [ ] @docker - Docker operations with dockerode
+- [ ] @aws - AWS services with aws-sdk
+- [ ] @azure - Azure services with @azure packages
+- [ ] @gcp - GCP services with @google-cloud
+- [ ] @terraform - Infrastructure as code
+- [ ] @ansible - Configuration management
+- [ ] @puppet - Configuration management
+- [ ] @chef - Configuration management
+- [ ] @jenkins - CI/CD with jenkins API
+- [ ] @github - GitHub API with @octokit/rest
+- [ ] @gitlab - GitLab API with @gitbeaker/node
+
+### Enterprise Operators (6 missing)
+- [ ] @rbac - Role-based access control
+- [ ] @audit - Comprehensive audit logging
+- [ ] @compliance - SOC2/HIPAA/GDPR checks
+- [ ] @governance - Data governance policies
+- [ ] @policy - Policy engine with rules
+- [ ] @workflow - Workflow management system
+
+## JAVASCRIPT-SPECIFIC ADVANTAGES
+- Native async/await support perfect for I/O operations
+- Excellent WebSocket and SSE support
+- Strong npm ecosystem for cloud providers
+- Event-driven architecture ideal for streaming
+- Browser compatibility for client-side operations
+- JSON handling is native and efficient
+
+## FINAL VALIDATION
+
+Before claiming completion, verify:
+- [ ] All 85 operators are implemented
+- [ ] All operators use modern ES6+ syntax
+- [ ] Comprehensive test coverage with Jest (>90%)
+- [ ] Performance benchmarks met
+- [ ] Browser and Node.js compatibility
+- [ ] Documentation complete with examples
+- [ ] Integration tests pass
+
+## ESTIMATED TIMELINE: 14-21 weeks
+
+**Remember**: You currently have 28/85 operators. You need 57 more operators to achieve true 100% completion. Focus on the missing control flow operators first, then messaging and cloud operators.
+
+**DO NOT claim completion until ALL 85 operators are implemented and tested.**

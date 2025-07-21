@@ -1,0 +1,29 @@
+{
+  "goal_id": "g19",
+  "agent_id": "a8",
+  "language": "PHP",
+  "created_at": "2025-07-19T18:58:38Z",
+  "goals": [
+    {
+      "id": "g19.1",
+      "description": "Goal 1 for PHP agent a8 goal 19",
+      "success_criteria": "Success criteria for goal 1",
+      "priority": "high"
+    },
+    {
+      "id": "g19.2",
+      "description": "Goal 2 for PHP agent a8 goal 19", 
+      "success_criteria": "Success criteria for goal 2",
+      "priority": "medium"
+    },
+    {
+      "id": "g19.3",
+      "description": "Goal 3 for PHP agent a8 goal 19",
+      "success_criteria": "Success criteria for goal 3", 
+      "priority": "low"
+    }
+  ],
+  "dependencies": [],
+  "estimated_time": "15 minutes",
+  "complexity": "medium"
+}

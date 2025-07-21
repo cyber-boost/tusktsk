@@ -1,0 +1,822 @@
+<h1>Control Flow for Java</h1>
+
+<h2>Conditional Configuration</h2>
+<pre>
+# Environment-based configuration
+app: {
+    name: "MyJavaApp"
+    environment: env("ENVIRONMENT", "development")
+    
+    # Conditional features based on environment
+    features: {
+        debug: app.environment == "development"
+        caching: app.environment != "development"
+        metrics: app.environment == "production"
+        ssl_required: app.environment == "production"
+        
+        # Complex conditions
+        advanced_logging: app.environment == "production" || app.environment == "staging"
+        database_pool_size: app.environment == "production" ? 20 : 5
+        session_timeout: app.environment == "production" ? "30m" : "2h"
+    }
+}
+
+# Database configuration with conditionals
+database: {
+    # Driver selection based on environment
+    driver: app.environment == "test" ? "org.h2.Driver" : "org.postgresql.Driver"
+    
+    # Connection settings
+    url: app.environment == "test" ? 
+         "jdbc:h2:mem:testdb" : 
+         "jdbc:postgresql://" + env("DB_HOST") + "/" + env("DB_NAME")
+    
+    # Pool configuration based on environment
+    pool: {
+        min_size: app.environment == "production" ? 10 : 2
+        max_size: app.environment == "production" ? 50 : 10
+        timeout: app.environment == "production" ? "10s" : "30s"
+    }
+    
+    # JPA settings with conditions
+    jpa: {
+        show_sql: app.environment == "development"
+        format_sql: app.environment != "production"
+        hbm2ddl_auto: app.environment == "production" ? "validate" : "update"
+    }
+}
+
+# Security configuration with conditionals
+security: {
+    # Authentication method based on environment
+    auth_method: app.environment == "development" ? "basic" : "jwt"
+    
+    # JWT configuration
+    jwt: {
+        enabled: security.auth_method == "jwt"
+        secret: security.jwt.enabled ? env("JWT_SECRET") : null
+        expiration: security.jwt.enabled ? "1h" : null
+        
+        # Algorithm selection
+        algorithm: security.jwt.enabled ? 
+                  (app.environment == "production" ? "RS256" : "HS256") : 
+                  null
+    }
+    
+    # CORS settings
+    cors: {
+        enabled: app.environment != "production"
+        origins: security.cors.enabled ? 
+                ["http://localhost:3000", "http://localhost:8080"] : 
+                [env("ALLOWED_ORIGIN")]
+    }
+}
+</pre>
+
+<h2>Java Conditional Configuration Handler</h2>
+<pre>
+// ConditionalConfigProcessor.java
+@Component
+public class ConditionalConfigProcessor {
+    
+    private final Environment environment;
+    private final ExpressionEvaluator expressionEvaluator;
+    
+    public ConditionalConfigProcessor(Environment environment, ExpressionEvaluator expressionEvaluator) {
+        this.environment = environment;
+        this.expressionEvaluator = expressionEvaluator;
+    }
+    
+    public Object processConditionalValue(String expression, Map&lt;String, Object&gt; context) {
+        if (!isConditionalExpression(expression)) {
+            return expression;
+        }
+        
+        return evaluateConditionalExpression(expression, context);
+    }
+    
+    private boolean isConditionalExpression(String expression) {
+        return expression.contains("?") && expression.contains(":");
+    }
+    
+    private Object evaluateConditionalExpression(String expression, Map&lt;String, Object&gt; context) {
+        // Parse ternary expression: condition ? trueValue : falseValue
+        String[] parts = expression.split("\\?", 2);
+        if (parts.length != 2) {
+            throw new IllegalArgumentException("Invalid conditional expression: " + expression);
+        }
+        
+        String condition = parts[0].trim();
+        String[] valueParts = parts[1].split(":", 2);
+        if (valueParts.length != 2) {
+            throw new IllegalArgumentException("Invalid conditional expression: " + expression);
+        }
+        
+        String trueValue = valueParts[0].trim();
+        String falseValue = valueParts[1].trim();
+        
+        // Evaluate condition
+        boolean conditionResult = evaluateCondition(condition, context);
+        
+        // Return appropriate value
+        return conditionResult ? parseValue(trueValue, context) : parseValue(falseValue, context);
+    }
+    
+    private boolean evaluateCondition(String condition, Map&lt;String, Object&gt; context) {
+        // Handle different comparison operators
+        if (condition.contains("==")) {
+            return evaluateEquality(condition, context, true);
+        } else if (condition.contains("!=")) {
+            return evaluateEquality(condition, context, false);
+        } else if (condition.contains("&gt;=")) {
+            return evaluateComparison(condition, context, "&gt;=");
+        } else if (condition.contains("&lt;=")) {
+            return evaluateComparison(condition, context, "&lt;=");
+        } else if (condition.contains("&gt;")) {
+            return evaluateComparison(condition, context, "&gt;");
+        } else if (condition.contains("&lt;")) {
+            return evaluateComparison(condition, context, "&lt;");
+        } else if (condition.contains("||")) {
+            return evaluateLogicalOr(condition, context);
+        } else if (condition.contains("&&")) {
+            return evaluateLogicalAnd(condition, context);
+        }
+        
+        // Simple boolean evaluation
+        return evaluateBoolean(condition, context);
+    }
+    
+    private boolean evaluateEquality(String condition, Map&lt;String, Object&gt; context, boolean expectEqual) {
+        String operator = expectEqual ? "==" : "!=";
+        String[] parts = condition.split(operator, 2);
+        
+        Object left = resolveValue(parts[0].trim(), context);
+        Object right = resolveValue(parts[1].trim(), context);
+        
+        boolean isEqual = Objects.equals(left, right);
+        return expectEqual ? isEqual : !isEqual;
+    }
+    
+    private boolean evaluateComparison(String condition, Map&lt;String, Object&gt; context, String operator) {
+        String[] parts = condition.split(operator, 2);
+        
+        Object left = resolveValue(parts[0].trim(), context);
+        Object right = resolveValue(parts[1].trim(), context);
+        
+        if (left instanceof Number && right instanceof Number) {
+            double leftNum = ((Number) left).doubleValue();
+            double rightNum = ((Number) right).doubleValue();
+            
+            switch (operator) {
+                case "&gt;": return leftNum &gt; rightNum;
+                case "&lt;": return leftNum &lt; rightNum;
+                case "&gt;=": return leftNum &gt;= rightNum;
+                case "&lt;=": return leftNum &lt;= rightNum;
+            }
+        }
+        
+        if (left instanceof String && right instanceof String) {
+            int comparison = ((String) left).compareTo((String) right);
+            switch (operator) {
+                case "&gt;": return comparison &gt; 0;
+                case "&lt;": return comparison &lt; 0;
+                case "&gt;=": return comparison &gt;= 0;
+                case "&lt;=": return comparison &lt;= 0;
+            }
+        }
+        
+        return false;
+    }
+    
+    private boolean evaluateLogicalOr(String condition, Map&lt;String, Object&gt; context) {
+        String[] parts = condition.split("\\|\\|", 2);
+        return evaluateCondition(parts[0].trim(), context) || 
+               evaluateCondition(parts[1].trim(), context);
+    }
+    
+    private boolean evaluateLogicalAnd(String condition, Map&lt;String, Object&gt; context) {
+        String[] parts = condition.split("&&", 2);
+        return evaluateCondition(parts[0].trim(), context) && 
+               evaluateCondition(parts[1].trim(), context);
+    }
+    
+    private boolean evaluateBoolean(String condition, Map&lt;String, Object&gt; context) {
+        Object value = resolveValue(condition, context);
+        if (value instanceof Boolean) {
+            return (Boolean) value;
+        }
+        if (value instanceof String) {
+            return Boolean.parseBoolean((String) value);
+        }
+        return false;
+    }
+    
+    private Object resolveValue(String value, Map&lt;String, Object&gt; context) {
+        // Remove quotes from string literals
+        if (value.startsWith("\"") && value.endsWith("\"")) {
+            return value.substring(1, value.length() - 1);
+        }
+        
+        // Resolve context variables (e.g., app.environment)
+        if (value.contains(".")) {
+            return resolveNestedValue(value, context);
+        }
+        
+        // Try to resolve as environment variable
+        if (context.containsKey(value)) {
+            return context.get(value);
+        }
+        
+        // Parse as literal value
+        return parseLiteralValue(value);
+    }
+    
+    private Object resolveNestedValue(String path, Map&lt;String, Object&gt; context) {
+        String[] parts = path.split("\\.");
+        Object current = context;
+        
+        for (String part : parts) {
+            if (current instanceof Map) {
+                current = ((Map&lt;String, Object&gt;) current).get(part);
+            } else {
+                return null;
+            }
+        }
+        
+        return current;
+    }
+    
+    private Object parseLiteralValue(String value) {
+        // Try to parse as number
+        try {
+            if (value.contains(".")) {
+                return Double.parseDouble(value);
+            } else {
+                return Long.parseLong(value);
+            }
+        } catch (NumberFormatException e) {
+            // Not a number
+        }
+        
+        // Try to parse as boolean
+        if ("true".equalsIgnoreCase(value) || "false".equalsIgnoreCase(value)) {
+            return Boolean.parseBoolean(value);
+        }
+        
+        // Return as string
+        return value;
+    }
+    
+    private Object parseValue(String value, Map&lt;String, Object&gt; context) {
+        // Handle nested conditional expressions
+        if (isConditionalExpression(value)) {
+            return evaluateConditionalExpression(value, context);
+        }
+        
+        // Handle function calls like env()
+        if (value.startsWith("env(")) {
+            return evaluateEnvironmentFunction(value);
+        }
+        
+        return resolveValue(value, context);
+    }
+    
+    private String evaluateEnvironmentFunction(String envCall) {
+        // Parse env("VAR_NAME", "default") calls
+        String content = envCall.substring(4, envCall.length() - 1); // Remove env( and )
+        String[] parts = content.split(",", 2);
+        
+        String varName = parts[0].trim().replaceAll("\"", "");
+        String defaultValue = parts.length > 1 ? 
+            parts[1].trim().replaceAll("\"", "") : null;
+        
+        return environment.getProperty(varName, defaultValue);
+    }
+}
+</pre>
+
+<h2>Loop-like Configuration Patterns</h2>
+<pre>
+# Configuration for multiple environments
+environments: [
+    {
+        name: "development"
+        database: {
+            url: "jdbc:h2:mem:devdb"
+            pool_size: 5
+            show_sql: true
+        }
+        features: {
+            debug: true
+            caching: false
+            metrics: false
+        }
+    },
+    {
+        name: "staging"
+        database: {
+            url: "jdbc:postgresql://staging-db:5432/myapp"
+            pool_size: 10
+            show_sql: false
+        }
+        features: {
+            debug: false
+            caching: true
+            metrics: true
+        }
+    },
+    {
+        name: "production"
+        database: {
+            url: "jdbc:postgresql://prod-db:5432/myapp"
+            pool_size: 20
+            show_sql: false
+        }
+        features: {
+            debug: false
+            caching: true
+            metrics: true
+        }
+    }
+]
+
+# Multiple database configurations
+databases: [
+    {
+        name: "primary"
+        type: "postgresql"
+        host: env("PRIMARY_DB_HOST", "localhost")
+        port: 5432
+        database: env("PRIMARY_DB_NAME", "myapp")
+        read_write: true
+    },
+    {
+        name: "replica1"
+        type: "postgresql"
+        host: env("REPLICA1_DB_HOST", "localhost")
+        port: 5432
+        database: env("REPLICA1_DB_NAME", "myapp")
+        read_write: false
+    },
+    {
+        name: "replica2"
+        type: "postgresql"
+        host: env("REPLICA2_DB_HOST", "localhost")
+        port: 5432
+        database: env("REPLICA2_DB_NAME", "myapp")
+        read_write: false
+    }
+]
+
+# Service configurations with templating
+microservices: [
+    {
+        name: "user-service"
+        port: 8081
+        instances: 3
+        health_check: "/health"
+        metrics_port: 9081
+    },
+    {
+        name: "order-service"
+        port: 8082
+        instances: 2
+        health_check: "/health"
+        metrics_port: 9082
+    },
+    {
+        name: "payment-service"
+        port: 8083
+        instances: 2
+        health_check: "/health"
+        metrics_port: 9083
+    }
+]
+
+# Cache configurations
+cache_configs: [
+    {
+        name: "user_cache"
+        type: "redis"
+        ttl: "1h"
+        max_size: 10000
+        eviction_policy: "LRU"
+    },
+    {
+        name: "session_cache"
+        type: "redis"
+        ttl: "30m"
+        max_size: 50000
+        eviction_policy: "LRU"
+    },
+    {
+        name: "product_cache"
+        type: "caffeine"
+        ttl: "10m"
+        max_size: 5000
+        eviction_policy: "LFU"
+    }
+]
+</pre>
+
+<h2>Java Configuration Loop Processor</h2>
+<pre>
+// ConfigurationArrayProcessor.java
+@Component
+public class ConfigurationArrayProcessor {
+    
+    private final ApplicationContext applicationContext;
+    private final ConfigurableEnvironment environment;
+    
+    public ConfigurationArrayProcessor(ApplicationContext applicationContext, 
+                                     ConfigurableEnvironment environment) {
+        this.applicationContext = applicationContext;
+        this.environment = environment;
+    }
+    
+    @PostConstruct
+    public void processArrayConfigurations() {
+        processEnvironmentConfigurations();
+        processDatabaseConfigurations();
+        processMicroserviceConfigurations();
+        processCacheConfigurations();
+    }
+    
+    private void processEnvironmentConfigurations() {
+        List&lt;Map&lt;String, Object&gt;&gt; environments = getConfigurationArray("environments");
+        
+        String currentEnv = environment.getProperty("ENVIRONMENT", "development");
+        
+        for (Map&lt;String, Object&gt; envConfig : environments) {
+            String envName = (String) envConfig.get("name");
+            
+            if (currentEnv.equals(envName)) {
+                applyEnvironmentConfiguration(envConfig);
+                break;
+            }
+        }
+    }
+    
+    private void processDatabaseConfigurations() {
+        List&lt;Map&lt;String, Object&gt;&gt; databases = getConfigurationArray("databases");
+        
+        for (Map&lt;String, Object&gt; dbConfig : databases) {
+            String dbName = (String) dbConfig.get("name");
+            registerDataSource(dbName, dbConfig);
+        }
+    }
+    
+    private void processMicroserviceConfigurations() {
+        List&lt;Map&lt;String, Object&gt;&gt; microservices = getConfigurationArray("microservices");
+        
+        for (Map&lt;String, Object&gt; serviceConfig : microservices) {
+            String serviceName = (String) serviceConfig.get("name");
+            registerMicroserviceConfiguration(serviceName, serviceConfig);
+        }
+    }
+    
+    private void processCacheConfigurations() {
+        List&lt;Map&lt;String, Object&gt;&gt; cacheConfigs = getConfigurationArray("cache_configs");
+        
+        for (Map&lt;String, Object&gt; cacheConfig : cacheConfigs) {
+            String cacheName = (String) cacheConfig.get("name");
+            registerCacheConfiguration(cacheName, cacheConfig);
+        }
+    }
+    
+    @SuppressWarnings("unchecked")
+    private List&lt;Map&lt;String, Object&gt;&gt; getConfigurationArray(String key) {
+        // This would integrate with your TuskLang configuration loading
+        return (List&lt;Map&lt;String, Object&gt;&gt;) applicationContext.getBean("tuskLangConfig", Map.class).get(key);
+    }
+    
+    private void applyEnvironmentConfiguration(Map&lt;String, Object&gt; envConfig) {
+        // Apply environment-specific configuration
+        Map&lt;String, Object&gt; database = (Map&lt;String, Object&gt;) envConfig.get("database");
+        if (database != null) {
+            applyDatabaseConfiguration(database);
+        }
+        
+        Map&lt;String, Object&gt; features = (Map&lt;String, Object&gt; ) envConfig.get("features");
+        if (features != null) {
+            applyFeatureConfiguration(features);
+        }
+    }
+    
+    private void applyDatabaseConfiguration(Map&lt;String, Object&gt; databaseConfig) {
+        // Create and register primary data source with environment-specific settings
+        String url = (String) databaseConfig.get("url");
+        Integer poolSize = (Integer) databaseConfig.get("pool_size");
+        Boolean showSql = (Boolean) databaseConfig.get("show_sql");
+        
+        // Update Spring environment properties
+        MutablePropertySources propertySources = environment.getPropertySources();
+        Map&lt;String, Object&gt; dynamicProps = new HashMap&lt;&gt;();
+        dynamicProps.put("spring.datasource.url", url);
+        dynamicProps.put("spring.datasource.hikari.maximum-pool-size", poolSize);
+        dynamicProps.put("spring.jpa.show-sql", showSql);
+        
+        propertySources.addFirst(new MapPropertySource("dynamicDatabaseConfig", dynamicProps));
+    }
+    
+    private void applyFeatureConfiguration(Map&lt;String, Object&gt; featuresConfig) {
+        // Apply feature flags
+        Boolean debug = (Boolean) featuresConfig.get("debug");
+        Boolean caching = (Boolean) featuresConfig.get("caching");
+        Boolean metrics = (Boolean) featuresConfig.get("metrics");
+        
+        MutablePropertySources propertySources = environment.getPropertySources();
+        Map&lt;String, Object&gt; dynamicProps = new HashMap&lt;&gt;();
+        dynamicProps.put("app.features.debug", debug);
+        dynamicProps.put("app.features.caching", caching);
+        dynamicProps.put("app.features.metrics", metrics);
+        
+        propertySources.addFirst(new MapPropertySource("dynamicFeatureConfig", dynamicProps));
+    }
+    
+    private void registerDataSource(String name, Map&lt;String, Object&gt; config) {
+        String type = (String) config.get("type");
+        String host = (String) config.get("host");
+        Integer port = (Integer) config.get("port");
+        String database = (String) config.get("database");
+        Boolean readWrite = (Boolean) config.get("read_write");
+        
+        // Create data source configuration
+        HikariConfig hikariConfig = new HikariConfig();
+        String url = String.format("jdbc:%s://%s:%d/%s", type, host, port, database);
+        hikariConfig.setJdbcUrl(url);
+        hikariConfig.setPoolName(name + "Pool");
+        
+        if (!readWrite) {
+            hikariConfig.setReadOnly(true);
+        }
+        
+        // Register as Spring bean
+        DefaultListableBeanFactory beanFactory = 
+            (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
+        beanFactory.registerSingleton(name + "DataSource", new HikariDataSource(hikariConfig));
+    }
+    
+    private void registerMicroserviceConfiguration(String serviceName, Map&lt;String, Object&gt; config) {
+        Integer port = (Integer) config.get("port");
+        Integer instances = (Integer) config.get("instances");
+        String healthCheck = (String) config.get("health_check");
+        Integer metricsPort = (Integer) config.get("metrics_port");
+        
+        // Create service configuration bean
+        ServiceConfiguration serviceConfig = new ServiceConfiguration();
+        serviceConfig.setName(serviceName);
+        serviceConfig.setPort(port);
+        serviceConfig.setInstances(instances);
+        serviceConfig.setHealthCheckPath(healthCheck);
+        serviceConfig.setMetricsPort(metricsPort);
+        
+        // Register service configuration
+        DefaultListableBeanFactory beanFactory = 
+            (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
+        beanFactory.registerSingleton(serviceName + "Config", serviceConfig);
+    }
+    
+    private void registerCacheConfiguration(String cacheName, Map&lt;String, Object&gt; config) {
+        String type = (String) config.get("type");
+        String ttl = (String) config.get("ttl");
+        Integer maxSize = (Integer) config.get("max_size");
+        String evictionPolicy = (String) config.get("eviction_policy");
+        
+        // Create cache configuration based on type
+        if ("redis".equals(type)) {
+            registerRedisCache(cacheName, ttl, maxSize, evictionPolicy);
+        } else if ("caffeine".equals(type)) {
+            registerCaffeineCache(cacheName, ttl, maxSize, evictionPolicy);
+        }
+    }
+    
+    private void registerRedisCache(String cacheName, String ttl, Integer maxSize, String evictionPolicy) {
+        // Redis cache configuration
+        RedisCacheConfiguration cacheConfig = RedisCacheConfiguration.defaultCacheConfig()
+            .entryTtl(Duration.parse("PT" + ttl))
+            .computePrefixWith(name -&gt; cacheName + ":");
+        
+        // Register with cache manager
+        // Implementation depends on your Redis cache setup
+    }
+    
+    private void registerCaffeineCache(String cacheName, String ttl, Integer maxSize, String evictionPolicy) {
+        // Caffeine cache configuration
+        CaffeineSpec spec = CaffeineSpec.parse(String.format(
+            "maximumSize=%d,expireAfterWrite=%s", maxSize, ttl));
+        
+        Cache&lt;Object, Object&gt; cache = Caffeine.from(spec).build();
+        
+        // Register with cache manager
+        DefaultListableBeanFactory beanFactory = 
+            (DefaultListableBeanFactory) applicationContext.getAutowireCapableBeanFactory();
+        beanFactory.registerSingleton(cacheName + "Cache", cache);
+    }
+}
+
+// ServiceConfiguration.java
+public class ServiceConfiguration {
+    private String name;
+    private Integer port;
+    private Integer instances;
+    private String healthCheckPath;
+    private Integer metricsPort;
+    
+    // Getters and setters
+    public String getName() { return name; }
+    public void setName(String name) { this.name = name; }
+    
+    public Integer getPort() { return port; }
+    public void setPort(Integer port) { this.port = port; }
+    
+    public Integer getInstances() { return instances; }
+    public void setInstances(Integer instances) { this.instances = instances; }
+    
+    public String getHealthCheckPath() { return healthCheckPath; }
+    public void setHealthCheckPath(String healthCheckPath) { this.healthCheckPath = healthCheckPath; }
+    
+    public Integer getMetricsPort() { return metricsPort; }
+    public void setMetricsPort(Integer metricsPort) { this.metricsPort = metricsPort; }
+}
+</pre>
+
+<h2>Switch-like Configuration Patterns</h2>
+<pre>
+# Configuration based on deployment mode
+deployment: {
+    mode: env("DEPLOYMENT_MODE", "standalone")
+    
+    # Switch-like configuration based on deployment mode
+    config: deployment.mode == "standalone" ? {
+        # Standalone configuration
+        database: {
+            embedded: true
+            type: "h2"
+            file: "./data/myapp.db"
+        }
+        cache: {
+            type: "local"
+            max_size: 1000
+        }
+        messaging: {
+            type: "in_memory"
+        }
+    } : deployment.mode == "cluster" ? {
+        # Cluster configuration
+        database: {
+            embedded: false
+            type: "postgresql"
+            host: env("DB_HOST")
+            cluster: true
+        }
+        cache: {
+            type: "redis"
+            cluster_nodes: [
+                env("REDIS_NODE1"),
+                env("REDIS_NODE2"),
+                env("REDIS_NODE3")
+            ]
+        }
+        messaging: {
+            type: "rabbitmq"
+            cluster_nodes: [
+                env("RABBITMQ_NODE1"),
+                env("RABBITMQ_NODE2")
+            ]
+        }
+    } : deployment.mode == "cloud" ? {
+        # Cloud configuration
+        database: {
+            embedded: false
+            type: "cloud_sql"
+            instance: env("CLOUD_SQL_INSTANCE")
+            managed: true
+        }
+        cache: {
+            type: "cloud_memorystore"
+            instance: env("MEMORYSTORE_INSTANCE")
+        }
+        messaging: {
+            type: "cloud_pubsub"
+            project: env("GCP_PROJECT")
+        }
+    } : {
+        # Default/fallback configuration
+        database: {
+            embedded: true
+            type: "h2"
+            memory: true
+        }
+        cache: {
+            type: "local"
+            max_size: 100
+        }
+        messaging: {
+            type: "in_memory"
+        }
+    }
+}
+
+# Logging configuration with environment-based switches
+logging: {
+    environment: env("ENVIRONMENT", "development")
+    
+    # Root logger level based on environment
+    level: logging.environment == "production" ? "INFO" :
+           logging.environment == "staging" ? "DEBUG" :
+           logging.environment == "test" ? "WARN" :
+           "DEBUG"  # development default
+    
+    # Appender configuration
+    appenders: logging.environment == "production" ? [
+        {
+            type: "file"
+            file: "/var/log/myapp/application.log"
+            max_size: "100MB"
+            max_files: 10
+        },
+        {
+            type: "syslog"
+            host: env("SYSLOG_HOST")
+            facility: "LOG_LOCAL0"
+        }
+    ] : logging.environment == "staging" ? [
+        {
+            type: "file"
+            file: "./logs/staging.log"
+            max_size: "50MB"
+            max_files: 5
+        },
+        {
+            type: "console"
+            pattern: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+        }
+    ] : [
+        {
+            type: "console"
+            pattern: "%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n"
+            colors: true
+        }
+    ]
+}
+</pre>
+
+<h2>Exception Handling in Configuration</h2>
+<pre>
+# Error handling configuration
+error_handling: {
+    # Global error handling strategy
+    strategy: env("ERROR_STRATEGY", "graceful")
+    
+    # Database connection error handling
+    database_errors: {
+        retry_attempts: error_handling.strategy == "strict" ? 1 : 3
+        retry_delay: "5s"
+        fallback_datasource: error_handling.strategy == "graceful" ? "replica" : null
+        
+        # Circuit breaker configuration
+        circuit_breaker: {
+            enabled: error_handling.strategy != "disabled"
+            failure_threshold: 5
+            recovery_timeout: "30s"
+            half_open_max_calls: 3
+        }
+    }
+    
+    # API error responses
+    api_errors: {
+        include_stack_trace: env("ENVIRONMENT", "development") == "development"
+        include_request_id: true
+        
+        # Error response format
+        format: error_handling.strategy == "strict" ? "minimal" : "detailed"
+        
+        # HTTP status mapping
+        status_mapping: {
+            "ValidationException": 400
+            "NotFoundException": 404
+            "UnauthorizedException": 401
+            "ForbiddenException": 403
+            "ServiceUnavailableException": 503
+        }
+    }
+    
+    # Notification settings for errors
+    notifications: {
+        enabled: env("ENVIRONMENT") == "production"
+        channels: error_handling.notifications.enabled ? [
+            {
+                type: "email"
+                recipients: [env("ADMIN_EMAIL")]
+                severity_threshold: "ERROR"
+            },
+            {
+                type: "slack"
+                webhook: env("SLACK_WEBHOOK")
+                severity_threshold: "CRITICAL"
+            }
+        ] : []
+    }
+}
+</pre>

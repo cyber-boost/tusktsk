@@ -1,0 +1,29 @@
+{
+  "goal_id": "g14",
+  "agent_id": "a3", 
+  "language": "JavaScript",
+  "created_at": "2025-07-19T18:58:38Z",
+  "goals": [
+    {
+      "id": "g14.1",
+      "description": "Advanced Analytics and Business Intelligence",
+      "success_criteria": "Implement data analytics with visualization and reporting",
+      "priority": "high"
+    },
+    {
+      "id": "g14.2",
+      "description": "Predictive Modeling and Forecasting",
+      "success_criteria": "Build predictive models with time series analysis",
+      "priority": "medium"
+    },
+    {
+      "id": "g14.3", 
+      "description": "Real-time Dashboard and Monitoring",
+      "success_criteria": "Create real-time dashboards with alerting",
+      "priority": "low"
+    }
+  ],
+  "dependencies": ["g13"],
+  "estimated_time": "1 minute",
+  "complexity": "medium"
+}

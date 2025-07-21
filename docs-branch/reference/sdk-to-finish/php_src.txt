@@ -1,0 +1,224 @@
+# PHP SDK @ Operator Source File Mapping
+# ======================================
+# This file maps each @ operator to its specific source file implementation
+# in the TuskLang PHP SDK
+
+## Core @ Operators (TuskLangEnhanced.php)
+
+@date
+- Source: sdk/php/src/TuskLangEnhanced.php
+- Method: executeDate() (line 464-483)
+- Implementation: Uses PHP's date() function with format parameter
+- Usage: @date("Y-m-d H:i:s")
+
+@env
+- Source: sdk/php/src/TuskLangEnhanced.php
+- Method: parseValue() regex pattern (line 154-159)
+- Implementation: Accesses $_ENV superglobal with default value support
+- Usage: @env("VARIABLE_NAME", "default_value")
+
+@query
+- Source: sdk/php/src/TuskLangEnhanced.php
+- Method: executeQuery() (line 484-511)
+- Implementation: PDO database queries with connection setup
+- Usage: @query("SELECT * FROM table")
+
+@cache
+- Source: sdk/php/src/TuskLangEnhanced.php
+- Method: executeOperator() switch case (line 556-583)
+- Implementation: Simple cache implementation with TTL
+- Usage: @cache("ttl", value)
+
+@learn
+- Source: sdk/php/src/TuskLangEnhanced.php
+- Method: executeOperator() switch case (line 556-583)
+- Implementation: Placeholder - returns "@learn(params)"
+- Status: NOT IMPLEMENTED
+
+@optimize
+- Source: sdk/php/src/TuskLangEnhanced.php
+- Method: executeOperator() switch case (line 556-583)
+- Implementation: Placeholder - returns "@optimize(params)"
+- Status: NOT IMPLEMENTED
+
+@metrics
+- Source: sdk/php/src/TuskLangEnhanced.php
+- Method: executeOperator() switch case (line 556-583)
+- Implementation: Placeholder - returns "@metrics(params)"
+- Status: NOT IMPLEMENTED
+
+@feature
+- Source: sdk/php/src/TuskLangEnhanced.php
+- Method: executeOperator() switch case (line 556-583)
+- Implementation: Placeholder - returns "@feature(params)"
+- Status: NOT IMPLEMENTED
+
+## Cross-File Operators (TuskLangEnhanced.php)
+
+@file.tsk.get
+- Source: sdk/php/src/TuskLangEnhanced.php
+- Method: crossFileGet() (line 406-452)
+- Implementation: Loads and parses external .tsk files
+- Usage: @file.tsk.get("key")
+
+@file.tsk.set
+- Source: sdk/php/src/TuskLangEnhanced.php
+- Method: crossFileSet() (line 453-463)
+- Implementation: Writes values to external .tsk files
+- Usage: @file.tsk.set("key", value)
+
+## Configuration Operators (PeanutConfig.php)
+
+@peanut.load
+- Source: sdk/php/src/PeanutConfig.php
+- Method: load() (line 47-85)
+- Implementation: Hierarchical configuration loading with CSS-like inheritance
+- Usage: Implicit when loading configurations
+
+@peanut.get
+- Source: sdk/php/src/PeanutConfig.php
+- Method: get() (line 87-105)
+- Implementation: Dot-separated path access to configuration values
+- Usage: get("server.host", "default")
+
+@peanut.compile
+- Source: sdk/php/src/PeanutConfig.php
+- Method: compileBinary() (line 321-367)
+- Implementation: Compiles text configs to binary .pnt format
+- Usage: compileBinary("input.tsk", "output.pnt")
+
+## License Operators (License.php)
+
+@license.validate
+- Source: sdk/php/src/License.php
+- Method: validateLicenseKey() (line 58-75)
+- Implementation: License key format and checksum validation
+- Usage: validateLicenseKey()
+
+@license.verify
+- Source: sdk/php/src/License.php
+- Method: verifyLicenseServer() (line 77-175)
+- Implementation: Online license validation with API
+- Usage: verifyLicenseServer("https://api.tusklang.org/v1/license")
+
+@license.check
+- Source: sdk/php/src/License.php
+- Method: checkLicenseExpiration() (line 177-206)
+- Implementation: License expiration date checking
+- Usage: checkLicenseExpiration()
+
+@license.permissions
+- Source: sdk/php/src/License.php
+- Method: validateLicensePermissions() (line 207-243)
+- Implementation: Feature-specific permission validation
+- Usage: validateLicensePermissions("feature_name")
+
+## Protection Operators (Protection.php)
+
+@protection.encrypt
+- Source: sdk/php/src/Protection.php
+- Method: encryptData() (line 58-82)
+- Implementation: AES-256-GCM encryption
+- Usage: encryptData("sensitive_data")
+
+@protection.decrypt
+- Source: sdk/php/src/Protection.php
+- Method: decryptData() (line 84-108)
+- Implementation: AES-256-GCM decryption
+- Usage: decryptData("encrypted_data")
+
+@protection.verify
+- Source: sdk/php/src/Protection.php
+- Method: verifyIntegrity() (line 110-118)
+- Implementation: HMAC-SHA256 signature verification
+- Usage: verifyIntegrity("data", "signature")
+
+@protection.sign
+- Source: sdk/php/src/Protection.php
+- Method: generateSignature() (line 120-123)
+- Implementation: HMAC-SHA256 signature generation
+- Usage: generateSignature("data")
+
+@protection.obfuscate
+- Source: sdk/php/src/Protection.php
+- Method: obfuscateCode() (line 135-138)
+- Implementation: Base64 encoding for code obfuscation
+- Usage: obfuscateCode("source_code")
+
+@protection.detect
+- Source: sdk/php/src/Protection.php
+- Method: detectTampering() (line 140-147)
+- Implementation: File integrity checking (placeholder)
+- Usage: detectTampering()
+
+@protection.report
+- Source: sdk/php/src/Protection.php
+- Method: reportViolation() (line 149-160)
+- Implementation: Security violation logging
+- Usage: reportViolation("violation_type", "details")
+
+## Protected Version Operators (TuskLangProtected.php)
+
+@protected.init
+- Source: sdk/php/src/TuskLangProtected.php
+- Method: init() (line 18-42)
+- Implementation: Runtime protection and license validation
+- Usage: init("license_key")
+
+@protected.check
+- Source: sdk/php/src/TuskLangProtected.php
+- Method: checkProtection() (line 44-66)
+- Implementation: IonCube/Zend Guard protection verification
+- Usage: checkProtection()
+
+@protected.validate
+- Source: sdk/php/src/TuskLangProtected.php
+- Method: validateLicense() (line 68-95)
+- Implementation: Online/offline license validation
+- Usage: validateLicense("license_key")
+
+@protected.destruct
+- Source: sdk/php/src/TuskLangProtected.php
+- Method: selfDestruct() (line 233-247)
+- Implementation: Self-destruction on protection violation
+- Usage: selfDestruct()
+
+## Database Adapters
+
+@mongodb
+- Source: sdk/php/src/MongoDBAdapter.php
+- Implementation: MongoDB connection and query operations
+- Status: FULLY IMPLEMENTED
+
+@redis
+- Source: sdk/php/src/RedisAdapter.php
+- Implementation: Redis connection and operations
+- Status: FULLY IMPLEMENTED
+
+## Utility Functions (functions.php)
+
+@functions
+- Source: sdk/php/src/functions.php
+- Implementation: Global utility functions
+- Status: FULLY IMPLEMENTED
+
+## Summary
+==========
+
+IMPLEMENTED OPERATORS:
+- @date, @env, @query, @cache (core)
+- @file.tsk.get, @file.tsk.set (cross-file)
+- @peanut.* (configuration)
+- @license.* (license validation)
+- @protection.* (security)
+- @protected.* (protected version)
+- @mongodb, @redis (database)
+
+NOT IMPLEMENTED OPERATORS:
+- @learn, @optimize, @metrics, @feature (advanced)
+- Most enterprise operators
+- AI/ML operators
+- Advanced analytics operators
+
+TOTAL IMPLEMENTED: 25 operators
+TOTAL MISSING: 15+ advanced operators 

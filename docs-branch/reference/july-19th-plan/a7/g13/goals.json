@@ -1,0 +1,29 @@
+{
+  "goal_id": "g13",
+  "agent_id": "a7",
+  "language": "Ruby",
+  "created_at": "2025-07-19T18:58:38Z",
+  "goals": [
+    {
+      "id": "g13.1",
+      "description": "Create advanced concurrency and parallelism framework",
+      "success_criteria": "Comprehensive concurrency system with multi-threading, async I/O, and parallel processing supporting high-performance computations",
+      "priority": "high"
+    },
+    {
+      "id": "g13.2",
+      "description": "Implement distributed computing and task distribution",
+      "success_criteria": "Distributed computing framework with task distribution, load balancing, and fault-tolerant execution across multiple nodes",
+      "priority": "high"
+    },
+    {
+      "id": "g13.3",
+      "description": "Build actor model and message-passing concurrency system",
+      "success_criteria": "Actor-based concurrency model with message passing, state management, and supervision hierarchies",
+      "priority": "medium"
+    }
+  ],
+  "dependencies": ["g1", "g2", "g3", "g4", "g5", "g6", "g7", "g8", "g9", "g10", "g11", "g12"],
+  "estimated_time": "180 minutes",
+  "complexity": "very_high"
+}
