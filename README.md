@@ -63,6 +63,11 @@ The docs branch contains:
 - [PHP SDK Documentation](https://github.com/cyber-boost/tusktsk/tree/docs/docs-branch/docs/sdk/php)
 - [Rust SDK Documentation](https://github.com/cyber-boost/tusktsk/tree/docs/docs-branch/docs/sdk/rust)
 - [JavaScript SDK Documentation](https://github.com/cyber-boost/tusktsk/tree/docs/docs-branch/docs/sdk/javascript)
+- [C# SDK Documentation](https://github.com/cyber-boost/tusktsk/tree/docs/docs-branch/docs/sdk/csharp)
+- [Java SDK Documentation](https://github.com/cyber-boost/tusktsk/tree/docs/docs-branch/docs/sdk/java)
+- [Go SDK Documentation](https://github.com/cyber-boost/tusktsk/tree/docs/docs-branch/docs/sdk/go)
+- [Ruby SDK Documentation](https://github.com/cyber-boost/tusktsk/tree/docs/docs-branch/docs/sdk/ruby)
+- [Bash SDK Documentation](https://github.com/cyber-boost/tusktsk/tree/docs/docs-branch/docs/sdk/bash)
 - [All Language Guides](https://github.com/cyber-boost/tusktsk/tree/docs/docs-branch/guides)
 
 ## 🤝 Contributing
