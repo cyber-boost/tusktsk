@@ -167,4 +167,4 @@ MIT License - see [LICENSE](LICENSE) for details.
 
 ---
 
-**"We don't bow to any king"** - TuskLang gives developers the freedom to choose their preferred syntax while maintaining intelligent configuration capabilities.
+**"We don't bow to any king"** - TuskLang gives developers the freedom to choose their preferred syntax while maintaining intelligent configuration capabilities.# Updated for Packagist sync
