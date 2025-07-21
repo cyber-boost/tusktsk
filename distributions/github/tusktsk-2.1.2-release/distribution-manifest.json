@@ -1,0 +1,19 @@
+{
+    "package": "tusktsk",
+    "version": "2.1.2",
+    "distribution_date": "2025-07-21T03:36:36Z",
+    "files": {
+        "source": "tusktsk-2.1.2.tar.gz",
+        "wheel": "tusktsk-2.1.2-py3-none-any.whl"
+    },
+    "checksums": {
+        "source": "c720a10f1465e072042c794b656438f4a7f4ac5e796416c1aaaaf0c71fbd78b4",
+        "wheel": "e4d399c40828a57e68c7b64998ce13001377c674a417b67afb5a5d9f1101fcb9"
+    },
+    "distribution_channels": [
+        "local_copy",
+        "github_release",
+        "direct_download",
+        "docker_image"
+    ]
+}
