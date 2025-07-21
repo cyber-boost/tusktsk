@@ -1,6 +1,6 @@
 [package]
 name = "tusktsk"
-version = "2.0.2"
+version = "2.1.2"
 edition = "2021"
 authors = ["Cyberboost LLC"]
 description = "🦀 TuskTsk Enhanced - Ultra-fast Rust configuration parser with maximum syntax flexibility"
@@ -12,12 +12,12 @@ categories = ["parsing"]
 
 [dependencies]
 # Core parsing and serialization
-serde = { version = "2.0.2", features = ["derive"] }
+serde = { version = "1.0", features = ["derive"] }
 serde_json = "1.0"
 serde_yaml = "0.9"
 
 # CLI framework
-clap = { version = "2.0.2", features = ["derive"] }
+clap = { version = "4.0", features = ["derive"] }
 
 # Error handling
 anyhow = "1.0"
@@ -26,17 +26,17 @@ thiserror = "1.0"
 # String manipulation and parsing
 regex = "1.0"
 nom = "7.0"
-chrono = { version = "2.0.2", features = ["serde"] }
+chrono = { version = "0.4", features = ["serde"] }
 
 # File system operations
 walkdir = "2.3"
 notify = "6.1"
 
 # WebAssembly support
-wasm-bindgen = { version = "2.0.2", optional = true }
-js-sys = { version = "2.0.2", optional = true }
-web-sys = { version = "2.0.2", features = ["console"], optional = true }
-console_error_panic_hook = { version = "2.0.2", optional = true }
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", features = ["console"], optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
 
 # Performance and utilities
 lazy_static = "1.4"
@@ -44,17 +44,17 @@ memchr = "2.5"
 dirs = "5.0"
 
 # Async runtime
-tokio = { version = "2.0.2", features = ["full"] }
+tokio = { version = "1.0", features = ["full"] }
 futures = "0.3"
 
 # Logging and tracing
 tracing = "0.1"
-tracing-subscriber = { version = "2.0.2", features = ["env-filter"] }
+tracing-subscriber = { version = "0.3", features = ["env-filter"] }
 env_logger = "0.10"
 log = "0.4"
 
 # HTTP client
-reqwest = { version = "2.0.2", features = ["json"] }
+reqwest = { version = "0.11", features = ["json"] }
 
 # Random number generation
 rand = "0.8"
@@ -71,7 +71,7 @@ hex = "0.4"
 
 # Utilities
 once_cell = "1.18"
-uuid = { version = "2.0.2", features = ["v4"] }
+uuid = { version = "1.0", features = ["v4"] }
 async-trait = "0.1"
 
 # Serialization formats
@@ -122,22 +122,22 @@ multipart = "0.18"
 
 # Infrastructure operator dependencies - TEMPORARILY DISABLED FOR CLEAN COMPILATION
 # Database and storage
-redis = { version = "2.0.2", features = ["tokio-comp", "connection-manager"] }
-sqlx = { version = "2.0.2", features = ["runtime-tokio-rustls", "postgres", "mysql", "sqlite"] }
+redis = { version = "0.23", features = ["tokio-comp", "connection-manager"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "mysql", "sqlite"] }
 # mongodb = { version = "2.0.2", features = ["tokio-runtime"] } # Temporarily disabled
 # deadpool-postgres = "0.10" # Temporarily disabled
 # deadpool-redis = "0.13" # Temporarily disabled
-rusqlite = { version = "2.0.2", features = ["bundled"] }
+rusqlite = { version = "0.29", features = ["bundled"] }
 # mysql_async = "0.33" # Temporarily disabled
 # elasticsearch = "8.18" # Temporarily disabled for clean compilation
 # etcd-rs = "1.0" # Temporarily disabled
 
 # Messaging and communication  
-tonic = { version = "2.0.2", features = ["tls", "prost"] }
+tonic = { version = "0.10", features = ["tls", "prost"] }
 prost = "0.12"
 tokio-tungstenite = "0.20"
 tokio-stream = "0.1"
-hyper = { version = "2.0.2", features = ["full"] }
+hyper = { version = "0.14", features = ["full"] }
 # async-nats = "0.32" # Temporarily disabled
 # lapin = "2.3" # Temporarily disabled  
 # deadpool-lapin = "0.10" # Temporarily disabled
@@ -149,14 +149,14 @@ hyper = { version = "2.0.2", features = ["full"] }
 # graphql-parser = "0.4"
 
 # Monitoring and observability
-prometheus = { version = "2.0.2", features = ["process"] }
-opentelemetry = { version = "2.0.2", features = ["rt-tokio"] }
+prometheus = { version = "0.13", features = ["process"] }
+opentelemetry = { version = "0.20", features = ["rt-tokio"] }
 opentelemetry-jaeger = "0.19"
 opentelemetry-zipkin = "0.19"
 
 # Infrastructure and orchestration
-k8s-openapi = { version = "2.0.2", features = ["v1_22"] }
-kube = { version = "2.0.2", features = ["runtime", "derive"] }
+k8s-openapi = { version = "0.20", features = ["v1_22"] }
+kube = { version = "0.87", features = ["runtime", "derive"] }
 consul = "0.4"
 # vaultrs = "0.7" # Temporarily disabled for clean compilation
 # temporal-sdk-core = "0.1" # Temporarily disabled for clean compilation
@@ -177,7 +177,7 @@ qrcode = "0.14"
 webauthn-rs = "0.5"
 dashmap = "5.5"
 sha3 = "0.10"
-zeroize = { version = "2.0.2", features = ["derive"] }
+zeroize = { version = "1.0", features = ["derive"] }
 casbin = "2.2"
 # saml2 = "0.3" # Temporarily disabled for clean compilation
 
@@ -188,6 +188,7 @@ casbin = "2.2"
 [dev-dependencies]
 criterion = "0.5"
 proptest = "1.0"
+k8s-openapi = { version = "0.20", features = ["v1_22"] }
 
 [lib]
 name = "tusktsk"
@@ -199,7 +200,7 @@ path = "src/main.rs"
 
 [[test]]
 name = "operator_tests"
-path = "test-operators/mod.rs"
+path = "src/tests/mod.rs"
 
 [features]
 default = []
@@ -219,7 +220,7 @@ codegen-units = 1
 panic = "abort" 
 
 [target.'cfg(target_arch = "wasm32")'.dependencies]
-getrandom = { version = "2.0.2", features = ["js"] }
+getrandom = { version = "0.2", features = ["js"] }
 wasm-bindgen = "0.2"
 js-sys = "0.3"
-web-sys = { version = "2.0.2", features = ["console"] } 
+web-sys = { version = "0.3", features = ["console"] } 

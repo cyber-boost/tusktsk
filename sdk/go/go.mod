@@ -1,4 +1,4 @@
-module tusk-go-sdk
+module github.com/cyber-boost/tusktsk-go
 
 go 1.23.0
 
