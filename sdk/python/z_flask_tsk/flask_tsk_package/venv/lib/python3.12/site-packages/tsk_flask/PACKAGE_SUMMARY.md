@@ -98,7 +98,7 @@ This package contains the complete TuskLang Python SDK ecosystem, including Flas
 - Health and status endpoints
 
 ### Configuration Management
-- Load from peanut.tsk files
+- Load from peanu.tsk files
 - Get/set configuration values
 - Section management
 - Fallback to framework config

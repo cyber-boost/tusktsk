@@ -146,12 +146,12 @@ db.hset('stats', 'visits', 1500)
 db.lpush('queue', 'task1', 'task2')
 ```
 
-## 🥜 peanut.tsk Integration
+## 🥜 peanu.tsk Integration
 
-All adapters automatically load configuration from `peanut.tsk`:
+All adapters automatically load configuration from `peanu.tsk`:
 
 ```tsk
-# peanut.tsk - Universal TuskLang configuration
+# peanu.tsk - Universal TuskLang configuration
 database {
     default: "sqlite"
     
@@ -184,7 +184,7 @@ database {
 Then in your code:
 
 ```python
-# Adapters automatically use peanut.tsk configuration
+# Adapters automatically use peanu.tsk configuration
 db = SQLiteAdapter.load_from_peanut()
 db = PostgreSQLAdapter.load_from_peanut()
 db = MongoDBAdapter.load_from_peanut()
@@ -294,7 +294,7 @@ python -m pytest test_adapters.py::test_redis
 
 ### Connection refused
 - Ensure database server is running
-- Check connection parameters in peanut.tsk
+- Check connection parameters in peanu.tsk
 - Verify firewall/network settings
 
 ### @query returning raw strings
@@ -349,7 +349,7 @@ infrastructure {
 - `find_one(table, where, params)` - Find single record
 - `connect()` - Establish connection
 - `close()` - Close connection
-- `load_from_peanut()` - Load config from peanut.tsk
+- `load_from_peanut()` - Load config from peanu.tsk
 
 ### Adapter-Specific Methods
 

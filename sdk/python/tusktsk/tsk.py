@@ -1,14 +1,14 @@
 #!/usr/bin/env python3
 """
 TSK (TuskLang Configuration) Parser and Generator for Python
-Enhanced with flexible syntax support and peanut.tsk integration
+Enhanced with flexible syntax support and peanu.tsk integration
 
 Features:
 - Multiple syntax styles: [], {}, <>
 - $global and section-local variables  
 - Cross-file communication
 - Database queries via adapters
-- peanut.tsk universal config
+- peanu.tsk universal config
 """
 
 import re
@@ -96,13 +96,13 @@ class TSKParser:
         self.cross_file_cache = {}
         self.peanut_loaded = False
         
-        # Standard peanut.tsk locations
+        # Standard peanu.tsk locations
         self.peanut_locations = [
-            "./peanut.tsk",
-            "../peanut.tsk", 
-            "../../peanut.tsk",
-            "/etc/tusklang/peanut.tsk",
-            os.path.expanduser("~/.config/tusklang/peanut.tsk"),
+            "./peanu.tsk",
+            "../peanu.tsk", 
+            "../../peanu.tsk",
+            "/etc/tusklang/peanu.tsk",
+            os.path.expanduser("~/.config/tusklang/peanu.tsk"),
             os.environ.get('TUSKLANG_CONFIG', '')
         ]
     
@@ -110,16 +110,16 @@ class TSKParser:
     def parse(content: str) -> Dict[str, Any]:
         """Parse TSK content into Python dictionary"""
         parser = TSKParser()
-        # Load peanut.tsk first if available
+        # Load peanu.tsk first if available
         try:
             parser.load_peanut()
         except:
-            pass  # Ignore errors loading peanut.tsk
+            pass  # Ignore errors loading peanu.tsk
         data, _ = parser.parse_with_comments(content)
         return data
     
     def load_peanut(self) -> None:
-        """Load peanut.tsk if available"""
+        """Load peanu.tsk if available"""
         if self.peanut_loaded:
             return
             
@@ -140,7 +140,7 @@ class TSKParser:
                     continue
     
     def _parse_peanut_basic(self, content: str) -> None:
-        """Basic parsing for peanut.tsk to avoid recursion"""
+        """Basic parsing for peanu.tsk to avoid recursion"""
         lines = content.split('\n')
         current_section = None
         
@@ -287,7 +287,7 @@ class TSKParser:
     
     def _parse_value_enhanced(self, value_str: str, current_section: str = "") -> Any:
         """Parse a TSK value string with enhanced syntax support"""
-        # Note: peanut.tsk loading is done at the class level, not during value parsing
+        # Note: peanu.tsk loading is done at the class level, not during value parsing
         
         value = value_str.strip()
         
@@ -1328,7 +1328,7 @@ def load(filepath: str) -> TSK:
 
 
 def load_from_peanut() -> TSK:
-    """Load configuration from peanut.tsk"""
+    """Load configuration from peanu.tsk"""
     parser = TSKParser()
     parser.load_peanut()
     

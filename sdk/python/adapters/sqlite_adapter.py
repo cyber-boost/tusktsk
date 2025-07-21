@@ -4,7 +4,7 @@ SQLite Adapter for TuskLang Enhanced Python
 ==========================================
 Enables @query operations with SQLite database
 
-DEFAULT CONFIG: peanut.tsk (the bridge of language grace)
+DEFAULT CONFIG: peanu.tsk (the bridge of language grace)
 """
 
 import sqlite3
@@ -219,7 +219,7 @@ class SQLiteAdapter:
     
     @staticmethod
     def load_from_peanut():
-        """Load SQLite configuration from peanut.tsk"""
+        """Load SQLite configuration from peanu.tsk"""
         # Import here to avoid circular imports
         from tsk_enhanced import TuskLangEnhanced
         
@@ -228,7 +228,7 @@ class SQLiteAdapter:
         
         config = {}
         
-        # Look for SQLite configuration in peanut.tsk
+        # Look for SQLite configuration in peanu.tsk
         if parser.get('database.sqlite.database'):
             config['database'] = parser.get('database.sqlite.database')
         elif parser.get('database.sqlite.filename'):
@@ -238,7 +238,7 @@ class SQLiteAdapter:
             config['timeout'] = float(parser.get('database.sqlite.timeout'))
         
         if not config:
-            raise Exception('No SQLite configuration found in peanut.tsk')
+            raise Exception('No SQLite configuration found in peanu.tsk')
         
         return SQLiteAdapter(config)
 
@@ -268,7 +268,7 @@ Examples:
 """)
         sys.exit(1)
     
-    # Load from peanut.tsk or use defaults
+    # Load from peanu.tsk or use defaults
     try:
         adapter = SQLiteAdapter.load_from_peanut()
     except:

@@ -162,17 +162,17 @@ def test_mongodb():
 
 
 def test_peanut_integration():
-    """Test peanut.tsk integration"""
+    """Test peanu.tsk integration"""
     print("\n" + "=" * 50)
-    print("Testing peanut.tsk Integration")
+    print("Testing peanu.tsk Integration")
     print("=" * 50)
     
     try:
         from tsk_enhanced import TuskLangEnhanced
         
-        # Create a test peanut.tsk file
+        # Create a test peanu.tsk file
         peanut_content = """
-# Test peanut.tsk for database adapters
+# Test peanu.tsk for database adapters
 $app_name: "TuskLang Python Test"
 $version: "1.0.0"
 
@@ -198,8 +198,8 @@ mongodb {
 }
 """
         
-        # Write test peanut.tsk
-        with open('./peanut.tsk', 'w') as f:
+        # Write test peanu.tsk
+        with open('./peanu.tsk', 'w') as f:
             f.write(peanut_content)
         
         # Test parser with database integration
@@ -214,10 +214,10 @@ mongodb {
         result = parser.execute_query("SELECT 1 as test")
         print(f"Query result: {result}")
         
-        print("✅ peanut.tsk integration tests passed!")
+        print("✅ peanu.tsk integration tests passed!")
         
     except Exception as e:
-        print(f"❌ peanut.tsk integration test failed: {e}")
+        print(f"❌ peanu.tsk integration test failed: {e}")
 
 
 def main():

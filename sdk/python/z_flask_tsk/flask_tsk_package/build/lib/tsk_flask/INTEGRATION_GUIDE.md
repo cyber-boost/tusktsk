@@ -32,7 +32,7 @@ This document describes the integration of the official TuskLang Python SDK (`tu
 ## Features
 
 ### Configuration Management
-- Load configuration from `peanut.tsk` files
+- Load configuration from `peanu.tsk` files
 - Get/set configuration values by section and key
 - Retrieve entire configuration sections
 - Fallback to Grim configuration when TuskLang is unavailable
@@ -178,7 +178,7 @@ The integration uses the official `tusktsk` package from PyPI:
 - Features: Full TuskLang SDK with async support
 
 ### Peanut.tsk Loading
-The integration attempts to load configuration from `peanut.tsk` files in the following order:
+The integration attempts to load configuration from `peanu.tsk` files in the following order:
 1. Current directory
 2. Parent directories (up to 3 levels)
 3. System-wide locations
@@ -277,7 +277,7 @@ Test results are saved to `test_results.json` with detailed information about ea
 
 2. **Configuration Loading Failed**
    - Check file permissions
-   - Verify peanut.tsk syntax
+   - Verify peanu.tsk syntax
    - Review error logs
 
 3. **API Endpoints Not Responding**

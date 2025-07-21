@@ -4,7 +4,7 @@ Redis Adapter for TuskLang Enhanced Python
 =========================================
 Enables @query operations with Redis key-value store
 
-DEFAULT CONFIG: peanut.tsk (the bridge of language grace)
+DEFAULT CONFIG: peanu.tsk (the bridge of language grace)
 """
 
 import redis
@@ -281,13 +281,13 @@ class RedisAdapter:
     
     @classmethod
     def load_from_peanut(cls) -> 'RedisAdapter':
-        """Load configuration from peanut.tsk"""
+        """Load configuration from peanu.tsk"""
         try:
             from tsk_enhanced import TuskLangEnhanced
             parser = TuskLangEnhanced()
             parser.load_peanut()
             
-            # Get Redis configuration from peanut.tsk
+            # Get Redis configuration from peanu.tsk
             config = {
                 'host': parser.get('database.redis.host', 'localhost'),
                 'port': parser.get('database.redis.port', 6379),
@@ -298,7 +298,7 @@ class RedisAdapter:
             return cls(config)
             
         except Exception as e:
-            # If peanut.tsk not found or error, use defaults
+            # If peanu.tsk not found or error, use defaults
             return cls()
     
     # Query builder pattern for TuskLang @query syntax

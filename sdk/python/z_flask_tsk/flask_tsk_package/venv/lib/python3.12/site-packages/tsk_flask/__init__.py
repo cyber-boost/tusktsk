@@ -89,12 +89,12 @@ class FlaskTSK:
     def _initialize_tusk(self):
         """Initialize TuskLang integration"""
         try:
-            # Try to load from peanut.tsk first
+            # Try to load from peanu.tsk first
             self.tsk_instance = load_from_peanut()
             self.peanut_loaded = True
             current_app.logger.info(f"Flask-TSK: Successfully loaded TuskLang configuration (tusktsk v{TUSK_VERSION})")
         except Exception as e:
-            current_app.logger.warning(f"Flask-TSK: Failed to load peanut.tsk: {e}")
+            current_app.logger.warning(f"Flask-TSK: Failed to load peanu.tsk: {e}")
             # Create empty TSK instance
             self.tsk_instance = TSK()
     

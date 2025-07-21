@@ -15,7 +15,7 @@ Flask-TSK is a **revolutionary Flask extension** that provides **FULL TuskLang S
 
 ### 🔧 Full TuskLang SDK Integration
 - **Complete TuskLang SDK** - All features from `tusktsk` package
-- **Configuration Management** - Load from `peanut.tsk` files
+- **Configuration Management** - Load from `peanu.tsk` files
 - **Function Execution** - Execute TuskLang functions with arguments
 - **Advanced Parsing** - `parse_enhanced`, `parse_with_comments`
 - **Data Serialization** - `stringify`, `save`, `load`
@@ -171,14 +171,14 @@ When enabled, Flask-TSK provides comprehensive REST API endpoints:
 ```python
 app.config.update({
     'TSK_CONFIG_PATH': '/path/to/config.tsk',  # Custom config path
-    'TSK_AUTO_LOAD': True,                     # Auto-load peanut.tsk
+    'TSK_AUTO_LOAD': True,                     # Auto-load peanu.tsk
     'TSK_ENABLE_BLUEPRINT': True,              # Enable API endpoints
     'TSK_ENABLE_CONTEXT': True,                # Enable template context
     'TSK_ENABLE_FULL_SDK': True,               # Enable full TuskLang SDK
 })
 ```
 
-### TuskLang Configuration (peanut.tsk)
+### TuskLang Configuration (peanu.tsk)
 ```ini
 [database]
 type = "postgresql"

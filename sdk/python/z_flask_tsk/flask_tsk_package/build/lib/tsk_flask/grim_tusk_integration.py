@@ -45,12 +45,12 @@ class GrimTuskIntegration:
     def _initialize_tusk(self):
         """Initialize TuskLang integration"""
         try:
-            # Try to load from peanut.tsk first
+            # Try to load from peanu.tsk first
             self.tsk_instance = load_from_peanut()
             self.peanut_loaded = True
-            self.logger.info(f"Successfully loaded TuskLang configuration from peanut.tsk (tusktsk v{TUSK_VERSION})")
+            self.logger.info(f"Successfully loaded TuskLang configuration from peanu.tsk (tusktsk v{TUSK_VERSION})")
         except Exception as e:
-            self.logger.warning(f"Failed to load peanut.tsk: {e}")
+            self.logger.warning(f"Failed to load peanu.tsk: {e}")
             # Create empty TSK instance
             self.tsk_instance = TSK()
     

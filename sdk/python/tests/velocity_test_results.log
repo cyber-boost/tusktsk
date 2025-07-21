@@ -1,0 +1,9 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0
+rootdir: /opt/tsk_git/sdk/python
+plugins: anyio-4.9.0
+collected 11 items
+
+python/tests/test_operators.py ...........                               [100%]
+
+============================== 11 passed in 1.10s ==============================

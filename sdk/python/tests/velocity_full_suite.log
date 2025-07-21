@@ -1,0 +1,40 @@
+============================= test session starts ==============================
+platform linux -- Python 3.12.3, pytest-7.4.4, pluggy-1.4.0
+rootdir: /opt/tsk_git/sdk/python
+plugins: anyio-4.9.0
+collected 70 items / 3 errors
+
+==================================== ERRORS ====================================
+___________________ ERROR collecting tests/test_adapters.py ____________________
+ImportError while importing test module '/opt/tsk_git/sdk/python/tests/test_adapters.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+python/tests/test_adapters.py:15: in <module>
+    from adapters import SQLiteAdapter, PostgreSQLAdapter, MongoDBAdapter
+E   ModuleNotFoundError: No module named 'adapters'
+_________________ ERROR collecting tests/test_all_adapters.py __________________
+ImportError while importing test module '/opt/tsk_git/sdk/python/tests/test_all_adapters.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+python/tests/test_all_adapters.py:8: in <module>
+    from tsk_enhanced import TuskLangEnhanced
+E   ModuleNotFoundError: No module named 'tsk_enhanced'
+___________________ ERROR collecting tests/test_enhanced.py ____________________
+ImportError while importing test module '/opt/tsk_git/sdk/python/tests/test_enhanced.py'.
+Hint: make sure your test modules/packages have valid Python names.
+Traceback:
+/usr/lib/python3.12/importlib/__init__.py:90: in import_module
+    return _bootstrap._gcd_import(name[level:], package, level)
+python/tests/test_enhanced.py:15: in <module>
+    import tsk
+E   ModuleNotFoundError: No module named 'tsk'
+=========================== short test summary info ============================
+ERROR python/tests/test_adapters.py
+ERROR python/tests/test_all_adapters.py
+ERROR python/tests/test_enhanced.py
+!!!!!!!!!!!!!!!!!!! Interrupted: 3 errors during collection !!!!!!!!!!!!!!!!!!!!
+============================== 3 errors in 0.47s ===============================

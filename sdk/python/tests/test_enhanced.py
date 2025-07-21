@@ -101,21 +101,21 @@ workers = 4
     print(f"  Server port: {data.get('server', {}).get('port')}")
 
 def test_peanut_integration():
-    """Test peanut.tsk integration"""
-    print("\n🥜 Testing peanut.tsk Integration")
+    """Test peanu.tsk integration"""
+    print("\n🥜 Testing peanu.tsk Integration")
     print("=" * 35)
     
-    # Check if peanut.tsk exists
-    peanut_path = Path(__file__).parent.parent.parent / "peanut.tsk"
+    # Check if peanu.tsk exists
+    peanut_path = Path(__file__).parent.parent.parent / "peanu.tsk"
     if peanut_path.exists():
         try:
             peanut_tsk = tsk.load_from_peanut()
-            print("✅ peanut.tsk loaded successfully")
+            print("✅ peanu.tsk loaded successfully")
             print(f"  Found {len(peanut_tsk.data)} sections")
         except Exception as e:
-            print(f"⚠️  peanut.tsk found but couldn't load: {e}")
+            print(f"⚠️  peanu.tsk found but couldn't load: {e}")
     else:
-        print("ℹ️  peanut.tsk not found (expected in development)")
+        print("ℹ️  peanu.tsk not found (expected in development)")
 
 if __name__ == '__main__':
     try:

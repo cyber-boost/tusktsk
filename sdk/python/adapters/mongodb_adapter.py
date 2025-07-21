@@ -4,7 +4,7 @@ MongoDB Adapter for TuskLang Enhanced Python
 ==========================================
 Enables @query operations with MongoDB collections
 
-DEFAULT CONFIG: peanut.tsk (the bridge of language grace)
+DEFAULT CONFIG: peanu.tsk (the bridge of language grace)
 """
 
 import json
@@ -212,7 +212,7 @@ class MongoDBAdapter:
     
     @staticmethod
     def load_from_peanut():
-        """Load MongoDB configuration from peanut.tsk"""
+        """Load MongoDB configuration from peanu.tsk"""
         # Import here to avoid circular imports
         from tsk_enhanced import TuskLangEnhanced
         
@@ -221,7 +221,7 @@ class MongoDBAdapter:
         
         config = {}
         
-        # Look for MongoDB configuration in peanut.tsk
+        # Look for MongoDB configuration in peanu.tsk
         if parser.get('database.mongodb.url'):
             config['url'] = parser.get('database.mongodb.url')
         elif parser.get('database.mongo.url'):
@@ -238,7 +238,7 @@ class MongoDBAdapter:
             config['connectTimeoutMS'] = int(parser.get('database.mongo.connectTimeoutMS'))
         
         if not config:
-            raise Exception('No MongoDB configuration found in peanut.tsk')
+            raise Exception('No MongoDB configuration found in peanu.tsk')
         
         return MongoDBAdapter(config)
 
@@ -271,7 +271,7 @@ Requirements:
 """)
         sys.exit(1)
     
-    # Load from peanut.tsk or use defaults
+    # Load from peanu.tsk or use defaults
     try:
         adapter = MongoDBAdapter.load_from_peanut()
     except:

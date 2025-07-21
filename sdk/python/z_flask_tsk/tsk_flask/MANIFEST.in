@@ -1,0 +1,8 @@
+include README.md
+include LICENSE
+include requirements.txt
+include install.sh
+include *.md
+recursive-include tsk_flask *.py
+recursive-exclude * __pycache__
+recursive-exclude * *.py[co] 

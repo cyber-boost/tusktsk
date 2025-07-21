@@ -13,7 +13,7 @@ Available Adapters:
 Usage:
     from adapters import SQLiteAdapter, PostgreSQLAdapter, MongoDBAdapter, RedisAdapter
     
-    # Load from peanut.tsk
+    # Load from peanu.tsk
     db = SQLiteAdapter.load_from_peanut()
     
     # Or configure manually
@@ -52,9 +52,9 @@ def get_adapter(db_type: str):
 
 
 def load_adapter_from_peanut(db_type: str = None):
-    """Load database adapter from peanut.tsk configuration"""
+    """Load database adapter from peanu.tsk configuration"""
     if not db_type:
-        # Try to determine from peanut.tsk
+        # Try to determine from peanu.tsk
         from tsk_enhanced import TuskLangEnhanced
         parser = TuskLangEnhanced()
         parser.load_peanut()

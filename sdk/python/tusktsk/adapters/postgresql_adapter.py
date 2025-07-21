@@ -4,7 +4,7 @@ PostgreSQL Adapter for TuskLang Enhanced Python
 =============================================
 Enables @query operations with PostgreSQL database
 
-DEFAULT CONFIG: peanut.tsk (the bridge of language grace)
+DEFAULT CONFIG: peanu.tsk (the bridge of language grace)
 """
 
 import json
@@ -237,7 +237,7 @@ class PostgreSQLAdapter:
     
     @staticmethod
     def load_from_peanut():
-        """Load PostgreSQL configuration from peanut.tsk"""
+        """Load PostgreSQL configuration from peanu.tsk"""
         # Import here to avoid circular imports
         from tsk_enhanced import TuskLangEnhanced
         
@@ -246,7 +246,7 @@ class PostgreSQLAdapter:
         
         config = {}
         
-        # Look for PostgreSQL configuration in peanut.tsk
+        # Look for PostgreSQL configuration in peanu.tsk
         if parser.get('database.postgresql.host'):
             config['host'] = parser.get('database.postgresql.host')
         elif parser.get('database.postgres.host'):
@@ -273,7 +273,7 @@ class PostgreSQLAdapter:
             config['password'] = parser.get('database.postgres.password')
         
         if not config:
-            raise Exception('No PostgreSQL configuration found in peanut.tsk')
+            raise Exception('No PostgreSQL configuration found in peanu.tsk')
         
         return PostgreSQLAdapter(config)
 
@@ -306,7 +306,7 @@ Requirements:
 """)
         sys.exit(1)
     
-    # Load from peanut.tsk or use defaults
+    # Load from peanu.tsk or use defaults
     try:
         adapter = PostgreSQLAdapter.load_from_peanut()
     except:

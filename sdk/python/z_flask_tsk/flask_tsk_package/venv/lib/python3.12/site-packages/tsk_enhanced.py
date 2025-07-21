@@ -12,7 +12,7 @@ Features:
 - All @ operators
 - Maximum flexibility
 
-DEFAULT CONFIG: peanut.tsk (the bridge of language grace)
+DEFAULT CONFIG: peanu.tsk (the bridge of language grace)
 """
 
 import re
@@ -42,18 +42,18 @@ class TuskLangEnhanced:
         self.object_key = ""
         self.peanut_loaded = False
         
-        # Standard peanut.tsk locations
+        # Standard peanu.tsk locations
         self.peanut_locations = [
-            "./peanut.tsk",
-            "../peanut.tsk", 
-            "../../peanut.tsk",
-            "/etc/tusklang/peanut.tsk",
-            os.path.expanduser("~/.config/tusklang/peanut.tsk"),
+            "./peanu.tsk",
+            "../peanu.tsk", 
+            "../../peanu.tsk",
+            "/etc/tusklang/peanu.tsk",
+            os.path.expanduser("~/.config/tusklang/peanu.tsk"),
             os.environ.get('TUSKLANG_CONFIG', '')
         ]
     
     def load_peanut(self):
-        """Load peanut.tsk if available"""
+        """Load peanu.tsk if available"""
         if self.peanut_loaded:
             return
             
@@ -2606,7 +2606,7 @@ def parse_file(file_path: str) -> Dict[str, Any]:
 
 
 def load_from_peanut():
-    """Load configuration from peanut.tsk"""
+    """Load configuration from peanu.tsk"""
     parser = TuskLangEnhanced()
     parser.load_peanut()
     return parser
@@ -2627,7 +2627,7 @@ Commands:
     parse <file>     Parse a .tsk file
     get <file> <key> Get a value by key
     keys <file>      List all keys
-    peanut           Load from peanut.tsk
+    peanut           Load from peanu.tsk
     
 Examples:
     python tsk_enhanced.py parse config.tsk
@@ -2643,7 +2643,7 @@ Features:
     - Date functions: @date()
     - Environment variables: @env()
 
-Default config file: peanut.tsk
+Default config file: peanu.tsk
 """)
         sys.exit(1)
     

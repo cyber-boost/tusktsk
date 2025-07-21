@@ -77,8 +77,8 @@ class PeanutConfig:
                     peanut_text.stat().st_mtime
                 ))
         
-        # Check for global peanut.tsk
-        global_config = pathlib.Path.cwd() / 'peanut.tsk'
+        # Check for global peanu.tsk
+        global_config = pathlib.Path.cwd() / 'peanu.tsk'
         if global_config.exists():
             configs.insert(0, ConfigFile(
                 str(global_config), 
