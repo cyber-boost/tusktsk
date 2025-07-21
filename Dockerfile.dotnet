@@ -1,0 +1,60 @@
+# C#/.NET SDK Dockerfile
+FROM mcr.microsoft.com/dotnet/sdk:8.0-alpine AS builder
+
+# Set environment variables
+ENV DOTNET_CLI_TELEMETRY_OPTOUT=1
+ENV DOTNET_SKIP_FIRST_TIME_EXPERIENCE=1
+
+# Install system dependencies
+RUN apk add --no-cache \
+    git \
+    ca-certificates
+
+# Set working directory
+WORKDIR /app
+
+# Copy project file
+COPY sdk/csharp/TuskTsk.csproj ./
+
+# Restore dependencies
+RUN dotnet restore
+
+# Copy source code
+COPY sdk/csharp/ ./
+
+# Build the application
+RUN dotnet build --configuration Release --no-restore
+
+# Publish the application
+RUN dotnet publish --configuration Release --no-build --output /app/publish
+
+# Final stage
+FROM mcr.microsoft.com/dotnet/aspnet:8.0-alpine
+
+# Install runtime dependencies
+RUN apk add --no-cache \
+    ca-certificates \
+    tzdata
+
+# Create non-root user
+RUN addgroup -g 1001 -S tusktsk
+RUN adduser -S tusktsk -u 1001
+
+# Set working directory
+WORKDIR /app
+
+# Copy published application
+COPY --from=builder /app/publish .
+
+# Change ownership
+RUN chown -R tusktsk:tusktsk /app
+
+# Switch to non-root user
+USER tusktsk
+
+# Health check
+HEALTHCHECK --interval=30s --timeout=10s --start-period=5s --retries=3 \
+    CMD dotnet TuskTsk.dll --version || exit 1
+
+# Default command
+CMD ["dotnet", "TuskTsk.dll", "--version"] 

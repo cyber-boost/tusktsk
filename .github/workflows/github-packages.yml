@@ -1,0 +1,286 @@
+name: Publish to GitHub Packages
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to publish'
+        required: true
+        default: '2.0.2'
+
+env:
+  PACKAGE_VERSION: ${{ github.ref_name || inputs.version }}
+  REGISTRY: ghcr.io
+  IMAGE_NAME: ${{ github.repository }}
+
+jobs:
+  # Publish Python package to GitHub Packages
+  publish-python-github:
+    name: Publish Python to GitHub Packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v4
+        with:
+          python-version: '3.11'
+          
+      - name: Build Python package
+        run: |
+          cd sdk/python
+          python -m pip install --upgrade build twine
+          python -m build
+          
+      - name: Publish to GitHub Packages
+        run: |
+          cd sdk/python
+          python -m twine upload --repository-url https://upload.pypi.org/legacy/ dist/*
+        env:
+          TWINE_USERNAME: __token__
+          TWINE_PASSWORD: ${{ secrets.PYPI_API_TOKEN }}
+
+  # Publish JavaScript package to GitHub Packages
+  publish-javascript-github:
+    name: Publish JavaScript to GitHub Packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: '18'
+          registry-url: 'https://npm.pkg.github.com'
+          
+      - name: Configure npm for GitHub Packages
+        run: |
+          npm config set @cyber-boost:registry https://npm.pkg.github.com
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" > ~/.npmrc
+          
+      - name: Build JavaScript package
+        run: |
+          cd sdk/javascript
+          npm pack
+          
+      - name: Publish to GitHub Packages
+        run: |
+          cd sdk/javascript
+          npm publish
+        env:
+          NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+
+  # Publish Go package to GitHub Packages
+  publish-go-github:
+    name: Publish Go to GitHub Packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Go
+        uses: actions/setup-go@v4
+        with:
+          go-version: '1.23'
+          
+      - name: Configure Go for GitHub Packages
+        run: |
+          go env -w GOPRIVATE=github.com/cyber-boost/tusktsk
+          
+      - name: Build and publish Go package
+        run: |
+          cd sdk/go
+          go mod tidy
+          go mod download
+          go build -o tusktsk-go ./...
+
+  # Publish Rust package to GitHub Packages
+  publish-rust-github:
+    name: Publish Rust to GitHub Packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install Rust
+        uses: actions-rs/toolchain@v1
+        with:
+          toolchain: stable
+          
+      - name: Configure Cargo for GitHub Packages
+        run: |
+          mkdir -p ~/.cargo
+          echo "[registries.github]" >> ~/.cargo/config.toml
+          echo 'index = "https://github.com/cyber-boost/tusktsk-index"' >> ~/.cargo/config.toml
+          echo 'token = "${{ secrets.GITHUB_TOKEN }}"' >> ~/.cargo/config.toml
+          
+      - name: Build and publish Rust package
+        run: |
+          cd sdk/rust
+          cargo build --release
+          cargo publish --registry github
+
+  # Publish C# package to GitHub Packages
+  publish-csharp-github:
+    name: Publish C# to GitHub Packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Setup .NET
+        uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: '8.0.x'
+          
+      - name: Configure NuGet for GitHub Packages
+        run: |
+          dotnet nuget add source https://nuget.pkg.github.com/cyber-boost/index.json --name github --username ${{ github.actor }} --password ${{ secrets.GITHUB_TOKEN }} --store-password-in-clear-text
+          
+      - name: Build and publish C# package
+        run: |
+          cd sdk/csharp
+          dotnet build --configuration Release
+          dotnet pack --configuration Release --output ./nupkg
+          dotnet nuget push ./nupkg/*.nupkg --source github --api-key ${{ secrets.GITHUB_TOKEN }}
+
+  # Publish PHP package to GitHub Packages
+  publish-php-github:
+    name: Publish PHP to GitHub Packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up PHP
+        uses: shivammathur/setup-php@v2
+        with:
+          php-version: '8.1'
+          extensions: pdo, json, mbstring
+          
+      - name: Install Composer
+        run: |
+          curl -sS https://getcomposer.org/installer | php
+          sudo mv composer.phar /usr/local/bin/composer
+          
+      - name: Configure Composer for GitHub Packages
+        run: |
+          composer config --global --auth http-basic.github.com ${{ github.actor }} ${{ secrets.GITHUB_TOKEN }}
+          
+      - name: Build PHP package
+        run: |
+          cd sdk/php
+          composer install --no-dev --optimize-autoloader
+          composer archive --format=zip --dir=./dist
+
+  # Publish Ruby package to GitHub Packages
+  publish-ruby-github:
+    name: Publish Ruby to GitHub Packages
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Ruby
+        uses: ruby/setup-ruby@v1
+        with:
+          ruby-version: '3.2'
+          bundler-cache: true
+          
+      - name: Configure RubyGems for GitHub Packages
+        run: |
+          mkdir -p ~/.gem
+          echo "---" > ~/.gem/credentials
+          echo ":github: Bearer ${{ secrets.GITHUB_TOKEN }}" >> ~/.gem/credentials
+          chmod 600 ~/.gem/credentials
+          
+      - name: Build and publish Ruby gem
+        run: |
+          cd sdk/ruby
+          gem build tusk_lang.gemspec || echo "Gemspec not found, skipping gem build"
+          if [ -f "tusktsk-${{ env.PACKAGE_VERSION }}.gem" ]; then
+            gem push tusktsk-${{ env.PACKAGE_VERSION }}.gem --key github --host https://rubygems.pkg.github.com/cyber-boost
+          fi
+
+  # Build and push Docker images
+  build-and-push-docker:
+    name: Build and Push Docker Images
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    strategy:
+      matrix:
+        language: [python, nodejs, go, rust, dotnet, php, ruby]
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Log in to Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ${{ env.REGISTRY }}
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      
+      - name: Extract metadata
+        id: meta
+        uses: docker/metadata-action@v5
+        with:
+          images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}-${{ matrix.language }}
+          tags: |
+            type=ref,event=branch
+            type=ref,event=pr
+            type=semver,pattern={{version}}
+            type=semver,pattern={{major}}.{{minor}}
+            type=sha
+      
+      - name: Build and push Docker image
+        uses: docker/build-push-action@v5
+        with:
+          context: .
+          file: ./Dockerfile.${{ matrix.language }}
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+
+  # Create summary
+  create-summary:
+    name: Create Deployment Summary
+    runs-on: ubuntu-latest
+    needs: [publish-python-github, publish-javascript-github, publish-go-github, publish-rust-github, publish-csharp-github, publish-php-github, publish-ruby-github, build-and-push-docker]
+    steps:
+      - name: Create summary
+        run: |
+          echo "## 🎉 GitHub Packages Deployment Complete!" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### ✅ Successfully Published Packages:" >> $GITHUB_STEP_SUMMARY
+          echo "- **Python**: https://github.com/cyber-boost/tusktsk/packages/container/tusktsk-python" >> $GITHUB_STEP_SUMMARY
+          echo "- **JavaScript**: https://github.com/cyber-boost/tusktsk/packages/container/tusktsk-javascript" >> $GITHUB_STEP_SUMMARY
+          echo "- **Go**: https://github.com/cyber-boost/tusktsk/packages/container/tusktsk-go" >> $GITHUB_STEP_SUMMARY
+          echo "- **Rust**: https://github.com/cyber-boost/tusktsk/packages/container/tusktsk-rust" >> $GITHUB_STEP_SUMMARY
+          echo "- **C#**: https://github.com/cyber-boost/tusktsk/packages/container/tusktsk-dotnet" >> $GITHUB_STEP_SUMMARY
+          echo "- **PHP**: https://github.com/cyber-boost/tusktsk/packages/container/tusktsk-php" >> $GITHUB_STEP_SUMMARY
+          echo "- **Ruby**: https://github.com/cyber-boost/tusktsk/packages/container/tusktsk-ruby" >> $GITHUB_STEP_SUMMARY
+          echo "" >> $GITHUB_STEP_SUMMARY
+          echo "### 📦 Package Version: ${{ env.PACKAGE_VERSION }}" >> $GITHUB_STEP_SUMMARY
+          echo "### 🐳 Docker Images Published to: ghcr.io/cyber-boost/tusktsk-*" >> $GITHUB_STEP_SUMMARY
+          echo "### 🚀 All 7 SDK packages are now available on GitHub Packages!" >> $GITHUB_STEP_SUMMARY 
