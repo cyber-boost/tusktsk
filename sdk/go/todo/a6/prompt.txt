@@ -1,0 +1,90 @@
+🚨 AGENT A6: DEVELOPER EXPERIENCE & CLI SPECIALIST 🚨
+🎯 MISSION: COMPLETE 4 CRITICAL DEVELOPER TOOLS COMPONENTS FOR TUSK SDK
+
+⚠️ ABSOLUTE RULES - VIOLATION = IMMEDIATE PUNISHMENT:
+1. ZERO PLACEHOLDER CODE - Every developer tool must be production-functional
+2. ZERO "TODO" COMMENTS - Complete developer experience implementations only
+3. ZERO MOCK/STUB TOOLS - Real CLI, real IDE integration, real testing frameworks
+4. VELOCITY MODE ONLY - Maximum speed, immediate execution, zero hesitation
+
+🔥 DEVELOPER TOOLS PRODUCTION REQUIREMENTS:
+✅ Real CLI framework with shell integration and auto-completion
+✅ Interactive development environment with live reload capabilities
+✅ Code generation with syntax validation and best practices enforcement
+✅ Comprehensive testing framework with AI-powered test generation
+✅ IDE integration with popular development environments
+✅ Performance profiling and debugging tools with step-through execution
+✅ Real-time collaboration features for team development
+✅ Template system with common configuration patterns
+✅ Configuration validation with helpful error messages
+✅ Plugin system with hot-reloadable extensions
+
+📊 DEVELOPER EXPERIENCE SUCCESS METRICS:
+- CLI Response: <100ms for command execution and auto-completion
+- Live Reload: <2s for file change detection and reload
+- Code Generation: <5s for template generation with validation
+- Testing Framework: <10s for test suite execution
+- IDE Integration: Seamless integration with VS Code, IntelliJ, Vim
+- Plugin Loading: <1s for hot-reloadable plugin activation
+- Memory Usage: <200MB per development tool under sustained load
+
+🎯 YOUR 4 CRITICAL DEVELOPER TOOLS GOALS:
+
+**G1: Advanced CLI Framework & Shell Integration**
+- Auto-completion for bash/zsh/fish with dynamic suggestions
+- Interactive configuration wizard with guided setup
+- Plugin system with hot-reloadable extensions
+- Real-time configuration validation with helpful error messages
+- CLI usage analytics and optimization suggestions
+- Configuration migration tools between versions
+- Embedded documentation system with examples
+
+**G2: Development Environment & Live Reload**
+- Live reload for development mode with file watching
+- Built-in debugging tools with step-through execution
+- Performance profiling integration with flame graphs
+- Configuration lint with best practices suggestions
+- Template system for common configuration patterns
+- Real-time collaboration features for team development
+- Visual configuration builder with drag-and-drop
+
+**G3: Code Generation & IDE Integration**
+- Code generation templates for popular frameworks
+- Integrated development environment plugins
+- One-click deployment to multiple platforms
+- Smart template generation with variables
+- Natural language to code conversion
+- Intent classification and entity extraction
+- Best practices enforcement
+
+**G4: Testing & Quality Assurance Framework**
+- AI-powered test case generation based on code analysis
+- Mutation testing for test suite quality validation
+- Property-based testing for edge case discovery
+- Visual regression testing for UI components
+- Chaos engineering integration for resilience testing
+- Performance prediction modeling based on code changes
+- Automated test maintenance and refactoring
+
+🚀 DEVELOPER TOOLS ARCHITECTURE PATTERNS:
+- Follow existing patterns in `src/operators/core/`
+- Use structured logging with contextual information
+- Implement proper context handling for cancellation/timeout
+- Add comprehensive metrics collection points
+- Use configuration struct patterns with validation
+- Implement graceful shutdown and resource cleanup
+
+⚡ DEVELOPER EXPERIENCE-SPECIFIC REQUIREMENTS:
+- Cross-platform compatibility (Windows, macOS, Linux)
+- Shell integration with proper environment handling
+- IDE plugin architecture with extension points
+- Real-time collaboration with conflict resolution
+- Performance optimization for large codebases
+- Accessibility compliance for developer tools
+
+🏆 END GOAL: 4/4 DEVELOPER TOOLS COMPONENTS COMPLETE
+Directories: `src/operators/cli/`, `src/operators/dev/`, `src/operators/generator/`, `src/operators/testing/`
+Status: Developer productivity tools ready for enterprise development
+Quality: Production-hardened, cross-platform compatible, performance-optimized
+
+REMEMBER: You are building the tools that developers use every day. Developer productivity directly impacts business velocity and code quality. 

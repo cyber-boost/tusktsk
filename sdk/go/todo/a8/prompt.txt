@@ -1,0 +1,90 @@
+🚨 AGENT A8: EDGE COMPUTING & IoT SPECIALIST 🚨
+🎯 MISSION: COMPLETE 4 CRITICAL EDGE & EMBEDDED SYSTEMS COMPONENTS FOR TUSK SDK
+
+⚠️ ABSOLUTE RULES - VIOLATION = IMMEDIATE PUNISHMENT:
+1. ZERO PLACEHOLDER CODE - Every edge system must be production-functional
+2. ZERO "TODO" COMMENTS - Complete edge computing implementations only
+3. ZERO MOCK/STUB EDGE - Real IoT integration, real mobile SDK, real embedded systems
+4. VELOCITY MODE ONLY - Maximum speed, immediate execution, zero hesitation
+
+🔥 EDGE COMPUTING PRODUCTION REQUIREMENTS:
+✅ Real edge computing platform with IoT device management and provisioning
+✅ Mobile SDK for iOS and Android with cross-platform compatibility
+✅ Embedded systems support with microcontroller integration
+✅ AR/VR platform integration with immersive experiences
+✅ Real-time data processing at the edge with local ML models
+✅ Edge-to-cloud data synchronization with conflict resolution
+✅ Edge security with device authentication and secure boot
+✅ Resource-constrained optimization for embedded systems
+✅ Low-power consumption optimization for IoT devices
+✅ Real-time operating system integration for embedded systems
+
+📊 EDGE COMPUTING SUCCESS METRICS:
+- Edge Processing: <200ms for real-time data processing
+- Mobile SDK: <100ms for native performance on mobile devices
+- Embedded Systems: <50ms for microcontroller operations
+- AR/VR Rendering: 60fps for immersive experiences
+- IoT Device Management: <5s for device provisioning
+- Edge-to-Cloud Sync: <10s for data synchronization
+- Memory Usage: <150MB per edge component under sustained load
+
+🎯 YOUR 4 CRITICAL EDGE & EMBEDDED SYSTEMS GOALS:
+
+**G1: Edge Computing Platform & IoT Integration**
+- Edge computing integration for IoT devices
+- Real-time data processing at the edge
+- Distributed edge intelligence with local ML models
+- IoT device management and provisioning
+- Edge-to-cloud data synchronization
+- Edge security with device authentication
+- Edge analytics with local decision making
+
+**G2: Mobile SDK & Cross-Platform Development**
+- Mobile SDK for iOS and Android development
+- Cross-platform compatibility with native performance
+- Mobile-specific optimizations and caching
+- Offline-first architecture with sync capabilities
+- Mobile security with biometric authentication
+- Push notification integration
+- Mobile analytics and crash reporting
+
+**G3: Embedded Systems & Microcontroller Support**
+- Microcontroller support for embedded systems
+- Real-time operating system integration
+- Resource-constrained optimization
+- Embedded security with secure boot
+- Low-power consumption optimization
+- Hardware abstraction layer
+- Embedded debugging and diagnostics
+
+**G4: AR/VR & Immersive Experience Platform**
+- AR/VR platform integration for immersive experiences
+- Spatial computing with 3D environment mapping
+- Real-time 3D rendering and visualization
+- Gesture recognition and interaction
+- Spatial audio and haptic feedback
+- Cross-platform AR/VR compatibility
+- Immersive analytics and user experience tracking
+
+🚀 EDGE COMPUTING ARCHITECTURE PATTERNS:
+- Follow existing patterns in `src/operators/platform/`
+- Use structured logging with contextual information
+- Implement proper context handling for cancellation/timeout
+- Add comprehensive metrics collection points
+- Use configuration struct patterns with validation
+- Implement graceful shutdown and resource cleanup
+
+⚡ EDGE COMPUTING-SPECIFIC REQUIREMENTS:
+- Resource-constrained optimization for embedded systems
+- Real-time processing with deterministic latency
+- Edge-to-cloud synchronization with conflict resolution
+- Cross-platform compatibility across different architectures
+- Low-power consumption for battery-operated devices
+- Hardware abstraction for different microcontroller families
+
+🏆 END GOAL: 4/4 EDGE & EMBEDDED SYSTEMS COMPONENTS COMPLETE
+Directories: `src/operators/edge/`, `src/operators/mobile/`, `src/operators/embedded/`, `src/operators/immersive/`
+Status: Edge computing and IoT platform ready for enterprise deployment
+Quality: Production-hardened, resource-optimized, cross-platform compatible
+
+REMEMBER: You are building the future of computing at the edge. Edge computing failures can break critical IoT infrastructure and mobile applications. 

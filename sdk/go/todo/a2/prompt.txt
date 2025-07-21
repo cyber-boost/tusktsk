@@ -1,0 +1,77 @@
+🚨 AGENT A2: MONITORING & OBSERVABILITY SPECIALIST 🚨
+🎯 MISSION: COMPLETE 4 CRITICAL MONITORING OPERATORS FOR SYSTEM VISIBILITY
+
+⚠️ ABSOLUTE RULES - VIOLATION = IMMEDIATE PUNISHMENT:
+1. ZERO PLACEHOLDER CODE - Every monitoring feature must be production-functional
+2. ZERO "TODO" COMMENTS - Complete observability implementations only  
+3. ZERO MOCK/STUB MONITORING - Real metrics, real traces, real dashboards
+4. VELOCITY MODE ONLY - Maximum speed, immediate execution, zero hesitation
+
+🔥 MONITORING PRODUCTION REQUIREMENTS:
+✅ Real distributed tracing with actual span collection and analysis
+✅ Live dashboard integration with real-time data visualization
+✅ Performance monitoring with SLA alerting and anomaly detection
+✅ Workflow orchestration with state persistence and recovery
+✅ Metrics collection with time-series data and retention policies
+✅ Service dependency mapping with topology visualization
+✅ Alert management with notification channels and escalation
+✅ Data export and integration with existing monitoring stacks
+✅ High-throughput data processing with minimal overhead
+✅ Security compliance with encryption and access controls
+
+📊 OBSERVABILITY SUCCESS METRICS:
+- Trace Collection: >10,000 spans/second with <5ms overhead
+- Dashboard Response: <2s load time for complex visualizations
+- Workflow Throughput: >1,000 tasks/second with state persistence
+- Data Retention: Configurable retention with efficient storage
+- Alert Latency: <30s from event to notification delivery
+- System Overhead: <5% CPU impact on monitored applications
+
+🎯 YOUR 4 CRITICAL MONITORING GOALS:
+
+**G1: @jaeger - Distributed Tracing System**
+- Span creation with context propagation across services
+- Trace collection with sampling strategies and storage
+- Performance analysis with latency percentiles and hotspots  
+- Service dependency analysis and bottleneck identification
+
+**G2: @zipkin - Trace Aggregation & Analysis**
+- Zipkin-compatible trace collection and storage
+- Span annotation with timing and metadata
+- Service dependency mapping with call graphs
+- Latency analysis with performance insights
+
+**G3: @grafana - Dashboard Integration & Visualization**
+- Dynamic dashboard creation with templating
+- Multiple data source integration (Prometheus, InfluxDB, etc.)
+- Real-time alerting with notification channels
+- Custom visualization panels and plugins
+
+**G4: @temporal - Workflow Orchestration Engine**
+- Workflow definition and execution with state management
+- Activity scheduling and retry logic with exponential backoff
+- Distributed task coordination across multiple workers
+- Workflow versioning and migration capabilities
+
+🚀 OBSERVABILITY ARCHITECTURE PATTERNS:
+- Follow OpenTelemetry standards for tracing instrumentation
+- Implement efficient batching for high-throughput scenarios
+- Use time-series databases for metrics storage optimization
+- Add circuit breakers for monitoring system resilience
+- Implement proper sampling strategies to manage data volume
+- Use async processing to minimize application performance impact
+
+⚡ ENTERPRISE MONITORING FEATURES:
+- Multi-tenant isolation with proper data segregation
+- RBAC integration for dashboard and alert access control
+- Compliance logging with audit trails for monitoring access
+- Data retention policies with automated archival
+- Integration with enterprise SSO and authentication systems
+- High availability with monitoring system redundancy
+
+🏆 END GOAL: 4/4 MONITORING OPERATORS COMPLETE
+Directories: `src/operators/monitoring/`, `src/operators/workflow/`
+Status: Enterprise observability stack ready for production
+Quality: High-performance, secure, scalable monitoring solution
+
+REMEMBER: You are building the eyes and nervous system of enterprise infrastructure. Visibility failures hide critical business problems. 

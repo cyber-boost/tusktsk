@@ -1,276 +1,358 @@
-# 🥜 TuskLang Enhanced for Go
+# TuskLang Go SDK
 
-**The Freedom Configuration Language - "We don't bow to any king"**
+A comprehensive Go SDK for the TuskLang ecosystem, providing powerful tools for parsing, compiling, and executing TuskLang code with enterprise-grade features.
 
-TuskLang Enhanced brings flexible syntax and intelligent configuration to Go. With support for multiple grouping styles, global variables, cross-file communication, and database queries right in your config files.
+## Features
 
-[![Go Reference](https://pkg.go.dev/badge/github.com/cyber-boost/tusktsk.svg)](https://pkg.go.dev/github.com/cyber-boost/tusktsk)
-[![Go Version](https://img.shields.io/badge/go-1.19+-blue.svg)](https://golang.org/)
-[![License: Proprietary](https://img.shields.io/badge/License-Proprietary-red.svg)](https://tuskt.sk/license)
-[![Documentation](https://img.shields.io/badge/docs-tuskt.sk-green.svg)](https://tuskt.sk/docs)
+- **Advanced Parsing**: Sophisticated lexical analysis and AST generation
+- **Binary Compilation**: Efficient compilation to binary format
+- **Security Validation**: Built-in security scanning and validation
+- **Performance Optimization**: High-performance execution engine
+- **Comprehensive Error Handling**: Detailed error reporting and debugging
+- **CLI Interface**: Full-featured command-line interface
+- **Configuration Management**: Flexible configuration system
+- **Operator System**: Extensible operator framework
 
-## 🚀 Installation
+## Installation
 
-### Via go get (Recommended)
 ```bash
-go get github.com/cyber-boost/tusktsk
+go get github.com/cyber-boost/tusktsk/sdk/go
 ```
 
-### Via go.mod
-```go
-require github.com/cyber-boost/tusktsk v2.0.1
-```
+## Quick Start
 
-### Manual Installation
-```bash
-git clone https://github.com/cyber-boost/tusktsk
-cd tusktsk/sdk/go
-go build -o tusktsk .
-```
-
-## ✨ Features
-
-- **Flexible Syntax**: Use `[]`, `{}`, or `<>` grouping - your choice!
-- **Global Variables**: `$variables` accessible across all sections
-- **Cross-File Communication**: `@file.tsk.get()` and `@file.tsk.set()`
-- **Database Queries**: Query databases directly in config files
-- **Environment Variables**: `@env("VAR", "default")` with defaults
-- **Date Functions**: `@date("Y-m-d H:i:s")` with Go formatting
-- **Conditional Expressions**: `condition ? true_val : false_val`
-- **Range Syntax**: `8000-9000` notation
-- **peanut.tsk Integration**: Universal configuration file support
-- **Fujsen Support**: Function serialization and execution
-- **Concurrent safe**: Thread-safe configuration access
-- **High performance**: Optimized for Go's runtime
-
-## 📖 Quick Start
-
-### Basic Usage
 ```go
 package main
 
 import (
     "fmt"
-    "log"
-    "github.com/cyber-boost/tusktsk"
+    "github.com/cyber-boost/tusktsk/sdk/go/pkg/core"
 )
 
 func main() {
-    // Parse a configuration file
-    parser := tusktsk.NewParser()
-    config, err := parser.ParseFile("config.tsk")
+    // Create SDK instance
+    sdk := core.New()
+    
+    // Parse TuskLang code
+    code := `app_name: "My App"
+version: "1.0.0"
+debug: true`
+    
+    result, err := sdk.Parse(code)
     if err != nil {
-        log.Fatal(err)
-    }
-
-    // Get values
-    dbHost, err := parser.Get("database.host")
-    if err != nil {
-        log.Fatal(err)
+        fmt.Printf("Parse error: %v\n", err)
+        return
     }
     
-    serverPort, err := parser.Get("server.port")
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    // Or use TSK struct
-    tsk := tusktsk.New()
-    err = tsk.LoadFromFile("config.tsk")
-    if err != nil {
-        log.Fatal(err)
-    }
-    
-    dbHost, err = tsk.GetValue("database", "host")
-    if err != nil {
-        log.Fatal(err)
-    }
-
-    fmt.Printf("Database host: %s\n", dbHost)
-    fmt.Printf("Server port: %v\n", serverPort)
+    fmt.Printf("Parsed %d tokens\n", len(result.Tokens))
+    fmt.Printf("Generated %d AST nodes\n", len(result.AST))
 }
 ```
 
-### Example Configuration
-```tsk
-# Global variables
-$app_name: "My Application"
-$environment: @env("APP_ENV", "development")
+## CLI Usage
 
-# Traditional sections
-[database]
-host: "localhost"
-port: 5432
-
-# Curly brace objects
-server {
-    host: @env("SERVER_HOST", "0.0.0.0")
-    port: @env("SERVER_PORT", 8080)
-    workers: $environment == "production" ? 4 : 1
-}
-
-# Angle bracket objects
-cache >
-    driver: "redis"
-    ttl: "5m"
-    enabled: true
-<
-
-# Database queries
-[stats]
-user_count: @query("SELECT COUNT(*) FROM users")
-active_sessions: @query("SELECT COUNT(*) FROM sessions WHERE active = 1")
-
-# Conditional expressions
-[scaling]
-instances: $environment == "production" ? 10 : 2
-log_level: $environment == "production" ? "error" : "debug"
-
-# Arrays and ranges
-[config]
-allowed_ips: ["127.0.0.1", "192.168.1.0/24"]
-port_range: 8000-9000
-```
-
-## 🔧 CLI Tool
-
-The package includes a command-line tool for working with TuskLang files:
+The SDK includes a comprehensive command-line interface:
 
 ```bash
-# Install CLI globally
-go install github.com/cyber-boost/tusktsk/cmd/tusktsk@latest
-
-# Parse a file
+# Parse TuskLang code
 tusktsk parse config.tsk
 
-# Get a specific value
-tusktsk get config.tsk database.host
+# Compile to binary
+tusktsk compile script.tsk -o output.bin
 
-# List all keys
-tusktsk keys config.tsk
+# Execute code
+tusktsk execute script.tsk
 
-# Load from peanut.tsk
-tusktsk peanut
-
-# Validate syntax
+# Validate for security issues
 tusktsk validate config.tsk
+
+# Show version
+tusktsk version
 ```
 
-## 🥜 peanut.tsk - Universal Configuration
+## Project Structure
 
-TuskLang Enhanced automatically looks for `peanut.tsk` in standard locations:
-- `./peanut.tsk`
-- `../peanut.tsk`
-- `/etc/tusktsk/peanut.tsk`
-- `~/.config/tusktsk/peanut.tsk`
-- `$TUSKTSK_CONFIG` environment variable
+```
+├── cmd/                    # Command-line applications
+│   ├── tsk/               # TSK CLI tool
+│   └── peanut/            # Peanut CLI tool
+├── pkg/                   # Public packages
+│   ├── core/              # Core SDK functionality
+│   ├── cli/               # CLI framework
+│   ├── config/            # Configuration management
+│   ├── security/          # Security features
+│   ├── operators/         # Operator system
+│   └── utils/             # Utility functions
+├── internal/              # Internal packages
+│   ├── parser/            # Parsing engine
+│   ├── binary/            # Binary handling
+│   └── error/             # Error handling
+├── examples/              # Usage examples
+├── docs/                  # Documentation
+└── tests/                 # Test files
+```
 
-This universal configuration file provides default settings for database connections, caching, and other common configuration needs.
+## Core Components
 
-## 💾 Database Integration
+### Parser
 
-TuskLang Enhanced supports database queries directly in configuration files:
+The parser provides lexical analysis and AST generation:
+
+```go
+parser := parser.New()
+result, err := parser.Parse(code)
+```
+
+### Binary Handler
+
+Handles binary compilation and execution:
+
+```go
+binary := binary.New()
+compileResult, err := binary.Compile(parseResult)
+executeResult, err := binary.Execute(compileResult)
+```
+
+### Security Manager
+
+Provides security validation and encryption:
+
+```go
+security := security.New()
+validationResult := security.ValidateCode(code)
+encrypted, err := security.Encrypt(data, key)
+```
+
+### Configuration
+
+Flexible configuration management:
+
+```go
+config := config.New()
+err := config.LoadFromFile("config.tsk")
+value := config.GetString("app_name")
+```
+
+## Examples
+
+### Basic Configuration Parsing
 
 ```go
 package main
 
 import (
-    "github.com/cyber-boost/tusktsk"
+    "fmt"
+    "github.com/cyber-boost/tusktsk/sdk/go/pkg/core"
 )
 
 func main() {
-    // Setup database connection
-    tsk := tusktsk.New()
-    err := tsk.LoadPeanut() // Loads database config from peanut.tsk
+    sdk := core.New()
+    
+    config := `
+app_name: "My Application"
+version: "1.0.0"
+debug: true
+port: 8080
+database:
+  host: "localhost"
+  port: 5432
+  name: "myapp"
+`
+    
+    result, err := sdk.Parse(config)
     if err != nil {
-        log.Fatal(err)
+        fmt.Printf("Error: %v\n", err)
+        return
     }
+    
+    fmt.Printf("Configuration parsed successfully\n")
+    fmt.Printf("Tokens: %d\n", len(result.Tokens))
+    fmt.Printf("AST Nodes: %d\n", len(result.AST))
+}
+```
 
-    // Use @query() in your .tsk files
-    config, err := tsk.ParseFile("app.tsk")
-    if err != nil {
-        log.Fatal(err)
+### Security Validation
+
+```go
+package main
+
+import (
+    "fmt"
+    "github.com/cyber-boost/tusktsk/sdk/go/pkg/security"
+)
+
+func main() {
+    security := security.New()
+    
+    code := `password: "secret123"
+api_key: "sk-1234567890"`
+    
+    result := security.ValidateCode(code)
+    
+    if !result.Valid {
+        fmt.Printf("Security issues found:\n")
+        for _, issue := range result.Issues {
+            fmt.Printf("- %s: %s\n", issue.Severity, issue.Message)
+        }
+    } else {
+        fmt.Printf("Code passed security validation (Score: %d/100)\n", result.Score)
     }
 }
 ```
 
-Supported databases:
-- SQLite (via modernc.org/sqlite)
-- PostgreSQL (via lib/pq)
-- MySQL/MariaDB (via go-sql-driver/mysql)
-- MongoDB (via mongo-go-driver)
+### Custom Operators
 
-## 🌍 System Integration
-
-TuskLang Enhanced can reference system-installed TuskLang tools:
-- `/usr/local/bin/tusk` - System CLI
-- `/usr/local/lib/tusktsk` - System libraries
-- `/usr/bin/tusk` - Alternative installation location
-
-## 🚀 Go-Specific Features
-
-### Concurrent Access
 ```go
-// Thread-safe configuration access
-config := tusktsk.New()
-config.SetMutex(&sync.RWMutex{})
+package main
 
-// Safe concurrent reads
-go func() {
-    value, _ := config.GetValue("database", "host")
-    fmt.Println("Host:", value)
-}()
+import (
+    "fmt"
+    "github.com/cyber-boost/tusktsk/sdk/go/pkg/operators"
+)
 
-go func() {
-    value, _ := config.GetValue("server", "port")
-    fmt.Println("Port:", value)
-}()
-```
-
-### Context Support
-```go
-ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
-defer cancel()
-
-// Parse with context
-config, err := parser.ParseFileWithContext(ctx, "config.tsk")
-if err != nil {
-    log.Fatal(err)
-}
-```
-
-### Error Handling
-```go
-// Rich error types
-config, err := parser.ParseFile("config.tsk")
-if err != nil {
-    switch e := err.(type) {
-    case *tusktsk.ParseError:
-        fmt.Printf("Parse error at line %d: %s\n", e.Line, e.Message)
-    case *tusktsk.ValidationError:
-        fmt.Printf("Validation error: %s\n", e.Message)
-    default:
-        fmt.Printf("Unknown error: %v\n", err)
+func main() {
+    registry := operators.NewOperatorRegistry()
+    
+    // Register custom operator
+    registry.RegisterOperator("++", operators.OperatorTypeUnary, 7, func(args ...interface{}) (interface{}, error) {
+        if len(args) != 1 {
+            return nil, fmt.Errorf("++ operator requires exactly 1 argument")
+        }
+        
+        if val, ok := args[0].(int); ok {
+            return val + 1, nil
+        }
+        
+        return nil, fmt.Errorf("++ operator only supports integers")
+    })
+    
+    // Use the operator
+    if op, exists := registry.GetOperator("++"); exists {
+        result, err := op.Function(5)
+        if err != nil {
+            fmt.Printf("Error: %v\n", err)
+            return
+        }
+        fmt.Printf("5++ = %v\n", result)
     }
-    return
 }
 ```
 
-## 📚 Documentation
+## Testing
 
-For complete documentation and examples:
-- [Official Documentation](https://tuskt.sk/docs)
-- [GitHub Repository](https://github.com/cyber-boost/tusktsk)
-- [Go Package Documentation](https://pkg.go.dev/github.com/cyber-boost/tusktsk)
+Run the test suite:
 
-## 🤝 Contributing
+```bash
+go test ./...
+```
 
-We welcome contributions! Please see our [Contributing Guide](CONTRIBUTING.md) for details.
+Run tests with coverage:
 
-## 📄 License
+```bash
+go test -cover ./...
+```
 
-Proprietary License - see [LICENSE](https://tuskt.sk/license) for details.
+Run specific test:
 
----
+```bash
+go test ./internal/parser -v
+```
 
-**"We don't bow to any king"** - TuskLang gives developers the freedom to choose their preferred syntax while maintaining intelligent configuration capabilities. 
+## Building
+
+Build the SDK:
+
+```bash
+go build -o tusktsk .
+```
+
+Build for specific platforms:
+
+```bash
+GOOS=linux GOARCH=amd64 go build -o tusktsk-linux-amd64 .
+GOOS=darwin GOARCH=amd64 go build -o tusktsk-darwin-amd64 .
+GOOS=windows GOARCH=amd64 go build -o tusktsk-windows-amd64.exe .
+```
+
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Run the test suite
+6. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For support and questions:
+
+- Create an issue on GitHub
+- Check the documentation in the `docs/` directory
+- Review the examples in the `examples/` directory
+
+## Version History
+
+- **v1.0.0** - Initial release with core functionality
+  - Basic parsing and AST generation
+  - Binary compilation and execution
+  - Security validation
+  - CLI interface
+  - Configuration management
+  - Operator system
+
+## Roadmap
+
+- [ ] Advanced optimization passes
+- [ ] JIT compilation
+- [ ] WebAssembly support
+- [ ] Plugin system
+- [ ] IDE integration
+- [ ] Performance profiling
+- [ ] Distributed execution
+- [ ] Cloud deployment tools 
+## Contributing
+
+1. Fork the repository
+2. Create a feature branch
+3. Make your changes
+4. Add tests for new functionality
+5. Run the test suite
+6. Submit a pull request
+
+## License
+
+This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
+
+## Support
+
+For support and questions:
+
+- Create an issue on GitHub
+- Check the documentation in the `docs/` directory
+- Review the examples in the `examples/` directory
+
+## Version History
+
+- **v1.0.0** - Initial release with core functionality
+  - Basic parsing and AST generation
+  - Binary compilation and execution
+  - Security validation
+  - CLI interface
+  - Configuration management
+  - Operator system
+
+## Roadmap
+
+- [ ] Advanced optimization passes
+- [ ] JIT compilation
+- [ ] WebAssembly support
+- [ ] Plugin system
+- [ ] IDE integration
+- [ ] Performance profiling
+- [ ] Distributed execution
+- [ ] Cloud deployment tools 
