@@ -5,16 +5,16 @@
   },
   "projects": {
     "/opt/tsk_git/sdk/csharp/TuskTsk.csproj": {
-      "version": "2.0.2",
+      "version": "1.0.0",
       "restore": {
         "projectUniqueName": "/opt/tsk_git/sdk/csharp/TuskTsk.csproj",
-        "projectName": "TuskTsk",
+        "projectName": "TuskLang.SDK",
         "projectPath": "/opt/tsk_git/sdk/csharp/TuskTsk.csproj",
         "packagesPath": "/root/.nuget/packages/",
         "outputPath": "/opt/tsk_git/sdk/csharp/obj/",
         "projectStyle": "PackageReference",
-        "crossTargeting": true,
         "configFilePaths": [
+          "/opt/tsk_git/sdk/csharp/nuget.config",
           "/root/.nuget/NuGet/NuGet.Config"
         ],
         "originalTargetFrameworks": [
@@ -40,134 +40,6 @@
         "net8.0": {
           "targetAlias": "net8.0",
           "dependencies": {
-            "AWSSDK.Core": {
-              "target": "Package",
-              "version": "[3.7.300, )"
-            },
-            "AWSSDK.DynamoDBv2": {
-              "target": "Package",
-              "version": "[3.7.300, )"
-            },
-            "AWSSDK.S3": {
-              "target": "Package",
-              "version": "[3.7.300, )"
-            },
-            "Azure.Identity": {
-              "target": "Package",
-              "version": "[1.11.4, )"
-            },
-            "Azure.Storage.Blobs": {
-              "target": "Package",
-              "version": "[12.19.1, )"
-            },
-            "Confluent.Kafka": {
-              "target": "Package",
-              "version": "[2.3.0, )"
-            },
-            "CsvHelper": {
-              "target": "Package",
-              "version": "[30.0.1, )"
-            },
-            "Dapper": {
-              "target": "Package",
-              "version": "[2.1.35, )"
-            },
-            "Dapper.Contrib": {
-              "target": "Package",
-              "version": "[2.0.78, )"
-            },
-            "Dapper.SqlBuilder": {
-              "target": "Package",
-              "version": "[2.0.78, )"
-            },
-            "FluentAssertions": {
-              "target": "Package",
-              "version": "[6.12.0, )"
-            },
-            "Google.Apis.Auth": {
-              "target": "Package",
-              "version": "[1.64.0, )"
-            },
-            "Google.Cloud.Storage.V1": {
-              "target": "Package",
-              "version": "[4.7.0, )"
-            },
-            "GraphQL.Client": {
-              "target": "Package",
-              "version": "[3.2.0, )"
-            },
-            "Grpc.Net.Client": {
-              "target": "Package",
-              "version": "[2.60.0, )"
-            },
-            "Grpc.Tools": {
-              "target": "Package",
-              "version": "[2.60.0, )"
-            },
-            "MSTest.TestAdapter": {
-              "target": "Package",
-              "version": "[3.2.2, )"
-            },
-            "MSTest.TestFramework": {
-              "target": "Package",
-              "version": "[3.2.2, )"
-            },
-            "MessagePack": {
-              "target": "Package",
-              "version": "[2.5.140, )"
-            },
-            "Microsoft.AspNetCore.Authentication.JwtBearer": {
-              "target": "Package",
-              "version": "[8.0.1, )"
-            },
-            "Microsoft.AspNetCore.Authentication.OpenIdConnect": {
-              "target": "Package",
-              "version": "[8.0.1, )"
-            },
-            "Microsoft.AspNetCore.SignalR.Client": {
-              "target": "Package",
-              "version": "[8.0.1, )"
-            },
-            "Microsoft.CSharp": {
-              "target": "Package",
-              "version": "[4.7.0, )"
-            },
-            "Microsoft.CognitiveServices.Speech": {
-              "target": "Package",
-              "version": "[1.34.0, )"
-            },
-            "Microsoft.Data.SqlClient": {
-              "target": "Package",
-              "version": "[5.1.6, )"
-            },
-            "Microsoft.EntityFrameworkCore": {
-              "target": "Package",
-              "version": "[8.0.11, )"
-            },
-            "Microsoft.EntityFrameworkCore.Design": {
-              "target": "Package",
-              "version": "[8.0.11, )"
-            },
-            "Microsoft.EntityFrameworkCore.SqlServer": {
-              "target": "Package",
-              "version": "[8.0.11, )"
-            },
-            "Microsoft.EntityFrameworkCore.Sqlite": {
-              "target": "Package",
-              "version": "[8.0.11, )"
-            },
-            "Microsoft.EntityFrameworkCore.Tools": {
-              "target": "Package",
-              "version": "[8.0.11, )"
-            },
-            "Microsoft.Extensions.Caching.Memory": {
-              "target": "Package",
-              "version": "[8.0.1, )"
-            },
-            "Microsoft.Extensions.Caching.StackExchangeRedis": {
-              "target": "Package",
-              "version": "[8.0.11, )"
-            },
             "Microsoft.Extensions.Configuration": {
               "target": "Package",
               "version": "[8.0.0, )"
@@ -176,37 +48,9 @@
               "target": "Package",
               "version": "[8.0.1, )"
             },
-            "Microsoft.Extensions.Diagnostics.HealthChecks": {
-              "target": "Package",
-              "version": "[8.0.0, )"
-            },
-            "Microsoft.Extensions.Hosting": {
-              "target": "Package",
-              "version": "[8.0.0, )"
-            },
             "Microsoft.Extensions.Logging": {
               "target": "Package",
               "version": "[8.0.1, )"
-            },
-            "Microsoft.Extensions.ObjectPool": {
-              "target": "Package",
-              "version": "[8.0.11, )"
-            },
-            "Microsoft.IdentityModel.Tokens": {
-              "target": "Package",
-              "version": "[7.3.1, )"
-            },
-            "Microsoft.ML": {
-              "target": "Package",
-              "version": "[3.0.1, )"
-            },
-            "Microsoft.ML.OnnxRuntime": {
-              "target": "Package",
-              "version": "[1.16.3, )"
-            },
-            "Microsoft.ML.OnnxRuntime.Gpu": {
-              "target": "Package",
-              "version": "[1.16.3, )"
             },
             "Microsoft.NET.ILLink.Tasks": {
               "suppressParent": "All",
@@ -214,109 +58,21 @@
               "version": "[8.0.17, )",
               "autoReferenced": true
             },
-            "Microsoft.NET.Test.Sdk": {
-              "target": "Package",
-              "version": "[17.8.0, )"
-            },
-            "Moq": {
-              "target": "Package",
-              "version": "[4.20.70, )"
-            },
-            "MySqlConnector": {
-              "target": "Package",
-              "version": "[2.3.5, )"
-            },
-            "NATS.Client": {
-              "target": "Package",
-              "version": "[1.1.4, )"
-            },
-            "NATS.Client.JetStream": {
-              "target": "Package",
-              "version": "[2.0.0, )"
-            },
             "Newtonsoft.Json": {
               "target": "Package",
               "version": "[13.0.3, )"
             },
-            "Npgsql": {
-              "target": "Package",
-              "version": "[8.0.5, )"
-            },
-            "Npgsql.EntityFrameworkCore.PostgreSQL": {
-              "target": "Package",
-              "version": "[8.0.10, )"
-            },
-            "Polly": {
-              "target": "Package",
-              "version": "[8.2.1, )"
-            },
-            "Pomelo.EntityFrameworkCore.MySql": {
-              "target": "Package",
-              "version": "[8.0.2, )"
-            },
-            "RabbitMQ.Client": {
-              "target": "Package",
-              "version": "[6.8.1, )"
-            },
-            "SciSharp.TensorFlow.Redist": {
-              "target": "Package",
-              "version": "[2.10.0, )"
-            },
-            "Serilog": {
-              "target": "Package",
-              "version": "[3.1.1, )"
-            },
-            "Serilog.Extensions.Hosting": {
+            "System.CodeDom": {
               "target": "Package",
               "version": "[8.0.0, )"
             },
-            "Serilog.Sinks.Console": {
-              "target": "Package",
-              "version": "[5.0.1, )"
-            },
-            "Serilog.Sinks.File": {
-              "target": "Package",
-              "version": "[5.0.0, )"
-            },
-            "System.CodeDom": {
-              "target": "Package",
-              "version": "[7.0.0, )"
-            },
             "System.CommandLine": {
               "target": "Package",
-              "version": "[2.0.0-beta6.25358.103, )"
-            },
-            "System.Data.SQLite": {
-              "target": "Package",
-              "version": "[1.0.118, )"
-            },
-            "System.IdentityModel.Tokens.Jwt": {
-              "target": "Package",
-              "version": "[7.3.1, )"
+              "version": "[2.0.0-beta4.22272.1, )"
             },
             "System.Text.Json": {
               "target": "Package",
               "version": "[8.0.5, )"
-            },
-            "System.Xml.Linq": {
-              "target": "Package",
-              "version": "[3.5.21022.801, )"
-            },
-            "TensorFlow.NET": {
-              "target": "Package",
-              "version": "[0.150.0, )"
-            },
-            "YamlDotNet": {
-              "target": "Package",
-              "version": "[13.10.1, )"
-            },
-            "xunit": {
-              "target": "Package",
-              "version": "[2.6.6, )"
-            },
-            "xunit.runner.visualstudio": {
-              "target": "Package",
-              "version": "[2.5.6, )"
             }
           },
           "imports": [

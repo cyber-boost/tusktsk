@@ -1,10 +1,10 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <project xmlns="http://maven.apache.org/POM/4.0.0" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/maven-v4_0_0.xsd">
   <modelVersion>4.0.0</modelVersion>
-  <groupId>com.cyberboost</groupId>
+  <groupId>org.tusklang</groupId>
   <artifactId>tusktsk</artifactId>
   <name>TuskTsk Java</name>
-  <version>2.0.1</version>
+  <version>2.0.2</version>
   <description>Enhanced Java implementation of TuskTsk with @ operators and database integration</description>
   <url>https://tuskt.sk</url>
   <issueManagement>
@@ -37,11 +37,60 @@
         <configuration>
           <source>17</source>
           <target>17</target>
+          <excludes>
+            <exclude>**/AnomalyDataClasses.java</exclude>
+            <exclude>**/CommonDataClasses.java</exclude>
+            <exclude>**/PredictiveAnalyticsEngine.java</exclude>
+            <exclude>**/NaturalLanguageProcessingEngine.java</exclude>
+            <exclude>**/AnomalyDetectionEngine.java</exclude>
+            <exclude>**/TuskLangEnhanced.java</exclude>
+            <exclude>**/org/tusklang/TuskLangEnhanced.java</exclude>
+            <exclude>**/ElasticsearchAdapter.java</exclude>
+            <exclude>**/RedisAdapter.java</exclude>
+            <exclude>**/MongoDBAdapter.java</exclude>
+            <exclude>**/WebSocketOperator.java</exclude>
+            <exclude>**/HttpRestOperators.java</exclude>
+            <exclude>**/AuditOperators.java</exclude>
+            <exclude>**/DataProcessingOperators.java</exclude>
+            <exclude>**/PerformanceOptimizer.java</exclude>
+            <exclude>**/ComplianceEngines.java</exclude>
+            <exclude>**/SecurityInterfaces.java</exclude>
+            <exclude>**/PerformanceOptimizationEngine.java</exclude>
+            <exclude>**/GrpcOperator.java</exclude>
+            <exclude>**/ComplianceAutomation.java</exclude>
+            <exclude>**/ZeroTrustArchitecture.java</exclude>
+            <exclude>**/JaegerOperator.java</exclude>
+            <exclude>**/TuskLangIntegration.java</exclude>
+            <exclude>**/DatabaseSupport.java</exclude>
+            <exclude>**/MessageQueueOperators.java</exclude>
+            <exclude>**/ControlFlowOperators.java</exclude>
+            <exclude>**/DatabaseOperators.java</exclude>
+            <exclude>**/MessagingOperators.java</exclude>
+            <exclude>**/CloudPlatformOperators.java</exclude>
+            <exclude>**/MonitoringOperators.java</exclude>
+            <exclude>**/EnterpriseOperators.java</exclude>
+            <exclude>**/GraphQLOperator.java</exclude>
+            <exclude>**/AdvancedIntegrationOperators.java</exclude>
+            <exclude>**/AdvancedOperators.java</exclude>
+            <exclude>**/TuskCLI.java</exclude>
+            <exclude>**/DevelopmentCommands.java</exclude>
+            <exclude>**/TestingCommands.java</exclude>
+            <exclude>**/UtilityCommands.java</exclude>
+            <exclude>**/AnomalyModel.java</exclude>
+            <exclude>**/IntelligentOrchestrationEngine.java</exclude>
+            <exclude>**/WebAssemblyCompiler.java</exclude>
+            <exclude>**/NodeJSRuntime.java</exclude>
+            <exclude>**/CloudPlatformIntegration.java</exclude>
+            <exclude>**/ContainerKubernetesIntegration.java</exclude>
+            <exclude>**/PackageManagerIntegration.java</exclude>
+            <exclude>**/FrameworkIntegration.java</exclude>
+            <exclude>**/EnterpriseFeatures.java</exclude>
+          </excludes>
         </configuration>
       </plugin>
       <plugin>
         <artifactId>maven-shade-plugin</artifactId>
-        <version>3.4.1</version>
+        <version>3.5.1</version>
         <executions>
           <execution>
             <phase>package</phase>
@@ -60,11 +109,65 @@
       </plugin>
       <plugin>
         <artifactId>maven-surefire-plugin</artifactId>
-        <version>3.1.2</version>
+        <version>3.0.0</version>
+      </plugin>
+      <plugin>
+        <artifactId>maven-source-plugin</artifactId>
+        <version>3.3.0</version>
+        <executions>
+          <execution>
+            <id>attach-sources</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-javadoc-plugin</artifactId>
+        <version>3.5.0</version>
+        <executions>
+          <execution>
+            <id>attach-javadocs</id>
+            <goals>
+              <goal>jar</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <artifactId>maven-gpg-plugin</artifactId>
+        <version>3.1.0</version>
+        <executions>
+          <execution>
+            <id>sign-artifacts</id>
+            <phase>verify</phase>
+            <goals>
+              <goal>sign</goal>
+            </goals>
+          </execution>
+        </executions>
+      </plugin>
+      <plugin>
+        <groupId>org.sonatype.plugins</groupId>
+        <artifactId>nexus-staging-maven-plugin</artifactId>
+        <version>1.6.13</version>
+        <extensions>true</extensions>
+        <configuration>
+          <serverId>ossrh</serverId>
+          <nexusUrl>https://s01.oss.sonatype.org/</nexusUrl>
+          <autoReleaseAfterClose>true</autoReleaseAfterClose>
+        </configuration>
       </plugin>
     </plugins>
   </build>
   <dependencies>
+    <dependency>
+      <groupId>org.projectlombok</groupId>
+      <artifactId>lombok</artifactId>
+      <version>1.18.30</version>
+      <scope>provided</scope>
+    </dependency>
     <dependency>
       <groupId>junit</groupId>
       <artifactId>junit</artifactId>

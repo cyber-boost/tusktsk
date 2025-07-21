@@ -1,118 +1,54 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <PropertyGroup>
-    <TargetFrameworks>net8.0</TargetFrameworks>
-    <LangVersion>latest</LangVersion>
-    <Nullable>enable</Nullable>
-    <GenerateDocumentationFile>true</GenerateDocumentationFile>
-    <PackageId>TuskTsk</PackageId>
-    <Version>2.0.2</Version>
-    <Authors>Cyberboost LLC</Authors>
-    <Company>Cyberboost LLC</Company>
-    <Description>🔹 TuskTsk Enhanced - The Freedom Configuration Language for C# with maximum syntax flexibility</Description>
-    <PackageTags>configuration;tsk;tusktsk;csharp;dotnet;parser;flexible-syntax;database-queries</PackageTags>
-    <PackageLicenseExpression>BBL</PackageLicenseExpression>
-    <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageProjectUrl>https://tuskt.sk</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/cyber-boost/tusktsk</RepositoryUrl>
-    <RepositoryType>git</RepositoryType>
     <OutputType>Exe</OutputType>
+    <TargetFramework>net8.0</TargetFramework>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <Nullable>enable</Nullable>
+    <AssemblyName>tsk</AssemblyName>
+    <RootNamespace>TuskLang</RootNamespace>
+    
+    <!-- NuGet Package Metadata -->
+    <PackageId>TuskLang.SDK</PackageId>
+    <Version>1.0.0</Version>
+    <Authors>TuskLang Team</Authors>
+    <Company>TuskLang</Company>
+    <Description>A powerful, high-performance C# SDK for TuskLang configuration management and processing. Features advanced parsing, semantic analysis, database integration, and comprehensive CLI tools.</Description>
+    <Copyright>Copyright (c) 2024 TuskLang Team</Copyright>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageTags>configuration;parser;tsk;tusklang;database;cli;ast;semantic-analysis</PackageTags>
+    <PackageProjectUrl>https://github.com/tusklang/csharp-sdk</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/tusklang/csharp-sdk.git</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    <Deterministic>true</Deterministic>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <PublishSingleFile>true</PublishSingleFile>
     <SelfContained>false</SelfContained>
     <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
   </PropertyGroup>
 
+  <!-- Minimal Dependencies -->
   <ItemGroup>
-    <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="System.CodeDom" Version="7.0.0" />
-    <PackageReference Include="System.CommandLine" Version="2.0.0-beta6.25358.103" />
-    <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
-    <PackageReference Include="MessagePack" Version="2.5.140" />
+    <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
+    <PackageReference Include="System.Text.Json" Version="8.0.5" />
     <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
     <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
-    <PackageReference Include="Confluent.Kafka" Version="2.3.0" />
-    <PackageReference Include="NATS.Client" Version="1.1.4" />
-    <PackageReference Include="NATS.Client.JetStream" Version="2.0.0" />
-    <PackageReference Include="Microsoft.ML" Version="3.0.1" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.16.3" />
-    <PackageReference Include="Microsoft.ML.OnnxRuntime.Gpu" Version="1.16.3" />
-    <PackageReference Include="TensorFlow.NET" Version="0.150.0" />
-    <PackageReference Include="SciSharp.TensorFlow.Redist" Version="2.10.0" />
-    <PackageReference Include="System.Text.Json" Version="8.0.5" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
-    <!-- Entity Framework Core -->
-    <PackageReference Include="Microsoft.EntityFrameworkCore" Version="8.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Design" Version="8.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Tools" Version="8.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="8.0.11" />
-    <PackageReference Include="Microsoft.EntityFrameworkCore.Sqlite" Version="8.0.11" />
-    <PackageReference Include="Npgsql.EntityFrameworkCore.PostgreSQL" Version="8.0.10" />
-    <PackageReference Include="Pomelo.EntityFrameworkCore.MySql" Version="8.0.2" />
-    <!-- Dapper ORM -->
-    <PackageReference Include="Dapper" Version="2.1.35" />
-    <PackageReference Include="Dapper.Contrib" Version="2.0.78" />
-    <PackageReference Include="Dapper.SqlBuilder" Version="2.0.78" />
-    <!-- Database Providers -->
-    <PackageReference Include="Microsoft.Data.SqlClient" Version="5.1.6" />
-    <PackageReference Include="MySqlConnector" Version="2.3.5" />
-    <PackageReference Include="Npgsql" Version="8.0.5" />
-    <!-- Connection Pooling -->
-    <PackageReference Include="Microsoft.Extensions.ObjectPool" Version="8.0.11" />
-    <!-- Caching -->
-    <PackageReference Include="Microsoft.Extensions.Caching.Memory" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.11" />
-    <!-- Additional utilities -->
-    <PackageReference Include="Polly" Version="8.2.1" />
-    <!-- Removed System.Transactions - not needed -->
-    <!-- Communication & Messaging -->
-    <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
-    <PackageReference Include="Grpc.Net.Client" Version="2.60.0" />
-    <PackageReference Include="Grpc.Tools" Version="2.60.0" />
-    <PackageReference Include="Microsoft.AspNetCore.SignalR.Client" Version="8.0.1" />
-    <PackageReference Include="GraphQL.Client" Version="3.2.0" />
-    <!-- Cloud Providers -->
-    <PackageReference Include="AWSSDK.Core" Version="3.7.300.0" />
-    <PackageReference Include="AWSSDK.S3" Version="3.7.300.0" />
-    <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.300.0" />
-    <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
-    <PackageReference Include="Azure.Identity" Version="1.11.4" />
-    <PackageReference Include="Google.Cloud.Storage.V1" Version="4.7.0" />
-    <PackageReference Include="Google.Apis.Auth" Version="1.64.0" />
-    <!-- Security -->
-    <PackageReference Include="Microsoft.IdentityModel.Tokens" Version="7.3.1" />
-    <PackageReference Include="System.IdentityModel.Tokens.Jwt" Version="7.3.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.JwtBearer" Version="8.0.1" />
-    <PackageReference Include="Microsoft.AspNetCore.Authentication.OpenIdConnect" Version="8.0.1" />
-    <!-- Data Processing -->
-    <PackageReference Include="YamlDotNet" Version="13.10.1" />
-    <PackageReference Include="CsvHelper" Version="30.0.1" />
-    <PackageReference Include="System.Xml.Linq" Version="3.5.21022.801" />
-    <!-- AI & ML -->
-    <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.34.0" />
-    <!-- Removed problematic AI packages that don't exist -->
-    <!-- Testing -->
-    <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
-    <PackageReference Include="MSTest.TestFramework" Version="3.2.2" />
-    <PackageReference Include="MSTest.TestAdapter" Version="3.2.2" />
-    <PackageReference Include="xunit" Version="2.6.6" />
-    <PackageReference Include="xunit.runner.visualstudio" Version="2.5.6" />
-    <PackageReference Include="Moq" Version="4.20.70" />
-    <PackageReference Include="FluentAssertions" Version="6.12.0" />
-    <!-- Monitoring & Observability -->
-    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="8.0.0" />
-    <PackageReference Include="Microsoft.Extensions.Hosting" Version="8.0.0" />
-    <PackageReference Include="Serilog" Version="3.1.1" />
-    <PackageReference Include="Serilog.Extensions.Hosting" Version="8.0.0" />
-    <PackageReference Include="Serilog.Sinks.Console" Version="5.0.1" />
-    <PackageReference Include="Serilog.Sinks.File" Version="5.0.0" />
+    <PackageReference Include="System.CodeDom" Version="8.0.0" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
-  <!-- CLI Components -->
+  <!-- Minimal CLI Files -->
   <ItemGroup>
     <Compile Include="src/CLI/Program.cs" />
     <Compile Include="src/CLI/Commands/CommandBase.cs" />
@@ -124,94 +60,30 @@
     <Compile Include="src/CLI/Commands/TestCommand.cs" />
     <Compile Include="src/CLI/Commands/ServeCommand.cs" />
     <Compile Include="src/CLI/Commands/ConfigCommand.cs" />
-    <Compile Include="src/CLI/Commands/DatabaseCommand.cs" />
-    <Compile Include="src/CLI/Commands/CacheCommand.cs" />
-    <Compile Include="src/CLI/Commands/LicenseCommand.cs" />
-    <Compile Include="src/CLI/Commands/PeanutsCommand.cs" />
-    <Compile Include="src/CLI/Commands/CssCommand.cs" />
     <Compile Include="src/CLI/Commands/ProjectCommand.cs" />
     <Compile Include="src/CLI/Commands/AiCommand.cs" />
     <Compile Include="src/CLI/Commands/UtilityCommand.cs" />
   </ItemGroup>
 
-  <!-- Core Components -->
+  <!-- Core Components (Minimal) -->
   <ItemGroup>
-    <Compile Include="src/Core/Configuration/Configuration.cs" />
-    <Compile Include="src/Core/Configuration/ConfigurationManager.cs" />
-    <Compile Include="src/Core/Configuration/ConfigurationContext.cs" />
-    <Compile Include="src/Core/Configuration/ConfigurationEngine.cs" />
-    <Compile Include="src/Core/Configuration/Connection.cs" />
-    <Compile Include="src/Core/Configuration/Compilation.cs" />
-    <Compile Include="src/Core/Configuration/Templates.cs" />
-    <Compile Include="src/Core/Configuration/Peanuts.cs" />
-    <Compile Include="src/Core/Configuration/CSS.cs" />
-    <Compile Include="src/Core/Configuration/PeanutsClient.cs" />
-    <Compile Include="src/Core/Configuration/CssProcessingOptions.cs" />
-    <Compile Include="src/Core/Connection/ConnectionManagementSystem.cs" />
-    <Compile Include="src/Core/Serialization/JSONSerializationSystem.cs" />
-    <Compile Include="src/Core/BinaryFormat.cs" />
-    <Compile Include="src/Core/PackageManagement.cs" />
+    <Compile Include="src/Core/TSK.cs" />
     <Compile Include="src/Core/ValidationResult.cs" />
-    <Compile Include="src/Core/Services/ITuskTskService.cs" />
+    <Compile Include="src/Core/Configuration/ConfigurationManager.cs" />
+    <Compile Include="src/Core/PackageManagement.cs" />
   </ItemGroup>
 
-  <!-- Parser Components -->
+  <!-- Parser Components (Minimal) -->
   <ItemGroup>
-    <Compile Include="src/Parser/TuskTskParser.cs" />
-    <Compile Include="src/Parser/Lexer/TuskTskLexer.cs" />
     <Compile Include="src/Parser/IAstVisitor.cs" />
     <Compile Include="src/Parser/AstNodes.cs" />
+    <Compile Include="src/Parser/TuskTskParser.cs" />
+    <Compile Include="src/Parser/Lexer/TuskTskLexer.cs" />
     <Compile Include="src/Parser/ParserResult.cs" />
     <Compile Include="src/Parser/TuskTskParserFactory.cs" />
     <Compile Include="src/Parser/Semantic/SemanticAnalyzer.cs" />
   </ItemGroup>
 
-  <!-- Database Components -->
-  <ItemGroup>
-    <Compile Include="src/Database/IDatabaseAdapter.cs" />
-    <Compile Include="src/Database/Adapters/DapperAdapter.cs" />
-    <Compile Include="src/Database/Adapters/EntityFrameworkAdapter.cs" />
-    <Compile Include="src/Database/Adapters/DatabaseAdapters.cs" />
-    <Compile Include="src/Database/Adapters.cs" />
-  </ItemGroup>
 
-  <!-- Operators -->
-  <ItemGroup>
-    <Compile Include="src/Operators/BaseOperator.cs" />
-    <Compile Include="src/Operators/OperatorRegistry.cs" />
-    <Compile Include="src/Operators/OperatorExecution.cs" />
-    <Compile Include="src/Operators/Cloud/AwsOperator.cs" />
-    <Compile Include="src/Operators/Cloud/AzureOperator.cs" />
-    <Compile Include="src/Operators/Cloud/GcpOperator.cs" />
-  </ItemGroup>
-
-  <!-- Examples -->
-  <ItemGroup>
-    <Compile Include="src/Examples/AspNetCore/Controllers/TuskTskController.cs" />
-  </ItemGroup>
-
-  <!-- Framework -->
-  <ItemGroup>
-    <Compile Include="src/Framework/Framework.cs" />
-  </ItemGroup>
-
-  <!-- Universal Agent System -->
-  <ItemGroup>
-    <Compile Include="src/UniversalAgentSystem/Generators/MultiLanguageGeneratorSuite.cs" />
-  </ItemGroup>
-
-  <!-- Tests -->
-  <ItemGroup>
-    <Compile Include="src/Tests/AdvancedPerformanceOptimizer.cs" />
-    <Compile Include="src/Tests/ComprehensiveTestSuite.cs" />
-    <Compile Include="src/Tests/OperatorTestSuite.cs" />
-    <Compile Include="src/Tests/OperatorValidationFramework.cs" />
-    <Compile Include="src/Tests/PerformanceBenchmarkSuite.cs" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <Folder Include="tests\" />
-    <Folder Include="examples\" />
-  </ItemGroup>
 
 </Project> 
