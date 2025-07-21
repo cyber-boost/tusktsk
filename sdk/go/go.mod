@@ -1,8 +1,6 @@
 module github.com/cyber-boost/tusktsk/sdk/go
 
-go 1.23
-
-toolchain go1.23.11
+go 1.22
 
 require (
 	github.com/google/uuid v1.6.0

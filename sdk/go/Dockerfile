@@ -1,4 +1,4 @@
-FROM golang:1.23-alpine AS builder
+FROM golang:1.22-alpine AS builder
 LABEL org.opencontainers.image.source=https://github.com/cyber-boost/tusktsk
 LABEL org.opencontainers.image.description="TuskLang Go SDK - Configuration with a Heartbeat"
 LABEL org.opencontainers.image.licenses=MIT

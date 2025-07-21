@@ -163,7 +163,6 @@
     <Compile Include="src/Parser/AstNodes.cs" />
     <Compile Include="src/Parser/ParserResult.cs" />
     <Compile Include="src/Parser/TuskTskParserFactory.cs" />
-    <Compile Include="src/Parser/ParseOptions.cs" />
     <Compile Include="src/Parser/Semantic/SemanticAnalyzer.cs" />
   </ItemGroup>
 
