@@ -1,0 +1,307 @@
+# TuskLang SDK - Security Scanning Workflow
+# ========================================
+# Comprehensive security scanning for all language implementations
+# Version: 1.0.0
+
+name: Security Scan
+
+on:
+  push:
+    branches: [ main, develop ]
+  pull_request:
+    branches: [ main, develop ]
+  schedule:
+    # Run security scans weekly
+    - cron: '0 2 * * 1'
+
+env:
+  TUSKLANG_HOME: /opt/tusklang
+  DOCKER_BUILDKIT: 1
+
+jobs:
+  # Container security scan
+  container-security:
+    name: Container Security
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -f Dockerfile.bash -t tusklang-sdk:latest .
+
+      - name: Run Trivy vulnerability scanner
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: 'tusklang-sdk:latest'
+          format: 'sarif'
+          output: 'trivy-results.sarif'
+          severity: 'CRITICAL,HIGH,MEDIUM'
+
+      - name: Upload Trivy scan results to GitHub Security tab
+        uses: github/codeql-action/upload-sarif@v3
+        if: always()
+        with:
+          sarif_file: 'trivy-results.sarif'
+
+      - name: Run Snyk container scan
+        uses: snyk/actions/docker@master
+        env:
+          SNYK_TOKEN: ${{ secrets.SNYK_TOKEN }}
+        with:
+          image: tusklang-sdk:latest
+          args: --severity-threshold=high
+
+  # Dependency vulnerability scan
+  dependency-security:
+    name: Dependency Security
+    runs-on: ubuntu-latest
+    strategy:
+      matrix:
+        language: [python, nodejs, go, rust, dotnet, php]
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -f Dockerfile.bash -t tusklang-sdk:latest .
+
+      - name: Generate ${{ matrix.language }} SDK
+        run: |
+          docker run --rm -v ${{ github.workspace }}/sdk:/opt/tusklang/sdk:ro tusklang-sdk:latest \
+            bash -c "cd /opt/tusklang && source sdk/platforms/package-management.sh && \
+            case '${{ matrix.language }}' in \
+              'python') pypi_create_package 'tusklang-python' '1.0.0' ;; \
+              'nodejs') source sdk/platforms/platform-integrations.sh && nodejs_create_package 'tusklang-nodejs' ;; \
+              'go') source sdk/platforms/kubernetes-integration.sh && create_go_operator 'tusklang-go' ;; \
+              'rust') crates_create_package 'tusklang-rust' '1.0.0' ;; \
+              'dotnet') nuget_create_package 'tusklang-dotnet' '1.0.0' ;; \
+              'php') composer_create_package 'tusklang-php' '1.0.0' ;; \
+            esac"
+
+      - name: Run Python security scan
+        if: matrix.language == 'python'
+        run: |
+          docker run --rm -v ${{ github.workspace }}/sdk:/opt/tusklang/sdk:ro \
+            -e SNYK_TOKEN=${{ secrets.SNYK_TOKEN }} \
+            tusklang-sdk:latest \
+            bash -c "cd /tmp/tusklang/packages/pypi/tusklang-python && \
+            pip install snyk && snyk test --severity-threshold=high"
+
+      - name: Run Node.js security scan
+        if: matrix.language == 'nodejs'
+        run: |
+          docker run --rm -v ${{ github.workspace }}/sdk:/opt/tusklang/sdk:ro \
+            -e SNYK_TOKEN=${{ secrets.SNYK_TOKEN }} \
+            tusklang-sdk:latest \
+            bash -c "cd /tmp/tusklang/builds/nodejs/tusklang-nodejs && \
+            npm install -g snyk && snyk test --severity-threshold=high"
+
+      - name: Run Go security scan
+        if: matrix.language == 'go'
+        run: |
+          docker run --rm -v ${{ github.workspace }}/sdk:/opt/tusklang/sdk:ro \
+            -e SNYK_TOKEN=${{ secrets.SNYK_TOKEN }} \
+            tusklang-sdk:latest \
+            bash -c "cd /tmp/tusklang/platforms/kubernetes/tusklang-go && \
+            go install github.com/snyk/snyk-go@latest && snyk-go test --severity-threshold=high"
+
+      - name: Run Rust security scan
+        if: matrix.language == 'rust'
+        run: |
+          docker run --rm -v ${{ github.workspace }}/sdk:/opt/tusklang/sdk:ro tusklang-sdk:latest \
+            bash -c "cd /tmp/tusklang/packages/crates/tusklang-rust && cargo audit"
+
+      - name: Run .NET security scan
+        if: matrix.language == 'dotnet'
+        run: |
+          docker run --rm -v ${{ github.workspace }}/sdk:/opt/tusklang/sdk:ro \
+            -e SNYK_TOKEN=${{ secrets.SNYK_TOKEN }} \
+            tusklang-sdk:latest \
+            bash -c "cd /tmp/tusklang/packages/nuget/tusklang-dotnet && \
+            dotnet tool install --global snyk-dotnet && snyk-dotnet test --severity-threshold=high"
+
+      - name: Run PHP security scan
+        if: matrix.language == 'php'
+        run: |
+          docker run --rm -v ${{ github.workspace }}/sdk:/opt/tusklang/sdk:ro \
+            -e SNYK_TOKEN=${{ secrets.SNYK_TOKEN }} \
+            tusklang-sdk:latest \
+            bash -c "cd /tmp/tusklang/packages/composer/tusklang-php && \
+            composer require --dev snyk/snyk-php && vendor/bin/snyk test --severity-threshold=high"
+
+  # Code security analysis
+  code-security:
+    name: Code Security Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -f Dockerfile.bash -t tusklang-sdk:latest .
+
+      - name: Run Bandit security scan (Python)
+        run: |
+          docker run --rm -v ${{ github.workspace }}/sdk:/opt/tusklang/sdk:ro tusklang-sdk:latest \
+            bash -c "cd /opt/tusklang && source sdk/platforms/package-management.sh && pypi_create_package 'tusklang-python' '1.0.0' && \
+            cd /tmp/tusklang/packages/pypi/tusklang-python && bandit -r src/ -f json -o bandit-report.json"
+
+      - name: Run ESLint security rules (Node.js)
+        run: |
+          docker run --rm -v ${{ github.workspace }}/sdk:/opt/tusklang/sdk:ro tusklang-sdk:latest \
+            bash -c "cd /opt/tusklang && source sdk/platforms/platform-integrations.sh && nodejs_create_package 'tusklang-nodejs' && \
+            cd /tmp/tusklang/builds/nodejs/tusklang-nodejs && npm install eslint-plugin-security && \
+            npx eslint . --ext .js,.ts --config .eslintrc.security.js"
+
+      - name: Run gosec security scan (Go)
+        run: |
+          docker run --rm -v ${{ github.workspace }}/sdk:/opt/tusklang/sdk:ro tusklang-sdk:latest \
+            bash -c "cd /opt/tusklang && source sdk/platforms/kubernetes-integration.sh && create_go_operator 'tusklang-go' && \
+            cd /tmp/tusklang/platforms/kubernetes/tusklang-go && gosec ./..."
+
+      - name: Run cargo audit (Rust)
+        run: |
+          docker run --rm -v ${{ github.workspace }}/sdk:/opt/tusklang/sdk:ro tusklang-sdk:latest \
+            bash -c "cd /opt/tusklang && source sdk/platforms/package-management.sh && crates_create_package 'tusklang-rust' '1.0.0' && \
+            cd /tmp/tusklang/packages/crates/tusklang-rust && cargo audit"
+
+      - name: Run PHP Security Checker
+        run: |
+          docker run --rm -v ${{ github.workspace }}/sdk:/opt/tusklang/sdk:ro tusklang-sdk:latest \
+            bash -c "cd /opt/tusklang && source sdk/platforms/package-management.sh && composer_create_package 'tusklang-php' '1.0.0' && \
+            cd /tmp/tusklang/packages/composer/tusklang-php && composer require --dev enlightn/security-checker && \
+            vendor/bin/security-checker security:check composer.lock"
+
+  # License compliance
+  license-compliance:
+    name: License Compliance
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Build Docker image
+        run: |
+          docker build -f Dockerfile.bash -t tusklang-sdk:latest .
+
+      - name: Run License Checker
+        run: |
+          docker run --rm -v ${{ github.workspace }}/sdk:/opt/tusklang/sdk:ro tusklang-sdk:latest \
+            bash -c "cd /opt/tusklang && npm install -g license-checker && \
+            license-checker --summary --onlyAllow 'MIT;Apache-2.0;BSD-2-Clause;BSD-3-Clause;ISC'"
+
+      - name: Run Python License Check
+        run: |
+          docker run --rm -v ${{ github.workspace }}/sdk:/opt/tusklang/sdk:ro tusklang-sdk:latest \
+            bash -c "cd /opt/tusklang && source sdk/platforms/package-management.sh && pypi_create_package 'tusklang-python' '1.0.0' && \
+            cd /tmp/tusklang/packages/pypi/tusklang-python && pip install pip-licenses && pip-licenses --format=markdown"
+
+      - name: Run Go License Check
+        run: |
+          docker run --rm -v ${{ github.workspace }}/sdk:/opt/tusklang/sdk:ro tusklang-sdk:latest \
+            bash -c "cd /opt/tusklang && source sdk/platforms/kubernetes-integration.sh && create_go_operator 'tusklang-go' && \
+            cd /tmp/tusklang/platforms/kubernetes/tusklang-go && go mod download && go list -m -json all | jq -r '.Path + \" \" + .Main.Version'"
+
+  # Secret scanning
+  secret-scanning:
+    name: Secret Scanning
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Run TruffleHog
+        uses: trufflesecurity/trufflehog@main
+        with:
+          path: ./
+          base: HEAD
+          head: HEAD
+
+      - name: Run GitGuardian
+        uses: GitGuardian/ggshield-action@main
+        with:
+          command: scan path ./
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITGUARDIAN_API_KEY: ${{ secrets.GITGUARDIAN_API_KEY }}
+
+  # SAST (Static Application Security Testing)
+  sast:
+    name: SAST Analysis
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Initialize CodeQL
+        uses: github/codeql-action/init@v3
+        with:
+          languages: javascript, python, go
+
+      - name: Perform CodeQL Analysis
+        uses: github/codeql-action/analyze@v3
+
+      - name: Run Semgrep
+        uses: returntocorp/semgrep-action@v1
+        with:
+          config: >-
+            p/security-audit
+            p/secrets
+            p/owasp-top-ten
+          outputFormat: sarif
+          outputFile: semgrep-results.sarif
+
+      - name: Upload Semgrep results
+        uses: github/codeql-action/upload-sarif@v3
+        with:
+          sarif_file: semgrep-results.sarif
+
+  # Security summary
+  security-summary:
+    name: Security Summary
+    runs-on: ubuntu-latest
+    needs: [container-security, dependency-security, code-security, license-compliance, secret-scanning, sast]
+    if: always()
+    steps:
+      - name: Generate Security Report
+        run: |
+          echo "## TuskLang SDK Security Scan Summary" >> security-report.md
+          echo "Generated: $(date)" >> security-report.md
+          echo "" >> security-report.md
+          echo "### Scan Results:" >> security-report.md
+          echo "- Container Security: ${{ needs.container-security.result }}" >> security-report.md
+          echo "- Dependency Security: ${{ needs.dependency-security.result }}" >> security-report.md
+          echo "- Code Security: ${{ needs.code-security.result }}" >> security-report.md
+          echo "- License Compliance: ${{ needs.license-compliance.result }}" >> security-report.md
+          echo "- Secret Scanning: ${{ needs.secret-scanning.result }}" >> security-report.md
+          echo "- SAST Analysis: ${{ needs.sast.result }}" >> security-report.md
+          echo "" >> security-report.md
+          echo "### Recommendations:" >> security-report.md
+          echo "1. Review all high and critical vulnerabilities" >> security-report.md
+          echo "2. Update dependencies with security patches" >> security-report.md
+          echo "3. Address any license compliance issues" >> security-report.md
+          echo "4. Remove any exposed secrets" >> security-report.md
+
+      - name: Upload Security Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: security-report
+          path: security-report.md
+
+      - name: Comment on PR
+        if: github.event_name == 'pull_request'
+        uses: actions/github-script@v7
+        with:
+          script: |
+            const fs = require('fs');
+            const report = fs.readFileSync('security-report.md', 'utf8');
+            github.rest.issues.createComment({
+              issue_number: context.issue.number,
+              owner: context.repo.owner,
+              repo: context.repo.repo,
+              body: report
+            }); 

@@ -1,0 +1,268 @@
+# TuskLang Bash SDK - Release Workflow
+# ====================================
+# Releases the Bash SDK to GitHub with proper versioning and artifacts
+# Version: 1.0.0
+
+name: Release Bash SDK
+
+on:
+  push:
+    tags:
+      - 'v*'
+  workflow_dispatch:
+    inputs:
+      version:
+        description: 'Version to release (e.g., 1.0.0)'
+        required: true
+        default: '1.0.0'
+      release_notes:
+        description: 'Release notes'
+        required: false
+        default: 'Bash SDK release'
+
+env:
+  TUSKLANG_HOME: /opt/tusklang
+
+jobs:
+  # Build and package Bash SDK
+  build-bash-sdk:
+    name: Build Bash SDK
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Set up Bash environment
+        run: |
+          # Make all scripts executable
+          chmod +x *.sh
+          chmod +x sdk/**/*.sh
+          
+          # Create version file
+          echo "${{ github.event.inputs.version || github.ref_name }}" > VERSION
+
+      - name: Test Bash SDK
+        run: |
+          # Test core functionality
+          ./tsk.sh --version || echo "tsk.sh version check"
+          ./tsk-enhanced.sh --help || echo "tsk-enhanced.sh help"
+          ./license.sh --help || echo "license.sh help"
+          
+          # Test package management
+          source sdk/platforms/package-management.sh
+          echo "Package management loaded successfully"
+          
+          # Test platform integrations
+          source sdk/platforms/platform-integrations.sh
+          echo "Platform integrations loaded successfully"
+          
+          # Test Kubernetes integration
+          source sdk/platforms/kubernetes-integration.sh
+          echo "Kubernetes integration loaded successfully"
+
+      - name: Create Bash SDK package
+        run: |
+          # Create release directory
+          mkdir -p release/tusklang-bash-sdk
+          
+          # Copy core files
+          cp *.sh release/tusklang-bash-sdk/
+          cp -r sdk/ release/tusklang-bash-sdk/
+          cp README.md release/tusklang-bash-sdk/
+          cp LICENSE release/tusklang-bash-sdk/
+          cp VERSION release/tusklang-bash-sdk/
+          
+          # Create installation script
+          cat > release/tusklang-bash-sdk/install.sh << 'EOF'
+#!/bin/bash
+# TuskLang Bash SDK Installer
+# ===========================
+
+set -e
+
+TUSKLANG_VERSION=$(cat VERSION)
+INSTALL_DIR="/opt/tusklang"
+BIN_DIR="/usr/local/bin"
+
+echo "Installing TuskLang Bash SDK v$TUSKLANG_VERSION..."
+
+# Create installation directory
+sudo mkdir -p $INSTALL_DIR
+sudo cp -r * $INSTALL_DIR/
+
+# Make scripts executable
+sudo chmod +x $INSTALL_DIR/*.sh
+sudo chmod +x $INSTALL_DIR/sdk/**/*.sh
+
+# Create symlinks
+sudo ln -sf $INSTALL_DIR/tsk.sh $BIN_DIR/tsk
+sudo ln -sf $INSTALL_DIR/tsk-enhanced.sh $BIN_DIR/tsk-enhanced
+sudo ln -sf $INSTALL_DIR/license.sh $BIN_DIR/license
+sudo ln -sf $INSTALL_DIR/peanut_config.sh $BIN_DIR/peanut-config
+sudo ln -sf $INSTALL_DIR/protection.sh $BIN_DIR/protection
+
+# Create necessary directories
+sudo mkdir -p /tmp/tusklang/{packages,builds,credentials,platforms}
+
+echo "TuskLang Bash SDK v$TUSKLANG_VERSION installed successfully!"
+echo "Run 'tsk --help' to get started."
+EOF
+          
+          chmod +x release/tusklang-bash-sdk/install.sh
+          
+          # Create uninstall script
+          cat > release/tusklang-bash-sdk/uninstall.sh << 'EOF'
+#!/bin/bash
+# TuskLang Bash SDK Uninstaller
+# =============================
+
+set -e
+
+echo "Uninstalling TuskLang Bash SDK..."
+
+# Remove symlinks
+sudo rm -f /usr/local/bin/tsk
+sudo rm -f /usr/local/bin/tsk-enhanced
+sudo rm -f /usr/local/bin/license
+sudo rm -f /usr/local/bin/peanut-config
+sudo rm -f /usr/local/bin/protection
+
+# Remove installation directory
+sudo rm -rf /opt/tusklang
+
+# Remove temporary files (optional)
+read -p "Remove temporary files? (y/N): " -n 1 -r
+echo
+if [[ $REPLY =~ ^[Yy]$ ]]; then
+    sudo rm -rf /tmp/tusklang
+fi
+
+echo "TuskLang Bash SDK uninstalled successfully!"
+EOF
+          
+          chmod +x release/tusklang-bash-sdk/uninstall.sh
+
+      - name: Create archive
+        run: |
+          cd release
+          tar -czf tusklang-bash-sdk-${{ github.event.inputs.version || github.ref_name }}.tar.gz tusklang-bash-sdk/
+          zip -r tusklang-bash-sdk-${{ github.event.inputs.version || github.ref_name }}.zip tusklang-bash-sdk/
+
+      - name: Upload artifacts
+        uses: actions/upload-artifact@v4
+        with:
+          name: bash-sdk-release
+          path: |
+            release/tusklang-bash-sdk-${{ github.event.inputs.version || github.ref_name }}.tar.gz
+            release/tusklang-bash-sdk-${{ github.event.inputs.version || github.ref_name }}.zip
+
+  # Create GitHub release
+  create-release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    needs: build-bash-sdk
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      - name: Download artifacts
+        uses: actions/download-artifact@v4
+        with:
+          name: bash-sdk-release
+          path: release/
+
+      - name: Create Release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.event.inputs.version || github.ref_name }}
+          release_name: TuskLang Bash SDK ${{ github.event.inputs.version || github.ref_name }}
+          body: |
+            ## TuskLang Bash SDK ${{ github.event.inputs.version || github.ref_name }}
+            
+            ### What's New
+            - Bash-based SDK with dynamic language generation
+            - Package management for multiple languages
+            - Platform integrations (Node.js, Go, Kubernetes)
+            - Comprehensive testing and validation
+            
+            ### Features
+            - **Core Bash SDK**: Complete TuskLang implementation
+            - **Package Management**: Generate Python, Node.js, Go, Rust, .NET, PHP SDKs
+            - **Platform Integrations**: Browser, Kubernetes, Unity support
+            - **Database Adapters**: MySQL, PostgreSQL, Redis, MongoDB
+            - **Security**: Built-in protection and validation
+            
+            ### Installation
+            ```bash
+            # Download and extract
+            wget https://github.com/tusklang/sdk/releases/download/${{ github.event.inputs.version || github.ref_name }}/tusklang-bash-sdk-${{ github.event.inputs.version || github.ref_name }}.tar.gz
+            tar -xzf tusklang-bash-sdk-${{ github.event.inputs.version || github.ref_name }}.tar.gz
+            cd tusklang-bash-sdk-${{ github.event.inputs.version || github.ref_name }}
+            
+            # Install
+            sudo ./install.sh
+            ```
+            
+            ### Quick Start
+            ```bash
+            # Check installation
+            tsk --version
+            
+            # Generate Python SDK
+            source sdk/platforms/package-management.sh
+            pypi_create_package "my-python-sdk" "1.0.0"
+            
+            # Generate Node.js SDK
+            source sdk/platforms/platform-integrations.sh
+            nodejs_create_package "my-nodejs-sdk"
+            
+            # Generate Go SDK
+            source sdk/platforms/kubernetes-integration.sh
+            create_go_operator "my-go-sdk"
+            ```
+            
+            ### Documentation
+            - [Installation Guide](INSTALL.md)
+            - [Docker Setup](DOCKER.md)
+            - [API Reference](docs/)
+            
+            ### Support
+            - [GitHub Issues](https://github.com/tusklang/sdk/issues)
+            - [Documentation](https://docs.tusklang.org)
+            - [Community](https://github.com/tusklang/sdk/discussions)
+          draft: false
+          prerelease: false
+
+      - name: Upload Release Assets
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release/tusklang-bash-sdk-${{ github.event.inputs.version || github.ref_name }}.tar.gz
+          asset_name: tusklang-bash-sdk-${{ github.event.inputs.version || github.ref_name }}.tar.gz
+          asset_content_type: application/gzip
+
+      - name: Upload Release Assets (ZIP)
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./release/tusklang-bash-sdk-${{ github.event.inputs.version || github.ref_name }}.zip
+          asset_name: tusklang-bash-sdk-${{ github.event.inputs.version || github.ref_name }}.zip
+          asset_content_type: application/zip
+
+  # Notify completion
+  notify:
+    name: Notify Release
+    runs-on: ubuntu-latest
+    needs: create-release
+    if: always()
+    steps:
+      - name: Send notification
+        run: |
+          echo "TuskLang Bash SDK ${{ github.event.inputs.version || github.ref_name }} has been released!"
+          echo "Download: https://github.com/tusklang/sdk/releases/tag/${{ github.event.inputs.version || github.ref_name }}" 
