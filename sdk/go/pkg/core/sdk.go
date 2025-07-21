@@ -2,13 +2,13 @@
 package tusktsk
 
 import (
-	"github.com/cyber-boost/tusktsk/sdk/go/internal/parser"
-	"github.com/cyber-boost/tusktsk/sdk/go/internal/binary"
-	errorhandler "github.com/cyber-boost/tusktsk/sdk/go/internal/error"
-	"github.com/cyber-boost/tusktsk/sdk/go/pkg/config"
-	"github.com/cyber-boost/tusktsk/sdk/go/pkg/operators"
-	"github.com/cyber-boost/tusktsk/sdk/go/pkg/security"
-	"github.com/cyber-boost/tusktsk/sdk/go/pkg/utils"
+	"github.com/cyber-boost/tusktsk/internal/parser"
+	"github.com/cyber-boost/tusktsk/internal/binary"
+	errorhandler "github.com/cyber-boost/tusktsk/internal/error"
+	"github.com/cyber-boost/tusktsk/pkg/config"
+	"github.com/cyber-boost/tusktsk/pkg/operators"
+	"github.com/cyber-boost/tusktsk/pkg/security"
+	"github.com/cyber-boost/tusktsk/pkg/utils"
 )
 
 // SDK represents the main TuskLang Go SDK

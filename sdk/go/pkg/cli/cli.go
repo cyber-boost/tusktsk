@@ -5,7 +5,7 @@ import (
 	"fmt"
 	"os"
 
-	tusktsk "github.com/cyber-boost/tusktsk/sdk/go/pkg/core"
+	tusktsk "github.com/cyber-boost/tusktsk/pkg/core"
 	"github.com/spf13/cobra"
 )
 

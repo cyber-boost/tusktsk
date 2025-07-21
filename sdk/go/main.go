@@ -4,8 +4,8 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/cyber-boost/tusktsk/sdk/go/pkg/cli"
-	tusktsk "github.com/cyber-boost/tusktsk/sdk/go/pkg/core"
+	"github.com/cyber-boost/tusktsk/pkg/cli"
+	tusktsk "github.com/cyber-boost/tusktsk/pkg/core"
 )
 
 func main() {

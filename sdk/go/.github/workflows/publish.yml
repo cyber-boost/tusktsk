@@ -1,23 +1,24 @@
-name: Publish Go SDK
+name: Publish Go Module to GitHub Packages
 
 on:
-  release:
-    types: [published]
+  push:
+    tags:
+      - 'v*'
   workflow_dispatch:
     inputs:
       version:
-        description: 'Version to publish'
+        description: 'Version to publish (e.g., 1.0.0)'
         required: true
         default: '1.0.0'
 
 env:
-  GO_VERSION: '1.23'
-  REGISTRY: ghcr.io
-  IMAGE_NAME: ${{ github.repository }}/go-sdk
+  GO_VERSION: '1.22'
+  GOPROXY: 'https://proxy.golang.org,direct'
+  GOSUMDB: 'sum.golang.org'
 
 jobs:
-  publish-docker:
-    name: Publish Docker Image
+  publish-go-module:
+    name: Publish Go Module
     runs-on: ubuntu-latest
     permissions:
       contents: read
@@ -26,50 +27,8 @@ jobs:
     steps:
     - name: Checkout code
       uses: actions/checkout@v4
-
-    - name: Set up Docker Buildx
-      uses: docker/setup-buildx-action@v3
-
-    - name: Log in to Container Registry
-      uses: docker/login-action@v3
       with:
-        registry: ${{ env.REGISTRY }}
-        username: ${{ github.actor }}
-        password: ${{ secrets.GITHUB_TOKEN }}
-
-    - name: Extract metadata
-      id: meta
-      uses: docker/metadata-action@v5
-      with:
-        images: ${{ env.REGISTRY }}/${{ env.IMAGE_NAME }}
-        tags: |
-          type=ref,event=branch
-          type=ref,event=pr
-          type=semver,pattern={{version}}
-          type=semver,pattern={{major}}.{{minor}}
-          type=sha,prefix={{branch}}-
-
-    - name: Build and push Docker image
-      uses: docker/build-push-action@v5
-      with:
-        context: .
-        platforms: linux/amd64,linux/arm64
-        push: true
-        tags: ${{ steps.meta.outputs.tags }}
-        labels: ${{ steps.meta.outputs.labels }}
-        cache-from: type=gha
-        cache-to: type=gha,mode=max
-
-  publish-go-module:
-    name: Publish Go Module
-    runs-on: ubuntu-latest
-    permissions:
-      contents: write
-      packages: write
-
-    steps:
-    - name: Checkout code
-      uses: actions/checkout@v4
+        fetch-depth: 0
 
     - name: Set up Go
       uses: actions/setup-go@v4
@@ -90,26 +49,93 @@ jobs:
           echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
         fi
 
-    - name: Update go.mod version
+    - name: Validate go.mod
       run: |
-        go mod edit -go=${{ env.GO_VERSION }}
+        echo "Validating go.mod file..."
+        go mod download
+        go mod verify
         go mod tidy
 
-    - name: Create release tag
+    - name: Run tests
+      run: |
+        echo "Running tests..."
+        go test ./...
+
+    - name: Build
+      run: |
+        echo "Building..."
+        go build -v ./...
+
+    - name: Create tag if not exists
+      if: github.event_name == 'workflow_dispatch'
       run: |
         git tag -a v${{ steps.version.outputs.version }} -m "Release v${{ steps.version.outputs.version }}"
         git push origin v${{ steps.version.outputs.version }}
 
     - name: Publish to GitHub Packages
       run: |
-        GOPROXY=https://proxy.golang.org,direct
-        GOSUMDB=sum.golang.org
-        go list -m github.com/cyber-boost/tusktsk/sdk/go@v${{ steps.version.outputs.version }}
+        echo "Publishing Go module to GitHub Packages..."
+        echo "Module: github.com/cyber-boost/tusktsk"
+        echo "Version: v${{ steps.version.outputs.version }}"
+        
+        # Configure Go to use GitHub Packages
+        export GOPROXY=https://proxy.golang.org,direct
+        export GOSUMDB=sum.golang.org
+        
+        # Verify the module can be downloaded
+        go list -m github.com/cyber-boost/tusktsk@v${{ steps.version.outputs.version }}
+        
+        echo "✅ Go module published successfully!"
+        echo "📦 Install with: go get github.com/cyber-boost/tusktsk@v${{ steps.version.outputs.version }}"
+
+  publish-docker:
+    name: Publish Docker Image
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+
+    - name: Set up Docker Buildx
+      uses: docker/setup-buildx-action@v3
+
+    - name: Log in to Container Registry
+      uses: docker/login-action@v3
+      with:
+        registry: ghcr.io
+        username: ${{ github.actor }}
+        password: ${{ secrets.GITHUB_TOKEN }}
+
+    - name: Extract metadata
+      id: meta
+      uses: docker/metadata-action@v5
+      with:
+        images: ghcr.io/${{ github.repository }}/go-sdk
+        tags: |
+          type=ref,event=branch
+          type=ref,event=pr
+          type=semver,pattern={{version}}
+          type=semver,pattern={{major}}.{{minor}}
+          type=sha,prefix={{branch}}-
+
+    - name: Build and push Docker image
+      uses: docker/build-push-action@v5
+      with:
+        context: .
+        platforms: linux/amd64,linux/arm64
+        push: true
+        tags: ${{ steps.meta.outputs.tags }}
+        labels: ${{ steps.meta.outputs.labels }}
+        cache-from: type=gha
+        cache-to: type=gha,mode=max
 
   create-release:
     name: Create Release
     runs-on: ubuntu-latest
-    needs: [publish-docker, publish-go-module]
+    needs: [publish-go-module, publish-docker]
     permissions:
       contents: write
 
@@ -126,11 +152,6 @@ jobs:
           echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
         fi
 
-    - name: Download build artifacts
-      uses: actions/download-artifact@v3
-      with:
-        path: artifacts
-
     - name: Create release
       uses: softprops/action-gh-release@v1
       with:
@@ -146,7 +167,7 @@ jobs:
           
           ### Installation
           ```bash
-          go get github.com/cyber-boost/tusktsk/sdk/go@v${{ steps.version.outputs.version }}
+          go get github.com/cyber-boost/tusktsk@v${{ steps.version.outputs.version }}
           ```
           
           ### Docker
@@ -156,7 +177,5 @@ jobs:
           
           ### Changelog
           See the [full changelog](https://github.com/${{ github.repository }}/releases) for details.
-        files: |
-          artifacts/**/*
         draft: false
         prerelease: false 

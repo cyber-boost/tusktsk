@@ -1,4 +1,4 @@
-module github.com/cyber-boost/tusktsk/sdk/go
+module github.com/cyber-boost/tusktsk
 
 go 1.22
 
