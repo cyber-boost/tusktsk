@@ -76,16 +76,6 @@ jobs:
       with:
         go-version: ${{ env.GO_VERSION }}
 
-    - name: Cache Go modules
-      uses: actions/cache@v3
-      with:
-        path: |
-          ~/.cache/go-build
-          ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('sdk/go/go.sum') }}
-        restore-keys: |
-          ${{ runner.os }}-go-
-
     - name: Configure Git
       run: |
         git config --local user.email "action@github.com"
@@ -99,6 +89,22 @@ jobs:
         else
           echo "version=${GITHUB_REF#refs/tags/}" >> $GITHUB_OUTPUT
         fi
+
+    - name: Verify go.sum exists
+      run: |
+        ls -la sdk/go/go.sum
+        echo "go.sum file verified"
+
+    - name: Cache Go modules
+      uses: actions/cache@v3
+      with:
+        path: |
+          ~/.cache/go-build
+          ~/go/pkg/mod
+        key: ${{ runner.os }}-go-${{ hashFiles('sdk/go/go.sum') }}
+        restore-keys: |
+          ${{ runner.os }}-go-
+        fail-on-cache-miss: false
 
     - name: Update go.mod version
       run: |
