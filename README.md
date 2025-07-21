@@ -83,7 +83,7 @@ if __name__ == '__main__':
 - **Hot Reload Optimization**: Seconds instead of 10-minute reloads
 
 ### 🔧 TuskLang Integration
-- **Configuration Management**: Load from `peanut.tsk` files
+- **Configuration Management**: Load from `peanu.tsk` files
 - **Function Execution**: Execute TuskLang functions with arguments
 - **Operator Support**: Full TuskLang operator compatibility
 - **Database Integration**: Retrieve database configuration
