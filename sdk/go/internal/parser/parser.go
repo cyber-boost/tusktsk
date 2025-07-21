@@ -2,7 +2,6 @@
 package parser
 
 import (
-	"fmt"
 	"strings"
 )
 
@@ -60,29 +59,25 @@ type ParseError struct {
 	Column  int
 }
 
-// Parse parses TuskLang code
+// Parse parses TuskLang code and returns tokens and AST
 func (p *Parser) Parse(code string) (*ParseResult, error) {
-	result := &ParseResult{
-		Tokens: []Token{},
-		AST:    []ASTNode{},
-		Errors: []ParseError{},
-	}
-
 	// Tokenize the code
 	tokens, err := p.tokenize(code)
 	if err != nil {
-		return nil, fmt.Errorf("tokenization failed: %v", err)
+		return nil, err
 	}
-	result.Tokens = tokens
-
-	// Build AST
+	
+	// Build AST from tokens
 	ast, err := p.buildAST(tokens)
 	if err != nil {
-		return nil, fmt.Errorf("AST building failed: %v", err)
+		return nil, err
 	}
-	result.AST = ast
-
-	return result, nil
+	
+	return &ParseResult{
+		Tokens: tokens,
+		AST:    ast,
+		Errors: []ParseError{}, // No errors for now
+	}, nil
 }
 
 // tokenize converts code into tokens
@@ -91,25 +86,16 @@ func (p *Parser) tokenize(code string) ([]Token, error) {
 	lines := strings.Split(code, "\n")
 	
 	for lineNum, line := range lines {
-		lineNum++ // 1-based line numbers
+		words := strings.Fields(line)
 		column := 1
 		
-		// Simple tokenization for now
-		words := strings.Fields(line)
 		for _, word := range words {
 			token := Token{
-				Line:   lineNum,
+				Line:   lineNum + 1,
 				Column: column,
 			}
 			
-			// Determine token type
 			switch {
-			case strings.HasPrefix(word, "//"):
-				token.Type = TokenComment
-				token.Value = word
-			case strings.HasPrefix(word, "\"") && strings.HasSuffix(word, "\""):
-				token.Type = TokenString
-				token.Value = word
 			case p.isNumber(word):
 				token.Type = TokenNumber
 				token.Value = word
@@ -206,11 +192,6 @@ func (p *Parser) tokenTypeToString(t TokenType) string {
 	case TokenComment:
 		return "Comment"
 	case TokenWhitespace:
-		return "Whitespace"
-	default:
-		return "Unknown"
-	}
-} 
 		return "Whitespace"
 	default:
 		return "Unknown"
