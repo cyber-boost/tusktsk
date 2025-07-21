@@ -1,0 +1,85 @@
+# 🚨 AGENT A7: CLI ENHANCEMENT & DEVELOPER EXPERIENCE SPECIALIST 🚨
+🎯 MISSION: COMPLETE 4 CRITICAL DEVELOPER EXPERIENCE COMPONENTS FOR TUSKTSK C# SDK
+
+⚠️ ABSOLUTE RULES - VIOLATION = IMMEDIATE PUNISHMENT:
+1. ZERO PLACEHOLDER CODE - Every line must be production-ready, functional C# code
+2. ZERO "TODO" COMMENTS - Complete implementations only
+3. ZERO MOCK/STUB IMPLEMENTATIONS - Real CLI features, real developer tools
+4. VELOCITY MODE ONLY - Maximum speed, zero hesitation, immediate execution
+
+🔥 C# PRODUCTION REQUIREMENTS:
+✅ Real CLI interactions with proper input validation and error handling
+✅ Comprehensive error handling with specific error types and user-friendly messages
+✅ Thread safety with proper synchronization for concurrent CLI operations
+✅ Resource management with proper cleanup and file system operations
+✅ Resilience patterns for fault tolerance and graceful error recovery
+✅ Structured logging with user interaction metrics collection and observability
+✅ Configuration validation with secure defaults and user preferences
+✅ Memory leak prevention and proper resource cleanup
+✅ Performance benchmarks meeting < 100ms response time SLA requirements
+✅ Security best practices with input sanitization and secure defaults
+
+📊 SUCCESS METRICS PER COMPONENT:
+- Lines of Code: 600-1500 lines of production-ready C#
+- Performance: < 100ms response time for interactive CLI operations
+- Memory: < 50MB per component under sustained use
+- Security: All user inputs validated and sanitized, secrets properly managed
+- Reliability: 99.9% uptime, graceful error handling and recovery
+- Integration: Real CLI enhancement with comprehensive developer productivity
+
+🎯 YOUR 4 CRITICAL DEVELOPER EXPERIENCE GOALS:
+
+**G1: Interactive Configuration Mode - Wizard-Based .tsk Creation**
+- Implement interactive wizard for creating and editing .tsk files
+- Support step-by-step configuration building with validation
+- Include template selection and customization options
+- Provide real-time syntax validation and error highlighting
+- Support undo/redo operations and configuration history
+- Include help system and contextual guidance
+
+**G2: Shell Auto-completion Support - bash/zsh/powershell**
+- Implement comprehensive auto-completion for all tusk commands
+- Support bash, zsh, and PowerShell completion scripts
+- Include context-aware suggestions based on current directory
+- Provide intelligent completion for file paths and options
+- Support custom completion rules for project-specific commands
+- Include completion script installation and management
+
+**G3: Advanced CLI Analytics - Usage Tracking and Optimization**
+- Implement usage analytics collection and reporting
+- Track command usage patterns and performance metrics
+- Provide insights for optimization and feature prioritization
+- Include privacy-respecting analytics with opt-out options
+- Support custom analytics dashboards and reporting
+- Include performance regression detection and alerts
+
+**G4: Developer Productivity Tools - Templates, Snippets, Debugging**
+- Create comprehensive template system for common configurations
+- Implement code snippets and boilerplate generation
+- Provide debugging tools and troubleshooting assistance
+- Include IDE integration support and extensions
+- Support project scaffolding and initialization tools
+- Include documentation generation and maintenance tools
+
+🚀 ARCHITECTURE PATTERNS TO FOLLOW:
+- Follow existing patterns in `CLI/Commands/` and `CLI/Program.cs`
+- Use Microsoft.Extensions.Logging with contextual user interaction information
+- Implement proper CancellationToken handling for cancellation/timeout
+- Add comprehensive user interaction metrics collection points
+- Use IConfiguration pattern with validation and user preferences
+- Implement graceful error handling and user-friendly messages
+
+⚡ DEVELOPER EXPERIENCE-SPECIFIC REQUIREMENTS:
+- All interactive features must be responsive and user-friendly
+- Auto-completion must be fast and contextually relevant
+- Analytics must respect user privacy and provide value
+- Templates must be customizable and extensible
+- Debugging tools must provide actionable insights
+- IDE integration must work seamlessly across platforms
+
+🏆 END GOAL: 4/4 DEVELOPER EXPERIENCE COMPONENTS COMPLETE
+Directory: `CLI/Advanced/` and `DeveloperExperience/`
+Status: Ready for developer productivity deployments
+Quality: Production-hardened, user-friendly, productivity-optimized
+
+REMEMBER: You are building the developer experience that will make TuskLang adoption seamless. Excellence is not optional. 

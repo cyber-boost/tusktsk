@@ -1,0 +1,374 @@
+<?xml version="1.0"?>
+<doc>
+    <assembly>
+        <name>TuskTsk</name>
+    </assembly>
+    <members>
+        <member name="T:TuskLang.Core.ISdkComponent">
+            <summary>
+            Core interfaces and base classes for TuskLang SDK
+            
+            Defines the fundamental contracts and base implementations:
+            - ISdkComponent interface for all SDK components
+            - IConfigurationProvider for configuration access
+            - ILogger for logging and diagnostics
+            - IValidator for data validation
+            - Base classes with common functionality
+            - Extension methods for common operations
+            - Exception types for SDK-specific errors
+            - Result types for operation outcomes
+            
+            Provides the foundation for consistent SDK architecture
+            </summary>
+            <summary>
+            Base interface for all SDK components
+            </summary>
+        </member>
+        <member name="P:TuskLang.Core.ISdkComponent.Name">
+            <summary>
+            Component name
+            </summary>
+        </member>
+        <member name="P:TuskLang.Core.ISdkComponent.Version">
+            <summary>
+            Component version
+            </summary>
+        </member>
+        <member name="P:TuskLang.Core.ISdkComponent.Status">
+            <summary>
+            Component status
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.ISdkComponent.InitializeAsync">
+            <summary>
+            Initialize the component
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.ISdkComponent.ShutdownAsync">
+            <summary>
+            Shutdown the component
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.ISdkComponent.GetStatistics">
+            <summary>
+            Get component statistics
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.IConfigurationProvider">
+            <summary>
+            Configuration provider interface
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.IConfigurationProvider.Get``1(System.String,``0)">
+            <summary>
+            Get configuration value
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.IConfigurationProvider.Set``1(System.String,``0)">
+            <summary>
+            Set configuration value
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.IConfigurationProvider.HasKey(System.String)">
+            <summary>
+            Check if configuration key exists
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.IConfigurationProvider.GetKeys">
+            <summary>
+            Get all configuration keys
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.IConfigurationProvider.ReloadAsync">
+            <summary>
+            Reload configuration
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.ILogger">
+            <summary>
+            Logger interface
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.ILogger.Debug(System.String,System.Object[])">
+            <summary>
+            Log debug message
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.ILogger.Info(System.String,System.Object[])">
+            <summary>
+            Log information message
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.ILogger.Warning(System.String,System.Object[])">
+            <summary>
+            Log warning message
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.ILogger.Error(System.String,System.Exception,System.Object[])">
+            <summary>
+            Log error message
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.ILogger.Critical(System.String,System.Exception,System.Object[])">
+            <summary>
+            Log critical message
+            </summary>
+        </member>
+        <member name="P:TuskLang.Core.ILogger.IsDebugEnabled">
+            <summary>
+            Check if debug logging is enabled
+            </summary>
+        </member>
+        <member name="P:TuskLang.Core.ILogger.IsInfoEnabled">
+            <summary>
+            Check if info logging is enabled
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.IValidator`1">
+            <summary>
+            Validator interface
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.IValidator`1.Validate(`0)">
+            <summary>
+            Validate object
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.IValidator`1.ValidateMany(System.Collections.Generic.IEnumerable{`0})">
+            <summary>
+            Validate multiple objects
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.ICache`2">
+            <summary>
+            Cache interface
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.ICache`2.TryGet(`0,`1@)">
+            <summary>
+            Get value from cache
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.ICache`2.Set(`0,`1,System.Nullable{System.TimeSpan})">
+            <summary>
+            Set value in cache
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.ICache`2.Remove(`0)">
+            <summary>
+            Remove value from cache
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.ICache`2.Clear">
+            <summary>
+            Clear all cache entries
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.ICache`2.GetStatistics">
+            <summary>
+            Get cache statistics
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.SdkComponentBase">
+            <summary>
+            Base SDK component implementation
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.ConfigurationProviderBase">
+            <summary>
+            Base configuration provider implementation
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.LoggerBase">
+            <summary>
+            Base logger implementation
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.ValidatorBase`1">
+            <summary>
+            Base validator implementation
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.CacheBase`2">
+            <summary>
+            Base cache implementation
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.ComponentStatus">
+            <summary>
+            Component status enumeration
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.LogLevel">
+            <summary>
+            Log level enumeration
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.ValidationResult">
+            <summary>
+            Validation result
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.ComponentStatistics">
+            <summary>
+            Component statistics
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.CacheEntry`1">
+            <summary>
+            Cache entry
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.CacheStatistics">
+            <summary>
+            Cache statistics
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.SdkException">
+            <summary>
+            SDK exception base class
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.OperationResult`1">
+            <summary>
+            Operation result
+            </summary>
+        </member>
+        <!-- Badly formed XML comment ignored for member "T:TuskLang.Core.BaseDataStructures" -->
+        <member name="M:TuskLang.Core.BaseDataStructures.Initialize(TuskLang.Core.BaseDataStructuresOptions)">
+            <summary>
+            Initialize the base data structures system
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.BaseDataStructures.GetGlobalSetting``1(System.String,``0)">
+            <summary>
+            Get global setting
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.BaseDataStructures.SetGlobalSetting``1(System.String,``0)">
+            <summary>
+            Set global setting
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.BaseDataStructures.RegisterResource(System.String,System.IDisposable)">
+            <summary>
+            Register disposable resource
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.BaseDataStructures.GetResource``1(System.String)">
+            <summary>
+            Get registered resource
+            </summary>
+        </member>
+        <member name="P:TuskLang.Core.BaseDataStructures.PerformanceMonitor">
+            <summary>
+            Get performance monitor
+            </summary>
+        </member>
+        <member name="P:TuskLang.Core.BaseDataStructures.ResourcePool">
+            <summary>
+            Get resource pool
+            </summary>
+        </member>
+        <member name="P:TuskLang.Core.BaseDataStructures.ExtensionManager">
+            <summary>
+            Get extension manager
+            </summary>
+        </member>
+        <member name="M:TuskLang.Core.BaseDataStructures.Shutdown">
+            <summary>
+            Shutdown and cleanup all resources
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.PerformanceMonitor">
+            <summary>
+            Performance monitoring system
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.ResourcePool">
+            <summary>
+            Resource pooling system for high-performance scenarios
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.ExtensionManager">
+            <summary>
+            Extension management system
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.ObjectPool`1">
+            <summary>
+            Object pool for efficient resource management
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.PerformanceMetric">
+            <summary>
+            Performance metric tracking
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.PerformanceCounter">
+            <summary>
+            Performance counter
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.PerformanceMetricSnapshot">
+            <summary>
+            Performance metric snapshot
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.PerformanceReport">
+            <summary>
+            Performance report
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.ResourcePoolStatistics">
+            <summary>
+            Resource pool statistics
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.ExtensionMetadata">
+            <summary>
+            Extension metadata
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.ExtensionEvent">
+            <summary>
+            Extension event types
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.BaseDataStructuresOptions">
+            <summary>
+            Base data structures options
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.PerformanceMonitorOptions">
+            <summary>
+            Performance monitor options
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.ResourcePoolOptions">
+            <summary>
+            Resource pool options
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.ExtensionManagerOptions">
+            <summary>
+            Extension manager options
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.IPerformanceObserver">
+            <summary>
+            Performance observer interface
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.IExtension">
+            <summary>
+            Extension interface
+            </summary>
+        </member>
+        <member name="T:TuskLang.Core.IExtensionObserver">
+            <summary>
+            Extension observer interface
+            </summary>
+        </member>
+    </members>
+</doc>

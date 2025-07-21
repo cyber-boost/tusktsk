@@ -1,0 +1,146 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <!-- Target Multiple Frameworks for Maximum Compatibility -->
+    <TargetFrameworks>net6.0;net7.0;net8.0;netstandard2.1</TargetFrameworks>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
+    <WarningsAsErrors />
+    <WarningsNotAsErrors>CS1591</WarningsNotAsErrors>
+    
+    <!-- Package Metadata -->
+    <PackageId>TuskTsk.Framework</PackageId>
+    <Version>3.0.0</Version>
+    <Title>TuskTsk Framework Integration</Title>
+    <Authors>Cyberboost LLC</Authors>
+    <Company>Cyberboost LLC</Company>
+    <Description>🚀 TuskTsk Framework Integration - Production-ready ASP.NET Core, Unity, and Xamarin integration for TuskTsk configuration language with full dependency injection support, health monitoring, and performance optimization.</Description>
+    <Summary>Complete framework integration package for TuskTsk configuration language</Summary>
+    <PackageTags>tusktsk;aspnetcore;dependency-injection;configuration;framework;unity;xamarin;cross-platform;tsk;parser</PackageTags>
+    <PackageLicenseExpression>BBL</PackageLicenseExpression>
+    <PackageReadmeFile>README.md</PackageReadmeFile>
+    <PackageIcon>icon.png</PackageIcon>
+    <PackageProjectUrl>https://tuskt.sk/framework</PackageProjectUrl>
+    <RepositoryUrl>https://github.com/cyber-boost/tusktsk-framework</RepositoryUrl>
+    <RepositoryType>git</RepositoryType>
+    
+    <!-- Build Configuration -->
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <IncludeSymbols>true</IncludeSymbols>
+    <SymbolPackageFormat>snupkg</SymbolPackageFormat>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <EmbedUntrackedSources>true</EmbedUntrackedSources>
+    
+    <!-- NuGet Package Settings -->
+    <PackageRequireLicenseAcceptance>false</PackageRequireLicenseAcceptance>
+    <PackageReleaseNotes>
+      Version 3.0.0:
+      ✅ Complete ASP.NET Core integration with dependency injection
+      ✅ Health check monitoring and diagnostics
+      ✅ Performance metrics and monitoring
+      ✅ Async/await support throughout
+      ✅ Comprehensive error handling and recovery
+      ✅ Unity and Xamarin compatibility
+      ✅ Production-ready caching and optimization
+      ✅ Multi-target framework support
+    </PackageReleaseNotes>
+    
+    <!-- Assembly Metadata -->
+    <AssemblyTitle>TuskTsk Framework Integration</AssemblyTitle>
+    <AssemblyDescription>Framework integration for TuskTsk configuration language</AssemblyDescription>
+    <AssemblyCompany>Cyberboost LLC</AssemblyCompany>
+    <AssemblyProduct>TuskTsk Framework</AssemblyProduct>
+    <Copyright>© 2025 Cyberboost LLC. All rights reserved.</Copyright>
+    
+    <!-- Performance Optimizations -->
+    <Optimize>true</Optimize>
+    <DebugType>portable</DebugType>
+    <IsPackable>true</IsPackable>
+  </PropertyGroup>
+
+  <!-- Framework-Specific Dependencies -->
+  <ItemGroup Condition="'$(TargetFramework)' == 'net6.0' OR '$(TargetFramework)' == 'net7.0' OR '$(TargetFramework)' == 'net8.0'">
+    <!-- ASP.NET Core Dependencies -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options.ConfigurationExtensions" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="6.0.1" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Diagnostics.HealthChecks" Version="6.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Hosting.Abstractions" Version="6.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Condition="'$(TargetFramework)' == 'netstandard2.1'">
+    <!-- .NET Standard 2.1 Dependencies for Unity/Xamarin -->
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Abstractions" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Options" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration" Version="5.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Abstractions" Version="5.0.0" />
+  </ItemGroup>
+
+  <!-- Core TuskTsk Dependencies -->
+  <ItemGroup>
+    <PackageReference Include="TuskTsk" Version="2.0.1" />
+    <PackageReference Include="System.Text.Json" Version="6.0.0" />
+    <PackageReference Include="System.Threading.Tasks.Extensions" Version="4.5.4" />
+  </ItemGroup>
+
+  <!-- Source Link for Debugging -->
+  <ItemGroup>
+    <PackageReference Include="Microsoft.SourceLink.GitHub" Version="1.1.1" PrivateAssets="All"/>
+  </ItemGroup>
+
+  <!-- Package Files -->
+  <ItemGroup>
+    <None Include="../README.md" Pack="true" PackagePath="/" />
+    <None Include="../icon.png" Pack="true" PackagePath="/" />
+    <None Include="../LICENSE" Pack="true" PackagePath="/" />
+    <None Include="build/**/*" Pack="true" PackagePath="build/" />
+    <None Include="contentFiles/**/*" Pack="true" PackagePath="contentFiles/" />
+  </ItemGroup>
+
+  <!-- Source Files -->
+  <ItemGroup>
+    <Compile Include="../Framework/**/*.cs" />
+  </ItemGroup>
+
+  <!-- Assembly Info Generation -->
+  <ItemGroup>
+    <AssemblyAttribute Include="System.Runtime.CompilerServices.InternalsVisibleTo">
+      <_Parameter1>TuskTsk.Framework.Tests</_Parameter1>
+    </AssemblyAttribute>
+    <AssemblyAttribute Include="System.CLSCompliant">
+      <_Parameter1>true</_Parameter1>
+    </AssemblyAttribute>
+  </ItemGroup>
+
+  <!-- Build Targets -->
+  <Target Name="PreparePackageReleaseNotesFromFile" BeforeTargets="GenerateNuspec">
+    <ReadLinesFromFile File="CHANGELOG.md" MaxLines="20">
+      <Output TaskParameter="Lines" ItemName="ReleaseNoteLines" />
+    </ReadLinesFromFile>
+    <PropertyGroup>
+      <PackageReleaseNotes>@(ReleaseNoteLines, '%0a')</PackageReleaseNotes>
+    </PropertyGroup>
+  </Target>
+
+  <!-- Unity-specific Build Configuration -->
+  <PropertyGroup Condition="'$(BuildForUnity)' == 'true'">
+    <DefineConstants>$(DefineConstants);UNITY_BUILD</DefineConstants>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>
+
+  <!-- Xamarin-specific Build Configuration -->
+  <PropertyGroup Condition="'$(BuildForXamarin)' == 'true'">
+    <DefineConstants>$(DefineConstants);XAMARIN_BUILD</DefineConstants>
+    <TargetFramework>netstandard2.1</TargetFramework>
+  </PropertyGroup>
+
+</Project> 

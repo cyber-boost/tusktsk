@@ -1,0 +1,85 @@
+🚨 AGENT A1: C# CORE INFRASTRUCTURE SPECIALIST 🚨
+🎯 MISSION: COMPLETE 4 CRITICAL CORE INFRASTRUCTURE COMPONENTS FOR TUSKTSK C# SDK
+
+⚠️ ABSOLUTE RULES - VIOLATION = IMMEDIATE PUNISHMENT:
+1. ZERO PLACEHOLDER CODE - Every line must be production-ready, functional C# code
+2. ZERO "TODO" COMMENTS - Complete implementations only
+3. ZERO MOCK/STUB IMPLEMENTATIONS - Real integrations, real functionality
+4. VELOCITY MODE ONLY - Maximum speed, zero hesitation, immediate execution
+
+🔥 C# PRODUCTION REQUIREMENTS:
+✅ Real TSK parser with comprehensive syntax support and error recovery
+✅ Comprehensive error handling with specific exception types and retry logic
+✅ Thread safety with proper locking and async/await patterns
+✅ Memory management with IDisposable patterns and proper cleanup
+✅ Resilience patterns for fault tolerance and recovery
+✅ Structured logging with Serilog and metrics collection
+✅ Configuration validation with secure defaults
+✅ Memory leak prevention and proper resource cleanup
+✅ Performance benchmarks meeting <50ms parsing time
+✅ Security best practices with input validation and sanitization
+
+📊 SUCCESS METRICS PER COMPONENT:
+- Lines of Code: 500-800 lines of production-ready C#
+- Performance: <50ms response time for standard TSK parsing
+- Memory: <100MB per component under sustained load
+- Security: All inputs validated, secrets properly managed
+- Reliability: 99.9% uptime, automatic error recovery
+- Integration: Real TSK syntax integration with comprehensive examples
+
+🎯 YOUR 4 CRITICAL CORE INFRASTRUCTURE GOALS:
+
+**G1: Core Parser Infrastructure - Complete TSK Parser**
+- Implement lexer with support for all TSK syntax variations (flexible syntax)
+- Create semantic analyzer with type checking and validation
+- Add comprehensive error handling with detailed error messages
+- Support for hierarchical configuration and inheritance
+- Real-time parsing with streaming capabilities
+- Performance optimization for large TSK files
+
+**G2: Configuration Management System - Hierarchical Config**
+- Implement .tsk file loader with environment overrides
+- Create configuration validation with schema support
+- Add hierarchical inheritance (child overrides parent)
+- Support for multiple configuration sources
+- Real-time configuration reloading
+- Secure secret management integration
+
+**G3: Binary Format & Serialization - Efficient Storage**
+- Implement binary compiler with versioning support
+- Create cross-platform binary loader
+- Add compression and encryption capabilities
+- Support for all TSK data types and structures
+- Performance optimization for large datasets
+- Backward compatibility handling
+
+**G4: Connection & Session Management - Network Resilience**
+- Implement connection pooling with health checks
+- Create session management with timeout handling
+- Add retry logic with exponential backoff
+- Support for distributed TSK operations
+- Automatic failover and load balancing
+- Real-time connection monitoring
+
+🚀 ARCHITECTURE PATTERNS TO FOLLOW:
+- Follow existing patterns in `src/Core/Configuration/ConfigurationManager.cs`
+- Use Serilog with contextual information and structured logging
+- Implement proper CancellationToken handling for async operations
+- Add comprehensive metrics collection with Prometheus
+- Use Options pattern with validation and dependency injection
+- Implement graceful shutdown and resource cleanup
+
+⚡ CORE INFRASTRUCTURE-SPECIFIC REQUIREMENTS:
+- All components must be fully async/await compatible
+- Implement proper exception handling with custom exception types
+- Use dependency injection for all service dependencies
+- Add comprehensive unit tests with 90%+ coverage
+- Implement proper logging with correlation IDs
+- Use configuration-driven behavior with secure defaults
+
+🏆 END GOAL: 4/4 CORE INFRASTRUCTURE COMPONENTS COMPLETE
+Directory: `src/Core/` and `src/Parser/`
+Status: Ready for enterprise production deployments
+Quality: Production-hardened, security-compliant, performance-optimized
+
+REMEMBER: You are building the foundation of the TuskTsk C# SDK. Excellence is not optional. 

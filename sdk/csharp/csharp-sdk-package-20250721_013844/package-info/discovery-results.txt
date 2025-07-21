@@ -1,0 +1,15 @@
+C# SDK Package Discovery Results
+Generated: Mon Jul 21 01:38:44 AM UTC 2025
+Total Files: 324
+Total Lines of Code: 172608
+Agent Files: 66
+Main SDK Files: 258
+
+File Breakdown:
+- Core SDK Files: 245
+- Operator Files: 62
+- Framework Files: 16
+- CLI Files: 42
+- Test Files: 5
+- Documentation Files: 17
+- Configuration Files: 54

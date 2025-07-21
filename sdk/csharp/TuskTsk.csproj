@@ -6,84 +6,62 @@
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
     <AssemblyName>tsk</AssemblyName>
-    <RootNamespace>TuskLang</RootNamespace>
-    
-    <!-- NuGet Package Metadata -->
+    <RootNamespace>TuskLang.SDK</RootNamespace>
+    <Version>2.0.3</Version>
     <PackageId>TuskLang.SDK</PackageId>
-    <Version>1.0.0</Version>
-    <Authors>TuskLang Team</Authors>
-    <Company>TuskLang</Company>
-    <Description>A powerful, high-performance C# SDK for TuskLang configuration management and processing. Features advanced parsing, semantic analysis, database integration, and comprehensive CLI tools.</Description>
-    <Copyright>Copyright (c) 2024 TuskLang Team</Copyright>
+    <Title>TuskLang C# SDK</Title>
+    <Description>Complete TuskLang configuration management SDK for .NET with advanced parsing, CLI tools, and database integration.</Description>
+    <Authors>Cyber Boost</Authors>
+    <Company>Cyber Boost</Company>
     <PackageLicenseExpression>MIT</PackageLicenseExpression>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <PackageTags>configuration;parser;tsk;tusklang;database;cli;ast;semantic-analysis</PackageTags>
-    <PackageProjectUrl>https://github.com/tusklang/csharp-sdk</PackageProjectUrl>
-    <RepositoryUrl>https://github.com/tusklang/csharp-sdk.git</RepositoryUrl>
+    <PackageIcon>icon.png</PackageIcon>
+    <RepositoryUrl>https://github.com/cyber-boost/tusktsk</RepositoryUrl>
     <RepositoryType>git</RepositoryType>
-    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageTags>tusklang;configuration;parser;cli;database;tsk</PackageTags>
+    <PackageReleaseNotes>Complete C# SDK with CLI tools, database integration, and advanced TSK parsing capabilities.</PackageReleaseNotes>
+    <GenerateDocumentationFile>true</GenerateDocumentationFile>
+    <DocumentationFile>bin\Release\net8.0\TuskLang.SDK.xml</DocumentationFile>
+    <PublishRepositoryUrl>true</PublishRepositoryUrl>
     <IncludeSymbols>true</IncludeSymbols>
     <SymbolPackageFormat>snupkg</SymbolPackageFormat>
-    <PublishRepositoryUrl>true</PublishRepositoryUrl>
+    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
     <EmbedUntrackedSources>true</EmbedUntrackedSources>
     <Deterministic>true</Deterministic>
-    <ContinuousIntegrationBuild>true</ContinuousIntegrationBuild>
-    <PublishSingleFile>true</PublishSingleFile>
-    <SelfContained>false</SelfContained>
-    <EnableDefaultCompileItems>false</EnableDefaultCompileItems>
+    <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+    <PackageOutputPath>nupkgs</PackageOutputPath>
   </PropertyGroup>
 
-  <!-- Minimal Dependencies -->
   <ItemGroup>
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta4.22272.1" />
-    <PackageReference Include="System.Text.Json" Version="8.0.5" />
-    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.1" />
-    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.1" />
+    <PackageReference Include="System.Text.Json" Version="8.0.0" />
     <PackageReference Include="Microsoft.Extensions.Configuration" Version="8.0.0" />
-    <PackageReference Include="Newtonsoft.Json" Version="13.0.3" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.Json" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.EnvironmentVariables" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Configuration.FileExtensions" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.DependencyInjection" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging" Version="8.0.0" />
+    <PackageReference Include="Microsoft.Extensions.Logging.Console" Version="8.0.0" />
+    <PackageReference Include="System.Data.SqlClient" Version="4.8.6" />
+    <PackageReference Include="Npgsql" Version="8.0.0" />
+    <PackageReference Include="MySqlConnector" Version="2.3.5" />
     <PackageReference Include="System.CodeDom" Version="8.0.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.8.0" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Common" Version="4.8.0" />
   </ItemGroup>
 
   <ItemGroup>
     <None Include="README.md" Pack="true" PackagePath="/" />
+    <None Include="LICENSE" Pack="true" PackagePath="/" />
+    <None Include="CHANGELOG.md" Pack="true" PackagePath="/" />
+    <None Include="ROADMAP.md" Pack="true" PackagePath="/" />
+    <None Include="docs/**/*" Pack="true" PackagePath="docs/" />
+    <None Include="examples/**/*" Pack="true" PackagePath="examples/" />
   </ItemGroup>
 
-  <!-- Minimal CLI Files -->
   <ItemGroup>
-    <Compile Include="src/CLI/Program.cs" />
-    <Compile Include="src/CLI/Commands/CommandBase.cs" />
-    <Compile Include="src/CLI/Commands/ParseCommand.cs" />
-    <Compile Include="src/CLI/Commands/CompileCommand.cs" />
-    <Compile Include="src/CLI/Commands/ValidateCommand.cs" />
-    <Compile Include="src/CLI/Commands/InitCommand.cs" />
-    <Compile Include="src/CLI/Commands/BuildCommand.cs" />
-    <Compile Include="src/CLI/Commands/TestCommand.cs" />
-    <Compile Include="src/CLI/Commands/ServeCommand.cs" />
-    <Compile Include="src/CLI/Commands/ConfigCommand.cs" />
-    <Compile Include="src/CLI/Commands/ProjectCommand.cs" />
-    <Compile Include="src/CLI/Commands/AiCommand.cs" />
-    <Compile Include="src/CLI/Commands/UtilityCommand.cs" />
+    <Folder Include="docs\" />
+    <Folder Include="examples\" />
   </ItemGroup>
-
-  <!-- Core Components (Minimal) -->
-  <ItemGroup>
-    <Compile Include="src/Core/TSK.cs" />
-    <Compile Include="src/Core/ValidationResult.cs" />
-    <Compile Include="src/Core/Configuration/ConfigurationManager.cs" />
-    <Compile Include="src/Core/PackageManagement.cs" />
-  </ItemGroup>
-
-  <!-- Parser Components (Minimal) -->
-  <ItemGroup>
-    <Compile Include="src/Parser/IAstVisitor.cs" />
-    <Compile Include="src/Parser/AstNodes.cs" />
-    <Compile Include="src/Parser/TuskTskParser.cs" />
-    <Compile Include="src/Parser/Lexer/TuskTskLexer.cs" />
-    <Compile Include="src/Parser/ParserResult.cs" />
-    <Compile Include="src/Parser/TuskTskParserFactory.cs" />
-    <Compile Include="src/Parser/Semantic/SemanticAnalyzer.cs" />
-  </ItemGroup>
-
-
 
 </Project> 

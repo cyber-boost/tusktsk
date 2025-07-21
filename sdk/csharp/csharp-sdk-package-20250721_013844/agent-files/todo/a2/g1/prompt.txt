@@ -1,0 +1,47 @@
+# 🚨 AGENT A2-G1: `tusk` COMMAND IMPLEMENTATION
+**VELOCITY MODE ACTIVATED - ZERO TOLERANCE FOR PLACEHOLDERS**
+
+## 🎯 SPECIFIC MISSION
+Implement the **COMPLETE `tusk` COMMAND-LINE TOOL** - the primary interface users will interact with daily.
+
+## 🔥 STRICT REQUIREMENTS - NO EXCEPTIONS
+**⚠️ WARNING: SEVERE PUNISHMENT FOR NON-COMPLIANCE ⚠️**
+- **NO PLACEHOLDERS** - Every command must be fully functional
+- **NO "TODO" COMMENTS** - All subcommands must work end-to-end
+- **NO STUB COMMANDS** - Real file processing and configuration handling
+- **NO FAKE OUTPUT** - Actual results from real operations
+- **PUNISHMENT**: Failure results in immediate goal reassignment
+
+## 📋 MANDATORY COMMAND SET
+1. **`tusk parse <file>`** - Parse and validate .tsk files
+2. **`tusk compile <file>`** - Compile to binary .pnt format
+3. **`tusk validate <file>`** - Comprehensive validation with detailed output
+4. **`tusk init [name]`** - Create new TuskTsk project with template
+5. **`tusk build`** - Build current project with all configurations
+6. **`tusk watch <file>`** - Watch for changes and auto-recompile
+7. **`tusk version`** - Show version and build information
+8. **`tusk help [command]`** - Comprehensive help system
+
+## 🚀 PERFORMANCE REQUIREMENTS  
+- **Command Response**: < 500ms for simple operations
+- **File Processing**: Handle 100MB+ configuration files
+- **Watch Mode**: < 100ms change detection
+- **Memory Efficient**: < 100MB RAM usage during operations
+
+## ✅ ACCEPTANCE CRITERIA
+- [ ] All 8 commands implemented and functional
+- [ ] Comprehensive help text for all commands and options
+- [ ] Error handling with user-friendly messages
+- [ ] Progress indicators for long-running operations
+- [ ] Colorized output for better UX
+- [ ] Support for common flags (--verbose, --quiet, --json)
+- [ ] Integration with A1 parser for all file operations
+- [ ] Cross-platform compatibility (Windows/Linux/macOS)
+
+## 🎪 INTEGRATION REQUIREMENTS
+- Use A1's parser for all .tsk file operations
+- Prepare integration points for A3's framework commands
+- Coordinate with A4 for database-related commands (future)
+
+**🚨 REMEMBER: PLACEHOLDER COMMANDS = IMMEDIATE PUNISHMENT**
+**⚡ VELOCITY MODE: FUNCTIONAL CLI TOOL ONLY** 

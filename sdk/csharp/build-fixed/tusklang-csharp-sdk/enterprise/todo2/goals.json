@@ -1,0 +1,84 @@
+{
+  "agent_id": "[AGENT_ID]",
+  "agent_name": "[AGENT_SPECIALTY] Specialist",
+  "project_name": "[PROJECT_NAME]",
+  "language": "[LANGUAGE]",
+  "technology_area": "[TECHNOLOGY_AREA]",
+  "total_goals": "[TOTAL_GOALS]",
+  "completed_goals": 0,
+  "in_progress_goals": 0,
+  "completion_percentage": "0%",
+  "target_directory": "[TARGET_DIRECTORY]",
+  "goals": {
+    "g1": {
+      "title": "[COMPONENT_NAME]",
+      "status": "pending",
+      "description": "[DETAILED_DESCRIPTION]",
+      "estimated_lines": "[LINES]",
+      "priority": "[critical|high|medium]",
+      "directory": "[SPECIFIC_DIRECTORY]",
+      "completion_date": null,
+      "notes": ""
+    },
+    "g2": {
+      "title": "[COMPONENT_NAME_2]",
+      "status": "pending", 
+      "description": "[DETAILED_DESCRIPTION_2]",
+      "estimated_lines": "[LINES]",
+      "priority": "[critical|high|medium]",
+      "directory": "[SPECIFIC_DIRECTORY_2]",
+      "completion_date": null,
+      "notes": ""
+    },
+    "g3": {
+      "title": "[COMPONENT_NAME_3]",
+      "status": "pending",
+      "description": "[DETAILED_DESCRIPTION_3]", 
+      "estimated_lines": "[LINES]",
+      "priority": "[critical|high|medium]",
+      "directory": "[SPECIFIC_DIRECTORY_3]",
+      "completion_date": null,
+      "notes": ""
+    },
+    "g4": {
+      "title": "[COMPONENT_NAME_4]",
+      "status": "pending",
+      "description": "[DETAILED_DESCRIPTION_4]",
+      "estimated_lines": "[LINES]", 
+      "priority": "[critical|high|medium]",
+      "directory": "[SPECIFIC_DIRECTORY_4]",
+      "completion_date": null,
+      "notes": ""
+    },
+    "g5": {
+      "title": "[COMPONENT_NAME_5]",
+      "status": "pending",
+      "description": "[DETAILED_DESCRIPTION_5]",
+      "estimated_lines": "[LINES]",
+      "priority": "[critical|high|medium]", 
+      "directory": "[SPECIFIC_DIRECTORY_5]",
+      "completion_date": null,
+      "notes": ""
+    }
+  },
+  "performance_metrics": {
+    "response_time_target": "[RESPONSE_TIME]ms",
+    "memory_limit_target": "[MEMORY_LIMIT]MB",
+    "uptime_requirement": "[UPTIME_REQUIREMENT]%",
+    "coverage_target": "[COVERAGE_TARGET]%",
+    "current_response_time": null,
+    "current_memory_usage": null,
+    "current_uptime": null,
+    "current_coverage": null
+  },
+  "technical_requirements": {
+    "language_specific_safety": "[LANGUAGE_SPECIFIC_SAFETY]",
+    "resource_management": "[RESOURCE_MANAGEMENT]",
+    "resilience_patterns": "[RESILIENCE_PATTERNS]",
+    "security_standards": "[SECURITY_STANDARDS]",
+    "logging_framework": "[LOGGING_FRAMEWORK]",
+    "configuration_pattern": "[CONFIGURATION_PATTERN]"
+  },
+  "last_updated": "[DATE]",
+  "next_priority": "g1"
+} 

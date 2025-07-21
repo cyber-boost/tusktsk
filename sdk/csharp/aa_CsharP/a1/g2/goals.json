@@ -1,0 +1,75 @@
+{
+  "agent_id": "a1", 
+  "g_folder": "g2",
+  "category": "Communication Core - gRPC & Messaging",
+  "created_at": "2025-01-23T00:00:00Z",
+  "total_goals": 3,
+  "completed_goals": 0,
+  "completion_percentage": 0.0,
+  "timeline": "1 day",
+  "priority": "CRITICAL",
+  "punishment_warning": "SEVERE PUNISHMENT FOR PLACEHOLDER CODE OR NON-COMPLIANCE",
+  "goals": {
+    "g2_1": {
+      "id": "g2_1",
+      "name": "GrpcOperator Implementation",
+      "description": "Create missing GrpcOperator.cs - CRITICAL for gRPC communication",
+      "status": false,
+      "priority": "!!!",
+      "estimated_hours": 10,
+      "file_location": "sdk/csharp/Operators/Communication/GrpcOperator.cs",
+      "requirements": [
+        "Extend BaseOperator class correctly",
+        "Implement gRPC client and server operations",
+        "Add protobuf message handling",
+        "Support for streaming operations (unary, server, client, bidirectional)",
+        "Add authentication and security (TLS, JWT)",
+        "Connection pooling and management",
+        "90%+ test coverage with real gRPC services"
+      ]
+    },
+    "g2_2": {
+      "id": "g2_2", 
+      "name": "WebhookOperator Implementation",
+      "description": "Create missing WebhookOperator.cs - CRITICAL for webhook handling",
+      "status": false,
+      "priority": "!!!",
+      "estimated_hours": 8,
+      "file_location": "sdk/csharp/Operators/Communication/WebhookOperator.cs",
+      "requirements": [
+        "Extend BaseOperator class correctly",
+        "Implement webhook sending and receiving",
+        "Add signature verification (HMAC-SHA256)",
+        "Support for retry mechanisms with exponential backoff",
+        "Add payload validation and transformation",
+        "Create webhook management interface",
+        "90%+ test coverage with mock webhook services"
+      ]
+    },
+    "g2_3": {
+      "id": "g2_3",
+      "name": "AmqpOperator Implementation", 
+      "description": "Create missing AmqpOperator.cs - CRITICAL for AMQP messaging",
+      "status": false,
+      "priority": "!!!",
+      "estimated_hours": 8,
+      "file_location": "sdk/csharp/Operators/Communication/AmqpOperator.cs",
+      "requirements": [
+        "Extend BaseOperator class correctly",
+        "Implement AMQP producer and consumer",
+        "Add RabbitMQ integration with connection pooling",
+        "Support for message routing and exchanges",
+        "Add dead letter queue handling",
+        "Implement message acknowledgments",
+        "90%+ test coverage with real RabbitMQ instance"
+      ]
+    }
+  },
+  "critical_requirements": {
+    "no_placeholders": "ZERO placeholder code allowed - production quality only",
+    "punishment": "Severe consequences for non-compliance",
+    "velocity_mode": "Maximum speed with quality maintained",
+    "real_integrations": "Must work with real services, not mocks only",
+    "performance": "Must exceed PHP SDK performance by 50%"
+  }
+} 

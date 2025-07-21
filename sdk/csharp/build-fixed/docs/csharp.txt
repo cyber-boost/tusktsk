@@ -1,0 +1,10 @@
+🔷 C# SDK - TuskTsk Configuration Language
+
+• .NET 6.0+ support with NuGet package
+• CLI tools: `tusk`, `tusk-dotnet` commands
+• ASP.NET Core dependency injection support
+• Database adapters: Entity Framework, Dapper
+• Binary .pnt compilation for 80% performance boost
+• JSON.NET serialization integration
+• Unity/Xamarin compatible
+• dotnet add package TuskTsk

@@ -1,0 +1,71 @@
+# 🚨 AGENT A2-G2: `tusk-dotnet` COMMAND IMPLEMENTATION
+**VELOCITY MODE ACTIVATED - ZERO TOLERANCE FOR PLACEHOLDERS**
+
+## 🎯 SPECIFIC MISSION
+Implement the **COMPLETE `tusk-dotnet` COMMAND-LINE TOOL** - .NET specific tooling and integration for TuskLang configurations in .NET projects.
+
+## 🔥 STRICT REQUIREMENTS - NO EXCEPTIONS
+**⚠️ WARNING: SEVERE PUNISHMENT FOR NON-COMPLIANCE ⚠️**
+- **NO PLACEHOLDERS** - Every command must be fully functional
+- **NO "TODO" COMMENTS** - All .NET integrations must work end-to-end
+- **NO STUB COMMANDS** - Real NuGet, MSBuild, and .NET operations
+- **NO FAKE OUTPUT** - Actual results from real .NET tooling
+- **PUNISHMENT**: Failure results in immediate goal reassignment
+
+## 📋 MANDATORY COMMAND SET
+1. **`tusk-dotnet new <template>`** - Create .NET projects with TuskLang integration
+2. **`tusk-dotnet add <package>`** - Add NuGet packages with TuskLang config
+3. **`tusk-dotnet build [project]`** - Build .NET projects with TuskLang configs
+4. **`tusk-dotnet test [project]`** - Run tests with TuskLang configuration
+5. **`tusk-dotnet publish [project]`** - Publish with environment-specific configs
+6. **`tusk-dotnet restore [project]`** - Restore packages and TuskLang dependencies
+7. **`tusk-dotnet run [project]`** - Run applications with TuskLang runtime config
+8. **`tusk-dotnet config <operation>`** - Manage .NET-specific TuskLang configurations
+
+## 🚀 PERFORMANCE REQUIREMENTS  
+- **Command Response**: < 1000ms for simple operations (allowing for .NET tooling)
+- **Project Generation**: < 5 seconds for complete project scaffolding
+- **Build Integration**: < 2 seconds overhead over standard dotnet build
+- **Configuration Loading**: < 200ms for runtime config injection
+
+## ✅ ACCEPTANCE CRITERIA
+- [ ] All 8 commands implemented and functional
+- [ ] Integration with dotnet CLI and MSBuild
+- [ ] NuGet package management with TuskLang metadata
+- [ ] Project template system with TuskLang scaffolding
+- [ ] Configuration injection for .NET applications
+- [ ] Testing framework integration (xUnit, NUnit, MSTest)
+- [ ] Publishing with environment-specific configurations
+- [ ] Visual Studio/VS Code integration preparation
+- [ ] Cross-platform .NET support (.NET 6/7/8)
+
+## 🎪 INTEGRATION REQUIREMENTS
+- Full integration with existing `tusk` command
+- .NET SDK detection and version management
+- MSBuild target integration for TuskLang processing
+- NuGet package creation for TuskLang libraries
+- Configuration providers for ASP.NET Core
+- Dependency injection integration
+- Logging provider integration
+- Health check extensions
+
+## 📦 .NET ECOSYSTEM FEATURES
+- **Project Templates**: Console, Web API, MVC, Blazor, Worker Service
+- **Package Management**: Add/remove/update with TuskLang metadata
+- **Build Targets**: Custom MSBuild targets for TuskLang processing  
+- **Configuration Providers**: ASP.NET Core configuration integration
+- **Dependency Injection**: Service registration from TuskLang configs
+- **Testing Integration**: Configuration-driven test scenarios
+- **Publishing Profiles**: Environment-specific deployment configs
+- **Docker Integration**: Containerization with TuskLang configs
+
+## 🛡️ .NET SECURITY & BEST PRACTICES
+- Secure configuration handling in .NET applications
+- Secret management integration (User Secrets, Azure Key Vault)
+- Configuration validation at startup
+- Encrypted configuration support
+- Role-based configuration access
+- Audit logging for configuration changes
+
+**🚨 REMEMBER: PLACEHOLDER COMMANDS = IMMEDIATE PUNISHMENT**
+**⚡ VELOCITY MODE: FUNCTIONAL .NET INTEGRATION ONLY** 

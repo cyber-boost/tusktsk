@@ -1,0 +1,75 @@
+{
+  "agent_id": "a2",
+  "g_folder": "g5", 
+  "category": "Messaging Systems - Kafka & NATS",
+  "created_at": "2025-01-23T00:00:00Z",
+  "total_goals": 3,
+  "completed_goals": 0,
+  "completion_percentage": 0.0,
+  "timeline": "1.5 days",
+  "priority": "HIGH",
+  "punishment_warning": "SEVERE PUNISHMENT FOR PLACEHOLDER CODE OR NON-COMPLIANCE",
+  "goals": {
+    "g5_1": {
+      "id": "g5_1",
+      "name": "KafkaOperator Implementation",
+      "description": "Create missing KafkaOperator.cs - HIGH PRIORITY messaging",
+      "status": false,
+      "priority": "!!",
+      "estimated_hours": 12,
+      "file_location": "sdk/csharp/Operators/Communication/KafkaOperator.cs",
+      "requirements": [
+        "Extend BaseOperator class correctly",
+        "Implement Kafka producer and consumer",
+        "Add support for multiple partitions and topics",
+        "Implement consumer groups and offset management",
+        "Add schema registry integration",
+        "Support for transactions and idempotent producers",
+        "90%+ test coverage with real Kafka cluster"
+      ]
+    },
+    "g5_2": {
+      "id": "g5_2",
+      "name": "NatsOperator Implementation", 
+      "description": "Create missing NatsOperator.cs - HIGH PRIORITY messaging",
+      "status": false,
+      "priority": "!!",
+      "estimated_hours": 8,
+      "file_location": "sdk/csharp/Operators/Communication/NatsOperator.cs",
+      "requirements": [
+        "Extend BaseOperator class correctly",
+        "Implement NATS publisher and subscriber",
+        "Add JetStream support for persistence",
+        "Support for request-reply patterns",
+        "Add clustering and failover support",
+        "Implement message acknowledgments",
+        "90%+ test coverage with real NATS server"
+      ]
+    },
+    "g5_3": {
+      "id": "g5_3",
+      "name": "NeuralOperator Implementation",
+      "description": "Create missing NeuralOperator.cs - AI/ML messaging integration", 
+      "status": false,
+      "priority": "!!",
+      "estimated_hours": 10,
+      "file_location": "sdk/csharp/Operators/AI/NeuralOperator.cs",
+      "requirements": [
+        "Extend BaseOperator class correctly",
+        "Implement neural network inference",
+        "Add support for ONNX models",
+        "Support for TensorFlow and PyTorch models",
+        "Add GPU acceleration support",
+        "Implement batch processing",
+        "90%+ test coverage with real ML models"
+      ]
+    }
+  },
+  "critical_requirements": {
+    "no_placeholders": "ZERO placeholder code allowed - production quality only",
+    "punishment": "Severe consequences for non-compliance", 
+    "velocity_mode": "Maximum speed with quality maintained",
+    "real_services": "Must integrate with real messaging services",
+    "performance": "Must handle high-throughput scenarios"
+  }
+} 

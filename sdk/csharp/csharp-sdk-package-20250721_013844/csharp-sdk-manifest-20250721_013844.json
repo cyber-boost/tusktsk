@@ -1,0 +1,95 @@
+{
+  "package": {
+    "name": "csharp-sdk",
+    "version": "1.0.0",
+    "timestamp": "20250721_013844",
+    "generated": "2025-07-21T01:38:44Z"
+  },
+  "statistics": {
+    "total_files": 425,
+    "total_lines": 237214,
+    "csharp_files": 332,
+    "documentation_files": 17,
+    "configuration_files": 55
+  },
+  "components": {
+    "core": {
+      "files": 110,
+      "description": "Core SDK infrastructure, parsers, and data structures"
+    },
+    "operators": {
+      "files": 62,
+      "description": "Complete operator system with 56+ operators"
+    },
+    "framework": {
+      "files": 16,
+      "description": "Framework integrations for ASP.NET Core, Unity, Xamarin"
+    },
+    "cli": {
+      "files": 42,
+      "description": "Comprehensive CLI system with 32+ commands"
+    },
+    "examples": {
+      "files": 4,
+      "description": "Integration examples and templates"
+    },
+    "tests": {
+      "files": 26,
+      "description": "Comprehensive testing framework"
+    },
+    "docs": {
+      "files": 10,
+      "description": "Documentation and API references"
+    },
+    "agent_files": {
+      "files": 84,
+      "description": "Agent-created files and automation"
+    },
+    "advanced": {
+      "files": 33,
+      "description": "Advanced integration components"
+    },
+    "quantum": {
+      "files": 22,
+      "description": "Quantum computing integration components"
+    },
+    "integration": {
+      "files": 12,
+      "description": "Integration examples and templates"
+    },
+    "performance": {
+      "files": 0,
+      "description": "Performance optimization components"
+    },
+    "database": {
+      "files": 0,
+      "description": "Database integration components"
+    },
+    "developer_experience": {
+      "files": 0,
+      "description": "Developer experience enhancements"
+    },
+    "universal_agent_system": {
+      "files": 0,
+      "description": "Universal agent system components"
+    }
+  },
+  "features": {
+    "simd_optimizations": true,
+    "quantum_computing": true,
+    "multi_platform": true,
+    "enterprise_security": true,
+    "cloud_integration": true,
+    "ai_ml_capabilities": true,
+    "intelligent_caching": true,
+    "comprehensive_cli": true,
+    "advanced_parsing": true,
+    "database_operators": true
+  },
+  "deployment": {
+    "target_frameworks": [".NET 8.0"],
+    "supported_platforms": ["Windows", "Linux", "macOS"],
+    "package_type": "NuGet",
+    "deployment_ready": true
+  }
+}

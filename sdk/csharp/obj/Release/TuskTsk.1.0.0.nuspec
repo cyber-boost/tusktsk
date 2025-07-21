@@ -1,0 +1,26 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>TuskTsk</id>
+    <version>1.0.0</version>
+    <authors>TuskLang Team</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <readme>README.md</readme>
+    <description>TuskLang C# SDK</description>
+    <repository type="git" commit="e90a487bb4443f7d0a16ae1516570547664e0e7d" />
+    <dependencies>
+      <group targetFramework="net8.0">
+        <dependency id="Microsoft.Data.SqlClient" version="5.1.5" exclude="Build,Analyzers" />
+        <dependency id="Newtonsoft.Json" version="13.0.3" exclude="Build,Analyzers" />
+        <dependency id="System.Data.SQLite" version="1.0.118" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="/opt/tsk_git/sdk/csharp/bin/Release/net8.0/TuskTsk.runtimeconfig.json" target="lib/net8.0/TuskTsk.runtimeconfig.json" />
+    <file src="/opt/tsk_git/sdk/csharp/bin/Release/net8.0/TuskTsk.dll" target="lib/net8.0/TuskTsk.dll" />
+    <file src="/opt/tsk_git/sdk/csharp/bin/Release/net8.0/TuskTsk.xml" target="lib/net8.0/TuskTsk.xml" />
+    <file src="/opt/tsk_git/sdk/csharp/README.md" target="/README.md" />
+  </files>
+</package>

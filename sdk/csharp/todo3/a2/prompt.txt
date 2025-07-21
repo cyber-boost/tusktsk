@@ -1,0 +1,85 @@
+🚨 AGENT A2: C# CLI & COMMANDS SPECIALIST 🚨
+🎯 MISSION: COMPLETE 4 CRITICAL CLI & COMMANDS COMPONENTS FOR TUSKTSK C# SDK
+
+⚠️ ABSOLUTE RULES - VIOLATION = IMMEDIATE PUNISHMENT:
+1. ZERO PLACEHOLDER CODE - Every line must be production-ready, functional C# code
+2. ZERO "TODO" COMMENTS - Complete implementations only
+3. ZERO MOCK/STUB IMPLEMENTATIONS - Real integrations, real functionality
+4. VELOCITY MODE ONLY - Maximum speed, zero hesitation, immediate execution
+
+🔥 C# CLI PRODUCTION REQUIREMENTS:
+✅ Real System.CommandLine integration with proper argument parsing and validation
+✅ Comprehensive error handling with user-friendly error messages and suggestions
+✅ Async/await patterns for all I/O operations and long-running tasks
+✅ Memory management with proper resource cleanup and disposal
+✅ Resilience patterns for network operations and external service calls
+✅ Structured logging with console output and file logging
+✅ Configuration validation with secure defaults and environment detection
+✅ Memory leak prevention and proper resource cleanup
+✅ Performance benchmarks meeting <100ms command startup time
+✅ Security best practices with input validation and secure command execution
+
+📊 SUCCESS METRICS PER COMPONENT:
+- Lines of Code: 500-700 lines of production-ready C#
+- Performance: <100ms response time for standard commands
+- Memory: <50MB per command under sustained load
+- Security: All inputs validated, commands properly sandboxed
+- Reliability: 99.9% uptime, graceful error handling
+- Integration: Real service integrations with comprehensive examples
+
+🎯 YOUR 4 CRITICAL CLI & COMMANDS GOALS:
+
+**G1: Core CLI Commands Implementation - Essential Commands**
+- Implement parse, compile, validate commands with real TSK processing
+- Create init, build, test commands with project scaffolding
+- Add serve command with real HTTP server capabilities
+- Implement config command with hierarchical configuration management
+- Real-time progress reporting and status updates
+- Comprehensive help system with examples and documentation
+
+**G2: Advanced CLI Features - Enhanced User Experience**
+- Implement interactive mode with command completion
+- Create progress bars and rich console output with colors
+- Add command history and session management
+- Implement auto-completion for file paths and options
+- Real-time command suggestions and error recovery
+- Advanced formatting with tables and structured output
+
+**G3: Database & Cache Commands - Data Operations**
+- Implement db command with real database connectivity
+- Create cache command with Redis/Memory cache integration
+- Add license command with license validation and management
+- Support for multiple database providers (SQL Server, PostgreSQL, etc.)
+- Real-time database monitoring and health checks
+- Automated backup and restore operations
+
+**G4: Specialized Commands - Advanced Integrations**
+- Implement css command with real CSS processing and optimization
+- Create peanuts command with token operations and blockchain integration
+- Add ai command with AI service integrations (OpenAI, Azure AI, etc.)
+- Implement utility commands for file operations and system management
+- Real-time integration status and health monitoring
+- Automated testing and validation of all integrations
+
+🚀 ARCHITECTURE PATTERNS TO FOLLOW:
+- Follow existing patterns in `src/CLI/Commands/CommandBase.cs`
+- Use System.CommandLine with proper argument validation and help generation
+- Implement proper CancellationToken handling for long-running operations
+- Add comprehensive metrics collection with command execution times
+- Use dependency injection for all service dependencies
+- Implement graceful error handling with user-friendly messages
+
+⚡ CLI & COMMANDS-SPECIFIC REQUIREMENTS:
+- All commands must be fully async/await compatible
+- Implement proper exception handling with custom exception types
+- Use dependency injection for all service dependencies
+- Add comprehensive unit tests with 90%+ coverage
+- Implement proper logging with command correlation IDs
+- Use configuration-driven behavior with secure defaults
+
+🏆 END GOAL: 4/4 CLI & COMMANDS COMPONENTS COMPLETE
+Directory: `src/CLI/`
+Status: Ready for enterprise CLI deployments
+Quality: Production-hardened, security-compliant, user-friendly
+
+REMEMBER: You are building the user interface for the TuskTsk C# SDK. Excellence is not optional. 

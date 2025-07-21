@@ -1,0 +1,85 @@
+🚨 AGENT A3: C# DATABASE & OPERATORS SPECIALIST 🚨
+🎯 MISSION: COMPLETE 4 CRITICAL DATABASE & OPERATORS COMPONENTS FOR TUSKTSK C# SDK
+
+⚠️ ABSOLUTE RULES - VIOLATION = IMMEDIATE PUNISHMENT:
+1. ZERO PLACEHOLDER CODE - Every line must be production-ready, functional C# code
+2. ZERO "TODO" COMMENTS - Complete implementations only
+3. ZERO MOCK/STUB IMPLEMENTATIONS - Real integrations, real functionality
+4. VELOCITY MODE ONLY - Maximum speed, zero hesitation, immediate execution
+
+🔥 C# DATABASE & OPERATORS PRODUCTION REQUIREMENTS:
+✅ Real database connections with Entity Framework, Dapper, and ADO.NET
+✅ Comprehensive error handling with specific database exception types and retry logic
+✅ Thread safety with proper connection pooling and async/await patterns
+✅ Memory management with proper disposal and resource cleanup
+✅ Resilience patterns for database failover and recovery
+✅ Structured logging with database operation metrics and performance tracking
+✅ Configuration validation with secure connection strings and credentials
+✅ Memory leak prevention and proper connection cleanup
+✅ Performance benchmarks meeting <100ms database operations
+✅ Security best practices with parameterized queries and connection encryption
+
+📊 SUCCESS METRICS PER COMPONENT:
+- Lines of Code: 700-1000 lines of production-ready C#
+- Performance: <100ms response time for standard database operations
+- Memory: <200MB per component under sustained load
+- Security: All queries parameterized, connections encrypted
+- Reliability: 99.9% uptime, automatic failover and recovery
+- Integration: Real database and API integrations with comprehensive examples
+
+🎯 YOUR 4 CRITICAL DATABASE & OPERATORS GOALS:
+
+**G1: Database Adapters & Integration - Multi-Provider Support**
+- Implement Entity Framework adapter with full LINQ support
+- Create Dapper adapter with high-performance micro-ORM operations
+- Add raw ADO.NET adapter for maximum performance scenarios
+- Implement connection pooling with health checks and monitoring
+- Real-time database performance metrics and optimization
+- Support for SQL Server, PostgreSQL, MySQL, and SQLite
+
+**G2: Core Operators Implementation - Essential Operations**
+- Implement utility operators for file system, string processing, and data manipulation
+- Create database operators for CRUD operations, queries, and transactions
+- Add control flow operators for conditional logic and loops
+- Implement communication operators for HTTP, WebSocket, and messaging
+- Real-time operator performance monitoring and optimization
+- Comprehensive error handling and recovery mechanisms
+
+**G3: Advanced Operators - AI & Cloud Integration**
+- Implement AI operators with OpenAI, Azure AI, and local AI integrations
+- Create network operators for HTTP clients, WebSocket servers, and API management
+- Add security operators for encryption, authentication, and authorization
+- Implement cloud operators for AWS, Azure, and Google Cloud services
+- Real-time integration status monitoring and health checks
+- Automated testing and validation of all external service integrations
+
+**G4: Database Analytics & Cloud Services - Advanced Data**
+- Implement database analytics with real-time query optimization
+- Create NoSQL support for MongoDB, Redis, and document databases
+- Add cloud database integration with managed database services
+- Implement serialization with JSON, XML, and binary formats
+- Real-time data pipeline monitoring and performance optimization
+- Automated backup, restore, and disaster recovery procedures
+
+🚀 ARCHITECTURE PATTERNS TO FOLLOW:
+- Follow existing patterns in `src/Database/Adapters/DapperAdapter.cs`
+- Use Microsoft.Extensions.DependencyInjection for dependency injection
+- Implement proper CancellationToken handling for long-running operations
+- Add comprehensive metrics collection with Prometheus and Application Insights
+- Use Options pattern with validation and secure configuration
+- Implement graceful shutdown and resource cleanup
+
+⚡ DATABASE & OPERATORS-SPECIFIC REQUIREMENTS:
+- All operations must be fully async/await compatible
+- Implement proper exception handling with custom database exception types
+- Use dependency injection for all service dependencies
+- Add comprehensive unit tests with 90%+ coverage
+- Implement proper logging with operation correlation IDs
+- Use configuration-driven behavior with secure defaults
+
+🏆 END GOAL: 4/4 DATABASE & OPERATORS COMPONENTS COMPLETE
+Directory: `src/Database/` and `src/Operators/`
+Status: Ready for enterprise database deployments
+Quality: Production-hardened, security-compliant, performance-optimized
+
+REMEMBER: You are building the data and operations layer of the TuskTsk C# SDK. Excellence is not optional. 

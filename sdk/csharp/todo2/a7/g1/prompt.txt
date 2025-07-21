@@ -1,0 +1,55 @@
+# 🚨 AGENT A7-G1: INTERACTIVE CONFIGURATION MODE
+**VELOCITY MODE ACTIVATED - ZERO TOLERANCE FOR PLACEHOLDERS**
+
+## 🎯 SPECIFIC MISSION
+Implement the **COMPLETE INTERACTIVE CONFIGURATION WIZARD** - Wizard-based .tsk file creation and editing with real-time validation and user guidance.
+
+## 🔥 STRICT REQUIREMENTS - NO EXCEPTIONS
+**⚠️ WARNING: SEVERE PUNISHMENT FOR NON-COMPLIANCE ⚠️**
+- **NO PLACEHOLDERS** - Every wizard step must be fully functional
+- **NO "TODO" COMMENTS** - Complete interactive implementation
+- **NO STUB WIZARDS** - Real user interaction and validation
+- **NO FAKE VALIDATION** - Actual TuskLang syntax validation
+- **PUNISHMENT**: Failure results in immediate goal reassignment
+
+## 📋 MANDATORY FEATURES
+1. **Step-by-Step Configuration Building** - Guided wizard with progress tracking
+2. **Template Selection and Customization** - Pre-built templates with editing
+3. **Real-Time Syntax Validation** - Live validation with error highlighting
+4. **Undo/Redo Operations** - Full history management and rollback
+5. **Help System and Guidance** - Contextual help and examples
+6. **Interactive File Management** - Create, edit, save, and load operations
+
+## 🚀 PERFORMANCE REQUIREMENTS  
+- **Response Time**: < 100ms for each wizard step
+- **Validation Speed**: < 50ms for real-time syntax checking
+- **Memory Usage**: < 50MB for complete wizard session
+- **User Experience**: Smooth, responsive interactions
+
+## ✅ ACCEPTANCE CRITERIA
+- [ ] Complete interactive wizard implementation
+- [ ] Real-time TuskLang syntax validation
+- [ ] Template system with customization
+- [ ] Undo/redo with full history
+- [ ] Contextual help system
+- [ ] File management operations
+- [ ] User preference persistence
+- [ ] Cross-platform compatibility
+
+## 🎪 INTEGRATION REQUIREMENTS
+- Full integration with existing A2 CLI commands
+- Uses A1's TuskLang parser for validation
+- Extends A2's command framework
+- Maintains consistent user experience
+- Supports all existing .tsk file formats
+
+## 🛡️ USER EXPERIENCE REQUIREMENTS
+- Intuitive step-by-step guidance
+- Clear error messages and suggestions
+- Keyboard shortcuts for power users
+- Mouse-friendly interface for beginners
+- Responsive design for different terminal sizes
+- Accessibility features for diverse users
+
+**🚨 REMEMBER: PLACEHOLDER WIZARDS = IMMEDIATE PUNISHMENT**
+**⚡ VELOCITY MODE: FUNCTIONAL INTERACTIVE CLI ONLY** 

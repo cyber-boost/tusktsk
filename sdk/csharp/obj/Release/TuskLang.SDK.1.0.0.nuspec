@@ -1,0 +1,32 @@
+﻿<?xml version="1.0" encoding="utf-8"?>
+<package xmlns="http://schemas.microsoft.com/packaging/2012/06/nuspec.xsd">
+  <metadata>
+    <id>TuskLang.SDK</id>
+    <version>1.0.0</version>
+    <authors>TuskLang Team</authors>
+    <license type="expression">MIT</license>
+    <licenseUrl>https://licenses.nuget.org/MIT</licenseUrl>
+    <readme>README.md</readme>
+    <projectUrl>https://github.com/tusklang/csharp-sdk</projectUrl>
+    <description>A powerful, high-performance C# SDK for TuskLang configuration management and processing. Features advanced parsing, semantic analysis, database integration, and comprehensive CLI tools.</description>
+    <copyright>Copyright (c) 2024 TuskLang Team</copyright>
+    <tags>configuration parser tsk tusklang database cli ast semantic-analysis</tags>
+    <repository type="git" url="https://github.com/tusklang/csharp-sdk.git" commit="e4388fa216cd6773dbcaa5b4498c5ba25a0f0a58" />
+    <dependencies>
+      <group targetFramework="net8.0">
+        <dependency id="Microsoft.Extensions.Configuration" version="8.0.0" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.DependencyInjection" version="8.0.1" exclude="Build,Analyzers" />
+        <dependency id="Microsoft.Extensions.Logging" version="8.0.1" exclude="Build,Analyzers" />
+        <dependency id="Newtonsoft.Json" version="13.0.3" exclude="Build,Analyzers" />
+        <dependency id="System.CodeDom" version="8.0.0" exclude="Build,Analyzers" />
+        <dependency id="System.CommandLine" version="2.0.0-beta4.22272.1" exclude="Build,Analyzers" />
+        <dependency id="System.Text.Json" version="8.0.5" exclude="Build,Analyzers" />
+      </group>
+    </dependencies>
+  </metadata>
+  <files>
+    <file src="/opt/tsk_git/sdk/csharp/bin/Release/net8.0/tsk.runtimeconfig.json" target="lib/net8.0/tsk.runtimeconfig.json" />
+    <file src="/opt/tsk_git/sdk/csharp/bin/Release/net8.0/tsk.dll" target="lib/net8.0/tsk.dll" />
+    <file src="/opt/tsk_git/sdk/csharp/README.md" target="/README.md" />
+  </files>
+</package>
