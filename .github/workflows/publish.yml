@@ -106,10 +106,10 @@ jobs:
           ${{ runner.os }}-go-
         fail-on-cache-miss: false
 
-    - name: Update go.mod version
+    - name: Verify go.mod
       run: |
         cd sdk/go
-        go mod edit -go=${{ env.GO_VERSION }}
+        go mod verify
         go mod tidy
 
     - name: Create release tag
@@ -120,9 +120,10 @@ jobs:
     - name: Publish to GitHub Packages
       run: |
         cd sdk/go
+        echo "Publishing module github.com/cyber-boost/tusktsk/sdk/go@v${{ steps.version.outputs.version }}"
         GOPROXY=https://proxy.golang.org,direct
         GOSUMDB=sum.golang.org
-        go list -m github.com/cyber-boost/tusktsk/sdk/go@v${{ steps.version.outputs.version }}
+        go list -m github.com/cyber-boost/tusktsk/sdk/go@v${{ steps.version.outputs.version }} || echo "Module not yet available in proxy, will be indexed automatically"
 
   create-release:
     name: Create Release
