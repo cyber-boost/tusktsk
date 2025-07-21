@@ -303,3 +303,4 @@ summaries/
 tools/
 .env
 g.sh
+gd.sh
