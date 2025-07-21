@@ -50,10 +50,20 @@ print(config.get('database.host'))
 
 ## 📚 Documentation
 
-- [Installation Guide](docs/installation.md)
-- [API Reference](docs/api.md)
-- [CLI Commands](docs/cli.md)
-- [Examples](docs/examples.md)
+**📖 Comprehensive documentation is available in the [docs branch](https://github.com/cyber-boost/tusktsk/tree/docs/docs-branch)**
+
+The docs branch contains:
+- **Complete SDK Documentation** - Installation guides, API references, and examples for all languages
+- **Language-Specific Guides** - Detailed guides for Python, PHP, Rust, JavaScript, C#, Java, Go, Ruby, and Bash
+- **Technical Reference** - Advanced features, best practices, and enterprise patterns
+- **CLI Documentation** - Complete command reference and usage examples
+
+### Quick Links
+- [Python SDK Documentation](https://github.com/cyber-boost/tusktsk/tree/docs/docs-branch/docs/sdk/python)
+- [PHP SDK Documentation](https://github.com/cyber-boost/tusktsk/tree/docs/docs-branch/docs/sdk/php)
+- [Rust SDK Documentation](https://github.com/cyber-boost/tusktsk/tree/docs/docs-branch/docs/sdk/rust)
+- [JavaScript SDK Documentation](https://github.com/cyber-boost/tusktsk/tree/docs/docs-branch/docs/sdk/javascript)
+- [All Language Guides](https://github.com/cyber-boost/tusktsk/tree/docs/docs-branch/guides)
 
 ## 🤝 Contributing
 
