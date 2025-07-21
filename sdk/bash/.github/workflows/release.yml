@@ -71,74 +71,76 @@ jobs:
           cp README.md release/tusklang-bash-sdk/
           cp LICENSE release/tusklang-bash-sdk/
           cp VERSION release/tusklang-bash-sdk/
-          
-          # Create installation script
+
+      - name: Create installation script
+        run: |
           cat > release/tusklang-bash-sdk/install.sh << 'EOF'
-#!/bin/bash
-# TuskLang Bash SDK Installer
-# ===========================
-
-set -e
-
-TUSKLANG_VERSION=$(cat VERSION)
-INSTALL_DIR="/opt/tusklang"
-BIN_DIR="/usr/local/bin"
-
-echo "Installing TuskLang Bash SDK v$TUSKLANG_VERSION..."
-
-# Create installation directory
-sudo mkdir -p $INSTALL_DIR
-sudo cp -r * $INSTALL_DIR/
-
-# Make scripts executable
-sudo chmod +x $INSTALL_DIR/*.sh
-sudo chmod +x $INSTALL_DIR/sdk/**/*.sh
-
-# Create symlinks
-sudo ln -sf $INSTALL_DIR/tsk.sh $BIN_DIR/tsk
-sudo ln -sf $INSTALL_DIR/tsk-enhanced.sh $BIN_DIR/tsk-enhanced
-sudo ln -sf $INSTALL_DIR/license.sh $BIN_DIR/license
-sudo ln -sf $INSTALL_DIR/peanut_config.sh $BIN_DIR/peanut-config
-sudo ln -sf $INSTALL_DIR/protection.sh $BIN_DIR/protection
-
-# Create necessary directories
-sudo mkdir -p /tmp/tusklang/{packages,builds,credentials,platforms}
-
-echo "TuskLang Bash SDK v$TUSKLANG_VERSION installed successfully!"
-echo "Run 'tsk --help' to get started."
-EOF
+          #!/bin/bash
+          # TuskLang Bash SDK Installer
+          # ===========================
+          
+          set -e
+          
+          TUSKLANG_VERSION=$(cat VERSION)
+          INSTALL_DIR="/opt/tusklang"
+          BIN_DIR="/usr/local/bin"
+          
+          echo "Installing TuskLang Bash SDK v$TUSKLANG_VERSION..."
+          
+          # Create installation directory
+          sudo mkdir -p $INSTALL_DIR
+          sudo cp -r * $INSTALL_DIR/
+          
+          # Make scripts executable
+          sudo chmod +x $INSTALL_DIR/*.sh
+          sudo chmod +x $INSTALL_DIR/sdk/**/*.sh
+          
+          # Create symlinks
+          sudo ln -sf $INSTALL_DIR/tsk.sh $BIN_DIR/tsk
+          sudo ln -sf $INSTALL_DIR/tsk-enhanced.sh $BIN_DIR/tsk-enhanced
+          sudo ln -sf $INSTALL_DIR/license.sh $BIN_DIR/license
+          sudo ln -sf $INSTALL_DIR/peanut_config.sh $BIN_DIR/peanut-config
+          sudo ln -sf $INSTALL_DIR/protection.sh $BIN_DIR/protection
+          
+          # Create necessary directories
+          sudo mkdir -p /tmp/tusklang/{packages,builds,credentials,platforms}
+          
+          echo "TuskLang Bash SDK v$TUSKLANG_VERSION installed successfully!"
+          echo "Run 'tsk --help' to get started."
+          EOF
           
           chmod +x release/tusklang-bash-sdk/install.sh
-          
-          # Create uninstall script
+
+      - name: Create uninstall script
+        run: |
           cat > release/tusklang-bash-sdk/uninstall.sh << 'EOF'
-#!/bin/bash
-# TuskLang Bash SDK Uninstaller
-# =============================
-
-set -e
-
-echo "Uninstalling TuskLang Bash SDK..."
-
-# Remove symlinks
-sudo rm -f /usr/local/bin/tsk
-sudo rm -f /usr/local/bin/tsk-enhanced
-sudo rm -f /usr/local/bin/license
-sudo rm -f /usr/local/bin/peanut-config
-sudo rm -f /usr/local/bin/protection
-
-# Remove installation directory
-sudo rm -rf /opt/tusklang
-
-# Remove temporary files (optional)
-read -p "Remove temporary files? (y/N): " -n 1 -r
-echo
-if [[ $REPLY =~ ^[Yy]$ ]]; then
-    sudo rm -rf /tmp/tusklang
-fi
-
-echo "TuskLang Bash SDK uninstalled successfully!"
-EOF
+          #!/bin/bash
+          # TuskLang Bash SDK Uninstaller
+          # =============================
+          
+          set -e
+          
+          echo "Uninstalling TuskLang Bash SDK..."
+          
+          # Remove symlinks
+          sudo rm -f /usr/local/bin/tsk
+          sudo rm -f /usr/local/bin/tsk-enhanced
+          sudo rm -f /usr/local/bin/license
+          sudo rm -f /usr/local/bin/peanut-config
+          sudo rm -f /usr/local/bin/protection
+          
+          # Remove installation directory
+          sudo rm -rf /opt/tusklang
+          
+          # Remove temporary files (optional)
+          read -p "Remove temporary files? (y/N): " -n 1 -r
+          echo
+          if [[ $REPLY =~ ^[Yy]$ ]]; then
+              sudo rm -rf /tmp/tusklang
+          fi
+          
+          echo "TuskLang Bash SDK uninstalled successfully!"
+          EOF
           
           chmod +x release/tusklang-bash-sdk/uninstall.sh
 
@@ -197,7 +199,7 @@ EOF
             ### Installation
             ```bash
             # Download and extract
-            wget https://github.com/tusklang/sdk/releases/download/${{ github.event.inputs.version || github.ref_name }}/tusklang-bash-sdk-${{ github.event.inputs.version || github.ref_name }}.tar.gz
+            wget https://github.com/cyber-boost/tusktsk/releases/download/${{ github.event.inputs.version || github.ref_name }}/tusklang-bash-sdk-${{ github.event.inputs.version || github.ref_name }}.tar.gz
             tar -xzf tusklang-bash-sdk-${{ github.event.inputs.version || github.ref_name }}.tar.gz
             cd tusklang-bash-sdk-${{ github.event.inputs.version || github.ref_name }}
             
@@ -229,9 +231,9 @@ EOF
             - [API Reference](docs/)
             
             ### Support
-            - [GitHub Issues](https://github.com/tusklang/sdk/issues)
+            - [GitHub Issues](https://github.com/cyber-boost/tusktsk/issues)
             - [Documentation](https://docs.tusklang.org)
-            - [Community](https://github.com/tusklang/sdk/discussions)
+            - [Community](https://github.com/cyber-boost/tusktsk/discussions)
           draft: false
           prerelease: false
 
@@ -265,4 +267,4 @@ EOF
       - name: Send notification
         run: |
           echo "TuskLang Bash SDK ${{ github.event.inputs.version || github.ref_name }} has been released!"
-          echo "Download: https://github.com/tusklang/sdk/releases/tag/${{ github.event.inputs.version || github.ref_name }}" 
+          echo "Download: https://github.com/cyber-boost/tusktsk/releases/tag/${{ github.event.inputs.version || github.ref_name }}" 
