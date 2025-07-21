@@ -52,7 +52,7 @@ jobs:
     - name: Build and push Docker image
       uses: docker/build-push-action@v5
       with:
-        context: .
+        context: ./sdk/go
         platforms: linux/amd64,linux/arm64
         push: true
         tags: ${{ steps.meta.outputs.tags }}
@@ -92,6 +92,7 @@ jobs:
 
     - name: Update go.mod version
       run: |
+        cd sdk/go
         go mod edit -go=${{ env.GO_VERSION }}
         go mod tidy
 
@@ -102,6 +103,7 @@ jobs:
 
     - name: Publish to GitHub Packages
       run: |
+        cd sdk/go
         GOPROXY=https://proxy.golang.org,direct
         GOSUMDB=sum.golang.org
         go list -m github.com/cyber-boost/tusktsk/sdk/go@v${{ steps.version.outputs.version }}

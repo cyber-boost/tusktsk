@@ -50,13 +50,14 @@ jobs:
 
     - name: Run tests
       run: |
+        cd sdk/go
         go test -v -race -coverprofile=coverage.txt -covermode=atomic ./...
         go tool cover -html=coverage.txt -o coverage.html
 
     - name: Upload coverage to Codecov
       uses: codecov/codecov-action@v3
       with:
-        file: ./coverage.txt
+        file: sdk/go/coverage.txt
         flags: unittests
         name: codecov-umbrella
         fail_ci_if_error: false
@@ -65,7 +66,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: coverage-report-${{ matrix.platform }}
-        path: coverage.html
+        path: sdk/go/coverage.html
 
   build:
     name: Build
@@ -96,6 +97,7 @@ jobs:
 
     - name: Build binary
       run: |
+        cd sdk/go
         GOOS=$(echo ${{ matrix.platform }} | cut -d'/' -f1) \
         GOARCH=$(echo ${{ matrix.platform }} | cut -d'/' -f2) \
         CGO_ENABLED=0 go build -a -installsuffix cgo -o tusktsk-${{ matrix.platform }} .
@@ -104,7 +106,7 @@ jobs:
       uses: actions/upload-artifact@v3
       with:
         name: tusktsk-${{ matrix.platform }}
-        path: tusktsk-${{ matrix.platform }}
+        path: sdk/go/tusktsk-${{ matrix.platform }}
 
   security:
     name: Security Scan
@@ -119,7 +121,7 @@ jobs:
       uses: aquasecurity/trivy-action@master
       with:
         scan-type: 'fs'
-        scan-ref: '.'
+        scan-ref: 'sdk/go'
         format: 'sarif'
         output: 'trivy-results.sarif'
 
@@ -138,7 +140,7 @@ jobs:
       run: go install github.com/securecodewarrior/gosec/v2/cmd/gosec@latest
 
     - name: Run gosec
-      run: gosec -fmt sarif -out gosec-results.sarif ./...
+      run: cd sdk/go && gosec -fmt sarif -out gosec-results.sarif ./...
 
     - name: Upload gosec results
       uses: github/codeql-action/upload-sarif@v2
