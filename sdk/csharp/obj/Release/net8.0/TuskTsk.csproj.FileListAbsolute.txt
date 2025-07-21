@@ -4,3 +4,7 @@
 /opt/tsk_git/sdk/csharp/obj/Release/net8.0/TuskTsk.AssemblyInfo.cs
 /opt/tsk_git/sdk/csharp/obj/Release/net8.0/TuskTsk.csproj.CoreCompileInputs.cache
 /opt/tsk_git/sdk/csharp/obj/Release/net8.0/TuskTsk.sourcelink.json
+/opt/tsk_git/sdk/csharp/obj/Release/net8.0/TuskTsk.dll
+/opt/tsk_git/sdk/csharp/obj/Release/net8.0/refint/TuskTsk.dll
+/opt/tsk_git/sdk/csharp/obj/Release/net8.0/TuskTsk.xml
+/opt/tsk_git/sdk/csharp/obj/Release/net8.0/TuskTsk.pdb

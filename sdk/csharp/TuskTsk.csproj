@@ -24,7 +24,7 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.CSharp" Version="4.7.0" />
-    <PackageReference Include="System.CodeDom" Version="6.0.0" />
+    <PackageReference Include="System.CodeDom" Version="7.0.0" />
     <PackageReference Include="System.CommandLine" Version="2.0.0-beta6.25358.103" />
     <PackageReference Include="System.Data.SQLite" Version="1.0.118" />
     <PackageReference Include="MessagePack" Version="2.5.140" />
@@ -64,7 +64,7 @@
     <PackageReference Include="Microsoft.Extensions.Caching.StackExchangeRedis" Version="8.0.11" />
     <!-- Additional utilities -->
     <PackageReference Include="Polly" Version="8.2.1" />
-    <PackageReference Include="System.Transactions" Version="4.0.0" />
+    <!-- Removed System.Transactions - not needed -->
     <!-- Communication & Messaging -->
     <PackageReference Include="RabbitMQ.Client" Version="6.8.1" />
     <PackageReference Include="Grpc.Net.Client" Version="2.60.0" />
@@ -76,7 +76,7 @@
     <PackageReference Include="AWSSDK.S3" Version="3.7.300.0" />
     <PackageReference Include="AWSSDK.DynamoDBv2" Version="3.7.300.0" />
     <PackageReference Include="Azure.Storage.Blobs" Version="12.19.1" />
-    <PackageReference Include="Azure.Identity" Version="1.10.4" />
+    <PackageReference Include="Azure.Identity" Version="1.11.4" />
     <PackageReference Include="Google.Cloud.Storage.V1" Version="4.7.0" />
     <PackageReference Include="Google.Apis.Auth" Version="1.64.0" />
     <!-- Security -->
@@ -87,13 +87,14 @@
     <!-- Data Processing -->
     <PackageReference Include="YamlDotNet" Version="13.10.1" />
     <PackageReference Include="CsvHelper" Version="30.0.1" />
-    <PackageReference Include="System.Xml.Linq" Version="4.3.0" />
+    <PackageReference Include="System.Xml.Linq" Version="3.5.21022.801" />
     <!-- AI & ML -->
     <PackageReference Include="Microsoft.CognitiveServices.Speech" Version="1.34.0" />
-    <PackageReference Include="Azure.AI.Vision" Version="0.15.1-beta.1" />
-    <PackageReference Include="Microsoft.Azure.CognitiveServices.Language" Version="1.0.1" />
+    <!-- Removed problematic AI packages that don't exist -->
     <!-- Testing -->
     <PackageReference Include="Microsoft.NET.Test.Sdk" Version="17.8.0" />
+    <PackageReference Include="MSTest.TestFramework" Version="3.2.2" />
+    <PackageReference Include="MSTest.TestAdapter" Version="3.2.2" />
     <PackageReference Include="xunit" Version="2.6.6" />
     <PackageReference Include="xunit.runner.visualstudio" Version="2.5.6" />
     <PackageReference Include="Moq" Version="4.20.70" />
@@ -111,337 +112,96 @@
     <None Include="README.md" Pack="true" PackagePath="/" />
   </ItemGroup>
 
-  <!-- Core SDK Files -->
+  <!-- CLI Components -->
   <ItemGroup>
-    <Compile Include="TSK.cs" />
-    <Compile Include="TSKParser.cs" />
-    <Compile Include="TSKParserEnhanced.cs" />
-    <Compile Include="CLIEnhanced.cs" />
-    <Compile Include="ShellStorage.cs" />
-    <Compile Include="PeanutConfig.cs" />
-    <Compile Include="TuskLangTests.cs" />
+    <Compile Include="src/CLI/Program.cs" />
+    <Compile Include="src/CLI/Commands/CommandBase.cs" />
+    <Compile Include="src/CLI/Commands/ParseCommand.cs" />
+    <Compile Include="src/CLI/Commands/CompileCommand.cs" />
+    <Compile Include="src/CLI/Commands/ValidateCommand.cs" />
+    <Compile Include="src/CLI/Commands/InitCommand.cs" />
+    <Compile Include="src/CLI/Commands/BuildCommand.cs" />
+    <Compile Include="src/CLI/Commands/TestCommand.cs" />
+    <Compile Include="src/CLI/Commands/ServeCommand.cs" />
+    <Compile Include="src/CLI/Commands/ConfigCommand.cs" />
+    <Compile Include="src/CLI/Commands/DatabaseCommand.cs" />
+    <Compile Include="src/CLI/Commands/CacheCommand.cs" />
+    <Compile Include="src/CLI/Commands/LicenseCommand.cs" />
+    <Compile Include="src/CLI/Commands/PeanutsCommand.cs" />
+    <Compile Include="src/CLI/Commands/CssCommand.cs" />
+    <Compile Include="src/CLI/Commands/ProjectCommand.cs" />
+    <Compile Include="src/CLI/Commands/AiCommand.cs" />
+    <Compile Include="src/CLI/Commands/UtilityCommand.cs" />
   </ItemGroup>
 
-  <!-- Base Infrastructure -->
+  <!-- Core Components -->
   <ItemGroup>
-    <Compile Include="CoreInterfaces.cs" />
-    <Compile Include="BaseDataStructures.cs" />
-    <Compile Include="Configuration.cs" />
-    <Compile Include="ConfigurationManager.cs" />
-    <Compile Include="ConfigurationContext.cs" />
-    <Compile Include="ConfigurationEngine.cs" />
-    <Compile Include="ConnectionManagementSystem.cs" />
-    <Compile Include="JSONSerializationSystem.cs" />
+    <Compile Include="src/Core/Configuration/Configuration.cs" />
+    <Compile Include="src/Core/Configuration/ConfigurationManager.cs" />
+    <Compile Include="src/Core/Configuration/ConfigurationContext.cs" />
+    <Compile Include="src/Core/Configuration/ConfigurationEngine.cs" />
+    <Compile Include="src/Core/Configuration/Connection.cs" />
+    <Compile Include="src/Core/Configuration/Compilation.cs" />
+    <Compile Include="src/Core/Configuration/Templates.cs" />
+    <Compile Include="src/Core/Configuration/Peanuts.cs" />
+    <Compile Include="src/Core/Configuration/CSS.cs" />
+    <Compile Include="src/Core/Connection/ConnectionManagementSystem.cs" />
+    <Compile Include="src/Core/Serialization/JSONSerializationSystem.cs" />
+    <Compile Include="src/Core/BinaryFormat.cs" />
+    <Compile Include="src/Core/PackageManagement.cs" />
+    <Compile Include="src/Core/ValidationResult.cs" />
   </ItemGroup>
 
-  <!-- Parser Engine -->
+  <!-- Parser Components -->
   <ItemGroup>
-    <Compile Include="TuskTskParser.cs" />
-    <Compile Include="TuskTskLexer.cs" />
-    <Compile Include="TuskTskParserFactory.cs" />
-    <Compile Include="ParseErrorHandler.cs" />
-    <Compile Include="SemanticAnalyzer.cs" />
-  </ItemGroup>
-
-  <!-- Binary Compilation System -->
-  <ItemGroup>
-    <Compile Include="BinaryFactory.cs" />
-    <Compile Include="BinaryLoader.cs" />
-    <Compile Include="BinaryCompiler.cs" />
-  </ItemGroup>
-
-  <!-- Database Adapters -->
-  <ItemGroup>
-    <Compile Include="DapperAdapter.cs" />
-    <Compile Include="EntityFrameworkAdapter.cs" />
-    <Compile Include="DatabaseAdapters.cs" />
-  </ItemGroup>
-
-  <!-- CLI Commands -->
-  <ItemGroup>
-    <Compile Include="CLI/Program.cs" />
-    <Compile Include="CLI/Commands/DatabaseCommands.cs" />
-    <Compile Include="CLI/Commands/DevelopmentCommands.cs" />
-    <Compile Include="CLI/Commands/TestingCommands.cs" />
-    <Compile Include="CLI/Commands/ServiceCommands.cs" />
-    <Compile Include="CLI/Commands/CacheCommands.cs" />
-    <Compile Include="CLI/Commands/ConfigCommands.cs" />
-    <Compile Include="CLI/Commands/BinaryCommands.cs" />
-    <Compile Include="CLI/Commands/AiCommands.cs" />
-    <Compile Include="CLI/Commands/UtilityCommands.cs" />
-    <Compile Include="CLI/Commands/PeanutsCommands.cs" />
-    <Compile Include="CLI/Commands/CssCommands.cs" />
-    <Compile Include="CLI/Commands/ProjectCommands.cs" />
-    <Compile Include="CLI/Commands/LicenseCommands.cs" />
-    <!-- Additional CLI Commands -->
-    <Compile Include="CLI/Commands/CommandBase.cs" />
-    <Compile Include="CLI/Commands/DotnetCommandBase.cs" />
-    <Compile Include="CLI/Commands/Tusk/TuskCommand.cs" />
-    <Compile Include="CLI/Commands/Tusk/BuildCommand.cs" />
-    <Compile Include="CLI/Commands/Tusk/CompileCommand.cs" />
-    <Compile Include="CLI/Commands/Tusk/HelpCommand.cs" />
-    <Compile Include="CLI/Commands/Tusk/InitCommand.cs" />
-    <Compile Include="CLI/Commands/Tusk/ParseCommand.cs" />
-    <Compile Include="CLI/Commands/Tusk/ValidateCommand.cs" />
-    <Compile Include="CLI/Commands/Tusk/VersionCommand.cs" />
-    <Compile Include="CLI/Commands/Tusk/WatchCommand.cs" />
-    <Compile Include="CLI/Commands/TuskDotnet/TuskDotnetCommand.cs" />
-    <Compile Include="CLI/Commands/TuskDotnet/AddCommand.cs" />
-    <Compile Include="CLI/Commands/TuskDotnet/BuildCommand.cs" />
-    <Compile Include="CLI/Commands/TuskDotnet/ConfigCommand.cs" />
-    <Compile Include="CLI/Commands/TuskDotnet/NewCommand.cs" />
-    <Compile Include="CLI/Commands/TuskDotnet/PublishCommand.cs" />
-    <Compile Include="CLI/Commands/TuskDotnet/RestoreCommand.cs" />
-    <Compile Include="CLI/Commands/TuskDotnet/RunCommand.cs" />
-    <Compile Include="CLI/Commands/TuskDotnet/TestCommand.cs" />
-    <!-- CLI Advanced Features -->
-    <Compile Include="CLI/Advanced/CLIAnalytics.cs" />
-    <Compile Include="CLI/Advanced/DeveloperProductivityTools.cs" />
-    <Compile Include="CLI/Advanced/InteractiveConfigurationWizard.cs" />
-    <Compile Include="CLI/Advanced/ShellAutoCompletion.cs" />
-    <Compile Include="CLI/Advanced/Interactive/IWizardStep.cs" />
-    <Compile Include="CLI/Advanced/Interactive/WizardFramework.cs" />
-    <Compile Include="CLI/Advanced/Interactive/ConfigurationWizard.cs" />
-    <Compile Include="CLI/Advanced/Interactive/WizardSteps/ProjectInfoStep.cs" />
-  </ItemGroup>
-
-  <!-- Framework Components -->
-  <ItemGroup>
-    <Compile Include="Framework/AspNetCore/Services/ITuskTskService.cs" />
-    <Compile Include="Framework/AspNetCore/Services/TuskTskService.cs" />
-    <Compile Include="Framework/AspNetCore/Services/IOperatorService.cs" />
-    <Compile Include="Framework/AspNetCore/TuskTskServiceCollectionExtensions.cs" />
-    <Compile Include="Framework/AspNetCore/HealthChecks/TuskTskHealthCheck.cs" />
-    <Compile Include="Framework/Unity/TuskTskUnityIntegration.cs" />
-    <Compile Include="Framework/Xamarin/TuskTskXamarinIntegration.cs" />
-    <Compile Include="Framework/Advanced/AdvancedPlatformIntegration.cs" />
-    <Compile Include="Framework/Advanced/BlazorWebAssemblySupport.cs" />
-    <Compile Include="Framework/Advanced/HotReloadConfigurationSupport.cs" />
-    <Compile Include="Framework/Advanced/MicroservicesContainerIntegration.cs" />
-    <Compile Include="Framework/Advanced/Integrations/EnterpriseIntegrationDeployment.cs" />
-    <Compile Include="Framework/Advanced/Generators/MultiLanguageAgentGenerator.cs" />
-    <Compile Include="Framework/Advanced/Monitoring/UniversalAgentMonitoring.cs" />
-    <Compile Include="Framework/Advanced/TemplateEngine/AdvancedTemplateEngine.cs" />
-    <Compile Include="Framework/Advanced/Testing/UniversalAgentTestingFramework.cs" />
+    <Compile Include="src/Parser/TuskTskParser.cs" />
+    <Compile Include="src/Parser/Lexer/TuskTskLexer.cs" />
+    <Compile Include="src/Parser/IAstVisitor.cs" />
+    <Compile Include="src/Parser/AstNodes.cs" />
+    <Compile Include="src/Parser/ParserResult.cs" />
+    <Compile Include="src/Parser/Semantic/SemanticAnalyzer.cs" />
   </ItemGroup>
 
   <!-- Database Components -->
   <ItemGroup>
-    <Compile Include="Database/Analytics/DatabaseAnalytics.cs" />
-    <Compile Include="Database/Analytics/QueryOptimizer.cs" />
-    <Compile Include="Database/Cloud/CloudDatabaseIntegration.cs" />
-    <Compile Include="Database/NoSQL/NoSQLDatabaseAdapters.cs" />
-    <Compile Include="Database/Serialization/AdvancedSerialization.cs" />
-  </ItemGroup>
-
-  <!-- Developer Experience -->
-  <ItemGroup>
-    <Compile Include="DeveloperExperience/CLIAnalytics.cs" />
-    <Compile Include="DeveloperExperience/DeveloperProductivityTools.cs" />
-    <Compile Include="DeveloperExperience/InteractiveConfigurationWizard.cs" />
-    <Compile Include="DeveloperExperience/ShellAutoCompletion.cs" />
-  </ItemGroup>
-
-  <!-- Examples -->
-  <ItemGroup>
-    <Compile Include="Examples/AspNetCore/Controllers/TuskTskController.cs" />
-    <Compile Include="Examples/AspNetCore/Startup.cs" />
-    <Compile Include="Examples/Unity/TuskTskGameManager.cs" />
-    <Compile Include="Examples/Xamarin/MainPage.xaml.cs" />
-  </ItemGroup>
-
-  <!-- Universal Agent System -->
-  <ItemGroup>
-    <Compile Include="src/UniversalAgentSystem/Engine/AdvancedTemplateEngine.cs" />
-    <Compile Include="src/UniversalAgentSystem/Generators/MultiLanguageGeneratorSuite.cs" />
-    <Compile Include="src/UniversalAgentSystem/Monitoring/UniversalAgentMonitor.cs" />
-  </ItemGroup>
-
-  <!-- Tests -->
-  <ItemGroup>
-    <Compile Include="Tests/AdvancedPerformanceOptimizer.cs" />
-    <Compile Include="Tests/ComprehensiveTestSuite.cs" />
-    <Compile Include="Tests/OperatorTestSuite.cs" />
-    <Compile Include="Tests/OperatorValidationFramework.cs" />
-    <Compile Include="Tests/PerformanceBenchmarkSuite.cs" />
-  </ItemGroup>
-
-  <!-- Additional Core Files -->
-  <ItemGroup>
-    <Compile Include="ErrorHandling.cs" />
-    <Compile Include="EnterpriseFeatures.cs" />
-    <Compile Include="PackageManagement.cs" />
-    <Compile Include="PlatformIntegration.cs" />
-    <Compile Include="TuskLang/BinaryFormat.cs" />
-    <Compile Include="Tusk.Protection/License.cs" />
-    <Compile Include="Tusk.Protection/Protection.cs" />
+    <Compile Include="src/Database/IDatabaseAdapter.cs" />
+    <Compile Include="src/Database/Adapters/DapperAdapter.cs" />
+    <Compile Include="src/Database/Adapters/EntityFrameworkAdapter.cs" />
+    <Compile Include="src/Database/Adapters/DatabaseAdapters.cs" />
+    <Compile Include="src/Database/Adapters.cs" />
   </ItemGroup>
 
   <!-- Operators -->
   <ItemGroup>
-    <Compile Include="Operators/BaseOperator.cs" />
-    <Compile Include="Operators/OperatorRegistry.cs" />
-    <!-- Utility Operators -->
-    <Compile Include="Operators/Utility/CacheOperator.cs" />
-    <Compile Include="Operators/Utility/EnvOperator.cs" />
-    <Compile Include="Operators/Utility/DateOperator.cs" />
-    <!-- Database Operators -->
-    <Compile Include="Operators/Database/QueryOperator.cs" />
-    <Compile Include="Operators/Database/Neo4jOperator.cs" />
-    <Compile Include="Operators/Database/CassandraOperator.cs" />
-    <Compile Include="Operators/Database/ElasticsearchOperator.cs" />
-    <Compile Include="Operators/Database/InfluxDbOperator.cs" />
-    <Compile Include="Operators/Database/RedisOperator.cs" />
-    <Compile Include="Operators/Database/SqlServerOperator.cs" />
-    <Compile Include="Operators/Database/MySqlOperator.cs" />
-    <Compile Include="Operators/Database/PostgreSqlOperator.cs" />
-    <Compile Include="Operators/Database/MongoDbOperator.cs" />
-    <!-- Control Flow Operators -->
-    <Compile Include="Operators/ControlFlow/VariableOperator.cs" />
-    <Compile Include="Operators/ControlFlow/SortOperator.cs" />
-    <Compile Include="Operators/ControlFlow/ReduceOperator.cs" />
-    <Compile Include="Operators/ControlFlow/MapOperator.cs" />
-    <Compile Include="Operators/ControlFlow/FilterOperator.cs" />
-    <Compile Include="Operators/ControlFlow/EachOperator.cs" />
-    <Compile Include="Operators/ControlFlow/WhileOperator.cs" />
-    <Compile Include="Operators/ControlFlow/ForOperator.cs" />
-    <Compile Include="Operators/ControlFlow/SwitchOperator.cs" />
-    <!-- Communication Operators -->
-    <Compile Include="Operators/Communication/AmqpOperator.cs" />
-    <Compile Include="Operators/Communication/GrpcOperator.cs" />
-    <Compile Include="Operators/Communication/NatsOperator.cs" />
-    <Compile Include="Operators/Communication/KafkaOperator.cs" />
-    <Compile Include="Operators/Communication/WebSocketOperator.cs" />
-    <Compile Include="Operators/Communication/GraphQLOperator.cs" />
-    <Compile Include="Operators/Communication/DiscordOperator.cs" />
-    <Compile Include="Operators/Communication/TeamsOperator.cs" />
-    <Compile Include="Operators/Communication/SlackOperator.cs" />
-    <Compile Include="Operators/Communication/WebhookOperator.cs" />
-    <Compile Include="Operators/Communication/SmsOperator.cs" />
-    <Compile Include="Operators/Communication/EmailOperator.cs" />
-    <!-- AI Operators -->
-    <Compile Include="Operators/AI/NeuralOperator.cs" />
-    <Compile Include="Operators/AI/SpeechOperator.cs" />
-    <Compile Include="Operators/AI/VisionOperator.cs" />
-    <Compile Include="Operators/AI/NlpOperator.cs" />
-    <Compile Include="Operators/AI/MlOperator.cs" />
-    <Compile Include="Operators/AI/AioOperator.cs" />
-    <!-- Network Operators -->
-    <Compile Include="Operators/Network/SmtpOperator.cs" />
-    <Compile Include="Operators/Network/WebSocketOperator.cs" />
-    <Compile Include="Operators/Network/HttpOperator.cs" />
-    <!-- Security Operators -->
-    <Compile Include="Operators/Security/VaultOperator.cs" />
-    <Compile Include="Operators/Security/LdapOperator.cs" />
-    <Compile Include="Operators/Security/SamlOperator.cs" />
-    <Compile Include="Operators/Security/OAuthOperator.cs" />
-    <Compile Include="Operators/Security/JwtOperator.cs" />
-    <Compile Include="Operators/Security/DecryptOperator.cs" />
-    <Compile Include="Operators/Security/EncryptOperator.cs" />
-    <!-- File System Operators -->
-    <Compile Include="Operators/FileSystem/DirectoryOperator.cs" />
-    <Compile Include="Operators/FileSystem/FileOperator.cs" />
-    <!-- Cloud Operators -->
-    <Compile Include="Operators/Cloud/GcpOperator.cs" />
-    <Compile Include="Operators/Cloud/AzureOperator.cs" />
-    <Compile Include="Operators/Cloud/AwsOperator.cs" />
-    <!-- Data Processing Operators -->
-    <Compile Include="Operators/DataProcessing/Base64Operator.cs" />
-    <Compile Include="Operators/DataProcessing/YamlOperator.cs" />
-    <Compile Include="Operators/DataProcessing/CsvOperator.cs" />
-    <Compile Include="Operators/DataProcessing/XmlOperator.cs" />
-    <Compile Include="Operators/DataProcessing/JsonOperator.cs" />
+    <Compile Include="src/Operators/BaseOperator.cs" />
+    <Compile Include="src/Operators/OperatorRegistry.cs" />
+    <Compile Include="src/Operators/Cloud/AwsOperator.cs" />
+    <Compile Include="src/Operators/Cloud/AzureOperator.cs" />
+    <Compile Include="src/Operators/Cloud/GcpOperator.cs" />
   </ItemGroup>
 
-  <!-- Advanced Parser Components -->
+  <!-- Examples -->
   <ItemGroup>
-    <Compile Include="AdvancedParser/Optimization/SIMDParser.cs" />
-    <Compile Include="AdvancedParser/BinaryCompilation/BinaryCompilationEngine.cs" />
+    <Compile Include="src/Examples/AspNetCore/Controllers/TuskTskController.cs" />
   </ItemGroup>
 
-  <!-- Performance Components -->
+  <!-- Framework -->
   <ItemGroup>
-    <Compile Include="Performance/Caching/ASTCachingSystem.cs" />
-    <Compile Include="Performance/DataStructures/OptimizedDataStructures.cs" />
+    <Compile Include="src/Framework/Framework.cs" />
   </ItemGroup>
 
-  <!-- AST Components -->
+  <!-- Universal Agent System -->
   <ItemGroup>
-    <Compile Include="Ast/IAstVisitor.cs" />
-    <Compile Include="Ast/AstNodes.cs" />
+    <Compile Include="src/UniversalAgentSystem/Generators/MultiLanguageGeneratorSuite.cs" />
   </ItemGroup>
 
-  <!-- Integration Tests -->
+  <!-- Tests -->
   <ItemGroup>
-    <Compile Include="G5IntegrationTests.cs" />
-    <Compile Include="QuantumAgentA6IntegrationTests.cs" />
-  </ItemGroup>
-
-  <!-- Advanced Quantum Components -->
-  <ItemGroup>
-    <Compile Include="AdvancedQuantumEducation.cs" />
-    <Compile Include="AdvancedQuantumTransportation.cs" />
-    <Compile Include="AdvancedQuantumEnergy.cs" />
-    <Compile Include="AdvancedQuantumFinance.cs" />
-    <Compile Include="AdvancedQuantumHealthcare.cs" />
-    <Compile Include="AdvancedQuantumMetaverse.cs" />
-    <Compile Include="AdvancedQuantumSmartContracts.cs" />
-    <Compile Include="AdvancedQuantumCryptoeconomics.cs" />
-    <Compile Include="AdvancedQuantumBlockchain.cs" />
-    <Compile Include="AdvancedQuantumDigitalTwins.cs" />
-    <Compile Include="AdvancedQuantumSimulation.cs" />
-    <Compile Include="AdvancedQuantumCognitiveSystems.cs" />
-    <Compile Include="AdvancedQuantumNLP.cs" />
-    <Compile Include="AdvancedQuantumNeuralNetworks.cs" />
-    <Compile Include="AdvancedQuantumNetworkSecurity.cs" />
-    <Compile Include="AdvancedDistributedQuantumComputing.cs" />
-    <Compile Include="AdvancedQuantumInternet.cs" />
-    <Compile Include="AdvancedQuantumCommunication.cs" />
-    <Compile Include="AdvancedQuantumMachineLearning.cs" />
-    <Compile Include="AdvancedQuantumRobotics.cs" />
-    <Compile Include="AdvancedAutonomousVehicleControl.cs" />
-    <Compile Include="AdvancedIndustrialAutomation.cs" />
-    <Compile Include="AdvancedRoboticsControl.cs" />
-    <Compile Include="AdvancedNaturalLanguageGeneration.cs" />
-    <Compile Include="AdvancedComputerVision.cs" />
-    <Compile Include="AdvancedNeuralNetworks.cs" />
-    <Compile Include="AdvancedCryptography.cs" />
-    <Compile Include="AdvancedQuantumComputing.cs" />
-    <Compile Include="AdvancedEdgeComputing.cs" />
-    <Compile Include="AdvancedIoTIntegration.cs" />
-    <Compile Include="AdvancedBlockchainIntegration.cs" />
-    <Compile Include="NaturalLanguageProcessing.cs" />
-    <Compile Include="DataAnalyticsBI.cs" />
-    <Compile Include="MachineLearningAI.cs" />
-    <Compile Include="AdvancedZeroKnowledgeProofs.cs" />
-    <Compile Include="MonitoringAlerting.cs" />
-    <Compile Include="DeploymentCICD.cs" />
-    <Compile Include="TestingQualityAssurance.cs" />
-    <Compile Include="MicroservicesOrchestration.cs" />
-    <Compile Include="EventStreamingMessageQueue.cs" />
-    <Compile Include="ApiGatewayServiceMesh.cs" />
-    <Compile Include="ConfigurationManagement.cs" />
-    <Compile Include="LoggingObservability.cs" />
-    <Compile Include="DatabaseIntegration.cs" />
-    <Compile Include="AdvancedIntegrationExample.cs" />
-    <Compile Include="SecurityValidation.cs" />
-    <Compile Include="PerformanceOptimization.cs" />
-  </ItemGroup>
-
-  <!-- Goal Integration Examples -->
-  <ItemGroup>
-    <Compile Include="GoalG14IntegrationExample.cs" />
-    <Compile Include="GoalG12IntegrationExample.cs" />
-    <Compile Include="GoalG11IntegrationExample.cs" />
-    <Compile Include="GoalG10IntegrationExample.cs" />
-    <Compile Include="GoalG9IntegrationExample.cs" />
-    <Compile Include="GoalG8IntegrationExample.cs" />
-    <Compile Include="GoalG7IntegrationExample.cs" />
-    <Compile Include="GoalG6IntegrationExample.cs" />
-    <Compile Include="GoalG5IntegrationExample.cs" />
-    <Compile Include="GoalG4IntegrationExample.cs" />
-    <Compile Include="GoalG3IntegrationExample.cs" />
-    <Compile Include="GoalG2IntegrationExample.cs" />
+    <Compile Include="src/Tests/AdvancedPerformanceOptimizer.cs" />
+    <Compile Include="src/Tests/ComprehensiveTestSuite.cs" />
+    <Compile Include="src/Tests/OperatorTestSuite.cs" />
+    <Compile Include="src/Tests/OperatorValidationFramework.cs" />
+    <Compile Include="src/Tests/PerformanceBenchmarkSuite.cs" />
   </ItemGroup>
 
   <ItemGroup>
