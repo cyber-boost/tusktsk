@@ -15,7 +15,7 @@ using System.Reflection;
 [assembly: System.Reflection.AssemblyDescriptionAttribute("🔹 TuskTsk Enhanced - The Freedom Configuration Language for C# with maximum synt" +
     "ax flexibility")]
 [assembly: System.Reflection.AssemblyFileVersionAttribute("2.0.2.0")]
-[assembly: System.Reflection.AssemblyInformationalVersionAttribute("2.0.2+e0eaae46983c25a9d3de98eff5e3327f0f1c6077")]
+[assembly: System.Reflection.AssemblyInformationalVersionAttribute("2.0.2+11c4170ab5ea85bcce3100ee8a866af04c5b8685")]
 [assembly: System.Reflection.AssemblyProductAttribute("TuskTsk")]
 [assembly: System.Reflection.AssemblyTitleAttribute("TuskTsk")]
 [assembly: System.Reflection.AssemblyVersionAttribute("2.0.2.0")]

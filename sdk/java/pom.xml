@@ -365,6 +365,7 @@
                         <exclude>**/NaturalLanguageProcessingEngine.java</exclude>
                         <exclude>**/AnomalyDetectionEngine.java</exclude>
                         <exclude>**/TuskLangEnhanced.java</exclude>
+                        <exclude>**/org/tusklang/TuskLangEnhanced.java</exclude>
                         <exclude>**/ElasticsearchAdapter.java</exclude>
                         <exclude>**/RedisAdapter.java</exclude>
                         <exclude>**/MongoDBAdapter.java</exclude>

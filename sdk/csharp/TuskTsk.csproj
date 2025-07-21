@@ -145,11 +145,14 @@
     <Compile Include="src/Core/Configuration/Templates.cs" />
     <Compile Include="src/Core/Configuration/Peanuts.cs" />
     <Compile Include="src/Core/Configuration/CSS.cs" />
+    <Compile Include="src/Core/Configuration/PeanutsClient.cs" />
+    <Compile Include="src/Core/Configuration/CssProcessingOptions.cs" />
     <Compile Include="src/Core/Connection/ConnectionManagementSystem.cs" />
     <Compile Include="src/Core/Serialization/JSONSerializationSystem.cs" />
     <Compile Include="src/Core/BinaryFormat.cs" />
     <Compile Include="src/Core/PackageManagement.cs" />
     <Compile Include="src/Core/ValidationResult.cs" />
+    <Compile Include="src/Core/Services/ITuskTskService.cs" />
   </ItemGroup>
 
   <!-- Parser Components -->
@@ -159,6 +162,8 @@
     <Compile Include="src/Parser/IAstVisitor.cs" />
     <Compile Include="src/Parser/AstNodes.cs" />
     <Compile Include="src/Parser/ParserResult.cs" />
+    <Compile Include="src/Parser/TuskTskParserFactory.cs" />
+    <Compile Include="src/Parser/ParseOptions.cs" />
     <Compile Include="src/Parser/Semantic/SemanticAnalyzer.cs" />
   </ItemGroup>
 
@@ -175,6 +180,7 @@
   <ItemGroup>
     <Compile Include="src/Operators/BaseOperator.cs" />
     <Compile Include="src/Operators/OperatorRegistry.cs" />
+    <Compile Include="src/Operators/OperatorExecution.cs" />
     <Compile Include="src/Operators/Cloud/AwsOperator.cs" />
     <Compile Include="src/Operators/Cloud/AzureOperator.cs" />
     <Compile Include="src/Operators/Cloud/GcpOperator.cs" />
