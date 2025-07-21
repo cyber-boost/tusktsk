@@ -590,8 +590,14 @@ class TuskLangEnhanced {
       case 'neural':
         return this.executeNeuralOperator(params);
       
-      case 'variable':
-        return this.executeVariableOperator(params);
+      case 'date':
+        return this.executeDateOperator(params);
+        
+      case 'file':
+        return this.executeFileOperator(params);
+        
+      case 'json':
+        return this.executeJsonOperator(params);
       
       case 'env':
         // Already handled in parseValue
@@ -2115,68 +2121,13 @@ class TuskLangEnhanced {
   }
 
   /**
-   * Elasticsearch operator - Elasticsearch operations
+   * Elasticsearch operator - Production-Ready Implementation
    */
   async executeElasticsearchOperator(params) {
     try {
-      // Parse Elasticsearch operations: "url, index, document, ...options"
-      const parts = params.split(',').map(p => p.trim());
-      if (parts.length < 3) {
-        throw new Error('Invalid @elasticsearch syntax. Expected: url, index, document, ...options');
-      }
-
-      const url = this.parseValue(parts[0]);
-      const index = this.parseValue(parts[1]);
-      const document = this.parseValue(parts[2]);
-      const options = parts[3] ? this.parseValue(parts[3]) : {};
-
-      const https = require('https');
-      const http = require('http');
-
-      const postData = JSON.stringify(document);
-
-      const urlObj = new URL(url);
-      const isHttps = urlObj.protocol === 'https:';
-      const client = isHttps ? https : http;
-
-      const requestOptions = {
-        hostname: urlObj.hostname,
-        port: urlObj.port || (isHttps ? 443 : 80),
-        path: `/${index}/_doc`,
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-          'Content-Length': Buffer.byteLength(postData)
-        }
-      };
-
-      return new Promise((resolve) => {
-        const req = client.request(requestOptions, (res) => {
-          let data = '';
-          res.on('data', (chunk) => {
-            data += chunk;
-          });
-          res.on('end', () => {
-            try {
-              const result = JSON.parse(data);
-              if (res.statusCode === 201 || res.statusCode === 200) {
-                resolve({ success: true, indexed: true, id: result._id, index: index });
-              } else {
-                resolve({ success: false, error: `HTTP ${res.statusCode}: ${data}` });
-              }
-            } catch (error) {
-              resolve({ success: false, error: 'Invalid JSON response' });
-            }
-          });
-        });
-
-        req.on('error', (error) => {
-          resolve({ success: false, error: error.message });
-        });
-
-        req.write(postData);
-        req.end();
-      });
+      const ElasticsearchOperator = require('./todo/a2/g5/elasticsearch-operator');
+      const operator = new ElasticsearchOperator();
+      return await operator.executeElasticsearchOperator(params);
     } catch (error) {
       console.error('@elasticsearch operator error:', error);
       return { success: false, error: error.message };
@@ -2797,62 +2748,13 @@ class TuskLangEnhanced {
   }
 
   /**
-   * MongoDB operator - MongoDB operations
+   * MongoDB operator - Production-Ready Implementation
    */
-  executeMongoDbOperator(params) {
+  async executeMongoDbOperator(params) {
     try {
-      // Parse MongoDB operations: "url, database, collection, operation, ...options"
-      const parts = params.split(',').map(p => p.trim());
-      if (parts.length < 4) {
-        throw new Error('Invalid @mongodb syntax. Expected: url, database, collection, operation, ...options');
-      }
-
-      const url = this.parseValue(parts[0]);
-      const database = this.parseValue(parts[1]);
-      const collection = this.parseValue(parts[2]);
-      const operation = this.parseValue(parts[3]);
-      const data = parts[4] ? this.parseValue(parts[4]) : {};
-
-      // Real MongoDB implementation using MongoDB driver
-      const { MongoClient } = require('mongodb');
-      
-      return new Promise(async (resolve, reject) => {
-        try {
-          const client = new MongoClient(url);
-          await client.connect();
-          
-          const db = client.db(database);
-          const col = db.collection(collection);
-          
-          let result;
-          switch (operation.toLowerCase()) {
-            case 'find':
-              result = await col.find(data).toArray();
-              break;
-            case 'insert':
-              result = await col.insertOne(data);
-              break;
-            case 'update':
-              const filter = data.filter || {};
-              const update = data.update || {};
-              result = await col.updateOne(filter, update);
-              break;
-            case 'delete':
-              result = await col.deleteOne(data);
-              break;
-            case 'count':
-              result = await col.countDocuments(data);
-              break;
-            default:
-              throw new Error(`Unknown MongoDB operation: ${operation}`);
-          }
-          
-          await client.close();
-          resolve({ success: true, result: result });
-        } catch (error) {
-          resolve({ success: false, error: error.message });
-        }
-      });
+      const MongoDBOperator = require('./todo/a2/g3/mongodb-operator');
+      const operator = new MongoDBOperator();
+      return await operator.executeMongoDbOperator(params);
     } catch (error) {
       console.error('@mongodb operator error:', error);
       return { success: false, error: error.message };
@@ -2889,26 +2791,13 @@ class TuskLangEnhanced {
   }
 
   /**
-   * PostgreSQL operator - PostgreSQL operations
+   * PostgreSQL operator - Production-Ready Implementation
    */
-  executePostgreSqlOperator(params) {
+  async executePostgreSqlOperator(params) {
     try {
-      // Parse PostgreSQL operations: "url, database, query, ...options"
-      const parts = params.split(',').map(p => p.trim());
-      if (parts.length < 3) {
-        throw new Error('Invalid @postgresql syntax. Expected: url, database, query, ...options');
-      }
-
-      const url = this.parseValue(parts[0]);
-      const database = this.parseValue(parts[1]);
-      const query = this.parseValue(parts[2]);
-
-      // In production, execute PostgreSQL query
-      console.log(`PostgreSQL query would be executed on: ${url}`);
-      console.log(`Database: ${database}`);
-      console.log(`Query:`, query);
-
-      return { success: true, rows: [] };
+      const PostgreSQLOperator = require('./todo/a2/g1/postgresql-operator');
+      const operator = new PostgreSQLOperator();
+      return await operator.executePostgreSqlOperator(params);
     } catch (error) {
       console.error('@postgresql operator error:', error);
       return { success: false, error: error.message };
@@ -2916,26 +2805,13 @@ class TuskLangEnhanced {
   }
 
   /**
-   * MySQL operator - MySQL operations
+   * MySQL operator - Production-Ready Implementation
    */
-  executeMySqlOperator(params) {
+  async executeMySqlOperator(params) {
     try {
-      // Parse MySQL operations: "url, database, query, ...options"
-      const parts = params.split(',').map(p => p.trim());
-      if (parts.length < 3) {
-        throw new Error('Invalid @mysql syntax. Expected: url, database, query, ...options');
-      }
-
-      const url = this.parseValue(parts[0]);
-      const database = this.parseValue(parts[1]);
-      const query = this.parseValue(parts[2]);
-
-      // In production, execute MySQL query
-      console.log(`MySQL query would be executed on: ${url}`);
-      console.log(`Database: ${database}`);
-      console.log(`Query:`, query);
-
-      return { success: true, rows: [] };
+      const MySQLOperator = require('./todo/a2/g2/mysql-operator');
+      const operator = new MySQLOperator();
+      return await operator.executeMySqlOperator(params);
     } catch (error) {
       console.error('@mysql operator error:', error);
       return { success: false, error: error.message };
@@ -2943,28 +2819,13 @@ class TuskLangEnhanced {
   }
 
   /**
-   * InfluxDB operator - Time series DB
+   * InfluxDB operator - Production-Ready Implementation
    */
-  executeInfluxDbOperator(params) {
+  async executeInfluxDbOperator(params) {
     try {
-      // Parse InfluxDB operations: "url, database, measurement, data, ...options"
-      const parts = params.split(',').map(p => p.trim());
-      if (parts.length < 4) {
-        throw new Error('Invalid @influxdb syntax. Expected: url, database, measurement, data, ...options');
-      }
-
-      const url = this.parseValue(parts[0]);
-      const database = this.parseValue(parts[1]);
-      const measurement = this.parseValue(parts[2]);
-      const data = this.parseValue(parts[3]);
-
-      // In production, write to InfluxDB
-      console.log(`InfluxDB write would be performed on: ${url}`);
-      console.log(`Database: ${database}`);
-      console.log(`Measurement: ${measurement}`);
-      console.log(`Data:`, data);
-
-      return { success: true, timestamp: Date.now() };
+      const InfluxDBOperator = require('./todo/a2/g4/influxdb-operator');
+      const operator = new InfluxDBOperator();
+      return await operator.executeInfluxDbOperator(params);
     } catch (error) {
       console.error('@influxdb operator error:', error);
       return { success: false, error: error.message };
@@ -3935,6 +3796,466 @@ class TuskLangEnhanced {
   }
 
   /**
+   * JSON operator - Parse and stringify JSON data
+   */
+  executeJsonOperator(params) {
+    try {
+      const match = params.match(/^["']([^"']+)["'](?:,\s*(.+))?$/);
+      if (!match) {
+        throw new Error('Invalid @json syntax. Expected: "parse|stringify|validate|path|merge|diff", data');
+      }
+
+      const operation = match[1].toLowerCase();
+      const data = match[2] ? this.parseValue(match[2]) : null;
+
+      switch (operation) {
+        case 'parse':
+          if (typeof data === 'string') {
+            // Remove extra quotes if present and handle escaped characters
+            const cleanData = data.replace(/^"(.*)"$/, '$1')
+                                 .replace(/\\"/g, '"')
+                                 .replace(/\\n/g, '\n')
+                                 .replace(/\\t/g, '\t')
+                                 .replace(/\\r/g, '\r');
+            return JSON.parse(cleanData);
+          }
+          return data;
+          
+        case 'stringify':
+          const indent = 2;
+          const replacer = null;
+          return JSON.stringify(data, replacer, indent);
+          
+        case 'validate':
+          try {
+            if (typeof data === 'string') {
+              JSON.parse(data);
+            } else {
+              JSON.stringify(data);
+            }
+            return { valid: true, error: null };
+          } catch (error) {
+            return { valid: false, error: error.message };
+          }
+          
+        case 'path':
+          if (!data || typeof data !== 'object') {
+            throw new Error('Path operation requires object data');
+          }
+          const pathMatch = params.match(/^["']path["'],\s*["']([^"']+)["'],\s*(.+)$/);
+          if (!pathMatch) {
+            throw new Error('Path operation requires: "path", "path.expression", data');
+          }
+          const pathExpr = pathMatch[1];
+          const pathData = this.parseValue(pathMatch[2]);
+          return this.getJsonPath(pathData, pathExpr);
+          
+        case 'merge':
+          if (!Array.isArray(data) || data.length < 2) {
+            throw new Error('Merge operation requires array of at least 2 objects');
+          }
+          return data.reduce((merged, obj) => ({ ...merged, ...obj }), {});
+          
+        case 'diff':
+          if (!Array.isArray(data) || data.length !== 2) {
+            throw new Error('Diff operation requires array of exactly 2 objects');
+          }
+          return this.getJsonDiff(data[0], data[1]);
+          
+        case 'schema':
+          return this.generateJsonSchema(data);
+          
+        default:
+          throw new Error(`Unknown JSON operation: ${operation}. Supported: parse, stringify, validate, path, merge, diff, schema`);
+      }
+    } catch (error) {
+      console.error('@json operator error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get value from JSON path expression
+   */
+  getJsonPath(obj, path) {
+    try {
+      const keys = path.split('.');
+      let result = obj;
+      
+      for (const key of keys) {
+        if (result && typeof result === 'object' && key in result) {
+          result = result[key];
+        } else {
+          return undefined;
+        }
+      }
+      
+      return result;
+    } catch (error) {
+      console.error('JSON path error:', error);
+      return undefined;
+    }
+  }
+
+  /**
+   * Get differences between two JSON objects
+   */
+  getJsonDiff(obj1, obj2) {
+    const diff = { added: {}, removed: {}, changed: {} };
+    
+    // Find added and changed properties
+    for (const key in obj2) {
+      if (!(key in obj1)) {
+        diff.added[key] = obj2[key];
+      } else if (JSON.stringify(obj1[key]) !== JSON.stringify(obj2[key])) {
+        diff.changed[key] = { from: obj1[key], to: obj2[key] };
+      }
+    }
+    
+    // Find removed properties
+    for (const key in obj1) {
+      if (!(key in obj2)) {
+        diff.removed[key] = obj1[key];
+      }
+    }
+    
+    return diff;
+  }
+
+  /**
+   * Generate JSON schema from data
+   */
+  generateJsonSchema(data) {
+    const schema = { type: this.getJsonType(data) };
+    
+    if (schema.type === 'object' && data !== null) {
+      schema.properties = {};
+      schema.required = [];
+      
+      for (const [key, value] of Object.entries(data)) {
+        schema.properties[key] = { type: this.getJsonType(value) };
+        if (value !== null && value !== undefined) {
+          schema.required.push(key);
+        }
+      }
+    } else if (schema.type === 'array' && Array.isArray(data)) {
+      schema.items = data.length > 0 ? { type: this.getJsonType(data[0]) } : {};
+    }
+    
+    return schema;
+  }
+
+  /**
+   * Get JSON type of value
+   */
+  getJsonType(value) {
+    if (value === null) return 'null';
+    if (Array.isArray(value)) return 'array';
+    if (typeof value === 'object') return 'object';
+    if (typeof value === 'string') return 'string';
+    if (typeof value === 'number') return Number.isInteger(value) ? 'integer' : 'number';
+    if (typeof value === 'boolean') return 'boolean';
+    return 'string';
+  }
+
+  /**
+   * File operator - comprehensive file operations with cross-file functionality
+   */
+  async executeFileOperator(params) {
+    try {
+      const fs = require('fs').promises;
+      const path = require('path');
+      const crypto = require('crypto');
+      
+      const match = params.match(/^["']([^"']+)["'](?:,\s*(.+))?$/);
+      if (!match) {
+        throw new Error('Invalid @file syntax. Expected: "read|write|exists|size|copy|move|delete|list|search|hash|compress|decompress", path[, data]');
+      }
+
+      const operation = match[1].toLowerCase();
+      const filePath = match[2] ? this.parseValue(match[2]) : null;
+
+      switch (operation) {
+        case 'read':
+          if (!filePath) throw new Error('File path required for read operation');
+          const content = await fs.readFile(filePath, 'utf8');
+          return content;
+          
+        case 'write':
+          const writeMatch = params.match(/^["']write["'],\s*["']([^"']+)["'],\s*(.+)$/);
+          if (!writeMatch) throw new Error('Write operation requires path and data');
+          const writePath = writeMatch[1];
+          const writeData = this.parseValue(writeMatch[2]);
+          await fs.writeFile(writePath, String(writeData), 'utf8');
+          return { success: true, path: writePath, size: String(writeData).length };
+          
+        case 'append':
+          const appendMatch = params.match(/^["']append["'],\s*["']([^"']+)["'],\s*(.+)$/);
+          if (!appendMatch) throw new Error('Append operation requires path and data');
+          const appendPath = appendMatch[1];
+          const appendData = this.parseValue(appendMatch[2]);
+          await fs.appendFile(appendPath, String(appendData), 'utf8');
+          return { success: true, path: appendPath, operation: 'appended' };
+          
+        case 'exists':
+          if (!filePath) throw new Error('File path required for exists operation');
+          try {
+            await fs.access(filePath);
+            return true;
+          } catch {
+            return false;
+          }
+          
+        case 'size':
+          if (!filePath) throw new Error('File path required for size operation');
+          const stats = await fs.stat(filePath);
+          return stats.size;
+          
+        case 'info':
+          if (!filePath) throw new Error('File path required for info operation');
+          const fileStats = await fs.stat(filePath);
+          return {
+            size: fileStats.size,
+            created: fileStats.birthtime,
+            modified: fileStats.mtime,
+            accessed: fileStats.atime,
+            isFile: fileStats.isFile(),
+            isDirectory: fileStats.isDirectory(),
+            permissions: fileStats.mode.toString(8)
+          };
+          
+        case 'copy':
+          const copyMatch = params.match(/^["']copy["'],\s*["']([^"']+)["'],\s*["']([^"']+)["']$/);
+          if (!copyMatch) throw new Error('Copy operation requires source and destination paths');
+          const [_, sourcePath, destPath] = copyMatch;
+          await fs.copyFile(sourcePath, destPath);
+          return { success: true, source: sourcePath, destination: destPath };
+          
+        case 'move':
+          const moveMatch = params.match(/^["']move["'],\s*["']([^"']+)["'],\s*["']([^"']+)["']$/);
+          if (!moveMatch) throw new Error('Move operation requires source and destination paths');
+          const [__, moveSource, moveDest] = moveMatch;
+          await fs.rename(moveSource, moveDest);
+          return { success: true, source: moveSource, destination: moveDest };
+          
+        case 'delete':
+          if (!filePath) throw new Error('File path required for delete operation');
+          await fs.unlink(filePath);
+          return { success: true, path: filePath, operation: 'deleted' };
+          
+        case 'list':
+          if (!filePath) throw new Error('Directory path required for list operation');
+          const files = await fs.readdir(filePath);
+          const fileList = [];
+          for (const file of files) {
+            try {
+              const fileStat = await fs.stat(path.join(filePath, file));
+              fileList.push({
+                name: file,
+                isDirectory: fileStat.isDirectory(),
+                size: fileStat.size,
+                modified: fileStat.mtime
+              });
+            } catch (error) {
+              fileList.push({ name: file, error: error.message });
+            }
+          }
+          return fileList;
+          
+        case 'search':
+          const searchMatch = params.match(/^["']search["'],\s*["']([^"']+)["'],\s*["']([^"']+)["']$/);
+          if (!searchMatch) throw new Error('Search operation requires directory and pattern');
+          const [___, searchDir, searchPattern] = searchMatch;
+          return await this.searchFiles(searchDir, searchPattern);
+          
+        case 'hash':
+          if (!filePath) throw new Error('File path required for hash operation');
+          const fileBuffer = await fs.readFile(filePath);
+          const hash = crypto.createHash('sha256').update(fileBuffer).digest('hex');
+          return { hash, algorithm: 'sha256', path: filePath };
+          
+        case 'compress':
+          if (!filePath) throw new Error('File path required for compress operation');
+          return await this.compressFile(filePath);
+          
+        case 'decompress':
+          if (!filePath) throw new Error('File path required for decompress operation');
+          return await this.decompressFile(filePath);
+          
+        case 'crossfile':
+          return await this.executeCrossFileOperation(params);
+          
+        case 'watch':
+          if (!filePath) throw new Error('File path required for watch operation');
+          return await this.watchFile(filePath);
+          
+        case 'backup':
+          if (!filePath) throw new Error('File path required for backup operation');
+          return await this.backupFile(filePath);
+          
+        case 'restore':
+          const restoreMatch = params.match(/^["']restore["'],\s*["']([^"']+)["'],\s*["']([^"']+)["']$/);
+          if (!restoreMatch) throw new Error('Restore operation requires backup and destination paths');
+          const [____, backupPath, restorePath] = restoreMatch;
+          return await this.restoreFile(backupPath, restorePath);
+          
+        default:
+          throw new Error(`Unknown file operation: ${operation}. Supported: read, write, append, exists, size, info, copy, move, delete, list, search, hash, compress, decompress, crossfile, watch, backup, restore`);
+      }
+    } catch (error) {
+      console.error('@file operator error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Search files in directory with pattern matching
+   */
+  async searchFiles(directory, pattern) {
+    try {
+      const fs = require('fs').promises;
+      const path = require('path');
+      const glob = require('glob');
+      
+      return new Promise((resolve, reject) => {
+        glob(path.join(directory, pattern), (err, files) => {
+          if (err) {
+            resolve({ success: false, error: err.message, files: [] });
+          } else {
+            resolve({ success: true, files, count: files.length });
+          }
+        });
+      });
+    } catch (error) {
+      return { success: false, error: error.message, files: [] };
+    }
+  }
+
+  /**
+   * Compress file using gzip
+   */
+  async compressFile(filePath) {
+    try {
+      const fs = require('fs');
+      const zlib = require('zlib');
+      const { promisify } = require('util');
+      const gzip = promisify(zlib.gzip);
+      
+      const content = await fs.promises.readFile(filePath);
+      const compressed = await gzip(content);
+      const compressedPath = filePath + '.gz';
+      
+      await fs.promises.writeFile(compressedPath, compressed);
+      return { success: true, original: filePath, compressed: compressedPath, ratio: (compressed.length / content.length * 100).toFixed(2) + '%' };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Decompress gzipped file
+   */
+  async decompressFile(filePath) {
+    try {
+      const fs = require('fs');
+      const zlib = require('zlib');
+      const { promisify } = require('util');
+      const gunzip = promisify(zlib.gunzip);
+      
+      const compressed = await fs.promises.readFile(filePath);
+      const content = await gunzip(compressed);
+      const decompressedPath = filePath.replace('.gz', '');
+      
+      await fs.promises.writeFile(decompressedPath, content);
+      return { success: true, compressed: filePath, decompressed: decompressedPath };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Execute cross-file operations
+   */
+  async executeCrossFileOperation(params) {
+    try {
+      const crossMatch = params.match(/^["']crossfile["'],\s*["']([^"']+)["'],\s*["']([^"']+)["'],\s*(.+)$/);
+      if (!crossMatch) throw new Error('Cross-file operation requires: "crossfile", "operation", "filename", data');
+      
+      const [_, operation, filename, data] = crossMatch;
+      
+      switch (operation.toLowerCase()) {
+        case 'get':
+          return this.crossFileGet(filename, data);
+        case 'set':
+          const setMatch = params.match(/^["']crossfile["'],\s*["']set["'],\s*["']([^"']+)["'],\s*["']([^"']+)["'],\s*(.+)$/);
+          if (!setMatch) throw new Error('Cross-file set requires key and value');
+          const [__, ___, setFilename, key, value] = setMatch;
+          return this.crossFileSet(setFilename, key, this.parseValue(value));
+        default:
+          throw new Error(`Unknown cross-file operation: ${operation}`);
+      }
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Watch file for changes
+   */
+  async watchFile(filePath) {
+    try {
+      const fs = require('fs');
+      
+      return new Promise((resolve) => {
+        const watcher = fs.watch(filePath, (eventType, filename) => {
+          resolve({ success: true, event: eventType, filename, path: filePath });
+          watcher.close();
+        });
+        
+        // Timeout after 30 seconds
+        setTimeout(() => {
+          watcher.close();
+          resolve({ success: false, error: 'Watch timeout' });
+        }, 30000);
+      });
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Backup file with timestamp
+   */
+  async backupFile(filePath) {
+    try {
+      const fs = require('fs').promises;
+      const path = require('path');
+      
+      const timestamp = new Date().toISOString().replace(/[:.]/g, '-');
+      const backupPath = `${filePath}.backup.${timestamp}`;
+      
+      await fs.copyFile(filePath, backupPath);
+      return { success: true, original: filePath, backup: backupPath, timestamp };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Restore file from backup
+   */
+  async restoreFile(backupPath, restorePath) {
+    try {
+      const fs = require('fs').promises;
+      
+      await fs.copyFile(backupPath, restorePath);
+      return { success: true, backup: backupPath, restored: restorePath };
+    } catch (error) {
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
    * Variable operator - variable assignment and retrieval
    */
   executeVariableOperator(params) {
@@ -4028,26 +4349,377 @@ class TuskLangEnhanced {
   /**
    * Format date
    */
-  formatDate(format) {
-    const date = new Date();
+  /**
+   * Date operator - comprehensive date operations
+   */
+  executeDateOperator(params) {
+    try {
+      const match = params.match(/^["']([^"']+)["'](?:,\s*(.+))?$/);
+      if (!match) {
+        // Default: return current date in ISO format
+        return new Date().toISOString();
+      }
+
+      const operation = match[1].toLowerCase();
+      const data = match[2] ? this.parseValue(match[2]) : null;
+
+      switch (operation) {
+        case 'format':
+          if (!data) {
+            throw new Error('Format operation requires format string');
+          }
+          return this.formatDate(data);
+          
+        case 'parse':
+          if (!data) {
+            throw new Error('Parse operation requires date string');
+          }
+          return this.parseDate(data);
+          
+        case 'add':
+          return this.addToDate(data);
+          
+        case 'subtract':
+          return this.subtractFromDate(data);
+          
+        case 'diff':
+          return this.getDateDiff(data);
+          
+        case 'validate':
+          return this.validateDate(data);
+          
+        case 'timezone':
+          return this.convertTimezone(data);
+          
+        case 'now':
+          return new Date().toISOString();
+          
+        case 'today':
+          return new Date().toDateString();
+          
+        case 'timestamp':
+          return Date.now();
+          
+        default:
+          // If no operation specified, treat as format string
+          return this.formatDate(operation);
+      }
+    } catch (error) {
+      console.error('@date operator error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Enhanced date formatting with comprehensive format options
+   */
+  formatDate(format, date = new Date()) {
+    if (typeof date === 'string') {
+      date = new Date(date);
+    }
     
-    // Simple format replacements
+    // Comprehensive format replacements
     const replacements = {
       'Y': date.getFullYear(),
+      'y': String(date.getFullYear()).slice(-2),
       'm': String(date.getMonth() + 1).padStart(2, '0'),
+      'n': date.getMonth() + 1,
       'd': String(date.getDate()).padStart(2, '0'),
+      'j': date.getDate(),
       'H': String(date.getHours()).padStart(2, '0'),
+      'h': String(date.getHours() % 12 || 12).padStart(2, '0'),
       'i': String(date.getMinutes()).padStart(2, '0'),
       's': String(date.getSeconds()).padStart(2, '0'),
-      'c': date.toISOString()
+      'A': date.getHours() >= 12 ? 'PM' : 'AM',
+      'a': date.getHours() >= 12 ? 'pm' : 'am',
+      'c': date.toISOString(),
+      'r': date.toUTCString(),
+      'U': Math.floor(date.getTime() / 1000),
+      'l': this.getDayName(date.getDay()),
+      'D': this.getDayName(date.getDay()).slice(0, 3),
+      'F': this.getMonthName(date.getMonth()),
+      'M': this.getMonthName(date.getMonth()).slice(0, 3),
+      'w': date.getDay(),
+      'z': Math.floor((date - new Date(date.getFullYear(), 0, 0)) / 1000 / 60 / 60 / 24),
+      'W': this.getWeekNumber(date),
+      't': new Date(date.getFullYear(), date.getMonth() + 1, 0).getDate(),
+      'L': this.isLeapYear(date.getFullYear()) ? 1 : 0,
+      'o': this.getISOWeekYear(date),
+      'B': this.getSwatchInternetTime(date),
+      'g': date.getHours() % 12 || 12,
+      'G': date.getHours(),
+      'u': date.getMilliseconds(),
+      'e': this.getTimezoneName(date),
+      'I': this.isDST(date) ? 1 : 0,
+      'O': this.getTimezoneOffset(date),
+      'P': this.getTimezoneOffset(date, true),
+      'T': this.getTimezoneName(date),
+      'Z': date.getTimezoneOffset() * 60
     };
 
     let result = format;
     for (const [key, value] of Object.entries(replacements)) {
-      result = result.replace(key, value);
+      result = result.replace(new RegExp(key, 'g'), value);
     }
     
     return result;
+  }
+
+  /**
+   * Parse date string with multiple format support
+   */
+  parseDate(dateString) {
+    try {
+      // Try ISO format first
+      const isoDate = new Date(dateString);
+      if (!isNaN(isoDate.getTime())) {
+        return isoDate.toISOString();
+      }
+      
+      // Try common formats
+      const formats = [
+        /(\d{4})-(\d{2})-(\d{2})/, // YYYY-MM-DD
+        /(\d{2})\/(\d{2})\/(\d{4})/, // MM/DD/YYYY
+        /(\d{2})-(\d{2})-(\d{4})/, // MM-DD-YYYY
+        /(\d{1,2})\/(\d{1,2})\/(\d{2,4})/, // M/D/YY or M/D/YYYY
+      ];
+      
+      for (const format of formats) {
+        const match = dateString.match(format);
+        if (match) {
+          const [_, ...parts] = match;
+          if (parts.length === 3) {
+            let year, month, day;
+            if (parts[0].length === 4) {
+              // YYYY-MM-DD format
+              [year, month, day] = parts;
+            } else {
+              // MM/DD/YYYY or similar
+              [month, day, year] = parts;
+              if (year.length === 2) {
+                year = '20' + year;
+              }
+            }
+            const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day));
+            return date.toISOString();
+          }
+        }
+      }
+      
+      throw new Error(`Unable to parse date: ${dateString}`);
+    } catch (error) {
+      console.error('Date parse error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Add time to date
+   */
+  addToDate(data) {
+    try {
+      const [dateStr, amount, unit] = data.split(',').map(s => s.trim());
+      const date = new Date(dateStr);
+      const value = parseInt(amount);
+      
+      switch (unit.toLowerCase()) {
+        case 'years':
+        case 'year':
+          date.setFullYear(date.getFullYear() + value);
+          break;
+        case 'months':
+        case 'month':
+          date.setMonth(date.getMonth() + value);
+          break;
+        case 'days':
+        case 'day':
+          date.setDate(date.getDate() + value);
+          break;
+        case 'hours':
+        case 'hour':
+          date.setHours(date.getHours() + value);
+          break;
+        case 'minutes':
+        case 'minute':
+          date.setMinutes(date.getMinutes() + value);
+          break;
+        case 'seconds':
+        case 'second':
+          date.setSeconds(date.getSeconds() + value);
+          break;
+        default:
+          throw new Error(`Unknown time unit: ${unit}`);
+      }
+      
+      return date.toISOString();
+    } catch (error) {
+      console.error('Add to date error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Subtract time from date
+   */
+  subtractFromDate(data) {
+    try {
+      const [dateStr, amount, unit] = data.split(',').map(s => s.trim());
+      const date = new Date(dateStr);
+      const value = parseInt(amount);
+      
+      switch (unit.toLowerCase()) {
+        case 'years':
+        case 'year':
+          date.setFullYear(date.getFullYear() - value);
+          break;
+        case 'months':
+        case 'month':
+          date.setMonth(date.getMonth() - value);
+          break;
+        case 'days':
+        case 'day':
+          date.setDate(date.getDate() - value);
+          break;
+        case 'hours':
+        case 'hour':
+          date.setHours(date.getHours() - value);
+          break;
+        case 'minutes':
+        case 'minute':
+          date.setMinutes(date.getMinutes() - value);
+          break;
+        case 'seconds':
+        case 'second':
+          date.setSeconds(date.getSeconds() - value);
+          break;
+        default:
+          throw new Error(`Unknown time unit: ${unit}`);
+      }
+      
+      return date.toISOString();
+    } catch (error) {
+      console.error('Subtract from date error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Get difference between two dates
+   */
+  getDateDiff(data) {
+    try {
+      const [date1Str, date2Str, unit = 'days'] = data.split(',').map(s => s.trim());
+      const date1 = new Date(date1Str);
+      const date2 = new Date(date2Str);
+      const diffMs = Math.abs(date2 - date1);
+      
+      switch (unit.toLowerCase()) {
+        case 'years':
+          return Math.floor(diffMs / (1000 * 60 * 60 * 24 * 365.25));
+        case 'months':
+          return Math.floor(diffMs / (1000 * 60 * 60 * 24 * 30.44));
+        case 'days':
+          return Math.floor(diffMs / (1000 * 60 * 60 * 24));
+        case 'hours':
+          return Math.floor(diffMs / (1000 * 60 * 60));
+        case 'minutes':
+          return Math.floor(diffMs / (1000 * 60));
+        case 'seconds':
+          return Math.floor(diffMs / 1000);
+        default:
+          return diffMs;
+      }
+    } catch (error) {
+      console.error('Date diff error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  /**
+   * Validate date string
+   */
+  validateDate(dateString) {
+    try {
+      const date = new Date(dateString);
+      const isValid = !isNaN(date.getTime());
+      return {
+        valid: isValid,
+        date: isValid ? date.toISOString() : null,
+        error: isValid ? null : 'Invalid date format'
+      };
+    } catch (error) {
+      return { valid: false, date: null, error: error.message };
+    }
+  }
+
+  /**
+   * Convert timezone
+   */
+  convertTimezone(data) {
+    try {
+      const [dateStr, timezone] = data.split(',').map(s => s.trim());
+      const date = new Date(dateStr);
+      
+      // Simple timezone conversion (in a real implementation, use a library like moment-timezone)
+      const options = { timeZone: timezone };
+      return date.toLocaleString('en-US', options);
+    } catch (error) {
+      console.error('Timezone conversion error:', error);
+      return { success: false, error: error.message };
+    }
+  }
+
+  // Helper methods for date formatting
+  getDayName(day) {
+    const days = ['Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'];
+    return days[day];
+  }
+
+  getMonthName(month) {
+    const months = ['January', 'February', 'March', 'April', 'May', 'June', 
+                   'July', 'August', 'September', 'October', 'November', 'December'];
+    return months[month];
+  }
+
+  getWeekNumber(date) {
+    const firstDayOfYear = new Date(date.getFullYear(), 0, 1);
+    const pastDaysOfYear = (date - firstDayOfYear) / 86400000;
+    return Math.ceil((pastDaysOfYear + firstDayOfYear.getDay() + 1) / 7);
+  }
+
+  isLeapYear(year) {
+    return (year % 4 === 0 && year % 100 !== 0) || (year % 400 === 0);
+  }
+
+  getISOWeekYear(date) {
+    const year = date.getFullYear();
+    const week = this.getWeekNumber(date);
+    return week === 1 && date.getMonth() === 11 ? year + 1 : year;
+  }
+
+  getSwatchInternetTime(date) {
+    const seconds = date.getSeconds() + (60 * date.getMinutes()) + (3600 * date.getHours());
+    return Math.floor((seconds % 86400) / 86.4);
+  }
+
+  getTimezoneName(date) {
+    return Intl.DateTimeFormat().resolvedOptions().timeZone;
+  }
+
+  isDST(date) {
+    const jan = new Date(date.getFullYear(), 0, 1);
+    const jul = new Date(date.getFullYear(), 6, 1);
+    return Math.max(jan.getTimezoneOffset(), jul.getTimezoneOffset()) !== date.getTimezoneOffset();
+  }
+
+  getTimezoneOffset(date, withColon = false) {
+    const offset = date.getTimezoneOffset();
+    const hours = Math.abs(Math.floor(offset / 60));
+    const minutes = Math.abs(offset % 60);
+    const sign = offset <= 0 ? '+' : '-';
+    return withColon 
+      ? `${sign}${hours.toString().padStart(2, '0')}:${minutes.toString().padStart(2, '0')}`
+      : `${sign}${hours.toString().padStart(2, '0')}${minutes.toString().padStart(2, '0')}`;
   }
 
   /**

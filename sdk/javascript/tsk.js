@@ -590,9 +590,6 @@ class TuskLangEnhanced {
       case 'neural':
         return this.executeNeuralOperator(params);
       
-      case 'variable':
-        return this.executeVariableOperator(params);
-      
       case 'env':
         // Already handled in parseValue
         return `@${operator}(${params})`;

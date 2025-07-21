@@ -12,23 +12,21 @@
   <ItemGroup Condition=" '$(ExcludeRestorePackageImports)' != 'true' ">
     <SourceRoot Include="/root/.nuget/packages/" />
   </ItemGroup>
-  <ImportGroup Condition=" '$(TargetFramework)' == 'net6.0' AND '$(ExcludeRestorePackageImports)' != 'true' ">
-    <Import Project="$(NuGetPackageRoot)entityframework/6.4.4/buildTransitive/netcoreapp3.0/EntityFramework.props" Condition="Exists('$(NuGetPackageRoot)entityframework/6.4.4/buildTransitive/netcoreapp3.0/EntityFramework.props')" />
-    <Import Project="$(NuGetPackageRoot)microsoft.net.illink.tasks/7.0.100-1.23211.1/build/Microsoft.NET.ILLink.Tasks.props" Condition="Exists('$(NuGetPackageRoot)microsoft.net.illink.tasks/7.0.100-1.23211.1/build/Microsoft.NET.ILLink.Tasks.props')" />
-    <Import Project="$(NuGetPackageRoot)microsoft.net.illink.analyzers/7.0.100-1.23211.1/build/Microsoft.NET.ILLink.Analyzers.props" Condition="Exists('$(NuGetPackageRoot)microsoft.net.illink.analyzers/7.0.100-1.23211.1/build/Microsoft.NET.ILLink.Analyzers.props')" />
-  </ImportGroup>
   <ImportGroup Condition=" '$(TargetFramework)' == 'net8.0' AND '$(ExcludeRestorePackageImports)' != 'true' ">
     <Import Project="$(NuGetPackageRoot)entityframework/6.4.4/buildTransitive/netcoreapp3.0/EntityFramework.props" Condition="Exists('$(NuGetPackageRoot)entityframework/6.4.4/buildTransitive/netcoreapp3.0/EntityFramework.props')" />
+    <Import Project="$(NuGetPackageRoot)scisharp.tensorflow.redist/2.10.0/build/netstandard2.0/SciSharp.TensorFlow.Redist.props" Condition="Exists('$(NuGetPackageRoot)scisharp.tensorflow.redist/2.10.0/build/netstandard2.0/SciSharp.TensorFlow.Redist.props')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.entityframeworkcore/8.0.11/buildTransitive/net8.0/Microsoft.EntityFrameworkCore.props" Condition="Exists('$(NuGetPackageRoot)microsoft.entityframeworkcore/8.0.11/buildTransitive/net8.0/Microsoft.EntityFrameworkCore.props')" />
     <Import Project="$(NuGetPackageRoot)microsoft.net.illink.tasks/8.0.17/build/Microsoft.NET.ILLink.Tasks.props" Condition="Exists('$(NuGetPackageRoot)microsoft.net.illink.tasks/8.0.17/build/Microsoft.NET.ILLink.Tasks.props')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.ml.onnxruntime.gpu/1.16.3/build/netstandard2.0/Microsoft.ML.OnnxRuntime.Gpu.props" Condition="Exists('$(NuGetPackageRoot)microsoft.ml.onnxruntime.gpu/1.16.3/build/netstandard2.0/Microsoft.ML.OnnxRuntime.Gpu.props')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.ml.onnxruntime/1.16.3/build/netstandard2.0/Microsoft.ML.OnnxRuntime.props" Condition="Exists('$(NuGetPackageRoot)microsoft.ml.onnxruntime/1.16.3/build/netstandard2.0/Microsoft.ML.OnnxRuntime.props')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.ml/3.0.1/build/netstandard2.0/Microsoft.ML.props" Condition="Exists('$(NuGetPackageRoot)microsoft.ml/3.0.1/build/netstandard2.0/Microsoft.ML.props')" />
+    <Import Project="$(NuGetPackageRoot)microsoft.entityframeworkcore.design/8.0.11/build/net8.0/Microsoft.EntityFrameworkCore.Design.props" Condition="Exists('$(NuGetPackageRoot)microsoft.entityframeworkcore.design/8.0.11/build/net8.0/Microsoft.EntityFrameworkCore.Design.props')" />
   </ImportGroup>
-  <PropertyGroup Condition=" '$(TargetFramework)' == 'net6.0' AND '$(ExcludeRestorePackageImports)' != 'true' ">
-    <PkgEntityFramework Condition=" '$(PkgEntityFramework)' == '' ">/root/.nuget/packages/entityframework/6.4.4</PkgEntityFramework>
-    <PkgSystem_Data_SQLite_EF6 Condition=" '$(PkgSystem_Data_SQLite_EF6)' == '' ">/root/.nuget/packages/system.data.sqlite.ef6/1.0.118</PkgSystem_Data_SQLite_EF6>
-    <PkgMicrosoft_NET_ILLink_Tasks Condition=" '$(PkgMicrosoft_NET_ILLink_Tasks)' == '' ">/root/.nuget/packages/microsoft.net.illink.tasks/7.0.100-1.23211.1</PkgMicrosoft_NET_ILLink_Tasks>
-  </PropertyGroup>
   <PropertyGroup Condition=" '$(TargetFramework)' == 'net8.0' AND '$(ExcludeRestorePackageImports)' != 'true' ">
     <PkgEntityFramework Condition=" '$(PkgEntityFramework)' == '' ">/root/.nuget/packages/entityframework/6.4.4</PkgEntityFramework>
     <PkgSystem_Data_SQLite_EF6 Condition=" '$(PkgSystem_Data_SQLite_EF6)' == '' ">/root/.nuget/packages/system.data.sqlite.ef6/1.0.118</PkgSystem_Data_SQLite_EF6>
     <PkgMicrosoft_NET_ILLink_Tasks Condition=" '$(PkgMicrosoft_NET_ILLink_Tasks)' == '' ">/root/.nuget/packages/microsoft.net.illink.tasks/8.0.17</PkgMicrosoft_NET_ILLink_Tasks>
+    <PkgMicrosoft_CodeAnalysis_Analyzers Condition=" '$(PkgMicrosoft_CodeAnalysis_Analyzers)' == '' ">/root/.nuget/packages/microsoft.codeanalysis.analyzers/3.3.3</PkgMicrosoft_CodeAnalysis_Analyzers>
+    <PkgMicrosoft_EntityFrameworkCore_Tools Condition=" '$(PkgMicrosoft_EntityFrameworkCore_Tools)' == '' ">/root/.nuget/packages/microsoft.entityframeworkcore.tools/8.0.11</PkgMicrosoft_EntityFrameworkCore_Tools>
   </PropertyGroup>
 </Project>

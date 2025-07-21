@@ -310,4 +310,32 @@ impl Default for ErrorContext {
     fn default() -> Self {
         Self::new()
     }
+}
+
+/// TuskTsk error types
+#[derive(Debug, thiserror::Error)]
+pub enum TuskTskError {
+    #[error("Parsing error: {0}")]
+    Parsing(String),
+
+    #[error("Validation error: {0}")]
+    Validation(String),
+
+    #[error("IO error: {0}")]
+    Io(#[from] std::io::Error),
+
+    #[error("Serialization error: {0}")]
+    Serialization(String),
+
+    #[error("Platform integration error: {0}")]
+    Platform(String),
+
+    #[error("Platform not found: {0}")]
+    PlatformNotFound(String),
+
+    #[error("Invalid arguments: {0}")]
+    InvalidArguments(String),
+
+    #[error("Configuration error: {0}")]
+    Config(String),
 } 

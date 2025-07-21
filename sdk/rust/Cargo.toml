@@ -33,9 +33,10 @@ walkdir = "2.3"
 notify = "6.1"
 
 # WebAssembly support
-wasm-bindgen = "0.2"
-js-sys = "0.3"
-web-sys = { version = "0.3", features = ["console"] }
+wasm-bindgen = { version = "0.2", optional = true }
+js-sys = { version = "0.3", optional = true }
+web-sys = { version = "0.3", features = ["console"], optional = true }
+console_error_panic_hook = { version = "0.1", optional = true }
 
 # Performance and utilities
 lazy_static = "1.4"
@@ -78,40 +79,110 @@ toml = "0.8"
 csv = "1.2"
 quick-xml = "0.31"
 
-# Core dependencies only for goals implementation
-# Database and messaging dependencies
-# redis = { version = "0.23", features = ["tokio-comp", "connection-manager"] }
-# sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "mysql", "sqlite"] }
-# mongodb = { version = "2.8", features = ["tokio-runtime"] }
+# Package management dependencies
+semver = "1.0"
+zip = "0.6"
+flate2 = "1.0"
+tar = "0.4"
+url = "2.4"
+mime = "0.3"
+tempfile = "3.8"
 
-# Messaging and communication
-# tonic = { version = "0.10", features = ["tls", "prost"] }
-# prost = "0.12"
-# tokio-tungstenite = "0.20"
-# sse = "0.1"
+# XML processing for Maven/NuGet
+xml-rs = "0.8"
 
-# GraphQL
+# Additional HTTP features
+multipart = "0.18"
+
+# Platform Integration Dependencies - TEMPORARILY DISABLED FOR CLEAN COMPILATION
+# Node.js Integration
+# napi = { version = "2.14", features = ["async"] }
+# napi-derive = "2.14"
+# neon = { version = "0.10", features = ["napi-6"] }
+
+# Unity Integration
+# cxx = "1.0"
+# bindgen = "0.68"
+
+# Azure Functions Integration
+# azure-functions = "0.11"
+
+# Ruby Integration (choose one to avoid conflicts)
+# rutie = "0.8"
+# ruby-sys = "0.3"
+
+# Jekyll Integration
+# liquid = "0.26"
+# tera = "1.19"
+
+# Additional shared platform dependencies
+# libc = "0.2"
+# dlopen = "0.1"
+# libloading = "0.8"
+
+# Infrastructure operator dependencies - TEMPORARILY DISABLED FOR CLEAN COMPILATION
+# Database and storage
+redis = { version = "0.23", features = ["tokio-comp", "connection-manager"] }
+sqlx = { version = "0.7", features = ["runtime-tokio-rustls", "postgres", "mysql", "sqlite"] }
+# mongodb = { version = "2.8", features = ["tokio-runtime"] } # Temporarily disabled
+# deadpool-postgres = "0.10" # Temporarily disabled
+# deadpool-redis = "0.13" # Temporarily disabled
+rusqlite = { version = "0.29", features = ["bundled"] }
+# mysql_async = "0.33" # Temporarily disabled
+# elasticsearch = "8.18" # Temporarily disabled for clean compilation
+# etcd-rs = "1.0" # Temporarily disabled
+
+# Messaging and communication  
+tonic = { version = "0.10", features = ["tls", "prost"] }
+prost = "0.12"
+tokio-tungstenite = "0.20"
+tokio-stream = "0.1"
+hyper = { version = "0.14", features = ["full"] }
+# async-nats = "0.32" # Temporarily disabled
+# lapin = "2.3" # Temporarily disabled  
+# deadpool-lapin = "0.10" # Temporarily disabled
+# rdkafka = { version = "0.36", features = ["cmake-build", "ssl-vendored"] } # Temporarily disabled
+
+# GraphQL - TEMPORARILY DISABLED
 # graphql_client = "0.13"
+# async-graphql = "5.0"
+# graphql-parser = "0.4"
 
 # Monitoring and observability
-# prometheus = { version = "0.13", features = ["process"] }
-# opentelemetry = { version = "0.20", features = ["rt-tokio"] }
-# opentelemetry-jaeger = "0.19"
-# opentelemetry-zipkin = "0.19"
+prometheus = { version = "0.13", features = ["process"] }
+opentelemetry = { version = "0.20", features = ["rt-tokio"] }
+opentelemetry-jaeger = "0.19"
+opentelemetry-zipkin = "0.19"
 
-# Cloud and platform
+# Infrastructure and orchestration
+k8s-openapi = { version = "0.20", features = ["v1_22"] }
+kube = { version = "0.87", features = ["runtime", "derive"] }
+consul = "0.4"
+# vaultrs = "0.7" # Temporarily disabled for clean compilation
+# temporal-sdk-core = "0.1" # Temporarily disabled for clean compilation
+
+# Cloud and platform (optional features)
 # aws-sdk-s3 = "1.0"
-# aws-sdk-ec2 = "1.0"
+# aws-sdk-ec2 = "1.0" 
 # aws-sdk-lambda = "1.0"
 # google-cloud-storage = "0.15"
 
 # Security and authentication
-# jsonwebtoken = "9.1"
-# oauth2 = "4.4"
-# ldap3 = "0.11"
+jsonwebtoken = "9.1"
+oauth2 = "4.4"
+ldap3 = "0.11"
+ring = "0.17"
+totp-lite = "2.0"
+qrcode = "0.14"
+webauthn-rs = "0.5"
+dashmap = "5.5"
+sha3 = "0.10"
+zeroize = { version = "1.7", features = ["derive"] }
+casbin = "2.2"
+# saml2 = "0.3" # Temporarily disabled for clean compilation
 
-# Blockchain
-# web3 = "0.19"
+# Blockchain (optional features)
+# web3 = "0.19"  
 # bitcoin = "0.30"
 
 [dev-dependencies]
@@ -132,8 +203,14 @@ path = "test-operators/mod.rs"
 
 [features]
 default = []
-wasm = ["getrandom/js"]
-full = ["wasm"]
+full = ["nodejs", "unity", "azure", "ruby", "jekyll", "package-managers", "wasm"]
+wasm = ["wasm-bindgen", "js-sys", "web-sys", "console_error_panic_hook"]
+nodejs = []
+unity = []
+azure = []
+ruby = []
+jekyll = []
+package-managers = []
 
 [profile.release]
 opt-level = 3

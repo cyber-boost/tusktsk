@@ -309,7 +309,7 @@ class TSKParser:
             return self._execute_date(format_str)
         
         # @env function with default
-        env_match = re.match(r'^@env\(["\']([^"\']*)["\'\](?:,\s*(.+))?\)$', value)
+        env_match = re.match(r'^@env\(["\']([^"\']*)["\'](?:,\s*(.+))?\)$', value)
         if env_match:
             env_var = env_match.group(1)
             default_val = env_match.group(2)
@@ -1017,6 +1017,7 @@ class TSK:
     
     async def execute_operator(self, operator: str, expression: str, context: Dict[str, Any]) -> Any:
         """Execute a specific @ operator"""
+        # Basic operators
         if operator == 'Query':
             return await self.execute_query(expression, context)
         elif operator == 'cache':
@@ -1037,6 +1038,27 @@ class TSK:
             return self.execute_json(expression, context)
         elif operator == 'request':
             return self.execute_request(expression, context)
+        # Advanced operators - try to import and execute
+        elif operator in ['graphql', 'grpc', 'websocket', 'sse', 'mongodb', 'postgresql', 'mysql', 'redis', 
+                         'nats', 'amqp', 'kafka', 'prometheus', 'jaeger', 'zipkin', 'grafana', 'istio',
+                         'consul', 'vault', 'temporal', 'etcd', 'elasticsearch']:
+            try:
+                # Import the advanced operator integration
+                import sys
+                import os
+                aa_python_path = os.path.join(os.path.dirname(__file__), 'aa_python', 'core', 'base')
+                if aa_python_path not in sys.path:
+                    sys.path.append(aa_python_path)
+                
+                from advanced_operators_integration import get_advanced_operator_integration
+                advanced_ops = get_advanced_operator_integration()
+                return await advanced_ops.execute_advanced_operator(operator, expression, context)
+            except ImportError as e:
+                print(f"Warning: Advanced operator {operator} not available: {str(e)}")
+                return {"error": f"Advanced operator {operator} not available", "operator": operator}
+            except Exception as e:
+                print(f"Warning: Error executing advanced operator {operator}: {str(e)}")
+                return {"error": f"Error executing {operator}: {str(e)}", "operator": operator}
         else:
             print(f"Warning: Unknown operator: {operator}")
             return expression

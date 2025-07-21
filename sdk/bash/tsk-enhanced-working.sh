@@ -396,8 +396,8 @@ tsk_compile_fujsen() {
     code="${code#"${code%%[![:space:]]*}"}"
     code="${code%"${code##*[![:space:]]}"}"
     
-    # Check for function declaration
-    if [[ "$code" =~ ^function[[:space:]]+([[:alnum:]_]+)[[:space:]]*\(([^)]*)\)[[:space:]]*\{(.*)\}$ ]]; then
+    # Check for function declaration  
+    if [[ "$code" =~ ^function[[:space:]]+\([[:alnum:]_]+\)[[:space:]]*\\\(\([^\)]*\)\\\)[[:space:]]*\\\{\(.*\)\\\}$ ]]; then
         local name="${BASH_REMATCH[1]}"
         local params="${BASH_REMATCH[2]}"
         local body="${BASH_REMATCH[3]}"
@@ -424,7 +424,7 @@ tsk_compile_fujsen() {
     fi
     
     # Check for arrow function
-    if [[ "$code" =~ ^\(([^)]*)\)[[:space:]]*=\>[[:space:]]*\{?(.*)\}?$ ]]; then
+    if [[ "$code" =~ ^\\\(\([^\)]*\)\\\)[[:space:]]*=\\\>[[:space:]]*\\\{?\(.*\)\\\}?$ ]]; then
         local params="${BASH_REMATCH[1]}"
         local body="${BASH_REMATCH[2]}"
         

@@ -6,15 +6,19 @@ toolchain go1.23.11
 
 require (
 	github.com/Shopify/sarama v1.38.1
+	github.com/elastic/go-elasticsearch/v8 v8.11.1
 	github.com/go-sql-driver/mysql v1.9.3
 	github.com/google/uuid v1.3.0
 	github.com/gorilla/websocket v1.5.0
+	github.com/hashicorp/consul/api v1.25.1
+	github.com/hashicorp/vault/api v1.10.0
 	github.com/lib/pq v1.10.9
 	github.com/nats-io/nats.go v1.43.0
 	github.com/prometheus/client_golang v1.16.0
 	github.com/rabbitmq/amqp091-go v1.8.1
 	github.com/redis/go-redis/v9 v9.2.1
 	github.com/spf13/cobra v1.9.1
+	go.etcd.io/etcd/client/v3 v3.5.10
 	go.mongodb.org/mongo-driver v1.17.4
 	golang.org/x/crypto v0.39.0
 	golang.org/x/oauth2 v0.12.0
