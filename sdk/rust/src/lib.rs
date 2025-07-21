@@ -11,7 +11,6 @@
 pub mod parser;
 pub mod error;
 pub mod value;
-pub mod validation;
 
 // ALL OTHER MODULES DISABLED FOR CLEAN A5 PRODUCTION BUILD
 // Future agents can enable systematically:
@@ -41,4 +40,4 @@ pub fn parse_tsk_content(input: &str) -> crate::TuskResult<std::collections::Has
 }
 pub use error::{TuskError, TuskResult};
 pub use value::{Value, ValueType};
-pub use validation::{SchemaValidator, SchemaBuilder, ConfigSchema, ValidationRule, ValidationResult};
+// pub use validation::{SchemaValidator, SchemaBuilder, ConfigSchema, ValidationRule, ValidationResult};
