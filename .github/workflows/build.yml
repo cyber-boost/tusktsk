@@ -35,17 +35,18 @@ jobs:
         path: |
           ~/.cache/go-build
           ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-go-${{ hashFiles('sdk/go/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-
 
     - name: Install dependencies
-      run: go mod download
+      run: cd sdk/go && go mod download
 
     - name: Run linter
       uses: golangci/golangci-lint-action@v4
       with:
         version: latest
+        working-directory: sdk/go
         args: --timeout=5m
 
     - name: Run tests
@@ -91,7 +92,7 @@ jobs:
         path: |
           ~/.cache/go-build
           ~/go/pkg/mod
-        key: ${{ runner.os }}-go-${{ hashFiles('**/go.sum') }}
+        key: ${{ runner.os }}-go-${{ hashFiles('sdk/go/go.sum') }}
         restore-keys: |
           ${{ runner.os }}-go-
 
