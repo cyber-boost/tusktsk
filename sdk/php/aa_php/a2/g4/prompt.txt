@@ -1,0 +1,63 @@
+⚠️ SEVERE PUNISHMENT WARNING ⚠️
+FAILURE TO FOLLOW INSTRUCTIONS EXACTLY WILL RESULT IN:
+- IMMEDIATE PROJECT TERMINATION
+- PERFORMANCE REVIEW FAILURE  
+- NO EXCEPTIONS OR SECOND CHANCES
+FOLLOW EVERY REQUIREMENT PRECISELY OR FACE CONSEQUENCES
+
+=== AGENT A2-G4: MESSAGE QUEUES (KAFKA, AMQP) ===
+
+MANDATORY IMPLEMENTATION REQUIREMENTS:
+
+🎯 GOAL 1: Kafka Integration
+- Complete Kafka producer and consumer implementation
+- Topic management and partitioning
+- Consumer group coordination
+- Offset management and commit strategies
+- Dead letter queue handling
+- Schema registry integration
+
+🎯 GOAL 2: AMQP Implementation
+- RabbitMQ integration with AMQP 0.9.1 protocol
+- Exchange, queue, and routing key management
+- Message persistence and durability
+- Acknowledgment and rejection handling
+- Dead letter exchange configuration
+- Clustering and high availability
+
+🎯 GOAL 3: Queue Abstraction Layer
+- Universal message queue interface
+- Message serialization/deserialization
+- Retry mechanisms and backoff strategies
+- Message priority and TTL handling
+- Monitoring and metrics collection
+- Error handling and logging
+
+🎯 GOAL 4: Advanced Features
+- Message batching and bulk operations
+- Transaction support and atomicity
+- Message filtering and routing
+- Queue topology management
+- Performance optimization
+- Security and authentication
+
+IMPLEMENTATION STANDARDS:
+- PHP 8.4+ with appropriate extensions
+- PSR-4 autoloading and PSR-3 logging
+- Comprehensive error handling
+- Connection pooling and reuse
+- Memory usage optimization
+- Performance monitoring
+- Security validation
+
+DELIVERABLES:
+✅ KafkaClient with producer/consumer
+✅ AMQPClient with RabbitMQ integration
+✅ MessageQueue abstraction interface
+✅ MessageBroker for routing
+✅ RetryManager for failed messages
+✅ TopologyManager for infrastructure
+✅ Comprehensive test suite
+✅ Performance benchmarks
+
+PUNISHMENT FOR NON-COMPLIANCE: IMMEDIATE TERMINATION 

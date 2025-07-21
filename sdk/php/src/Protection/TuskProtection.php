@@ -5,7 +5,10 @@
  * Enterprise-grade protection for PHP SDK
  */
 
-namespace Tusk\Protection;
+namespace TuskLang\Protection;
+
+use Exception;
+use RuntimeException;
 
 class TuskProtection
 {
@@ -180,84 +183,8 @@ class TuskProtection
         return $violation;
     }
 
-    // Inner classes
-    class UsageMetrics
-    {
-        private int $startTime;
-        private int $apiCalls;
-        private int $errors;
-
-        public function __construct()
-        {
-            $this->startTime = time();
-            $this->apiCalls = 0;
-            $this->errors = 0;
-        }
-
-        public function incrementApiCalls(): void
-        {
-            $this->apiCalls++;
-        }
-
-        public function incrementErrors(): void
-        {
-            $this->errors++;
-        }
-
-        public function getStartTime(): int
-        {
-            return $this->startTime;
-        }
-
-        public function getApiCalls(): int
-        {
-            return $this->apiCalls;
-        }
-
-        public function getErrors(): int
-        {
-            return $this->errors;
-        }
-    }
-
-    class Violation
-    {
-        public int $timestamp;
-        public string $sessionId;
-        public string $violationType;
-        public string $details;
-        public string $licenseKeyPartial;
-
-        public function __construct(
-            int $timestamp,
-            string $sessionId,
-            string $violationType,
-            string $details,
-            string $licenseKeyPartial
-        ) {
-            $this->timestamp = $timestamp;
-            $this->sessionId = $sessionId;
-            $this->violationType = $violationType;
-            $this->details = $details;
-            $this->licenseKeyPartial = $licenseKeyPartial;
-        }
-
-        public function __toString(): string
-        {
-            return sprintf(
-                "Violation{timestamp=%d, sessionId='%s', type='%s', details='%s', licenseKeyPartial='%s'}",
-                $this->timestamp,
-                $this->sessionId,
-                $this->violationType,
-                $this->details,
-                $this->licenseKeyPartial
-            );
-        }
-    }
-
     // Global protection instance
     private static ?TuskProtection $protectionInstance = null;
-    private static object $instanceLock;
 
     public static function initializeProtection(string $licenseKey, string $apiKey): TuskProtection
     {

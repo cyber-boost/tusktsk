@@ -11,7 +11,7 @@ if (!function_exists('tsk_parse')) {
      */
     function tsk_parse(string $content): array
     {
-        $parser = new \TuskLang\Enhanced\TuskLangEnhanced();
+        $parser = new \TuskLang\TuskLangEnhanced();
         return $parser->parse($content);
     }
 }
@@ -22,7 +22,7 @@ if (!function_exists('tsk_parse_file')) {
      */
     function tsk_parse_file(string $filePath): array
     {
-        $parser = new \TuskLang\Enhanced\TuskLangEnhanced();
+        $parser = new \TuskLang\TuskLangEnhanced();
         return $parser->parseFile($filePath);
     }
 }
@@ -31,9 +31,9 @@ if (!function_exists('tsk_load_from_peanut')) {
     /**
      * Load configuration from peanut.tsk
      */
-    function tsk_load_from_peanut(): \TuskLang\Enhanced\TuskLangEnhanced
+    function tsk_load_from_peanut(): \TuskLang\TuskLangEnhanced
     {
-        $parser = new \TuskLang\Enhanced\TuskLangEnhanced();
+        $parser = new \TuskLang\TuskLangEnhanced();
         $parser->loadPeanut();
         return $parser;
     }

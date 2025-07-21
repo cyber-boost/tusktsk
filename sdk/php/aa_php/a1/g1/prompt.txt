@@ -1,0 +1,60 @@
+🎯 AGENT A1 - G1: MYSQL & POSTGRESQL OPERATIONS
+===============================================
+
+⚠️ SEVERE PUNISHMENT WARNING ⚠️
+FAILURE TO FOLLOW INSTRUCTIONS EXACTLY WILL RESULT IN:
+- IMMEDIATE PROJECT TERMINATION
+- PERFORMANCE REVIEW FAILURE  
+- NO EXCEPTIONS OR SECOND CHANCES
+FOLLOW EVERY REQUIREMENT PRECISELY OR FACE CONSEQUENCES
+
+📋 MISSION: MySQL & PostgreSQL Core Operations
+AGENT: A1 | GOAL FOLDER: G1 | LANGUAGE: PHP
+LOCATION: reference/todo-july21/php/a1/g1/
+TIMELINE: 2-3 days | PRIORITY: CRITICAL
+
+🎯 YOUR 3 GOALS:
+
+**GOAL 1: MySqlOperator Enhancement**
+- Implement connection pooling (max 20 connections)
+- Add prepared statement optimization
+- Enhance error handling with detailed logging
+- Add query performance monitoring
+- Implement automatic reconnection logic
+
+**GOAL 2: PostgreSqlOperator Enhancement**  
+- Implement advanced PostgreSQL features
+- Add JSON/JSONB data type support
+- Enhance array and custom type handling
+- Add LISTEN/NOTIFY support for real-time events
+- Implement connection pooling with health checks
+
+**GOAL 3: Database Transaction Management**
+- Create robust transaction handling system
+- Implement nested transaction support with savepoints
+- Add deadlock detection and automatic retry
+- Implement transaction timeout management
+- Add comprehensive transaction logging
+
+🔧 TECHNICAL REQUIREMENTS:
+- PHP 8.4+ compatibility
+- PSR-12 coding standards
+- 100% test coverage mandatory
+- Performance benchmarking required
+- SQL injection prevention essential
+- Connection encryption enforced
+
+⚠️ MANDATORY DELIVERABLES:
+✅ ideas.json - Future enhancement ideas
+✅ status.json - Progress tracking 
+✅ summary.json - Completion summary
+✅ implementation/ - PHP operator files
+✅ tests/ - Comprehensive test suites
+✅ docs/ - Complete documentation
+
+🚨 FAILURE TO DELIVER ANY REQUIRED FILE = IMMEDIATE PUNISHMENT
+🚨 NON-FUNCTIONAL CODE = PROJECT TERMINATION
+🚨 MISSING TESTS = PERFORMANCE FAILURE
+
+💪 SUCCESS = RECOGNITION + ADVANCEMENT
+EXCELLENCE IS THE ONLY ACCEPTABLE OUTCOME! 

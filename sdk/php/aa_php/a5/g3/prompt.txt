@@ -1,0 +1,41 @@
+⚠️ SEVERE PUNISHMENT WARNING ⚠️
+FAILURE TO FOLLOW INSTRUCTIONS EXACTLY WILL RESULT IN:
+- IMMEDIATE PROJECT TERMINATION
+- PERFORMANCE REVIEW FAILURE  
+- NO EXCEPTIONS OR SECOND CHANCES
+FOLLOW EVERY REQUIREMENT PRECISELY OR FACE CONSEQUENCES
+
+=== G3: Validation & Sanitization ===
+
+OBJECTIVE: Implement 4 core operators for data validation and sanitization
+
+MANDATORY GOALS:
+1. ValidatorOperator - Comprehensive data validation with built-in and custom rules
+2. SanitizerOperator - Advanced data sanitization and cleaning operations
+3. RuleEngineOperator - Complex validation rule engine with conditional logic
+4. InputCleanOperator - Security-focused input cleaning and XSS protection
+
+REQUIREMENTS:
+- PHP 8.4+ compatibility
+- Complete error handling
+- Full type safety with strict typing
+- 100% test coverage
+- Production-ready performance
+- Security-first approach
+- Memory efficient processing
+- Support for complex validation rules
+- XSS and injection protection
+- Comprehensive documentation
+
+DELIVERABLES:
+- implementation/ValidatorOperator.php
+- implementation/SanitizerOperator.php  
+- implementation/RuleEngineOperator.php
+- implementation/InputCleanOperator.php
+- tests/ directory with complete test suite
+- docs/ directory with API documentation
+- status.json with progress tracking
+- ideas.json with future enhancements
+- summary.json with completion details
+
+PUNISHMENT FOR NON-COMPLIANCE: IMMEDIATE TERMINATION 

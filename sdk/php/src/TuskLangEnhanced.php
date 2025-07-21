@@ -15,9 +15,9 @@
  * DEFAULT CONFIG: peanut.tsk (the bridge of language grace)
  */
 
-namespace TuskLang\Enhanced;
+namespace TuskLang;
 
-use TuskLang\Enhanced\OperatorRegistry;
+use TuskLang\OperatorRegistry;
 
 class TuskLangEnhanced
 {

@@ -12,7 +12,7 @@
     "flexible-syntax"
   ],
   "homepage": "https://tuskt.sk",
-  "license": "proprietary",
+  "license": "MIT",
   "authors": [
     {
       "name": "Cyberboost LLC",
@@ -37,8 +37,7 @@
   },
   "autoload": {
     "psr-4": {
-      "TuskTsk\\Enhanced\\": "src/",
-      "TuskTsk\\": "src/"
+      "TuskLang\\": "src/"
     },
     "files": [
       "src/functions.php"
@@ -46,7 +45,7 @@
   },
   "autoload-dev": {
     "psr-4": {
-      "TuskTsk\\Enhanced\\Tests\\": "tests/"
+      "TuskLang\\Tests\\": "tests/"
     }
   },
   "scripts": {
@@ -102,5 +101,11 @@
     "issues": "https://github.com/cyber-boost/tusktsk/issues",
     "source": "https://github.com/cyber-boost/tusktsk",
     "docs": "https://tuskt.sk/docs"
-  }
+  },
+  "repositories": [
+    {
+      "type": "composer",
+      "url": "https://packagist.org"
+    }
+  ]
 }

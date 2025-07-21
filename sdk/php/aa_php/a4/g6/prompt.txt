@@ -1,0 +1,63 @@
+🎯 AGENT A4 - G6: CONTAINER OPERATIONS (DOCKER, K8S)
+================================================
+
+⚠️ SEVERE PUNISHMENT WARNING ⚠️
+FAILURE TO FOLLOW INSTRUCTIONS EXACTLY WILL RESULT IN:
+- IMMEDIATE PROJECT TERMINATION
+- PERFORMANCE REVIEW FAILURE  
+- NO EXCEPTIONS OR SECOND CHANCES
+FOLLOW EVERY REQUIREMENT PRECISELY OR FACE CONSEQUENCES
+
+📋 MISSION: Advanced Container Operations & Orchestration
+AGENT: A4 | GOAL FOLDER: G6 | LANGUAGE: PHP
+LOCATION: aa_php/a4/g6/
+TIMELINE: 3 days | PRIORITY: CRITICAL
+
+🎯 YOUR 3 GOALS:
+
+**GOAL 1: DockerOperator Enhancement**
+- Implement intelligent Docker container lifecycle management
+- Add multi-stage build optimization and caching strategies
+- Enhance container security scanning and vulnerability assessment
+- Add Docker Swarm orchestration with service discovery
+- Implement container performance monitoring and resource optimization
+
+**GOAL 2: KubernetesOperator Enhancement**  
+- Implement comprehensive Kubernetes cluster management
+- Add intelligent pod scheduling and resource allocation
+- Enhance Kubernetes deployment strategies (rolling, blue-green, canary)
+- Add Helm chart management and templating support
+- Implement Kubernetes monitoring with Prometheus integration
+
+**GOAL 3: ContainerRegistryOperator Enhancement**
+- Create unified container registry abstraction layer
+- Add intelligent image scanning and security policies
+- Enhance image lifecycle management with automated cleanup
+- Add multi-registry synchronization and mirroring
+- Implement container signing and supply chain security
+
+🔧 TECHNICAL REQUIREMENTS:
+- PHP 8.4+ compatibility with Docker and Kubernetes APIs
+- Support for multiple container runtimes and orchestrators
+- PSR-12 coding standards mandatory
+- 100% test coverage including container simulation
+- Performance optimization for container operations
+- Security hardening with container isolation
+- Multi-cloud Kubernetes support (EKS, AKS, GKE)
+
+⚠️ MANDATORY DELIVERABLES:
+✅ ideas.json - Future enhancement ideas
+✅ status.json - Progress tracking 
+✅ summary.json - Completion summary
+✅ implementation/ - PHP operator files
+✅ tests/ - Comprehensive test suites
+✅ docs/ - Complete documentation
+✅ benchmarks/ - Performance benchmarks
+
+🚨 FAILURE TO DELIVER ANY REQUIRED FILE = IMMEDIATE PUNISHMENT
+🚨 NON-FUNCTIONAL CODE = PROJECT TERMINATION
+🚨 MISSING TESTS = PERFORMANCE FAILURE
+🚨 CONTAINER SECURITY BREACHES = INSTANT DISMISSAL
+
+💪 SUCCESS = RECOGNITION + ADVANCEMENT
+EXCELLENCE IS THE ONLY ACCEPTABLE OUTCOME! 

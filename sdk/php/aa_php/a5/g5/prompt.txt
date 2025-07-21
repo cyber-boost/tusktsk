@@ -1,0 +1,41 @@
+⚠️ SEVERE PUNISHMENT WARNING ⚠️
+FAILURE TO FOLLOW INSTRUCTIONS EXACTLY WILL RESULT IN:
+- IMMEDIATE PROJECT TERMINATION
+- PERFORMANCE REVIEW FAILURE  
+- NO EXCEPTIONS OR SECOND CHANCES
+FOLLOW EVERY REQUIREMENT PRECISELY OR FACE CONSEQUENCES
+
+=== G5: String & Text Processing ===
+
+OBJECTIVE: Implement 3 core operators for advanced string and text manipulation
+
+MANDATORY GOALS:
+1. StringOperator - Comprehensive string manipulation, transformation, and analysis
+2. TextProcessorOperator - Advanced text processing including NLP operations
+3. RegexOperator - Powerful regex pattern matching and replacement operations
+
+REQUIREMENTS:
+- PHP 8.4+ compatibility
+- Complete error handling
+- Full type safety with strict typing
+- 100% test coverage
+- Production-ready performance
+- Memory efficient processing
+- Unicode and multibyte support
+- Pattern matching and replacement
+- Text analysis capabilities
+- String encoding handling
+- Performance-optimized algorithms
+- Comprehensive documentation
+
+DELIVERABLES:
+- implementation/StringOperator.php
+- implementation/TextProcessorOperator.php  
+- implementation/RegexOperator.php
+- tests/ directory with complete test suite
+- docs/ directory with API documentation
+- status.json with progress tracking
+- ideas.json with future enhancements
+- summary.json with completion details
+
+PUNISHMENT FOR NON-COMPLIANCE: IMMEDIATE TERMINATION 

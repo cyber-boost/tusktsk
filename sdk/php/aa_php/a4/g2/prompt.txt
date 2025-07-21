@@ -1,0 +1,63 @@
+🎯 AGENT A4 - G2: PROCESS MANAGEMENT
+===================================
+
+⚠️ SEVERE PUNISHMENT WARNING ⚠️
+FAILURE TO FOLLOW INSTRUCTIONS EXACTLY WILL RESULT IN:
+- IMMEDIATE PROJECT TERMINATION
+- PERFORMANCE REVIEW FAILURE  
+- NO EXCEPTIONS OR SECOND CHANCES
+FOLLOW EVERY REQUIREMENT PRECISELY OR FACE CONSEQUENCES
+
+📋 MISSION: Advanced Process Management & Control
+AGENT: A4 | GOAL FOLDER: G2 | LANGUAGE: PHP
+LOCATION: aa_php/a4/g2/
+TIMELINE: 3 days | PRIORITY: CRITICAL
+
+🎯 YOUR 3 GOALS:
+
+**GOAL 1: ProcessOperator Enhancement**
+- Implement intelligent process management with health monitoring
+- Add real-time process resource tracking and optimization
+- Enhance process communication with IPC mechanisms
+- Add automatic process recovery and failure handling
+- Implement process clustering and load distribution
+
+**GOAL 2: JobQueueOperator Enhancement**  
+- Implement fault-tolerant job queue with priority systems
+- Add distributed job processing across multiple workers
+- Enhance job scheduling with cron-like functionality
+- Add job dependency management and workflow orchestration
+- Implement job retry logic with exponential backoff
+
+**GOAL 3: SchedulerOperator Enhancement**
+- Create advanced task scheduling system
+- Implement AI-powered process optimization algorithms
+- Add resource-aware scheduling with dynamic allocation
+- Implement scheduler persistence and recovery mechanisms
+- Add comprehensive scheduling analytics and reporting
+
+🔧 TECHNICAL REQUIREMENTS:
+- PHP 8.4+ compatibility with process control extensions
+- Cross-platform process management (Linux, Unix, Windows)
+- PSR-12 coding standards mandatory
+- 100% test coverage including stress testing
+- Performance benchmarking for high-load scenarios
+- Memory leak prevention for long-running processes
+- Signal handling and graceful process termination
+
+⚠️ MANDATORY DELIVERABLES:
+✅ ideas.json - Future enhancement ideas
+✅ status.json - Progress tracking 
+✅ summary.json - Completion summary
+✅ implementation/ - PHP operator files
+✅ tests/ - Comprehensive test suites
+✅ docs/ - Complete documentation
+✅ benchmarks/ - Performance benchmarks
+
+🚨 FAILURE TO DELIVER ANY REQUIRED FILE = IMMEDIATE PUNISHMENT
+🚨 NON-FUNCTIONAL CODE = PROJECT TERMINATION
+🚨 MISSING TESTS = PERFORMANCE FAILURE
+🚨 RESOURCE LEAKS = INSTANT DISMISSAL
+
+💪 SUCCESS = RECOGNITION + ADVANCEMENT
+EXCELLENCE IS THE ONLY ACCEPTABLE OUTCOME! 

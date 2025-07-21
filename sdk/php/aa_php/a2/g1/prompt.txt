@@ -1,0 +1,62 @@
+⚠️ SEVERE PUNISHMENT WARNING ⚠️
+FAILURE TO FOLLOW INSTRUCTIONS EXACTLY WILL RESULT IN:
+- IMMEDIATE PROJECT TERMINATION
+- PERFORMANCE REVIEW FAILURE  
+- NO EXCEPTIONS OR SECOND CHANCES
+FOLLOW EVERY REQUIREMENT PRECISELY OR FACE CONSEQUENCES
+
+=== AGENT A2-G1: REST API & HTTP OPERATIONS ===
+
+MANDATORY IMPLEMENTATION REQUIREMENTS:
+
+🎯 GOAL 1: HTTP Client Operations
+- Complete HTTP client with all methods (GET, POST, PUT, DELETE, PATCH, HEAD, OPTIONS)
+- SSL/TLS support with certificate validation
+- Request/response middleware system
+- Timeout and retry mechanisms
+- Authentication header management
+- Cookie handling and session persistence
+
+🎯 GOAL 2: RESTful API Framework
+- Resource-based routing system
+- HTTP status code management
+- Content negotiation (JSON, XML, HTML)
+- Request validation and sanitization
+- Response formatting and serialization
+- HATEOAS implementation
+
+🎯 GOAL 3: Advanced HTTP Features
+- Multipart/form-data handling
+- File upload/download management
+- Streaming response support
+- HTTP/2 and HTTP/3 compatibility
+- Compression handling (gzip, deflate, brotli)
+- CORS implementation
+
+🎯 GOAL 4: Performance & Security
+- Connection pooling and keep-alive
+- Rate limiting and throttling
+- Request/response caching
+- HTTP security headers
+- Input validation and XSS protection
+- CSRF token management
+
+IMPLEMENTATION STANDARDS:
+- PHP 8.4+ compatibility
+- PSR-7 HTTP message interfaces
+- PSR-15 HTTP server middleware
+- Comprehensive error handling
+- Unit tests with 90%+ coverage
+- Performance benchmarks
+- Security vulnerability testing
+
+DELIVERABLES:
+✅ HttpClient class with full method support
+✅ RestApiServer with routing system
+✅ Middleware pipeline implementation
+✅ Security validation system
+✅ Comprehensive test suite
+✅ Performance optimization
+✅ Complete documentation
+
+PUNISHMENT FOR NON-COMPLIANCE: IMMEDIATE TERMINATION 

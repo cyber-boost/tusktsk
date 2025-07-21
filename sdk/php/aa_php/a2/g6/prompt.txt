@@ -1,0 +1,54 @@
+⚠️ SEVERE PUNISHMENT WARNING ⚠️
+FAILURE TO FOLLOW INSTRUCTIONS EXACTLY WILL RESULT IN:
+- IMMEDIATE PROJECT TERMINATION
+- PERFORMANCE REVIEW FAILURE  
+- NO EXCEPTIONS OR SECOND CHANCES
+FOLLOW EVERY REQUIREMENT PRECISELY OR FACE CONSEQUENCES
+
+=== AGENT A2-G6: API GATEWAY & ROUTING ===
+
+MANDATORY IMPLEMENTATION REQUIREMENTS:
+
+🎯 GOAL 1: API Gateway Core
+- Request routing and load balancing
+- Service discovery and health checking
+- Rate limiting and throttling
+- Authentication and authorization
+- Request/response transformation
+- Circuit breaker pattern
+
+🎯 GOAL 2: Advanced Routing
+- Path-based and host-based routing
+- Weighted routing and A/B testing
+- Request matching and filtering
+- Dynamic route configuration
+- Failover and retry mechanisms
+- Caching and response optimization
+
+🎯 GOAL 3: Gateway Management
+- Admin API for configuration
+- Real-time metrics and monitoring
+- Logging and audit trails
+- Plugin system for extensions
+- Configuration validation
+- Hot-reload capabilities
+
+IMPLEMENTATION STANDARDS:
+- PHP 8.4+ with async event loops
+- High-performance routing algorithms
+- Comprehensive error handling
+- Scalability and performance optimization
+- Security and access control
+- Monitoring and observability
+
+DELIVERABLES:
+✅ APIGateway with routing engine
+✅ LoadBalancer with multiple strategies
+✅ ServiceDiscovery with health checks
+✅ RateLimiter with multiple algorithms
+✅ AuthenticationGateway with providers
+✅ MetricsCollector for monitoring
+✅ Comprehensive test suite
+✅ Performance benchmarks
+
+PUNISHMENT FOR NON-COMPLIANCE: IMMEDIATE TERMINATION 
