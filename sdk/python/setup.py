@@ -12,7 +12,7 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="tusktsk",
-    version="2.0.1",
+    version="2.0.2",
     description="TuskTsk - Configuration with a Heartbeat. Query databases, use any syntax, never bow to any king!",
     long_description=long_description,
     long_description_content_type="text/markdown",

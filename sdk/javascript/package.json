@@ -1,6 +1,6 @@
 {
   "name": "tusktsk",
-  "version": "2.0.1",
+  "version": "2.0.2",
   "description": "TuskTsk - The Freedom Configuration Language. Query databases, use any syntax, never bow to any king!",
   "main": "index.js",
   "bin": {
@@ -65,7 +65,7 @@
     "features": [
       "flexible-syntax",
       "global-variables",
-      "cross-file-communication", 
+      "cross-file-communication",
       "database-queries",
       "peanut-integration",
       "binary-compilation",

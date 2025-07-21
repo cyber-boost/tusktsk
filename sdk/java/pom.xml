@@ -7,7 +7,7 @@
 
     <groupId>com.cyberboost</groupId>
     <artifactId>tusktsk</artifactId>
-    <version>2.0.1</version>
+    <version>2.0.2</version>
     <packaging>jar</packaging>
 
     <name>TuskTsk Java</name>
@@ -64,94 +64,94 @@
         <dependency>
             <groupId>com.fasterxml.jackson.core</groupId>
             <artifactId>jackson-databind</artifactId>
-            <version>2.15.2</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- YAML support -->
         <dependency>
             <groupId>com.fasterxml.jackson.dataformat</groupId>
             <artifactId>jackson-dataformat-yaml</artifactId>
-            <version>2.15.2</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- CLI argument parsing -->
         <dependency>
             <groupId>commons-cli</groupId>
             <artifactId>commons-cli</artifactId>
-            <version>1.5.0</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- JPA/Hibernate -->
         <dependency>
             <groupId>jakarta.persistence</groupId>
             <artifactId>jakarta.persistence-api</artifactId>
-            <version>3.1.0</version>
+            <version>2.0.2</version>
         </dependency>
         
         <dependency>
             <groupId>org.hibernate.orm</groupId>
             <artifactId>hibernate-core</artifactId>
-            <version>6.2.7.Final</version>
+            <version>2.0.2</version>
         </dependency>
         
         <!-- MessagePack for binary serialization -->
         <dependency>
             <groupId>org.msgpack</groupId>
             <artifactId>msgpack-core</artifactId>
-            <version>0.9.8</version>
+            <version>2.0.2</version>
         </dependency>
         
         <!-- SLF4J for logging -->
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-api</artifactId>
-            <version>2.0.9</version>
+            <version>2.0.2</version>
         </dependency>
         
         <dependency>
             <groupId>org.slf4j</groupId>
             <artifactId>slf4j-simple</artifactId>
-            <version>2.0.9</version>
+            <version>2.0.2</version>
         </dependency>
         
         <!-- Spring Boot dependencies -->
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-starter</artifactId>
-            <version>3.2.0</version>
+            <version>2.0.2</version>
         </dependency>
         
         <dependency>
             <groupId>org.springframework.boot</groupId>
             <artifactId>spring-boot-autoconfigure</artifactId>
-            <version>3.2.0</version>
+            <version>2.0.2</version>
         </dependency>
         
         <!-- Database drivers -->
         <dependency>
             <groupId>com.h2database</groupId>
             <artifactId>h2</artifactId>
-            <version>2.2.220</version>
+            <version>2.0.2</version>
             <scope>runtime</scope>
         </dependency>
         
         <dependency>
             <groupId>org.xerial</groupId>
             <artifactId>sqlite-jdbc</artifactId>
-            <version>3.42.0.0</version>
+            <version>2.0.2</version>
         </dependency>
         
         <dependency>
             <groupId>org.postgresql</groupId>
             <artifactId>postgresql</artifactId>
-            <version>42.6.0</version>
+            <version>2.0.2</version>
             <scope>runtime</scope>
         </dependency>
         
         <dependency>
             <groupId>com.mysql</groupId>
             <artifactId>mysql-connector-j</artifactId>
-            <version>8.0.33</version>
+            <version>2.0.2</version>
             <scope>runtime</scope>
         </dependency>
 
@@ -159,123 +159,123 @@
         <dependency>
             <groupId>org.mongodb</groupId>
             <artifactId>mongodb-driver-sync</artifactId>
-            <version>4.11.0</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- Redis client -->
         <dependency>
             <groupId>redis.clients</groupId>
             <artifactId>jedis</artifactId>
-            <version>5.0.2</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- Elasticsearch client -->
         <dependency>
             <groupId>org.elasticsearch.client</groupId>
             <artifactId>elasticsearch-rest-high-level-client</artifactId>
-            <version>7.17.12</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- Elasticsearch core -->
         <dependency>
             <groupId>org.elasticsearch</groupId>
             <artifactId>elasticsearch</artifactId>
-            <version>7.17.12</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- etcd client -->
         <dependency>
             <groupId>io.etcd</groupId>
             <artifactId>jetcd-core</artifactId>
-            <version>0.7.6</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- Consul client -->
         <dependency>
             <groupId>com.orbitz.consul</groupId>
             <artifactId>consul-client</artifactId>
-            <version>1.5.3</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- HTTP client for REST APIs -->
         <dependency>
             <groupId>org.apache.httpcomponents.client5</groupId>
             <artifactId>httpclient5</artifactId>
-            <version>5.2.1</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- gRPC dependencies -->
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-netty-shaded</artifactId>
-            <version>1.58.0</version>
+            <version>2.0.2</version>
         </dependency>
         
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-protobuf</artifactId>
-            <version>1.58.0</version>
+            <version>2.0.2</version>
         </dependency>
         
         <dependency>
             <groupId>io.grpc</groupId>
             <artifactId>grpc-stub</artifactId>
-            <version>1.58.0</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- Kafka client -->
         <dependency>
             <groupId>org.apache.kafka</groupId>
             <artifactId>kafka-clients</artifactId>
-            <version>3.5.1</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- RabbitMQ (AMQP) client -->
         <dependency>
             <groupId>com.rabbitmq</groupId>
             <artifactId>amqp-client</artifactId>
-            <version>5.19.0</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- NATS client -->
         <dependency>
             <groupId>io.nats</groupId>
             <artifactId>jnats</artifactId>
-            <version>2.16.14</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- Server-Sent Events -->
         <dependency>
             <groupId>org.glassfish.jersey.media</groupId>
             <artifactId>jersey-media-sse</artifactId>
-            <version>3.1.3</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- WebSocket client enhancements -->
         <dependency>
             <groupId>org.java-websocket</groupId>
             <artifactId>Java-WebSocket</artifactId>
-            <version>1.5.4</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- Protocol Buffers -->
         <dependency>
             <groupId>com.google.protobuf</groupId>
             <artifactId>protobuf-java</artifactId>
-            <version>3.24.4</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- Enterprise Security Dependencies -->
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-core</artifactId>
-            <version>6.2.0</version>
+            <version>2.0.2</version>
         </dependency>
         
         <dependency>
             <groupId>org.springframework.security</groupId>
             <artifactId>spring-security-oauth2-client</artifactId>
-            <version>6.2.0</version>
+            <version>2.0.2</version>
         </dependency>
         
 
@@ -283,46 +283,46 @@
         <dependency>
             <groupId>com.warrenstrange</groupId>
             <artifactId>googleauth</artifactId>
-            <version>1.5.0</version>
+            <version>2.0.2</version>
         </dependency>
         
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-api</artifactId>
-            <version>0.12.3</version>
+            <version>2.0.2</version>
         </dependency>
         
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-impl</artifactId>
-            <version>0.12.3</version>
+            <version>2.0.2</version>
             <scope>runtime</scope>
         </dependency>
         
         <dependency>
             <groupId>io.jsonwebtoken</groupId>
             <artifactId>jjwt-jackson</artifactId>
-            <version>0.12.3</version>
+            <version>2.0.2</version>
             <scope>runtime</scope>
         </dependency>
         
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcprov-jdk18on</artifactId>
-            <version>1.77</version>
+            <version>2.0.2</version>
         </dependency>
         
         <dependency>
             <groupId>org.bouncycastle</groupId>
             <artifactId>bcpkix-jdk18on</artifactId>
-            <version>1.77</version>
+            <version>2.0.2</version>
         </dependency>
 
         <!-- Testing -->
         <dependency>
             <groupId>junit</groupId>
             <artifactId>junit</artifactId>
-            <version>4.13.2</version>
+            <version>2.0.2</version>
             <scope>test</scope>
         </dependency>
     </dependencies>
@@ -333,7 +333,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-compiler-plugin</artifactId>
-                <version>3.11.0</version>
+                <version>2.0.2</version>
                 <configuration>
                     <source>17</source>
                     <target>17</target>
@@ -344,7 +344,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-shade-plugin</artifactId>
-                <version>3.4.1</version>
+                <version>2.0.2</version>
                 <executions>
                     <execution>
                         <phase>package</phase>
@@ -366,7 +366,7 @@
             <plugin>
                 <groupId>org.apache.maven.plugins</groupId>
                 <artifactId>maven-surefire-plugin</artifactId>
-                <version>3.1.2</version>
+                <version>2.0.2</version>
             </plugin>
         </plugins>
     </build>
