@@ -12,8 +12,8 @@ long_description = (here / "README.md").read_text(encoding="utf-8")
 
 setup(
     name="tusktsk",
-    version="2.0.2",
-    description="TuskTsk - Configuration with a Heartbeat. Query databases, use any syntax, never bow to any king!",
+    version="2.0.3",
+    description="TuskTsk - Configuration with a Heartbeat. Enhanced with 140+ CLI commands including binary operations and AI management!",
     long_description=long_description,
     long_description_content_type="text/markdown",
     url="https://github.com/cyber-boost/tusktsk",
@@ -42,7 +42,7 @@ setup(
     # optional dependencies defined in pyproject.toml
     entry_points={
         "console_scripts": [
-            "tusk=tsk:main",
+            "tusk=tusktsk.cli.main:main",
             "tusk-peanut=peanut_config:main",
         ],
     },

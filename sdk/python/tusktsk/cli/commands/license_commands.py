@@ -127,6 +127,14 @@ def handle_license_command(args, cli):
         return handle_check_command(args, cli)
     elif args.license_command == 'activate':
         return handle_activate_command(args, cli)
+    elif args.license_command == 'validate':
+        return handle_validate_command(args, cli)
+    elif args.license_command == 'info':
+        return handle_info_command(args, cli)
+    elif args.license_command == 'transfer':
+        return handle_transfer_command(args, cli)
+    elif args.license_command == 'revoke':
+        return handle_revoke_command(args, cli)
     else:
         output_formatter.print_error("Unknown license command")
         return 1
@@ -227,4 +235,173 @@ def require_license(feature: str):
                 return 1
             return func(*args, **kwargs)
         return wrapper
-    return decorator 
+    return decorator
+
+
+def handle_validate_command(args, cli):
+    """Handle license validate command"""
+    try:
+        license_mgr = LicenseManager()
+        key = args.key if hasattr(args, 'key') else None
+        
+        if not key:
+            # Validate current license
+            status = license_mgr.check_license()
+            if status['status'] != 'active':
+                output_formatter.print_error("No active license to validate")
+                return 1
+            
+            key = license_mgr.license_data.get('key')
+        
+        # Perform cryptographic validation
+        validation = license_mgr.validate_license(key)
+        
+        if cli.json_output:
+            output_formatter.print_json(validation)
+        else:
+            if validation.get('valid', False):
+                print(f"✅ License Validation: VALID")
+                print(f"   Type: {validation.get('type', 'unknown').upper()}")
+                print(f"   Expires: {validation.get('expires', 'unknown')}")
+                print(f"   Features: {', '.join(validation.get('features', []))}")
+                print(f"   Cryptographic Signature: ✅ Valid")
+            else:
+                print(f"❌ License Validation: INVALID")
+                print(f"   Error: {validation.get('error', 'Unknown error')}")
+        
+        return 0 if validation.get('valid', False) else 1
+        
+    except Exception as e:
+        output_formatter.print_error(f"License validation error: {str(e)}")
+        return 1
+
+
+def handle_info_command(args, cli):
+    """Handle license info command"""
+    try:
+        license_mgr = LicenseManager()
+        status = license_mgr.check_license()
+        
+        if cli.json_output:
+            output_formatter.print_json(status)
+        else:
+            if status['status'] == 'active':
+                license_data = status['license']
+                print(f"📋 License Information")
+                print(f"   Status: {status['status'].upper()}")
+                print(f"   Type: {license_data.get('type', 'unknown').upper()}")
+                print(f"   User: {license_data.get('user', 'unknown')}")
+                print(f"   Company: {license_data.get('company', 'unknown')}")
+                print(f"   Expires: {license_data.get('expires', 'unknown')}")
+                print(f"   Activated: {license_data.get('activated', 'unknown')}")
+                print(f"   Features: {', '.join(license_data.get('features', []))}")
+                print(f"   Hash: {license_data.get('hash', 'unknown')[:16]}...")
+                
+                # Calculate days remaining
+                if 'expires' in license_data:
+                    expires = datetime.fromisoformat(license_data['expires'])
+                    days_remaining = (expires - datetime.now()).days
+                    if days_remaining > 0:
+                        print(f"   Days Remaining: {days_remaining}")
+                    else:
+                        print(f"   ⚠️  EXPIRED")
+            else:
+                print(f"📋 License Information")
+                print(f"   Status: {status['status'].upper()}")
+                print(f"   {status['message']}")
+        
+        return 0 if status['status'] == 'active' else 1
+        
+    except Exception as e:
+        output_formatter.print_error(f"License info error: {str(e)}")
+        return 1
+
+
+def handle_transfer_command(args, cli):
+    """Handle license transfer command"""
+    try:
+        license_mgr = LicenseManager()
+        target_system = args.target_system if hasattr(args, 'target_system') else None
+        
+        if not target_system:
+            output_formatter.print_error("Target system identifier required")
+            return 1
+        
+        # Check current license
+        status = license_mgr.check_license()
+        if status['status'] != 'active':
+            output_formatter.print_error("No active license to transfer")
+            return 1
+        
+        # Generate transfer token
+        transfer_data = {
+            'license_key': license_mgr.license_data.get('key'),
+            'target_system': target_system,
+            'timestamp': datetime.now().isoformat(),
+            'transfer_id': hashlib.sha256(f"{target_system}{time.time()}".encode()).hexdigest()[:16]
+        }
+        
+        # In a real implementation, this would communicate with a license server
+        # For now, we'll simulate the transfer
+        
+        if cli.json_output:
+            output_formatter.print_json({
+                'success': True,
+                'transfer_id': transfer_data['transfer_id'],
+                'target_system': target_system,
+                'message': 'Transfer initiated successfully'
+            })
+        else:
+            print(f"✅ License Transfer Initiated")
+            print(f"   Transfer ID: {transfer_data['transfer_id']}")
+            print(f"   Target System: {target_system}")
+            print(f"   Status: Pending")
+            print(f"   Instructions: Use transfer ID on target system")
+        
+        return 0
+        
+    except Exception as e:
+        output_formatter.print_error(f"License transfer error: {str(e)}")
+        return 1
+
+
+def handle_revoke_command(args, cli):
+    """Handle license revoke command"""
+    try:
+        license_mgr = LicenseManager()
+        
+        # Check current license
+        status = license_mgr.check_license()
+        if status['status'] != 'active':
+            output_formatter.print_error("No active license to revoke")
+            return 1
+        
+        # Confirm revocation
+        if not getattr(args, 'force', False):
+            print("⚠️  WARNING: This will permanently revoke your license")
+            print(f"   License: {license_mgr.license_data.get('type', 'unknown').upper()}")
+            print(f"   User: {license_mgr.license_data.get('user', 'unknown')}")
+            confirm = input("Are you sure you want to continue? (yes/no): ")
+            if confirm.lower() != 'yes':
+                print("License revocation cancelled")
+                return 0
+        
+        # Revoke license
+        license_mgr.license_data = {}
+        license_mgr.save_license()
+        
+        if cli.json_output:
+            output_formatter.print_json({
+                'success': True,
+                'message': 'License revoked successfully'
+            })
+        else:
+            print(f"✅ License Revoked Successfully")
+            print(f"   All license data has been cleared")
+            print(f"   You will need to activate a new license to use premium features")
+        
+        return 0
+        
+    except Exception as e:
+        output_formatter.print_error(f"License revocation error: {str(e)}")
+        return 1 

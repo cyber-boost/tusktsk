@@ -9,9 +9,9 @@ import os
 from pathlib import Path
 from typing import Dict, Any, Optional, List
 
-from tsk import TSK, TSKParser
-from tsk_enhanced import TuskLangEnhanced
-from peanut_config import PeanutConfig
+from ...tsk import TSK, TSKParser
+from ...tsk_enhanced import TuskLangEnhanced
+from ...peanut_config import PeanutConfig
 
 
 class ConfigLoader:
@@ -222,6 +222,115 @@ class ConfigLoader:
             return True
         except Exception:
             return False
+    
+    def get_config(self, directory: Optional[str] = None) -> Dict[str, Any]:
+        """Get configuration data"""
+        return self.load_config(directory)
+    
+    def set_value(self, key_path: str, value: Any, directory: Optional[str] = None) -> bool:
+        """Set configuration value by path"""
+        try:
+            config = self.load_config(directory)
+            keys = key_path.split('.')
+            current = config
+            
+            # Navigate to the parent of the target key
+            for key in keys[:-1]:
+                if key not in current:
+                    current[key] = {}
+                current = current[key]
+            
+            # Set the value
+            current[keys[-1]] = value
+            
+            # Save the configuration
+            return self._save_config(config, directory)
+        except Exception:
+            return False
+    
+    def import_config(self, import_data: Dict[str, Any], directory: Optional[str] = None) -> bool:
+        """Import configuration data"""
+        try:
+            config = self.load_config(directory)
+            
+            # Merge configurations
+            merged_config = self._merge_configs(config, import_data)
+            
+            # Save the merged configuration
+            return self._save_config(merged_config, directory)
+        except Exception:
+            return False
+    
+    def _save_config(self, config: Dict[str, Any], directory: Optional[str] = None) -> bool:
+        """Save configuration to file"""
+        try:
+            if directory is None:
+                directory = os.getcwd()
+            
+            # Find the appropriate config file
+            config_files = self._find_config_files(directory)
+            if config_files:
+                config_file = config_files[0]
+                
+                # Save based on file type
+                if config_file.suffix == '.tsk':
+                    with open(config_file, 'w') as f:
+                        f.write(self._dict_to_tsk(config))
+                elif config_file.suffix == '.pnt':
+                    # Save as binary
+                    self.peanut_config.save_binary(config, str(config_file))
+                else:
+                    # Save as JSON
+                    import json
+                    with open(config_file, 'w') as f:
+                        json.dump(config, f, indent=2)
+                
+                return True
+            else:
+                # Create new config file
+                new_config_file = Path(directory) / 'peanu.tsk'
+                with open(new_config_file, 'w') as f:
+                    f.write(self._dict_to_tsk(config))
+                return True
+        except Exception:
+            return False
+    
+    def _dict_to_tsk(self, config: Dict[str, Any]) -> str:
+        """Convert dictionary to TSK format"""
+        lines = []
+        for key, value in config.items():
+            if isinstance(value, dict):
+                lines.append(f"{key} {{")
+                lines.extend(self._dict_to_tsk_lines(value, 1))
+                lines.append("}")
+            else:
+                lines.append(f"{key} = {value}")
+        return "\n".join(lines)
+    
+    def _dict_to_tsk_lines(self, config: Dict[str, Any], indent: int) -> List[str]:
+        """Convert dictionary to TSK format lines with indentation"""
+        lines = []
+        for key, value in config.items():
+            indent_str = "  " * indent
+            if isinstance(value, dict):
+                lines.append(f"{indent_str}{key} {{")
+                lines.extend(self._dict_to_tsk_lines(value, indent + 1))
+                lines.append(f"{indent_str}}}")
+            else:
+                lines.append(f"{indent_str}{key} = {value}")
+        return lines
+    
+    def _merge_configs(self, base_config: Dict[str, Any], merge_config: Dict[str, Any]) -> Dict[str, Any]:
+        """Merge two configuration dictionaries"""
+        result = base_config.copy()
+        
+        for key, value in merge_config.items():
+            if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+                result[key] = self._merge_configs(result[key], value)
+            else:
+                result[key] = value
+        
+        return result
 
 
 # Global config loader instance

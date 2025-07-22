@@ -13,7 +13,16 @@ import socket
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from adapters import RedisAdapter
+# Import adapters with try/except to handle missing dependencies gracefully
+try:
+    from ...adapters import RedisAdapter
+    CACHE_ADAPTERS_AVAILABLE = True
+except ImportError:
+    CACHE_ADAPTERS_AVAILABLE = False
+    # Create dummy class for when adapters are not available
+    class RedisAdapter:
+        def __init__(self, config): pass
+        def is_connected(self): return False
 from ..utils.output_formatter import OutputFormatter
 from ..utils.error_handler import ErrorHandler
 from ..utils.config_loader import ConfigLoader
@@ -35,6 +44,8 @@ def handle_cache_command(args: Any, cli: Any) -> int:
             return _handle_memcached_command(args, formatter, error_handler)
         elif args.cache_command == 'distributed':
             return _handle_distributed_cache(formatter, error_handler)
+        elif args.cache_command == 'redis':
+            return _handle_redis_command(args, formatter, error_handler)
         else:
             formatter.error("Unknown cache command")
             return ErrorHandler.INVALID_ARGS
@@ -511,5 +522,78 @@ def _handle_distributed_cache(formatter: OutputFormatter, error_handler: ErrorHa
         
         return ErrorHandler.SUCCESS
         
+    except Exception as e:
+        return error_handler.handle_error(e)
+
+
+def _handle_cache_distributed_status(formatter: OutputFormatter, error_handler: ErrorHandler) -> int:
+    """Handle distributed cache status command"""
+    return _handle_distributed_cache(formatter, error_handler)
+
+
+def _handle_cache_redis_info(formatter: OutputFormatter, error_handler: ErrorHandler) -> int:
+    """Handle Redis cache info command"""
+    formatter.loading("Getting Redis information...")
+    
+    try:
+        redis_adapter = RedisAdapter()
+        redis_adapter.connect()
+        
+        # Get Redis info
+        info = redis_adapter.query("INFO")
+        if isinstance(info, str):
+            # Parse INFO output
+            lines = info.split('\n')
+            redis_stats = {}
+            for line in lines:
+                if ':' in line:
+                    key, value = line.split(':', 1)
+                    redis_stats[key] = value.strip()
+            
+            # Display key statistics
+            key_stats = [
+                ['Server', redis_stats.get('redis_version', 'N/A')],
+                ['Connected Clients', redis_stats.get('connected_clients', 'N/A')],
+                ['Used Memory', redis_stats.get('used_memory_human', 'N/A')],
+                ['Total Keys', redis_stats.get('db0', 'N/A')],
+                ['Keyspace Hits', redis_stats.get('keyspace_hits', 'N/A')],
+                ['Keyspace Misses', redis_stats.get('keyspace_misses', 'N/A')],
+                ['Uptime', f"{int(redis_stats.get('uptime_in_seconds', 0)) // 3600}h"],
+                ['Last Save', redis_stats.get('last_save_time', 'N/A')]
+            ]
+            
+            formatter.table(
+                ['Metric', 'Value'],
+                key_stats,
+                'Redis Information'
+            )
+            
+            # Calculate hit rate
+            hits = int(redis_stats.get('keyspace_hits', 0))
+            misses = int(redis_stats.get('keyspace_misses', 0))
+            total_requests = hits + misses
+            
+            if total_requests > 0:
+                hit_rate = (hits / total_requests) * 100
+                formatter.info(f"Cache Hit Rate: {hit_rate:.1f}%")
+            
+            return ErrorHandler.SUCCESS
+        else:
+            formatter.error("Failed to get Redis information")
+            return ErrorHandler.CONNECTION_ERROR
+            
+    except Exception as e:
+        return error_handler.handle_error(e)
+
+
+def _handle_redis_command(args: Any, formatter: OutputFormatter, error_handler: ErrorHandler) -> int:
+    """Handle Redis subcommands"""
+    try:
+        if args.redis_command == 'info':
+            return _handle_cache_redis_info(formatter, error_handler)
+        else:
+            formatter.error("Unknown Redis command")
+            return ErrorHandler.INVALID_ARGS
+            
     except Exception as e:
         return error_handler.handle_error(e) 

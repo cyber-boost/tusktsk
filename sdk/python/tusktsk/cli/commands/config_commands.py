@@ -12,9 +12,9 @@ import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from tsk import TSK, TSKParser
-from tsk_enhanced import TuskLangEnhanced
-from peanut_config import PeanutConfig
+from ...tsk import TSK, TSKParser
+from ...tsk_enhanced import TuskLangEnhanced
+from ...peanut_config import PeanutConfig
 from ..utils.output_formatter import OutputFormatter
 from ..utils.error_handler import ErrorHandler
 from ..utils.config_loader import ConfigLoader
@@ -29,6 +29,16 @@ def handle_config_command(args: Any, cli: Any) -> int:
     try:
         if args.config_command == 'get':
             return _handle_config_get(args, formatter, error_handler, config_loader)
+        elif args.config_command == 'set':
+            return _handle_config_set(args, formatter, error_handler, config_loader)
+        elif args.config_command == 'list':
+            return _handle_config_list(args, formatter, error_handler, config_loader)
+        elif args.config_command == 'export':
+            return _handle_config_export(args, formatter, error_handler, config_loader)
+        elif args.config_command == 'import':
+            return _handle_config_import(args, formatter, error_handler, config_loader)
+        elif args.config_command == 'merge':
+            return _handle_config_merge(args, formatter, error_handler, config_loader)
         elif args.config_command == 'check':
             return _handle_config_check(args, formatter, error_handler, config_loader)
         elif args.config_command == 'validate':
@@ -353,4 +363,182 @@ def _count_config_keys(config: Dict[str, Any]) -> int:
         count += 1
         if isinstance(value, dict):
             count += _count_config_keys(value)
-    return count 
+    return count
+
+
+def _handle_config_set(args: Any, formatter: OutputFormatter, error_handler: ErrorHandler, config_loader: ConfigLoader) -> int:
+    """Handle config set command"""
+    key_path = args.key_path
+    value = args.value
+    directory = getattr(args, 'dir', None)
+    
+    formatter.loading(f"Setting configuration value: {key_path} = {value}")
+    
+    try:
+        # Parse value based on type
+        if value.lower() in ('true', 'false'):
+            parsed_value = value.lower() == 'true'
+        elif value.isdigit():
+            parsed_value = int(value)
+        elif value.replace('.', '').isdigit() and value.count('.') == 1:
+            parsed_value = float(value)
+        else:
+            parsed_value = value
+        
+        # Set the value
+        success = config_loader.set_value(key_path, parsed_value, directory=directory)
+        
+        if success:
+            formatter.success(f"Configuration value set: {key_path} = {parsed_value}")
+            return ErrorHandler.SUCCESS
+        else:
+            formatter.error(f"Failed to set configuration value: {key_path}")
+            return ErrorHandler.CONFIG_ERROR
+            
+    except Exception as e:
+        return error_handler.handle_error(e)
+
+
+def _handle_config_list(args: Any, formatter: OutputFormatter, error_handler: ErrorHandler, config_loader: ConfigLoader) -> int:
+    """Handle config list command"""
+    section = getattr(args, 'section', None)
+    directory = getattr(args, 'dir', None)
+    
+    formatter.loading("Listing configuration sections...")
+    
+    try:
+        # Get configuration data
+        config_data = config_loader.get_config(directory=directory)
+        
+        if section:
+            # List specific section
+            if section in config_data:
+                section_data = config_data[section]
+                if isinstance(section_data, dict):
+                    formatter.section(f"Configuration Section: {section}")
+                    for key, value in section_data.items():
+                        formatter.key_value(f"{section}.{key}", value)
+                else:
+                    formatter.key_value(section, section_data)
+            else:
+                formatter.warning(f"Configuration section not found: {section}")
+                return ErrorHandler.CONFIG_ERROR
+        else:
+            # List all sections
+            formatter.section("Configuration Sections")
+            for section_name, section_data in config_data.items():
+                if isinstance(section_data, dict):
+                    key_count = len(section_data)
+                    formatter.info(f"{section_name}: {key_count} keys")
+                else:
+                    formatter.info(f"{section_name}: {section_data}")
+        
+        return ErrorHandler.SUCCESS
+        
+    except Exception as e:
+        return error_handler.handle_error(e)
+
+
+def _handle_config_export(args: Any, formatter: OutputFormatter, error_handler: ErrorHandler, config_loader: ConfigLoader) -> int:
+    """Handle config export command"""
+    output_file = getattr(args, 'output', 'config_export.json')
+    directory = getattr(args, 'dir', None)
+    
+    formatter.loading(f"Exporting configuration to: {output_file}")
+    
+    try:
+        # Get configuration data
+        config_data = config_loader.get_config(directory=directory)
+        
+        # Export to JSON
+        with open(output_file, 'w') as f:
+            json.dump(config_data, f, indent=2)
+        
+        formatter.success(f"Configuration exported to: {output_file}")
+        formatter.info(f"Total keys: {_count_config_keys(config_data)}")
+        
+        return ErrorHandler.SUCCESS
+        
+    except Exception as e:
+        return error_handler.handle_error(e)
+
+
+def _handle_config_import(args: Any, formatter: OutputFormatter, error_handler: ErrorHandler, config_loader: ConfigLoader) -> int:
+    """Handle config import command"""
+    input_file = args.input_file
+    directory = getattr(args, 'dir', None)
+    
+    formatter.loading(f"Importing configuration from: {input_file}")
+    
+    try:
+        # Read JSON file
+        with open(input_file, 'r') as f:
+            import_data = json.load(f)
+        
+        # Import configuration
+        success = config_loader.import_config(import_data, directory=directory)
+        
+        if success:
+            formatter.success(f"Configuration imported from: {input_file}")
+            formatter.info(f"Total keys imported: {_count_config_keys(import_data)}")
+            return ErrorHandler.SUCCESS
+        else:
+            formatter.error(f"Failed to import configuration from: {input_file}")
+            return ErrorHandler.CONFIG_ERROR
+            
+    except Exception as e:
+        return error_handler.handle_error(e)
+
+
+def _handle_config_merge(args: Any, formatter: OutputFormatter, error_handler: ErrorHandler, config_loader: ConfigLoader) -> int:
+    """Handle config merge command"""
+    source_file = args.source_file
+    target_file = getattr(args, 'target_file', None)
+    directory = getattr(args, 'dir', None)
+    
+    formatter.loading(f"Merging configuration from: {source_file}")
+    
+    try:
+        # Read source configuration
+        with open(source_file, 'r') as f:
+            source_data = json.load(f)
+        
+        # Get current configuration
+        current_data = config_loader.get_config(directory=directory)
+        
+        # Merge configurations
+        merged_data = _merge_configs(current_data, source_data)
+        
+        # Save merged configuration
+        if target_file:
+            with open(target_file, 'w') as f:
+                json.dump(merged_data, f, indent=2)
+            formatter.success(f"Configuration merged to: {target_file}")
+        else:
+            # Update current configuration
+            success = config_loader.import_config(merged_data, directory=directory)
+            if success:
+                formatter.success("Configuration merged successfully")
+            else:
+                formatter.error("Failed to merge configuration")
+                return ErrorHandler.CONFIG_ERROR
+        
+        formatter.info(f"Total keys after merge: {_count_config_keys(merged_data)}")
+        
+        return ErrorHandler.SUCCESS
+        
+    except Exception as e:
+        return error_handler.handle_error(e)
+
+
+def _merge_configs(base_config: Dict[str, Any], merge_config: Dict[str, Any]) -> Dict[str, Any]:
+    """Merge two configuration dictionaries"""
+    result = base_config.copy()
+    
+    for key, value in merge_config.items():
+        if key in result and isinstance(result[key], dict) and isinstance(value, dict):
+            result[key] = _merge_configs(result[key], value)
+        else:
+            result[key] = value
+    
+    return result 

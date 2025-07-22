@@ -36,7 +36,7 @@ def handle_compile_command(args, cli):
     
     try:
         # Import PeanutConfig
-        from peanut_config import PeanutConfig
+        from ...peanut_config import PeanutConfig
         
         # Determine output file
         if input_file.suffix.lower() == '.peanuts':
@@ -93,7 +93,7 @@ def handle_auto_compile_command(args, cli):
     
     try:
         # Import PeanutConfig
-        from peanut_config import PeanutConfig
+        from ...peanut_config import PeanutConfig
         
         # Find all .peanuts and .tsk files
         peanuts_files = list(compile_path.rglob("*.peanuts"))
@@ -201,7 +201,7 @@ def handle_load_command(args, cli):
     
     try:
         # Import PeanutConfig
-        from peanut_config import PeanutConfig
+        from ...peanut_config import PeanutConfig
         
         # Load the binary file
         start_time = time.time()

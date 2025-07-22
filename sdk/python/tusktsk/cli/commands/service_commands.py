@@ -10,7 +10,28 @@ import sys
 import time
 import subprocess
 import signal
-import psutil
+# Import psutil with fallback
+try:
+    import psutil
+    PSUTIL_AVAILABLE = True
+except ImportError:
+    PSUTIL_AVAILABLE = False
+    # Create dummy psutil module for when it's not available
+    class DummyProcess:
+        def __init__(self): pass
+        def name(self): return "unknown"
+        def pid(self): return 0
+        def status(self): return "unknown"
+        def memory_info(self): return type('obj', (object,), {'rss': 0})()
+        def create_time(self): return 0
+        def terminate(self): return None
+        def kill(self): return None
+    
+    class psutil:
+        @staticmethod
+        def process_iter(): return []
+        @staticmethod
+        def Process(pid): return DummyProcess()
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
@@ -33,6 +54,10 @@ def handle_service_command(args: Any, cli: Any) -> int:
             return _handle_service_restart(formatter, error_handler)
         elif args.service_command == 'status':
             return _handle_service_status(formatter, error_handler)
+        elif args.service_command == 'logs':
+            return _handle_service_logs(args, formatter, error_handler)
+        elif args.service_command == 'health':
+            return _handle_service_health(args, formatter, error_handler)
         else:
             formatter.error("Unknown service command")
             return ErrorHandler.INVALID_ARGS
@@ -344,4 +369,114 @@ def _get_service_logs(service_name: str, lines: int = 50) -> List[str]:
     return [
         f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {service_name}: Service started",
         f"[{time.strftime('%Y-%m-%d %H:%M:%S')}] {service_name}: Ready to accept connections"
-    ] 
+    ]
+
+
+def _handle_service_logs(args: Any, formatter: OutputFormatter, error_handler: ErrorHandler) -> int:
+    """Handle service logs command"""
+    formatter.loading("Retrieving service logs...")
+    
+    try:
+        service_name = getattr(args, 'service_name', None)
+        lines = getattr(args, 'lines', 50)
+        
+        if service_name:
+            # Get logs for specific service
+            logs = _get_service_logs(service_name, lines)
+            formatter.info(f"Logs for {service_name}:")
+            for log in logs:
+                formatter.info(f"  {log}")
+        else:
+            # Get logs for all services
+            services = _get_tusklang_services()
+            for service_name in services:
+                logs = _get_service_logs(service_name, lines)
+                formatter.info(f"Logs for {service_name}:")
+                for log in logs:
+                    formatter.info(f"  {log}")
+                formatter.info("")  # Empty line between services
+        
+        return ErrorHandler.SUCCESS
+        
+    except Exception as e:
+        return error_handler.handle_error(e)
+
+
+def _handle_service_health(args: Any, formatter: OutputFormatter, error_handler: ErrorHandler) -> int:
+    """Handle service health command"""
+    formatter.loading("Checking service health...")
+    
+    try:
+        services = _get_tusklang_services()
+        running_services = _get_running_tusklang_services()
+        
+        health_results = []
+        overall_health = "healthy"
+        
+        for service_name, service_config in services.items():
+            if service_name in running_services:
+                process = running_services[service_name]
+                
+                # Check process health
+                try:
+                    # Check if process is responsive
+                    cpu_percent = process.cpu_percent()
+                    memory_info = process.memory_info()
+                    memory_mb = memory_info.rss / 1024 / 1024
+                    
+                    # Determine health status
+                    if cpu_percent > 80:
+                        health_status = "⚠️ High CPU"
+                        overall_health = "degraded"
+                    elif memory_mb > 1024:  # 1GB
+                        health_status = "⚠️ High Memory"
+                        overall_health = "degraded"
+                    else:
+                        health_status = "✅ Healthy"
+                    
+                    health_results.append([
+                        service_name,
+                        health_status,
+                        f"{cpu_percent:.1f}%",
+                        f"{memory_mb:.1f}MB",
+                        process.pid
+                    ])
+                    
+                except (psutil.NoSuchProcess, psutil.AccessDenied):
+                    health_results.append([
+                        service_name,
+                        "❌ Error",
+                        "N/A",
+                        "N/A",
+                        "N/A"
+                    ])
+                    overall_health = "unhealthy"
+            else:
+                health_results.append([
+                    service_name,
+                    "❌ Stopped",
+                    "N/A",
+                    "N/A",
+                    "N/A"
+                ])
+                overall_health = "unhealthy"
+        
+        # Display results
+        formatter.table(
+            ['Service', 'Health', 'CPU', 'Memory', 'PID'],
+            health_results,
+            'Service Health Status'
+        )
+        
+        # Overall health summary
+        if overall_health == "healthy":
+            formatter.success("All services are healthy")
+        elif overall_health == "degraded":
+            formatter.warning("Some services show performance issues")
+        else:
+            formatter.error("Some services are unhealthy or stopped")
+        
+        return ErrorHandler.SUCCESS
+        
+    except Exception as e:
+        return error_handler.handle_error(e) 

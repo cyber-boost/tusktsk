@@ -360,37 +360,3 @@ class RedisQueryBuilder:
                 count += 1
         
         return count
-
-
-def execute_redis(params: str) -> Any:
-    """Execute @redis operator for Redis operations
-    
-    Args:
-        params: JSON string with operation and arguments
-        
-    Returns:
-        Result of Redis operation
-    """
-    try:
-        import json
-        from .redis_adapter import RedisAdapter
-        
-        # Parse parameters
-        if params.startswith('"') and params.endswith('"'):
-            params = params[1:-1]
-        
-        data = json.loads(params)
-        operation = data.get('operation', 'GET')
-        args = data.get('args', [])
-        
-        # Create adapter and execute
-        adapter = RedisAdapter()
-        result = adapter.query(operation, *args)
-        
-        return result
-        
-    except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"Redis execution error: {e}")
-        return None

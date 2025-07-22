@@ -1,358 +1,338 @@
 #!/usr/bin/env python3
 """
-MongoDB Adapter for TuskLang Python SDK
-=======================================
-Implements @mongodb operator with full CRUD operations
+MongoDB Adapter for TuskLang Enhanced Python
+==========================================
+Enables @query operations with MongoDB collections
+
+DEFAULT CONFIG: peanu.tsk (the bridge of language grace)
 """
 
-import pymongo
-from pymongo import MongoClient
-from typing import Any, Dict, List, Optional, Union
 import json
-import logging
+from typing import Any, Dict, List, Union, Optional
 from datetime import datetime
-import re
 
-logger = logging.getLogger(__name__)
+try:
+    from pymongo import MongoClient
+    from pymongo.errors import PyMongoError
+    PYMONGO_AVAILABLE = True
+except ImportError:
+    PYMONGO_AVAILABLE = False
 
 
 class MongoDBAdapter:
-    """MongoDB adapter for TuskLang @mongodb operator"""
+    """MongoDB database adapter for TuskLang"""
     
-    def __init__(self):
+    def __init__(self, options: Dict[str, Any] = None):
+        if not PYMONGO_AVAILABLE:
+            raise Exception('MongoDB adapter requires pymongo. Install it with: pip install pymongo')
+        
+        self.config = {
+            'url': 'mongodb://localhost:27017',
+            'database': 'tusklang',
+            'connectTimeoutMS': 10000,
+            'serverSelectionTimeoutMS': 5000
+        }
+        
+        if options:
+            self.config.update(options)
+        
         self.client = None
-        self.db = None
-        self.collection = None
-        self.connection_string = None
-        self.database_name = None
-        self.collection_name = None
+        self.database = None
     
-    def connect(self, connection_string: str, database_name: str, collection_name: str = None) -> bool:
-        """Connect to MongoDB"""
+    def connect(self):
+        """Connect to MongoDB database"""
+        if not self.client:
+            try:
+                self.client = MongoClient(
+                    self.config['url'],
+                    connectTimeoutMS=self.config['connectTimeoutMS'],
+                    serverSelectionTimeoutMS=self.config['serverSelectionTimeoutMS']
+                )
+                self.database = self.client[self.config['database']]
+                
+                # Test connection
+                self.client.server_info()
+                
+            except PyMongoError as e:
+                raise Exception(f"MongoDB connection error: {str(e)}")
+    
+    def query(self, operation: str, *args) -> Any:
+        """
+        Execute MongoDB query
+        MongoDB uses a special query syntax for TuskLang:
+        @query("collection.find", {"active": True})
+        @query("users.countDocuments", {})
+        @query("orders.aggregate", [{"$group": {"_id": None, "total": {"$sum": "$amount"}}}])
+        """
+        self.connect()
+        
+        # Parse operation (collection.method)
+        if '.' not in operation:
+            raise Exception("MongoDB operation must be in format 'collection.method'")
+        
+        collection_name, method = operation.split('.', 1)
+        collection = self.database[collection_name]
+        
         try:
-            self.connection_string = connection_string
-            self.database_name = database_name
-            self.collection_name = collection_name
-            
-            self.client = MongoClient(connection_string)
-            self.db = self.client[database_name]
-            
-            if collection_name:
-                self.collection = self.db[collection_name]
-            
-            # Test connection
-            self.client.admin.command('ping')
-            logger.info(f"Connected to MongoDB: {database_name}")
+            if method == 'find':
+                filter_dict = args[0] if args else {}
+                options = args[1] if len(args) > 1 else {}
+                cursor = collection.find(filter_dict, **options)
+                return list(cursor)
+                
+            elif method == 'findOne':
+                filter_dict = args[0] if args else {}
+                options = args[1] if len(args) > 1 else {}
+                result = collection.find_one(filter_dict, **options)
+                return result
+                
+            elif method == 'countDocuments':
+                filter_dict = args[0] if args else {}
+                return collection.count_documents(filter_dict)
+                
+            elif method == 'estimatedDocumentCount':
+                return collection.estimated_document_count()
+                
+            elif method == 'distinct':
+                field = args[0] if args else '_id'
+                filter_dict = args[1] if len(args) > 1 else {}
+                return collection.distinct(field, filter_dict)
+                
+            elif method == 'aggregate':
+                pipeline = args[0] if args else []
+                cursor = collection.aggregate(pipeline)
+                return list(cursor)
+                
+            # TuskLang-specific helpers
+            elif method == 'count':
+                # Alias for countDocuments
+                filter_dict = args[0] if args else {}
+                return collection.count_documents(filter_dict)
+                
+            elif method == 'sum':
+                # Sum a specific field
+                field = args[0] if args else 'amount'
+                filter_dict = args[1] if len(args) > 1 else {}
+                pipeline = [
+                    {'$match': filter_dict},
+                    {'$group': {'_id': None, 'total': {'$sum': f'${field}'}}}
+                ]
+                result = list(collection.aggregate(pipeline))
+                return result[0]['total'] if result else 0
+                
+            elif method == 'avg':
+                # Average of a specific field
+                field = args[0] if args else 'amount'
+                filter_dict = args[1] if len(args) > 1 else {}
+                pipeline = [
+                    {'$match': filter_dict},
+                    {'$group': {'_id': None, 'average': {'$avg': f'${field}'}}}
+                ]
+                result = list(collection.aggregate(pipeline))
+                return result[0]['average'] if result else 0
+                
+            elif method == 'max':
+                # Maximum value of a specific field
+                field = args[0] if args else 'amount'
+                filter_dict = args[1] if len(args) > 1 else {}
+                pipeline = [
+                    {'$match': filter_dict},
+                    {'$group': {'_id': None, 'maximum': {'$max': f'${field}'}}}
+                ]
+                result = list(collection.aggregate(pipeline))
+                return result[0]['maximum'] if result else None
+                
+            elif method == 'min':
+                # Minimum value of a specific field
+                field = args[0] if args else 'amount'
+                filter_dict = args[1] if len(args) > 1 else {}
+                pipeline = [
+                    {'$match': filter_dict},
+                    {'$group': {'_id': None, 'minimum': {'$min': f'${field}'}}}
+                ]
+                result = list(collection.aggregate(pipeline))
+                return result[0]['minimum'] if result else None
+                
+            else:
+                raise Exception(f"Unsupported MongoDB method: {method}")
+                
+        except PyMongoError as e:
+            raise Exception(f"MongoDB query error: {str(e)}")
+    
+    def create_test_data(self):
+        """Create test data for MongoDB"""
+        self.connect()
+        
+        # Clear existing collections
+        self.database.drop_collection('users')
+        self.database.drop_collection('orders')
+        self.database.drop_collection('products')
+        
+        # Create users collection
+        users = self.database['users']
+        users.insert_many([
+            {'name': 'John Doe', 'email': 'john@example.com', 'active': True, 'age': 30},
+            {'name': 'Jane Smith', 'email': 'jane@example.com', 'active': True, 'age': 25},
+            {'name': 'Bob Wilson', 'email': 'bob@example.com', 'active': False, 'age': 35}
+        ])
+        
+        # Create orders collection
+        orders = self.database['orders']
+        orders.insert_many([
+            {'user_id': 1, 'amount': 99.99, 'status': 'completed', 'created_at': datetime.now()},
+            {'user_id': 2, 'amount': 149.50, 'status': 'completed', 'created_at': datetime.now()},
+            {'user_id': 1, 'amount': 75.25, 'status': 'pending', 'created_at': datetime.now()}
+        ])
+        
+        # Create products collection
+        products = self.database['products']
+        products.insert_many([
+            {'name': 'Widget A', 'price': 29.99, 'category': 'electronics', 'in_stock': True},
+            {'name': 'Widget B', 'price': 49.99, 'category': 'electronics', 'in_stock': True},
+            {'name': 'Gadget C', 'price': 19.99, 'category': 'accessories', 'in_stock': False}
+        ])
+        
+        print("MongoDB test data created successfully")
+    
+    def is_connected(self) -> bool:
+        """Check if database is connected"""
+        try:
+            self.connect()
+            self.client.server_info()
             return True
-            
-        except Exception as e:
-            logger.error(f"MongoDB connection error: {str(e)}")
+        except Exception:
             return False
     
-    def execute_mongodb(self, operation: str, params: Dict[str, Any]) -> Any:
-        """Execute MongoDB operation"""
-        try:
-            if operation == "find":
-                return self._execute_find(params)
-            elif operation == "findOne":
-                return self._execute_find_one(params)
-            elif operation == "insert":
-                return self._execute_insert(params)
-            elif operation == "update":
-                return self._execute_update(params)
-            elif operation == "delete":
-                return self._execute_delete(params)
-            elif operation == "aggregate":
-                return self._execute_aggregate(params)
-            elif operation == "count":
-                return self._execute_count(params)
-            elif operation == "distinct":
-                return self._execute_distinct(params)
-            else:
-                return f"Unknown MongoDB operation: {operation}"
-                
-        except Exception as e:
-            logger.error(f"MongoDB operation error: {str(e)}")
-            return f"MongoDB Error: {str(e)}"
-    
-    def _execute_find(self, params: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Execute find operation"""
-        try:
-            query = params.get("query", {})
-            projection = params.get("projection", {})
-            sort = params.get("sort", None)
-            limit = params.get("limit", 0)
-            skip = params.get("skip", 0)
-            
-            cursor = self.collection.find(query, projection)
-            
-            if sort:
-                cursor = cursor.sort(sort)
-            if skip > 0:
-                cursor = cursor.skip(skip)
-            if limit > 0:
-                cursor = cursor.limit(limit)
-            
-            results = list(cursor)
-            
-            # Convert ObjectId to string for JSON serialization
-            for doc in results:
-                if '_id' in doc:
-                    doc['_id'] = str(doc['_id'])
-            
-            return results
-            
-        except Exception as e:
-            logger.error(f"MongoDB find error: {str(e)}")
-            return []
-    
-    def _execute_find_one(self, params: Dict[str, Any]) -> Optional[Dict[str, Any]]:
-        """Execute findOne operation"""
-        try:
-            query = params.get("query", {})
-            projection = params.get("projection", {})
-            
-            result = self.collection.find_one(query, projection)
-            
-            if result and '_id' in result:
-                result['_id'] = str(result['_id'])
-            
-            return result
-            
-        except Exception as e:
-            logger.error(f"MongoDB findOne error: {str(e)}")
-            return None
-    
-    def _execute_insert(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute insert operation"""
-        try:
-            document = params.get("document", {})
-            many = params.get("many", False)
-            
-            if many:
-                documents = params.get("documents", [])
-                if not documents:
-                    documents = [document]
-                
-                result = self.collection.insert_many(documents)
-                return {
-                    "inserted_ids": [str(id) for id in result.inserted_ids],
-                    "acknowledged": result.acknowledged
-                }
-            else:
-                result = self.collection.insert_one(document)
-                return {
-                    "inserted_id": str(result.inserted_id),
-                    "acknowledged": result.acknowledged
-                }
-                
-        except Exception as e:
-            logger.error(f"MongoDB insert error: {str(e)}")
-            return {"error": str(e)}
-    
-    def _execute_update(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute update operation"""
-        try:
-            filter_query = params.get("filter", {})
-            update_data = params.get("update", {})
-            many = params.get("many", False)
-            upsert = params.get("upsert", False)
-            
-            if many:
-                result = self.collection.update_many(
-                    filter_query, 
-                    update_data, 
-                    upsert=upsert
-                )
-            else:
-                result = self.collection.update_one(
-                    filter_query, 
-                    update_data, 
-                    upsert=upsert
-                )
-            
-            return {
-                "matched_count": result.matched_count,
-                "modified_count": result.modified_count,
-                "upserted_id": str(result.upserted_id) if result.upserted_id else None,
-                "acknowledged": result.acknowledged
-            }
-            
-        except Exception as e:
-            logger.error(f"MongoDB update error: {str(e)}")
-            return {"error": str(e)}
-    
-    def _execute_delete(self, params: Dict[str, Any]) -> Dict[str, Any]:
-        """Execute delete operation"""
-        try:
-            filter_query = params.get("filter", {})
-            many = params.get("many", False)
-            
-            if many:
-                result = self.collection.delete_many(filter_query)
-            else:
-                result = self.collection.delete_one(filter_query)
-            
-            return {
-                "deleted_count": result.deleted_count,
-                "acknowledged": result.acknowledged
-            }
-            
-        except Exception as e:
-            logger.error(f"MongoDB delete error: {str(e)}")
-            return {"error": str(e)}
-    
-    def _execute_aggregate(self, params: Dict[str, Any]) -> List[Dict[str, Any]]:
-        """Execute aggregate operation"""
-        try:
-            pipeline = params.get("pipeline", [])
-            
-            cursor = self.collection.aggregate(pipeline)
-            results = list(cursor)
-            
-            # Convert ObjectId to string for JSON serialization
-            for doc in results:
-                if '_id' in doc:
-                    doc['_id'] = str(doc['_id'])
-            
-            return results
-            
-        except Exception as e:
-            logger.error(f"MongoDB aggregate error: {str(e)}")
-            return []
-    
-    def _execute_count(self, params: Dict[str, Any]) -> int:
-        """Execute count operation"""
-        try:
-            query = params.get("query", {})
-            return self.collection.count_documents(query)
-            
-        except Exception as e:
-            logger.error(f"MongoDB count error: {str(e)}")
-            return 0
-    
-    def _execute_distinct(self, params: Dict[str, Any]) -> List[Any]:
-        """Execute distinct operation"""
-        try:
-            field = params.get("field", "")
-            query = params.get("query", {})
-            
-            return self.collection.distinct(field, query)
-            
-        except Exception as e:
-            logger.error(f"MongoDB distinct error: {str(e)}")
-            return []
-    
     def close(self):
-        """Close MongoDB connection"""
+        """Close database connection"""
         if self.client:
             self.client.close()
-            logger.info("MongoDB connection closed")
+            self.client = None
+            self.database = None
+    
+    @staticmethod
+    def load_from_peanut():
+        """Load MongoDB configuration from peanu.tsk"""
+        # Import here to avoid circular imports
+        from tsk_enhanced import TuskLangEnhanced
+        
+        parser = TuskLangEnhanced()
+        parser.load_peanut()
+        
+        config = {}
+        
+        # Look for MongoDB configuration in peanu.tsk
+        if parser.get('database.mongodb.url'):
+            config['url'] = parser.get('database.mongodb.url')
+        elif parser.get('database.mongo.url'):
+            config['url'] = parser.get('database.mongo.url')
+        
+        if parser.get('database.mongodb.database'):
+            config['database'] = parser.get('database.mongodb.database')
+        elif parser.get('database.mongo.database'):
+            config['database'] = parser.get('database.mongo.database')
+        
+        if parser.get('database.mongodb.connectTimeoutMS'):
+            config['connectTimeoutMS'] = int(parser.get('database.mongodb.connectTimeoutMS'))
+        elif parser.get('database.mongo.connectTimeoutMS'):
+            config['connectTimeoutMS'] = int(parser.get('database.mongo.connectTimeoutMS'))
+        
+        if not config:
+            raise Exception('No MongoDB configuration found in peanu.tsk')
+        
+        return MongoDBAdapter(config)
 
 
-# Global adapter instance
-_mongodb_adapter = MongoDBAdapter()
+# Command line interface
+if __name__ == '__main__':
+    import sys
+    
+    if len(sys.argv) < 2:
+        print("""
+MongoDB Adapter for TuskLang Python
+===================================
 
+Usage: python mongodb_adapter.py [command] [options]
 
-def execute_mongodb(params: str) -> Any:
-    """Execute @mongodb operator"""
+Commands:
+    test                     Create test data
+    query <operation> [args] Execute MongoDB operation
+    count <collection>       Count documents in collection
+    sum <collection> <field> Sum field values
+    
+Examples:
+    python mongodb_adapter.py test
+    python mongodb_adapter.py query "users.find" "{}"
+    python mongodb_adapter.py count users
+    python mongodb_adapter.py sum orders amount
+
+Requirements:
+    pip install pymongo
+""")
+        sys.exit(1)
+    
+    # Load from peanu.tsk or use defaults
     try:
-        # Parse parameters: operation(params)
-        # Example: @mongodb("find", {"query": {"status": "active"}})
-        mongodb_match = re.match(r'^["\']([^"\']*)["\'](?:,\s*(.+))?$', params)
-        if mongodb_match:
-            operation = mongodb_match.group(1)
-            operation_params = mongodb_match.group(2) if mongodb_match.group(2) else "{}"
-            
-            # Parse operation parameters
-            try:
-                params_dict = json.loads(operation_params)
-            except:
-                params_dict = {}
-            
-            # Check if we need to connect
-            if "connection" in params_dict:
-                connection_info = params_dict["connection"]
-                connection_string = connection_info.get("uri", "mongodb://localhost:27017")
-                database_name = connection_info.get("database", "test")
-                collection_name = connection_info.get("collection", None)
-                
-                if not _mongodb_adapter.connect(connection_string, database_name, collection_name):
-                    return "MongoDB connection failed"
-            
-            # Execute operation
-            return _mongodb_adapter.execute_mongodb(operation, params_dict)
-        
-        return "Invalid MongoDB parameters"
-        
-    except Exception as e:
-        logger.error(f"MongoDB operator error: {str(e)}")
-        return f"@mongodb({params}) - Error: {str(e)}"
-
-
-# Convenience functions for direct use
-def mongodb_find(query: Dict[str, Any], projection: Dict[str, Any] = None, 
-                sort: List[tuple] = None, limit: int = 0, skip: int = 0) -> List[Dict[str, Any]]:
-    """Find documents in MongoDB"""
-    params = {"query": query}
-    if projection:
-        params["projection"] = projection
-    if sort:
-        params["sort"] = sort
-    if limit > 0:
-        params["limit"] = limit
-    if skip > 0:
-        params["skip"] = skip
+        adapter = MongoDBAdapter.load_from_peanut()
+    except:
+        adapter = MongoDBAdapter({
+            'url': 'mongodb://localhost:27017',
+            'database': 'tusklang_test'
+        })
     
-    return _mongodb_adapter._execute_find(params)
-
-
-def mongodb_insert(document: Dict[str, Any], collection_name: str = None) -> Dict[str, Any]:
-    """Insert document into MongoDB"""
-    if collection_name and _mongodb_adapter.collection_name != collection_name:
-        _mongodb_adapter.collection = _mongodb_adapter.db[collection_name]
+    command = sys.argv[1]
     
-    params = {"document": document}
-    return _mongodb_adapter._execute_insert(params)
-
-
-def mongodb_update(filter_query: Dict[str, Any], update_data: Dict[str, Any], 
-                  many: bool = False, upsert: bool = False) -> Dict[str, Any]:
-    """Update documents in MongoDB"""
-    params = {
-        "filter": filter_query,
-        "update": update_data,
-        "many": many,
-        "upsert": upsert
-    }
-    return _mongodb_adapter._execute_update(params)
-
-
-def mongodb_delete(filter_query: Dict[str, Any], many: bool = False) -> Dict[str, Any]:
-    """Delete documents from MongoDB"""
-    params = {
-        "filter": filter_query,
-        "many": many
-    }
-    return _mongodb_adapter._execute_delete(params)
-
-
-def mongodb_aggregate(pipeline: List[Dict[str, Any]]) -> List[Dict[str, Any]]:
-    """Execute aggregation pipeline in MongoDB"""
-    params = {"pipeline": pipeline}
-    return _mongodb_adapter._execute_aggregate(params)
-
-
-def mongodb_count(query: Dict[str, Any] = None) -> int:
-    """Count documents in MongoDB"""
-    params = {"query": query or {}}
-    return _mongodb_adapter._execute_count(params)
-
-
-def mongodb_distinct(field: str, query: Dict[str, Any] = None) -> List[Any]:
-    """Get distinct values from MongoDB"""
-    params = {
-        "field": field,
-        "query": query or {}
-    }
-    return _mongodb_adapter._execute_distinct(params)
+    if command == 'test':
+        try:
+            adapter.create_test_data()
+        except Exception as e:
+            print(f"Error: {e}")
+    
+    elif command == 'query':
+        if len(sys.argv) < 3:
+            print("Error: Operation required")
+            sys.exit(1)
+        
+        try:
+            operation = sys.argv[2]
+            args = []
+            
+            # Parse additional arguments as JSON
+            for arg in sys.argv[3:]:
+                try:
+                    args.append(json.loads(arg))
+                except json.JSONDecodeError:
+                    args.append(arg)
+            
+            result = adapter.query(operation, *args)
+            print(json.dumps(result, indent=2, default=str))
+        except Exception as e:
+            print(f"Error: {e}")
+    
+    elif command == 'count':
+        if len(sys.argv) < 3:
+            print("Error: Collection name required")
+            sys.exit(1)
+        
+        try:
+            count = adapter.query(f"{sys.argv[2]}.count", {})
+            print(f"Count: {count}")
+        except Exception as e:
+            print(f"Error: {e}")
+    
+    elif command == 'sum':
+        if len(sys.argv) < 4:
+            print("Error: Collection name and field required")
+            sys.exit(1)
+        
+        try:
+            total = adapter.query(f"{sys.argv[2]}.sum", sys.argv[3], {})
+            print(f"Sum: {total}")
+        except Exception as e:
+            print(f"Error: {e}")
+    
+    else:
+        print(f"Error: Unknown command: {command}")
+        sys.exit(1)
+    
+    adapter.close()

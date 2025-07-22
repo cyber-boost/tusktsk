@@ -48,7 +48,7 @@ def handle_parse_command(args, cli):
             content = f.read()
         
         # Parse using TuskLang parser
-        from tsk import TSKParser
+        from ...tsk import TSKParser
         parser = TSKParser()
         
         start_time = time.time()
@@ -102,7 +102,7 @@ def handle_validate_command(args, cli):
             content = f.read()
         
         # Validate using TuskLang parser
-        from tsk import TSKParser
+        from ...tsk import TSKParser
         parser = TSKParser()
         
         start_time = time.time()
@@ -169,7 +169,7 @@ def handle_convert_command(args, cli):
         
         if input_ext == '.tsk' and output_ext == '.json':
             # TSK to JSON conversion
-            from tsk import TSKParser
+            from ...tsk import TSKParser
             parser = TSKParser()
             parsed_data = parser.parse(content)
             
@@ -193,7 +193,7 @@ def handle_convert_command(args, cli):
             
         elif input_ext == '.tsk' and output_ext == '.yaml':
             # TSK to YAML conversion
-            from tsk import TSKParser
+            from ...tsk import TSKParser
             import yaml
             
             parser = TSKParser()
@@ -279,7 +279,7 @@ def handle_get_command(args, cli):
         with open(file_path, 'r') as f:
             content = f.read()
         
-        from tsk import TSKParser
+        from ...tsk import TSKParser
         parser = TSKParser()
         parsed_data = parser.parse(content)
         
@@ -350,7 +350,7 @@ def handle_set_command(args, cli):
         with open(file_path, 'r') as f:
             content = f.read()
         
-        from tsk import TSKParser
+        from ...tsk import TSKParser
         parser = TSKParser()
         parsed_data = parser.parse(content)
         

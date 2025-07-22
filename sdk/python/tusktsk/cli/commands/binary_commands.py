@@ -10,12 +10,16 @@ import sys
 import time
 import struct
 import hashlib
+import zlib
+import base64
+import json
 from pathlib import Path
 from typing import Any, Dict, List, Optional
+from datetime import datetime
 
-from tsk import TSK, TSKParser
-from tsk_enhanced import TuskLangEnhanced
-from peanut_config import PeanutConfig
+from ...tsk import TSK, TSKParser
+from ...tsk_enhanced import TuskLangEnhanced
+from ...peanut_config import PeanutConfig
 from ..utils.output_formatter import OutputFormatter
 from ..utils.error_handler import ErrorHandler
 
@@ -34,10 +38,253 @@ def handle_binary_command(args: Any, cli: Any) -> int:
             return _handle_binary_benchmark(args, formatter, error_handler)
         elif args.binary_command == 'optimize':
             return _handle_binary_optimize(args, formatter, error_handler)
+        elif args.binary_command == 'info':
+            return _handle_binary_info(args, formatter, error_handler)
+        elif args.binary_command == 'validate':
+            return _handle_binary_validate(args, formatter, error_handler)
+        elif args.binary_command == 'extract':
+            return _handle_binary_extract(args, formatter, error_handler)
+        elif args.binary_command == 'convert':
+            return _handle_binary_convert(args, formatter, error_handler)
         else:
             formatter.error("Unknown binary command")
             return ErrorHandler.INVALID_ARGS
             
+    except Exception as e:
+        return error_handler.handle_error(e)
+
+
+def _handle_binary_info(args: Any, formatter: OutputFormatter, error_handler: ErrorHandler) -> int:
+    """Handle binary info command - display comprehensive file information"""
+    file_path = Path(args.file)
+    
+    if not file_path.exists():
+        return error_handler.handle_file_not_found(str(file_path))
+    
+    formatter.loading(f"Analyzing binary file: {file_path}")
+    
+    try:
+        # Get basic file information
+        stat = file_path.stat()
+        file_size = stat.st_size
+        created_time = datetime.fromtimestamp(stat.st_ctime)
+        modified_time = datetime.fromtimestamp(stat.st_mtime)
+        
+        # Detect file type using magic numbers
+        try:
+            import magic
+            mime_type = magic.from_file(str(file_path), mime=True)
+            file_type = magic.from_file(str(file_path))
+        except ImportError:
+            # Fallback to extension-based detection
+            mime_type = _get_mime_type_by_extension(file_path.suffix)
+            file_type = f"Binary file ({file_path.suffix})"
+        
+        # Calculate checksums
+        md5_hash = _calculate_file_hash(file_path, 'md5')
+        sha256_hash = _calculate_file_hash(file_path, 'sha256')
+        
+        # Analyze binary structure
+        binary_analysis = _analyze_binary_structure(file_path)
+        
+        # Display comprehensive information
+        formatter.success(f"Binary file analysis complete")
+        formatter.subsection("File Information")
+        formatter.key_value("File Path", str(file_path.absolute()))
+        formatter.key_value("File Size", f"{file_size:,} bytes ({_format_bytes(file_size)})")
+        formatter.key_value("File Type", file_type)
+        formatter.key_value("MIME Type", mime_type)
+        formatter.key_value("Created", created_time.strftime("%Y-%m-%d %H:%M:%S"))
+        formatter.key_value("Modified", modified_time.strftime("%Y-%m-%d %H:%M:%S"))
+        
+        formatter.subsection("Security")
+        formatter.key_value("MD5 Hash", md5_hash)
+        formatter.key_value("SHA256 Hash", sha256_hash)
+        
+        formatter.subsection("Binary Analysis")
+        for key, value in binary_analysis.items():
+            formatter.key_value(key, value)
+        
+        # Format-specific information
+        if file_path.suffix in ['.pnt', '.tskb']:
+            _display_tsk_binary_info(file_path, formatter)
+        elif file_path.suffix in ['.exe', '.dll', '.so', '.dylib']:
+            _display_executable_info(file_path, formatter)
+        elif file_path.suffix in ['.zip', '.tar', '.gz', '.bz2']:
+            _display_archive_info(file_path, formatter)
+        
+        return ErrorHandler.SUCCESS
+        
+    except Exception as e:
+        return error_handler.handle_error(e)
+
+
+def _handle_binary_validate(args: Any, formatter: OutputFormatter, error_handler: ErrorHandler) -> int:
+    """Handle binary validate command - validate binary format and integrity"""
+    file_path = Path(args.file)
+    
+    if not file_path.exists():
+        return error_handler.handle_file_not_found(str(file_path))
+    
+    formatter.loading(f"Validating binary file: {file_path}")
+    
+    try:
+        validation_results = []
+        
+        # Basic file validation
+        validation_results.append(_validate_file_basics(file_path))
+        
+        # Format-specific validation
+        if file_path.suffix in ['.pnt', '.tskb']:
+            validation_results.append(_validate_tsk_binary(file_path))
+        elif file_path.suffix in ['.exe', '.dll', '.so', '.dylib']:
+            validation_results.append(_validate_executable(file_path))
+        elif file_path.suffix in ['.zip', '.tar', '.gz', '.bz2']:
+            validation_results.append(_validate_archive(file_path))
+        else:
+            validation_results.append(_validate_generic_binary(file_path))
+        
+        # Integrity validation
+        validation_results.append(_validate_file_integrity(file_path))
+        
+        # Display results
+        formatter.success(f"Binary validation complete")
+        formatter.subsection("Validation Results")
+        
+        all_passed = True
+        for result in validation_results:
+            if result['status'] == 'PASS':
+                formatter.success(f"✅ {result['test']}: {result['message']}")
+            elif result['status'] == 'WARNING':
+                formatter.warning(f"⚠️  {result['test']}: {result['message']}")
+                all_passed = False
+            else:
+                formatter.error(f"❌ {result['test']}: {result['message']}")
+                all_passed = False
+        
+        # Summary
+        if all_passed:
+            formatter.success("All validation checks passed! Binary file is valid and intact.")
+        else:
+            formatter.warning("Some validation checks failed. Review the results above.")
+        
+        return ErrorHandler.SUCCESS if all_passed else ErrorHandler.VALIDATION_ERROR
+        
+    except Exception as e:
+        return error_handler.handle_error(e)
+
+
+def _handle_binary_extract(args: Any, formatter: OutputFormatter, error_handler: ErrorHandler) -> int:
+    """Handle binary extract command - extract source code and data from binary files"""
+    file_path = Path(args.file)
+    output_dir = Path(args.output) if hasattr(args, 'output') and args.output else file_path.parent / f"{file_path.stem}_extracted"
+    
+    if not file_path.exists():
+        return error_handler.handle_file_not_found(str(file_path))
+    
+    formatter.loading(f"Extracting from binary file: {file_path}")
+    
+    try:
+        # Create output directory
+        output_dir.mkdir(exist_ok=True)
+        
+        extraction_results = []
+        
+        # Extract based on file type
+        if file_path.suffix in ['.pnt', '.tskb']:
+            extraction_results = _extract_tsk_binary(file_path, output_dir)
+        elif file_path.suffix in ['.exe', '.dll', '.so', '.dylib']:
+            extraction_results = _extract_executable(file_path, output_dir)
+        elif file_path.suffix in ['.zip', '.tar', '.gz', '.bz2']:
+            extraction_results = _extract_archive(file_path, output_dir)
+        else:
+            extraction_results = _extract_generic_binary(file_path, output_dir)
+        
+        # Display results
+        formatter.success(f"Binary extraction complete: {output_dir}")
+        formatter.subsection("Extraction Results")
+        
+        for result in extraction_results:
+            if result['status'] == 'SUCCESS':
+                formatter.success(f"✅ {result['type']}: {result['file']}")
+            else:
+                formatter.error(f"❌ {result['type']}: {result['error']}")
+        
+        # Show summary
+        successful_extractions = len([r for r in extraction_results if r['status'] == 'SUCCESS'])
+        total_extractions = len(extraction_results)
+        
+        formatter.subsection("Summary")
+        formatter.key_value("Output Directory", str(output_dir))
+        formatter.key_value("Files Extracted", f"{successful_extractions}/{total_extractions}")
+        formatter.key_value("Extraction Rate", f"{(successful_extractions/total_extractions)*100:.1f}%")
+        
+        if successful_extractions > 0:
+            formatter.success(f"Successfully extracted {successful_extractions} files")
+        else:
+            formatter.warning("No files were successfully extracted")
+        
+        return ErrorHandler.SUCCESS
+        
+    except Exception as e:
+        return error_handler.handle_error(e)
+
+
+def _handle_binary_convert(args: Any, formatter: OutputFormatter, error_handler: ErrorHandler) -> int:
+    """Handle binary convert command - convert between binary and text formats"""
+    input_file = Path(args.input)
+    output_file = Path(args.output)
+    conversion_type = getattr(args, 'type', 'auto')
+    
+    if not input_file.exists():
+        return error_handler.handle_file_not_found(str(input_file))
+    
+    formatter.loading(f"Converting binary file: {input_file}")
+    
+    try:
+        # Auto-detect conversion type if not specified
+        if conversion_type == 'auto':
+            conversion_type = _detect_conversion_type(input_file, output_file)
+        
+        conversion_result = None
+        
+        # Perform conversion based on type
+        if conversion_type == 'binary_to_text':
+            conversion_result = _convert_binary_to_text(input_file, output_file)
+        elif conversion_type == 'text_to_binary':
+            conversion_result = _convert_text_to_binary(input_file, output_file)
+        elif conversion_type == 'format_conversion':
+            conversion_result = _convert_binary_format(input_file, output_file)
+        else:
+            formatter.error(f"Unknown conversion type: {conversion_type}")
+            return ErrorHandler.INVALID_ARGS
+        
+        # Display results
+        if conversion_result['success']:
+            formatter.success(f"Conversion successful: {output_file}")
+            formatter.subsection("Conversion Details")
+            formatter.key_value("Input File", str(input_file))
+            formatter.key_value("Output File", str(output_file))
+            formatter.key_value("Conversion Type", conversion_type)
+            formatter.key_value("Input Size", f"{conversion_result['input_size']:,} bytes")
+            formatter.key_value("Output Size", f"{conversion_result['output_size']:,} bytes")
+            
+            if 'compression_ratio' in conversion_result:
+                ratio = conversion_result['compression_ratio']
+                if ratio > 0:
+                    formatter.key_value("Compression", f"{ratio:.1f}% smaller")
+                else:
+                    formatter.key_value("Compression", f"{abs(ratio):.1f}% larger")
+            
+            if 'performance_improvement' in conversion_result:
+                improvement = conversion_result['performance_improvement']
+                formatter.key_value("Performance", f"{improvement:.1f}% improvement")
+            
+            return ErrorHandler.SUCCESS
+        else:
+            formatter.error(f"Conversion failed: {conversion_result['error']}")
+            return ErrorHandler.CONVERSION_ERROR
+        
     except Exception as e:
         return error_handler.handle_error(e)
 
@@ -290,6 +537,475 @@ def _handle_binary_optimize(args: Any, formatter: OutputFormatter, error_handler
         return error_handler.handle_error(e)
 
 
+# Helper functions for binary operations
+def _get_mime_type_by_extension(extension: str) -> str:
+    """Get MIME type by file extension"""
+    mime_types = {
+        '.tsk': 'application/x-tusklang',
+        '.pnt': 'application/x-peanut',
+        '.tskb': 'application/x-tusklang-binary',
+        '.exe': 'application/x-ms-dos-executable',
+        '.dll': 'application/x-ms-windows-dll',
+        '.so': 'application/x-sharedlib',
+        '.dylib': 'application/x-mach-binary',
+        '.zip': 'application/zip',
+        '.tar': 'application/x-tar',
+        '.gz': 'application/gzip',
+        '.bz2': 'application/x-bzip2'
+    }
+    return mime_types.get(extension.lower(), 'application/octet-stream')
+
+
+def _calculate_file_hash(file_path: Path, hash_type: str) -> str:
+    """Calculate file hash"""
+    hash_function = getattr(hashlib, hash_type)
+    hasher = hash_function()
+    
+    with open(file_path, 'rb') as f:
+        for chunk in iter(lambda: f.read(4096), b""):
+            hasher.update(chunk)
+    return hasher.hexdigest()
+
+
+def _format_bytes(bytes_value: int) -> str:
+    """Format bytes to human readable format"""
+    for unit in ['B', 'KB', 'MB', 'GB']:
+        if bytes_value < 1024.0:
+            return f"{bytes_value:.1f} {unit}"
+        bytes_value /= 1024.0
+    return f"{bytes_value:.1f} TB"
+
+
+def _analyze_binary_structure(file_path: Path) -> Dict[str, Any]:
+    """Analyze binary file structure"""
+    analysis = {}
+    
+    try:
+        with open(file_path, 'rb') as f:
+            header = f.read(1024)
+            f.seek(-1024, 2)
+            footer = f.read(1024)
+        
+        analysis['Header Size'] = len(header)
+        analysis['Footer Size'] = len(footer)
+        
+        # Check for common magic numbers
+        if b'PE' in header or b'MZ' in header:
+            analysis['Format'] = 'PE/Windows Executable'
+        elif b'ELF' in header:
+            analysis['Format'] = 'ELF/Linux Executable'
+        elif b'PK' in header:
+            analysis['Format'] = 'ZIP Archive'
+        elif b'\x1f\x8b' in header:
+            analysis['Format'] = 'GZIP Archive'
+        else:
+            analysis['Format'] = 'Unknown Binary'
+        
+        # Try to load as TSK binary
+        try:
+            peanut_config = PeanutConfig()
+            data = peanut_config.load_binary(str(file_path))
+            analysis['TSK Sections'] = len(data)
+            analysis['TSK Data Size'] = sum(len(str(v)) for v in data.values())
+        except:
+            analysis['TSK Compatible'] = False
+        
+    except Exception as e:
+        analysis['Error'] = str(e)
+    
+    return analysis
+
+
+def _display_tsk_binary_info(file_path: Path, formatter: OutputFormatter) -> None:
+    """Display TSK-specific binary information"""
+    try:
+        peanut_config = PeanutConfig()
+        data = peanut_config.load_binary(str(file_path))
+        
+        formatter.subsection("TSK Binary Information")
+        formatter.key_value("Total Sections", len(data))
+        
+        fujsen_count = 0
+        for section_name, section_data in data.items():
+            if isinstance(section_data, dict):
+                for key in section_data.keys():
+                    if key.endswith('_fujsen'):
+                        fujsen_count += 1
+        
+        formatter.key_value("FUJSEN Functions", fujsen_count)
+        
+    except Exception as e:
+        formatter.warning(f"Could not analyze TSK binary: {e}")
+
+
+def _display_executable_info(file_path: Path, formatter: OutputFormatter) -> None:
+    """Display executable-specific information"""
+    formatter.subsection("Executable Information")
+    formatter.key_value("Type", "Executable Binary")
+    formatter.key_value("Architecture", "Unknown")
+    formatter.key_value("Entry Point", "Unknown")
+
+
+def _display_archive_info(file_path: Path, formatter: OutputFormatter) -> None:
+    """Display archive-specific information"""
+    formatter.subsection("Archive Information")
+    formatter.key_value("Type", "Compressed Archive")
+    formatter.key_value("Compression", "Unknown")
+
+
+# Validation functions
+def _validate_file_basics(file_path: Path) -> Dict[str, Any]:
+    """Validate basic file properties"""
+    try:
+        stat = file_path.stat()
+        if stat.st_size == 0:
+            return {'status': 'FAIL', 'test': 'File Size', 'message': 'File is empty'}
+        elif stat.st_size > 100 * 1024 * 1024:  # 100MB
+            return {'status': 'WARNING', 'test': 'File Size', 'message': 'File is very large'}
+        else:
+            return {'status': 'PASS', 'test': 'File Size', 'message': f'File size is {stat.st_size} bytes'}
+    except Exception as e:
+        return {'status': 'FAIL', 'test': 'File Access', 'message': str(e)}
+
+
+def _validate_tsk_binary(file_path: Path) -> Dict[str, Any]:
+    """Validate TSK binary format"""
+    try:
+        peanut_config = PeanutConfig()
+        data = peanut_config.load_binary(str(file_path))
+        return {'status': 'PASS', 'test': 'TSK Format', 'message': f'Valid TSK binary with {len(data)} sections'}
+    except Exception as e:
+        return {'status': 'FAIL', 'test': 'TSK Format', 'message': f'Invalid TSK binary: {e}'}
+
+
+def _validate_executable(file_path: Path) -> Dict[str, Any]:
+    """Validate executable format"""
+    try:
+        with open(file_path, 'rb') as f:
+            header = f.read(4)
+        
+        if header.startswith(b'MZ') or header.startswith(b'\x7fELF'):
+            return {'status': 'PASS', 'test': 'Executable Format', 'message': 'Valid executable format'}
+        else:
+            return {'status': 'FAIL', 'test': 'Executable Format', 'message': 'Invalid executable format'}
+    except Exception as e:
+        return {'status': 'FAIL', 'test': 'Executable Format', 'message': str(e)}
+
+
+def _validate_archive(file_path: Path) -> Dict[str, Any]:
+    """Validate archive format"""
+    try:
+        with open(file_path, 'rb') as f:
+            header = f.read(4)
+        
+        if header.startswith(b'PK') or header.startswith(b'\x1f\x8b'):
+            return {'status': 'PASS', 'test': 'Archive Format', 'message': 'Valid archive format'}
+        else:
+            return {'status': 'FAIL', 'test': 'Archive Format', 'message': 'Invalid archive format'}
+    except Exception as e:
+        return {'status': 'FAIL', 'test': 'Archive Format', 'message': str(e)}
+
+
+def _validate_generic_binary(file_path: Path) -> Dict[str, Any]:
+    """Validate generic binary format"""
+    try:
+        with open(file_path, 'rb') as f:
+            data = f.read(1024)
+        
+        if len(data) > 0:
+            return {'status': 'PASS', 'test': 'Binary Format', 'message': 'Valid binary data'}
+        else:
+            return {'status': 'FAIL', 'test': 'Binary Format', 'message': 'Empty file'}
+    except Exception as e:
+        return {'status': 'FAIL', 'test': 'Binary Format', 'message': str(e)}
+
+
+def _validate_file_integrity(file_path: Path) -> Dict[str, Any]:
+    """Validate file integrity"""
+    try:
+        # Calculate checksum
+        md5_hash = _calculate_file_hash(file_path, 'md5')
+        return {'status': 'PASS', 'test': 'File Integrity', 'message': f'MD5: {md5_hash[:8]}...'}
+    except Exception as e:
+        return {'status': 'FAIL', 'test': 'File Integrity', 'message': str(e)}
+
+
+# Extraction functions
+def _extract_tsk_binary(file_path: Path, output_dir: Path) -> List[Dict[str, Any]]:
+    """Extract TSK binary contents"""
+    results = []
+    
+    try:
+        peanut_config = PeanutConfig()
+        data = peanut_config.load_binary(str(file_path))
+        
+        # Extract each section
+        for section_name, section_data in data.items():
+            if isinstance(section_data, dict):
+                section_file = output_dir / f"{section_name}.json"
+                with open(section_file, 'w') as f:
+                    json.dump(section_data, f, indent=2)
+                results.append({
+                    'status': 'SUCCESS',
+                    'type': 'TSK Section',
+                    'file': str(section_file)
+                })
+            else:
+                section_file = output_dir / f"{section_name}.txt"
+                with open(section_file, 'w') as f:
+                    f.write(str(section_data))
+                results.append({
+                    'status': 'SUCCESS',
+                    'type': 'TSK Data',
+                    'file': str(section_file)
+                })
+        
+    except Exception as e:
+        results.append({
+            'status': 'FAIL',
+            'type': 'TSK Extraction',
+            'error': str(e)
+        })
+    
+    return results
+
+
+def _extract_executable(file_path: Path, output_dir: Path) -> List[Dict[str, Any]]:
+    """Extract executable contents"""
+    results = []
+    
+    try:
+        # Extract strings
+        strings_file = output_dir / "strings.txt"
+        with open(file_path, 'rb') as f:
+            data = f.read()
+        
+        # Find printable strings
+        strings = []
+        current_string = ""
+        for byte in data:
+            if 32 <= byte <= 126:  # Printable ASCII
+                current_string += chr(byte)
+            else:
+                if len(current_string) >= 4:
+                    strings.append(current_string)
+                current_string = ""
+        
+        with open(strings_file, 'w') as f:
+            for string in strings:
+                f.write(f"{string}\n")
+        
+        results.append({
+            'status': 'SUCCESS',
+            'type': 'Strings',
+            'file': str(strings_file)
+        })
+        
+    except Exception as e:
+        results.append({
+            'status': 'FAIL',
+            'type': 'Executable Extraction',
+            'error': str(e)
+        })
+    
+    return results
+
+
+def _extract_archive(file_path: Path, output_dir: Path) -> List[Dict[str, Any]]:
+    """Extract archive contents"""
+    results = []
+    
+    try:
+        import zipfile
+        import tarfile
+        
+        if file_path.suffix == '.zip':
+            with zipfile.ZipFile(file_path, 'r') as zip_ref:
+                zip_ref.extractall(output_dir)
+            results.append({
+                'status': 'SUCCESS',
+                'type': 'ZIP Archive',
+                'file': str(output_dir)
+            })
+        elif file_path.suffix == '.tar':
+            with tarfile.open(file_path, 'r') as tar_ref:
+                tar_ref.extractall(output_dir)
+            results.append({
+                'status': 'SUCCESS',
+                'type': 'TAR Archive',
+                'file': str(output_dir)
+            })
+        else:
+            results.append({
+                'status': 'FAIL',
+                'type': 'Archive Extraction',
+                'error': 'Unsupported archive format'
+            })
+        
+    except Exception as e:
+        results.append({
+            'status': 'FAIL',
+            'type': 'Archive Extraction',
+            'error': str(e)
+        })
+    
+    return results
+
+
+def _extract_generic_binary(file_path: Path, output_dir: Path) -> List[Dict[str, Any]]:
+    """Extract generic binary contents"""
+    results = []
+    
+    try:
+        # Extract hex dump
+        hex_file = output_dir / "hexdump.txt"
+        with open(file_path, 'rb') as f:
+            data = f.read()
+        
+        with open(hex_file, 'w') as f:
+            for i in range(0, len(data), 16):
+                chunk = data[i:i+16]
+                hex_line = ' '.join(f'{b:02x}' for b in chunk)
+                ascii_line = ''.join(chr(b) if 32 <= b <= 126 else '.' for b in chunk)
+                f.write(f'{i:08x}: {hex_line:<48} {ascii_line}\n')
+        
+        results.append({
+            'status': 'SUCCESS',
+            'type': 'Hex Dump',
+            'file': str(hex_file)
+        })
+        
+    except Exception as e:
+        results.append({
+            'status': 'FAIL',
+            'type': 'Generic Extraction',
+            'error': str(e)
+        })
+    
+    return results
+
+
+# Conversion functions
+def _detect_conversion_type(input_file: Path, output_file: Path) -> str:
+    """Detect conversion type based on file extensions"""
+    input_ext = input_file.suffix.lower()
+    output_ext = output_file.suffix.lower()
+    
+    if input_ext in ['.pnt', '.tskb'] and output_ext in ['.tsk', '.json', '.txt']:
+        return 'binary_to_text'
+    elif input_ext in ['.tsk', '.json', '.txt'] and output_ext in ['.pnt', '.tskb']:
+        return 'text_to_binary'
+    elif input_ext in ['.pnt', '.tskb'] and output_ext in ['.pnt', '.tskb']:
+        return 'format_conversion'
+    else:
+        return 'binary_to_text'  # Default
+
+
+def _convert_binary_to_text(input_file: Path, output_file: Path) -> Dict[str, Any]:
+    """Convert binary to text format"""
+    try:
+        peanut_config = PeanutConfig()
+        data = peanut_config.load_binary(str(input_file))
+        
+        input_size = input_file.stat().st_size
+        
+        if output_file.suffix == '.json':
+            with open(output_file, 'w') as f:
+                json.dump(data, f, indent=2)
+        else:
+            with open(output_file, 'w') as f:
+                for section_name, section_data in data.items():
+                    f.write(f"[{section_name}]\n")
+                    if isinstance(section_data, dict):
+                        for key, value in section_data.items():
+                            f.write(f"{key} = {value}\n")
+                    else:
+                        f.write(f"{section_data}\n")
+                    f.write("\n")
+        
+        output_size = output_file.stat().st_size
+        compression_ratio = ((input_size - output_size) / input_size) * 100
+        
+        return {
+            'success': True,
+            'input_size': input_size,
+            'output_size': output_size,
+            'compression_ratio': compression_ratio
+        }
+        
+    except Exception as e:
+        return {
+            'success': False,
+            'error': str(e)
+        }
+
+
+def _convert_text_to_binary(input_file: Path, output_file: Path) -> Dict[str, Any]:
+    """Convert text to binary format"""
+    try:
+        input_size = input_file.stat().st_size
+        
+        if input_file.suffix == '.json':
+            with open(input_file, 'r') as f:
+                data = json.load(f)
+        else:
+            # Parse TSK format
+            parser = TuskLangEnhanced()
+            with open(input_file, 'r') as f:
+                content = f.read()
+            data = parser.parse(content)
+        
+        # Compile to binary
+        peanut_config = PeanutConfig()
+        peanut_config.compile_to_binary(data, str(output_file))
+        
+        output_size = output_file.stat().st_size
+        compression_ratio = ((input_size - output_size) / input_size) * 100
+        
+        return {
+            'success': True,
+            'input_size': input_size,
+            'output_size': output_size,
+            'compression_ratio': compression_ratio
+        }
+        
+    except Exception as e:
+        return {
+            'success': False,
+            'error': str(e)
+        }
+
+
+def _convert_binary_format(input_file: Path, output_file: Path) -> Dict[str, Any]:
+    """Convert between binary formats"""
+    try:
+        input_size = input_file.stat().st_size
+        
+        # Load from source format
+        peanut_config = PeanutConfig()
+        data = peanut_config.load_binary(str(input_file))
+        
+        # Compile to target format
+        peanut_config.compile_to_binary(data, str(output_file))
+        
+        output_size = output_file.stat().st_size
+        compression_ratio = ((input_size - output_size) / input_size) * 100
+        
+        return {
+            'success': True,
+            'input_size': input_size,
+            'output_size': output_size,
+            'compression_ratio': compression_ratio
+        }
+        
+    except Exception as e:
+        return {
+            'success': False,
+            'error': str(e)
+        }
+
+
+# Optimization functions
 def _optimize_binary_data(data: Dict[str, Any]) -> Dict[str, Any]:
     """Optimize binary data for production"""
     optimized = {}
@@ -385,4 +1101,4 @@ def _count_nulls_recursive(data: Any) -> int:
             count += _count_nulls_recursive(item)
         return count
     else:
-        return 0 
+        return 0

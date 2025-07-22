@@ -364,37 +364,3 @@ Requirements:
         sys.exit(1)
     
     adapter.close()
-
-
-def execute_postgresql(params: str) -> Any:
-    """Execute @postgresql operator for PostgreSQL operations
-    
-    Args:
-        params: JSON string with operation and arguments
-        
-    Returns:
-        Result of PostgreSQL operation
-    """
-    try:
-        import json
-        from .postgresql_adapter import PostgreSQLAdapter
-        
-        # Parse parameters
-        if params.startswith('"') and params.endswith('"'):
-            params = params[1:-1]
-        
-        data = json.loads(params)
-        operation = data.get('operation', 'SELECT')
-        args = data.get('args', [])
-        
-        # Create adapter and execute
-        adapter = PostgreSQLAdapter()
-        result = adapter.query(operation, *args)
-        
-        return result
-        
-    except Exception as e:
-        import logging
-        logger = logging.getLogger(__name__)
-        logger.error(f"PostgreSQL execution error: {e}")
-        return None

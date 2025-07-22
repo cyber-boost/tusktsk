@@ -50,7 +50,7 @@ class SQLiteAdapter:
             cursor.execute(sql, params)
             
             # Handle different query types
-            if sql.strip().upper().startswith(('SELECT', 'WITH')):
+            if sql.strip().upper().startswith(('SELECT', 'WITH', 'PRAGMA')):
                 rows = cursor.fetchall()
                 return [dict(row) for row in rows]
             else:

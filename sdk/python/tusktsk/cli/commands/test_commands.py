@@ -9,26 +9,89 @@ import os
 import sys
 import time
 import subprocess
+import unittest
+import threading
 from pathlib import Path
 from typing import Any, Dict, List, Optional
 
-from tsk import TSK, TSKParser
-from tsk_enhanced import TuskLangEnhanced
-from peanut_config import PeanutConfig
-from adapters import SQLiteAdapter, PostgreSQLAdapter, MongoDBAdapter, RedisAdapter
+# Optional imports with fallbacks
+try:
+    import coverage
+    COVERAGE_AVAILABLE = True
+except ImportError:
+    COVERAGE_AVAILABLE = False
+    print("coverage not available. Coverage analysis will be limited.")
+
+try:
+    from watchdog.observers import Observer
+    from watchdog.events import FileSystemEventHandler
+    WATCHDOG_AVAILABLE = True
+except ImportError:
+    WATCHDOG_AVAILABLE = False
+    print("watchdog not available. Watch mode will be limited.")
+
+from ...tsk import TSK, TSKParser
+from ...peanut_config import PeanutConfig
+
+# Import tsk_enhanced with fallback
+try:
+    from ...tsk_enhanced import TuskLangEnhanced
+    TSK_ENHANCED_AVAILABLE = True
+except ImportError:
+    TSK_ENHANCED_AVAILABLE = False
+    # Create dummy class for when tsk_enhanced is not available
+    class TuskLangEnhanced:
+        def __init__(self): pass
+        def parse(self, content): return {}
+        def parse_file(self, file_path): return {}
+
+# Import adapters with try/except to handle missing dependencies gracefully
+try:
+    from ...adapters import SQLiteAdapter, PostgreSQLAdapter, MongoDBAdapter, RedisAdapter
+    TEST_ADAPTERS_AVAILABLE = True
+except ImportError:
+    TEST_ADAPTERS_AVAILABLE = False
+    # Create dummy classes for when adapters are not available
+    class SQLiteAdapter:
+        def __init__(self, config): pass
+        def is_connected(self): return False
+    class PostgreSQLAdapter:
+        def __init__(self, config): pass
+        def is_connected(self): return False
+    class MongoDBAdapter:
+        def __init__(self, config): pass
+        def is_connected(self): return False
+    class RedisAdapter:
+        def __init__(self, config): pass
+        def is_connected(self): return False
+
 from ..utils.output_formatter import OutputFormatter
 from ..utils.error_handler import ErrorHandler
 from ..utils.config_loader import ConfigLoader
 
 
 def handle_test_command(args: Any, cli: Any) -> int:
-    """Handle test command"""
+    """Handle test command with enhanced options"""
     formatter = OutputFormatter(cli.json_output, cli.quiet, cli.verbose)
     error_handler = ErrorHandler(cli.json_output, cli.verbose)
     
     try:
         if args.all:
             return _run_all_tests(formatter, error_handler)
+        elif args.unit:
+            return _run_unit_tests(formatter, error_handler)
+        elif args.integration:
+            return _run_integration_tests(formatter, error_handler)
+        elif args.coverage:
+            if not COVERAGE_AVAILABLE:
+                formatter.error("Coverage analysis requires 'coverage' package. Install with: pip install coverage")
+                return ErrorHandler.GENERAL_ERROR
+            return _run_coverage_analysis(formatter, error_handler)
+        elif args.watch:
+            if not WATCHDOG_AVAILABLE:
+                formatter.error("Watch mode requires 'watchdog' package. Install with: pip install watchdog")
+                return ErrorHandler.GENERAL_ERROR
+            return _run_test_watch_mode(formatter, error_handler)
         elif args.parser:
             return _test_parser(formatter, error_handler)
         elif args.fujsen:
@@ -44,6 +107,61 @@ def handle_test_command(args: Any, cli: Any) -> int:
             
     except Exception as e:
         return error_handler.handle_error(e)
+
+
+class TestWatcher(FileSystemEventHandler):
+    """File system watcher for continuous testing"""
+    
+    def __init__(self, formatter: OutputFormatter, error_handler: ErrorHandler):
+        self.formatter = formatter
+        self.error_handler = error_handler
+        self.last_run = 0
+        self.test_files = []
+        self._discover_test_files()
+    
+    def _discover_test_files(self):
+        """Discover all test files in the project"""
+        test_patterns = ['test_*.py', '*_test.py', 'tests.py']
+        
+        # Get the TuskLang project root directory
+        current_dir = Path.cwd()
+        project_root = None
+        
+        # Look for the tusktsk directory in the current path
+        for parent in [current_dir] + list(current_dir.parents):
+            if (parent / 'tusktsk').exists() and (parent / 'tusktsk' / 'cli').exists():
+                project_root = parent
+                break
+        
+        if not project_root:
+            # Fallback to current directory if we can't find the project root
+            project_root = current_dir
+        
+        for pattern in test_patterns:
+            for test_file in project_root.rglob(pattern):
+                if test_file.is_file():
+                    # Skip virtual environment directories
+                    if any(part in ['venv', 'env', 'tusktsk_env', '__pycache__', '.git'] for part in test_file.parts):
+                        continue
+                    # Skip site-packages and other Python package directories
+                    if any(part in ['site-packages', 'dist-packages', 'lib', 'lib64'] for part in test_file.parts):
+                        continue
+                    self.test_files.append(test_file)
+    
+    def on_modified(self, event):
+        if not event.is_directory:
+            current_time = time.time()
+            if current_time - self.last_run > 2:  # Debounce
+                self.last_run = current_time
+                
+                # Check if modified file is a test file or source file
+                modified_file = Path(event.src_path)
+                if (modified_file.suffix == '.py' and 
+                    (any(pattern in modified_file.name for pattern in ['test_', '_test.py', 'tests.py']) or
+                     'test' in modified_file.parts)):
+                    
+                    self.formatter.info(f"Test file changed: {modified_file}")
+                    _run_unit_tests(self.formatter, self.error_handler, silent=True)
 
 
 def _run_all_tests(formatter: OutputFormatter, error_handler: ErrorHandler) -> int:
@@ -478,4 +596,259 @@ def _test_basic_functionality(formatter: OutputFormatter, error_handler: ErrorHa
         
     except Exception as e:
         formatter.error(f"Basic functionality test failed: {e}")
+        return ErrorHandler.GENERAL_ERROR 
+
+
+def _run_unit_tests(formatter: OutputFormatter, error_handler: ErrorHandler, silent: bool = False) -> int:
+    """Run unit tests with proper discovery and reporting"""
+    if not silent:
+        formatter.section("Running Unit Tests")
+    
+    try:
+        # Discover test files - limit to TuskLang project directory
+        test_files = []
+        test_patterns = ['test_*.py', '*_test.py', 'tests.py']
+        
+        # Get the TuskLang project root directory
+        current_dir = Path.cwd()
+        project_root = None
+        
+        # Look for the tusktsk directory in the current path
+        for parent in [current_dir] + list(current_dir.parents):
+            if (parent / 'tusktsk').exists() and (parent / 'tusktsk' / 'cli').exists():
+                project_root = parent
+                break
+        
+        if not project_root:
+            # Fallback to current directory if we can't find the project root
+            project_root = current_dir
+        
+        if not silent:
+            formatter.info(f"Searching for tests in: {project_root}")
+        
+        for pattern in test_patterns:
+            for test_file in project_root.rglob(pattern):
+                if test_file.is_file():
+                    # Skip virtual environment directories
+                    if any(part in ['venv', 'env', 'tusktsk_env', '__pycache__', '.git'] for part in test_file.parts):
+                        continue
+                    # Skip site-packages and other Python package directories
+                    if any(part in ['site-packages', 'dist-packages', 'lib', 'lib64'] for part in test_file.parts):
+                        continue
+                    test_files.append(test_file)
+        
+        if not test_files:
+            if not silent:
+                formatter.warning("No test files found in TuskLang project")
+            return ErrorHandler.SUCCESS
+        
+        if not silent:
+            formatter.info(f"Found {len(test_files)} test files")
+        
+        # Run tests using unittest
+        loader = unittest.TestLoader()
+        suite = unittest.TestSuite()
+        
+        for test_file in test_files:
+            try:
+                # Import test module
+                module_name = str(test_file.relative_to(project_root)).replace('/', '.').replace('.py', '')
+                test_module = __import__(module_name, fromlist=['*'])
+                
+                # Add tests to suite
+                tests = loader.loadTestsFromModule(test_module)
+                suite.addTests(tests)
+                
+            except Exception as e:
+                if not silent:
+                    formatter.warning(f"Failed to load tests from {test_file}: {e}")
+        
+        # Run tests
+        runner = unittest.TextTestRunner(verbosity=2 if not silent else 1)
+        result = runner.run(suite)
+        
+        # Report results
+        if not silent:
+            if result.wasSuccessful():
+                formatter.success(f"Unit tests passed: {result.testsRun} tests run")
+            else:
+                formatter.error(f"Unit tests failed: {len(result.failures)} failures, {len(result.errors)} errors")
+        
+        return ErrorHandler.SUCCESS if result.wasSuccessful() else ErrorHandler.GENERAL_ERROR
+        
+    except Exception as e:
+        if not silent:
+            formatter.error(f"Unit test execution failed: {e}")
+        return ErrorHandler.GENERAL_ERROR 
+
+
+def _run_integration_tests(formatter: OutputFormatter, error_handler: ErrorHandler, silent: bool = False) -> int:
+    """Run integration tests for database adapters and configuration system"""
+    if not silent:
+        formatter.section("Running Integration Tests")
+    
+    try:
+        test_results = []
+        
+        # Test database adapters
+        if TEST_ADAPTERS_AVAILABLE:
+            try:
+                result = _test_database_adapters(formatter, error_handler, silent=True)
+                test_results.append(["Database Adapters", "✅ PASS" if result == ErrorHandler.SUCCESS else "❌ FAIL"])
+            except Exception as e:
+                test_results.append(["Database Adapters", f"❌ ERROR: {str(e)}"])
+        else:
+            test_results.append(["Database Adapters", "⚠️ SKIP (adapters not available)"])
+        
+        # Test configuration system
+        try:
+            result = _test_configuration(formatter, error_handler, silent=True)
+            test_results.append(["Configuration System", "✅ PASS" if result == ErrorHandler.SUCCESS else "❌ FAIL"])
+        except Exception as e:
+            test_results.append(["Configuration System", f"❌ ERROR: {str(e)}"])
+        
+        # Test TSK parser integration
+        try:
+            result = _test_parser(formatter, error_handler, silent=True)
+            test_results.append(["TSK Parser", "✅ PASS" if result == ErrorHandler.SUCCESS else "❌ FAIL"])
+        except Exception as e:
+            test_results.append(["TSK Parser", f"❌ ERROR: {str(e)}"])
+        
+        # Display results
+        if not silent:
+            formatter.table(
+                ['Integration Test', 'Status'],
+                test_results,
+                'Integration Test Results'
+            )
+        
+        # Check if all tests passed
+        failed_tests = [result for result in test_results if '❌' in result[1]]
+        if failed_tests:
+            if not silent:
+                formatter.error(f"{len(failed_tests)} integration tests failed")
+            return ErrorHandler.GENERAL_ERROR
+        else:
+            if not silent:
+                formatter.success("All integration tests passed!")
+            return ErrorHandler.SUCCESS
+            
+    except Exception as e:
+        if not silent:
+            formatter.error(f"Integration test execution failed: {e}")
+        return ErrorHandler.GENERAL_ERROR
+
+
+def _run_coverage_analysis(formatter: OutputFormatter, error_handler: ErrorHandler, silent: bool = False) -> int:
+    """Run coverage analysis using the coverage library"""
+    if not silent:
+        formatter.section("Running Coverage Analysis")
+    
+    if not COVERAGE_AVAILABLE:
+        formatter.error("Coverage analysis requires 'coverage' package. Install with: pip install coverage")
+        return ErrorHandler.GENERAL_ERROR
+    
+    try:
+        # Initialize coverage
+        cov = coverage.Coverage()
+        cov.start()
+        
+        # Run unit tests to collect coverage data
+        if not silent:
+            formatter.info("Running tests to collect coverage data...")
+        
+        _run_unit_tests(formatter, error_handler, silent=True)
+        
+        # Stop coverage collection
+        cov.stop()
+        cov.save()
+        
+        # Generate reports
+        if not silent:
+            formatter.info("Generating coverage reports...")
+        
+        # Text report
+        text_report = cov.report()
+        
+        # HTML report
+        cov.html_report(directory='htmlcov')
+        
+        # XML report for CI/CD
+        cov.xml_report(outfile='coverage.xml')
+        
+        # Get coverage percentage
+        total_coverage = cov.report(show_missing=False)
+        
+        if not silent:
+            formatter.success(f"Coverage analysis completed: {total_coverage:.1f}%")
+            formatter.info("HTML report generated in 'htmlcov/' directory")
+            formatter.info("XML report generated as 'coverage.xml'")
+        
+        # Check coverage threshold (80% default)
+        if total_coverage < 80:
+            if not silent:
+                formatter.warning(f"Coverage below threshold: {total_coverage:.1f}% < 80%")
+            return ErrorHandler.GENERAL_ERROR
+        
+        return ErrorHandler.SUCCESS
+        
+    except Exception as e:
+        if not silent:
+            formatter.error(f"Coverage analysis failed: {e}")
+        return ErrorHandler.GENERAL_ERROR
+
+
+def _run_test_watch_mode(formatter: OutputFormatter, error_handler: ErrorHandler, silent: bool = False) -> int:
+    """Run tests in watch mode, automatically re-running when files change"""
+    if not silent:
+        formatter.section("Starting Test Watch Mode")
+    
+    if not WATCHDOG_AVAILABLE:
+        formatter.error("Watch mode requires 'watchdog' package. Install with: pip install watchdog")
+        return ErrorHandler.GENERAL_ERROR
+    
+    try:
+        # Get the TuskLang project root directory
+        current_dir = Path.cwd()
+        project_root = None
+        
+        # Look for the tusktsk directory in the current path
+        for parent in [current_dir] + list(current_dir.parents):
+            if (parent / 'tusktsk').exists() and (parent / 'tusktsk' / 'cli').exists():
+                project_root = parent
+                break
+        
+        if not project_root:
+            project_root = current_dir
+        
+        if not silent:
+            formatter.info(f"Watching for changes in: {project_root}")
+            formatter.info("Press Ctrl+C to stop watch mode")
+        
+        # Create and start file watcher
+        event_handler = TestWatcher(formatter, error_handler)
+        observer = Observer()
+        observer.schedule(event_handler, str(project_root), recursive=True)
+        observer.start()
+        
+        try:
+            # Run initial tests
+            if not silent:
+                formatter.info("Running initial tests...")
+            _run_unit_tests(formatter, error_handler, silent=True)
+            
+            # Keep running until interrupted
+            while True:
+                time.sleep(1)
+                
+        except KeyboardInterrupt:
+            if not silent:
+                formatter.info("Stopping watch mode...")
+            observer.stop()
+            observer.join()
+            return ErrorHandler.SUCCESS
+            
+    except Exception as e:
+        if not silent:
+            formatter.error(f"Watch mode failed: {e}")
         return ErrorHandler.GENERAL_ERROR 
