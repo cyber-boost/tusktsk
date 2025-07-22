@@ -1,0 +1,49 @@
+<svg width="600" height="150" viewBox="0 0 600 150" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="logoGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#4ECDC4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#667eea;stop-opacity:1" />
+    </linearGradient>
+    <filter id="logoShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="4" flood-opacity="0.2"/>
+    </filter>
+    <pattern id="gridPattern" width="4" height="4" patternUnits="userSpaceOnUse">
+      <circle cx="2" cy="2" r="0.5" fill="#fff" opacity="0.3"/>
+    </pattern>
+  </defs>
+  
+  <!-- Logo Symbol -->
+  <g transform="translate(50, 30)">
+    <!-- Outer hexagon -->
+    <path d="M50 10 L80 25 L80 55 L50 70 L20 55 L20 25 Z" 
+          fill="url(#logoGradient)" filter="url(#logoShadow)"/>
+    
+    <!-- Inner design -->
+    <path d="M50 20 L70 30 L70 50 L50 60 L30 50 L30 30 Z" 
+          fill="url(#gridPattern)" opacity="0.8"/>
+    
+    <!-- Center T shape -->
+    <path d="M40 30 L60 30 L60 35 L52.5 35 L52.5 50 L47.5 50 L47.5 35 L40 35 Z" 
+          fill="#fff"/>
+    
+    <!-- Orbit dots -->
+    <circle cx="50" cy="15" r="3" fill="#fff" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="75" cy="40" r="3" fill="#fff" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" begin="0.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="25" cy="40" r="3" fill="#fff" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" begin="1s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  
+  <!-- Text -->
+  <text x="150" y="70" font-family="Arial, sans-serif" font-size="56" font-weight="bold" fill="#2c3e50">
+    TuskLang
+  </text>
+  <text x="150" y="100" font-family="Arial, sans-serif" font-size="18" fill="#7f8c8d">
+    Python SDK • 200+ Functions • Enterprise Scale
+  </text>
+</svg>

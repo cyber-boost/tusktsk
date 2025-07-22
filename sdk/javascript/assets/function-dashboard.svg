@@ -1,0 +1,123 @@
+<svg width="900" height="500" viewBox="0 0 900 500" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="dashGrad1" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#FF6B6B;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#ee5a6f;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="dashGrad2" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#4ECDC4;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#44a2bb;stop-opacity:1" />
+    </linearGradient>
+    <linearGradient id="dashGrad3" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#f39c12;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#e67e22;stop-opacity:1" />
+    </linearGradient>
+    <filter id="cardShadow">
+      <feDropShadow dx="0" dy="4" stdDeviation="8" flood-opacity="0.15"/>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="900" height="500" fill="#f8f9fa"/>
+  
+  <!-- Grid pattern -->
+  <defs>
+    <pattern id="dashGrid" width="20" height="20" patternUnits="userSpaceOnUse">
+      <rect width="20" height="20" fill="none" stroke="#e0e0e0" stroke-width="0.5"/>
+    </pattern>
+  </defs>
+  <rect width="900" height="500" fill="url(#dashGrid)" opacity="0.5"/>
+  
+  <!-- Title -->
+  <text x="450" y="40" font-family="Arial" font-size="28" font-weight="bold" fill="#2c3e50" text-anchor="middle">
+    Function Categories Overview
+  </text>
+  
+  <!-- Category cards -->
+  <!-- Row 1 -->
+  <g transform="translate(50, 80)">
+    <!-- Core Operators -->
+    <rect width="250" height="150" rx="10" fill="url(#dashGrad1)" filter="url(#cardShadow)"/>
+    <text x="20" y="35" font-family="Arial" font-size="20" font-weight="bold" fill="#fff">Core Operators</text>
+    <text x="20" y="80" font-family="Arial" font-size="48" font-weight="bold" fill="#fff">85</text>
+    <text x="20" y="110" font-family="Arial" font-size="14" fill="#fff" opacity="0.9">
+      @env @cache @date @file
+    </text>
+    <text x="20" y="130" font-family="Arial" font-size="14" fill="#fff" opacity="0.9">
+      @json @query @variable
+    </text>
+    
+    <!-- Database -->
+    <g transform="translate(275, 0)">
+      <rect width="250" height="150" rx="10" fill="url(#dashGrad2)" filter="url(#cardShadow)"/>
+      <text x="20" y="35" font-family="Arial" font-size="20" font-weight="bold" fill="#fff">Database</text>
+      <text x="20" y="80" font-family="Arial" font-size="48" font-weight="bold" fill="#fff">50+</text>
+      <text x="20" y="110" font-family="Arial" font-size="14" fill="#fff" opacity="0.9">
+        SQLite PostgreSQL MySQL
+      </text>
+      <text x="20" y="130" font-family="Arial" font-size="14" fill="#fff" opacity="0.9">
+        MongoDB Redis Multi-DB
+      </text>
+    </g>
+    
+    <!-- Communication -->
+    <g transform="translate(550, 0)">
+      <rect width="250" height="150" rx="10" fill="url(#dashGrad3)" filter="url(#cardShadow)"/>
+      <text x="20" y="35" font-family="Arial" font-size="20" font-weight="bold" fill="#fff">Communication</text>
+      <text x="20" y="80" font-family="Arial" font-size="48" font-weight="bold" fill="#fff">30+</text>
+      <text x="20" y="110" font-family="Arial" font-size="14" fill="#fff" opacity="0.9">
+        WebSocket GraphQL gRPC
+      </text>
+      <text x="20" y="130" font-family="Arial" font-size="14" fill="#fff" opacity="0.9">
+        Slack Teams Email SMS
+      </text>
+    </g>
+  </g>
+  
+  <!-- Row 2 -->
+  <g transform="translate(50, 250)">
+    <!-- Security -->
+    <rect width="250" height="150" rx="10" fill="#2ecc71" filter="url(#cardShadow)"/>
+    <text x="20" y="35" font-family="Arial" font-size="20" font-weight="bold" fill="#fff">Security</text>
+    <text x="20" y="80" font-family="Arial" font-size="48" font-weight="bold" fill="#fff">25+</text>
+    <text x="20" y="110" font-family="Arial" font-size="14" fill="#fff" opacity="0.9">
+      OAuth2 JWT Encryption
+    </text>
+    <text x="20" y="130" font-family="Arial" font-size="14" fill="#fff" opacity="0.9">
+      RBAC Audit Compliance
+    </text>
+    
+    <!-- Cloud -->
+    <g transform="translate(275, 0)">
+      <rect width="250" height="150" rx="10" fill="#3498db" filter="url(#cardShadow)"/>
+      <text x="20" y="35" font-family="Arial" font-size="20" font-weight="bold" fill="#fff">Cloud</text>
+      <text x="20" y="80" font-family="Arial" font-size="48" font-weight="bold" fill="#fff">20+</text>
+      <text x="20" y="110" font-family="Arial" font-size="14" fill="#fff" opacity="0.9">
+        AWS Azure GCP
+      </text>
+      <text x="20" y="130" font-family="Arial" font-size="14" fill="#fff" opacity="0.9">
+        Kubernetes Docker Terraform
+      </text>
+    </g>
+    
+    <!-- AI/ML -->
+    <g transform="translate(550, 0)">
+      <rect width="250" height="150" rx="10" fill="#9b59b6" filter="url(#cardShadow)"/>
+      <text x="20" y="35" font-family="Arial" font-size="20" font-weight="bold" fill="#fff">AI/ML</text>
+      <text x="20" y="80" font-family="Arial" font-size="48" font-weight="bold" fill="#fff">15+</text>
+      <text x="20" y="110" font-family="Arial" font-size="14" fill="#fff" opacity="0.9">
+        AutoML Neural Networks
+      </text>
+      <text x="20" y="130" font-family="Arial" font-size="14" fill="#fff" opacity="0.9">
+        NLP Computer Vision
+      </text>
+    </g>
+  </g>
+  
+  <!-- Total counter -->
+  <g transform="translate(450, 440)">
+    <circle r="35" fill="#e74c3c" filter="url(#cardShadow)"/>
+    <text font-family="Arial" font-size="20" font-weight="bold" fill="#fff" text-anchor="middle">200+</text>
+    <text y="20" font-family="Arial" font-size="10" fill="#fff" text-anchor="middle">Total</text>
+  </g>
+</svg>

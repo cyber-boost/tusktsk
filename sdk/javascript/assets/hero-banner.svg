@@ -1,0 +1,71 @@
+<svg width="1200" height="400" viewBox="0 0 1200 400" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <linearGradient id="heroBg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="50%" style="stop-color:#764ba2;stop-opacity:1" />
+      <stop offset="100%" style="stop-color:#f093fb;stop-opacity:1" />
+    </linearGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="4" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+    <pattern id="hexGrid" width="60" height="52" patternUnits="userSpaceOnUse">
+      <path d="M30 0 L50 10 L50 30 L30 40 L10 30 L10 10 Z" 
+            fill="none" stroke="#fff" stroke-width="0.5" opacity="0.1"/>
+    </pattern>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="1200" height="400" fill="url(#heroBg)"/>
+  <rect width="1200" height="400" fill="url(#hexGrid)"/>
+  
+  <!-- Floating elements -->
+  <g opacity="0.3">
+    <circle cx="100" cy="100" r="40" fill="#fff">
+      <animate attributeName="cy" values="100;120;100" dur="4s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="1100" cy="300" r="60" fill="#fff">
+      <animate attributeName="cy" values="300;280;300" dur="5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="600" cy="50" r="30" fill="#fff">
+      <animate attributeName="cy" values="50;70;50" dur="3s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  
+  <!-- Main content -->
+  <g transform="translate(600, 200)" text-anchor="middle">
+    <!-- 200+ Functions -->
+    <g transform="translate(-300, -50)">
+      <text font-family="Arial" font-size="72" font-weight="bold" fill="#fff" filter="url(#glow)">200+</text>
+      <text y="30" font-family="Arial" font-size="20" fill="#fff" opacity="0.9">Functions</text>
+    </g>
+    
+    <!-- 85 Operators -->
+    <g transform="translate(0, -50)">
+      <text font-family="Arial" font-size="72" font-weight="bold" fill="#fff" filter="url(#glow)">85</text>
+      <text y="30" font-family="Arial" font-size="20" fill="#fff" opacity="0.9">Operators</text>
+    </g>
+    
+    <!-- 24x Faster -->
+    <g transform="translate(300, -50)">
+      <text font-family="Arial" font-size="72" font-weight="bold" fill="#fff" filter="url(#glow)">24x</text>
+      <text y="30" font-family="Arial" font-size="20" fill="#fff" opacity="0.9">Faster</text>
+    </g>
+  </g>
+  
+  <!-- Tagline -->
+  <text x="600" y="320" font-family="Arial" font-size="24" fill="#fff" text-anchor="middle" opacity="0.9">
+    Enterprise Configuration Management at Scale
+  </text>
+  
+  <!-- Code snippet preview -->
+  <g transform="translate(350, 350)" opacity="0.6">
+    <rect x="0" y="0" width="500" height="40" rx="20" fill="#fff" opacity="0.2"/>
+    <text x="250" y="25" font-family="monospace" font-size="16" fill="#fff" text-anchor="middle">
+      pip install tusktsk[full]
+    </text>
+  </g>
+</svg>

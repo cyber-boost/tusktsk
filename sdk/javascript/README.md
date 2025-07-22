@@ -1,6 +1,6 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/javascript/assets/tusklang-logo.svg" alt="TuskLang" width="600" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/javascript/assets/svg-square-lg.svg" alt="TuskLang" width="400" />
 
 <h4>200+ Production-Ready Functions • 85 Dynamic Operators • 140+ CLI Commands</h4>
 

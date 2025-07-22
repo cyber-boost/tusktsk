@@ -1,0 +1,40 @@
+<svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="400" fill="#f8f9fa"/>
+  <text x="400" y="40" font-family="Arial" font-size="24" font-weight="bold" fill="#2c3e50" text-anchor="middle">Cloud Platform Integration (20+ Functions)</text>
+  <g transform="translate(100, 100)">
+    <rect width="150" height="80" rx="10" fill="#FF9900"/>
+    <text x="75" y="30" font-family="Arial" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">AWS</text>
+    <text x="75" y="50" font-family="Arial" font-size="12" fill="#fff" text-anchor="middle">Amazon Web Services</text>
+    <text x="75" y="65" font-family="Arial" font-size="10" fill="#fff" text-anchor="middle">8 functions</text>
+    <g transform="translate(200, 0)">
+      <rect width="150" height="80" rx="10" fill="#0078D4"/>
+      <text x="75" y="30" font-family="Arial" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">Azure</text>
+      <text x="75" y="50" font-family="Arial" font-size="12" fill="#fff" text-anchor="middle">Microsoft Cloud</text>
+      <text x="75" y="65" font-family="Arial" font-size="10" fill="#fff" text-anchor="middle">7 functions</text>
+    </g>
+    <g transform="translate(400, 0)">
+      <rect width="150" height="80" rx="10" fill="#4285F4"/>
+      <text x="75" y="30" font-family="Arial" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">GCP</text>
+      <text x="75" y="50" font-family="Arial" font-size="12" fill="#fff" text-anchor="middle">Google Cloud</text>
+      <text x="75" y="65" font-family="Arial" font-size="10" fill="#fff" text-anchor="middle">5 functions</text>
+    </g>
+  </g>
+  <g transform="translate(100, 220)">
+    <rect width="150" height="80" rx="10" fill="#326CE5"/>
+    <text x="75" y="30" font-family="Arial" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">Kubernetes</text>
+    <text x="75" y="50" font-family="Arial" font-size="12" fill="#fff" text-anchor="middle">Container Orchestration</text>
+    <text x="75" y="65" font-family="Arial" font-size="10" fill="#fff" text-anchor="middle">6 functions</text>
+    <g transform="translate(200, 0)">
+      <rect width="150" height="80" rx="10" fill="#2496ED"/>
+      <text x="75" y="30" font-family="Arial" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">Docker</text>
+      <text x="75" y="50" font-family="Arial" font-size="12" fill="#fff" text-anchor="middle">Containerization</text>
+      <text x="75" y="65" font-family="Arial" font-size="10" fill="#fff" text-anchor="middle">4 functions</text>
+    </g>
+    <g transform="translate(400, 0)">
+      <rect width="150" height="80" rx="10" fill="#7B42BC"/>
+      <text x="75" y="30" font-family="Arial" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">Terraform</text>
+      <text x="75" y="50" font-family="Arial" font-size="12" fill="#fff" text-anchor="middle">Infrastructure as Code</text>
+      <text x="75" y="65" font-family="Arial" font-size="10" fill="#fff" text-anchor="middle">3 functions</text>
+    </g>
+  </g>
+</svg> 

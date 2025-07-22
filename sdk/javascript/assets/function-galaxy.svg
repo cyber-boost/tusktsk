@@ -1,0 +1,116 @@
+<svg width="800" height="600" viewBox="0 0 800 600" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <radialGradient id="galaxyGradient" cx="50%" cy="50%" r="50%">
+      <stop offset="0%" style="stop-color:#667eea;stop-opacity:1" />
+      <stop offset="70%" style="stop-color:#764ba2;stop-opacity:0.8" />
+      <stop offset="100%" style="stop-color:#f093fb;stop-opacity:0.3" />
+    </radialGradient>
+    <filter id="glow">
+      <feGaussianBlur stdDeviation="3" result="coloredBlur"/>
+      <feMerge>
+        <feMergeNode in="coloredBlur"/>
+        <feMergeNode in="SourceGraphic"/>
+      </feMerge>
+    </filter>
+  </defs>
+  
+  <!-- Background -->
+  <rect width="800" height="600" fill="#0a0a0a"/>
+  <circle cx="400" cy="300" r="250" fill="url(#galaxyGradient)" opacity="0.3"/>
+  
+  <!-- Central core -->
+  <circle cx="400" cy="300" r="40" fill="#FF6B6B" filter="url(#glow)">
+    <animate attributeName="r" values="40;45;40" dur="3s" repeatCount="indefinite"/>
+  </circle>
+  <text x="400" y="310" font-family="Arial" font-size="16" font-weight="bold" fill="#fff" text-anchor="middle">TuskLang</text>
+  
+  <!-- Function clusters -->
+  <!-- Core Operators -->
+  <g transform="translate(400, 300)">
+    <circle cx="0" cy="-120" r="25" fill="#FF6B6B" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <text x="0" y="-115" font-family="Arial" font-size="12" fill="#fff" text-anchor="middle">Core</text>
+    <text x="0" y="-100" font-family="Arial" font-size="10" fill="#fff" text-anchor="middle">85</text>
+    
+    <!-- Database -->
+    <circle cx="100" cy="-80" r="20" fill="#4ECDC4" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="2.5s" repeatCount="indefinite"/>
+    </circle>
+    <text x="100" y="-75" font-family="Arial" font-size="11" fill="#fff" text-anchor="middle">DB</text>
+    <text x="100" y="-60" font-family="Arial" font-size="9" fill="#fff" text-anchor="middle">50+</text>
+    
+    <!-- Communication -->
+    <circle cx="150" cy="20" r="18" fill="#f39c12" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="3s" repeatCount="indefinite"/>
+    </circle>
+    <text x="150" y="25" font-family="Arial" font-size="10" fill="#fff" text-anchor="middle">Comm</text>
+    <text x="150" y="40" font-family="Arial" font-size="9" fill="#fff" text-anchor="middle">30+</text>
+    
+    <!-- Security -->
+    <circle cx="100" cy="120" r="22" fill="#2ecc71" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="2.8s" repeatCount="indefinite"/>
+    </circle>
+    <text x="100" y="125" font-family="Arial" font-size="11" fill="#fff" text-anchor="middle">Security</text>
+    <text x="100" y="140" font-family="Arial" font-size="9" fill="#fff" text-anchor="middle">25+</text>
+    
+    <!-- Cloud -->
+    <circle cx="-50" cy="100" r="19" fill="#3498db" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="3.2s" repeatCount="indefinite"/>
+    </circle>
+    <text x="-50" y="105" font-family="Arial" font-size="10" fill="#fff" text-anchor="middle">Cloud</text>
+    <text x="-50" y="120" font-family="Arial" font-size="9" fill="#fff" text-anchor="middle">20+</text>
+    
+    <!-- AI/ML -->
+    <circle cx="-120" cy="20" r="17" fill="#9b59b6" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="2.7s" repeatCount="indefinite"/>
+    </circle>
+    <text x="-120" y="25" font-family="Arial" font-size="10" fill="#fff" text-anchor="middle">AI/ML</text>
+    <text x="-120" y="40" font-family="Arial" font-size="9" fill="#fff" text-anchor="middle">15+</text>
+    
+    <!-- CLI -->
+    <circle cx="-100" cy="-80" r="21" fill="#2c3e50" opacity="0.8">
+      <animate attributeName="opacity" values="0.8;1;0.8" dur="2.3s" repeatCount="indefinite"/>
+    </circle>
+    <text x="-100" y="-75" font-family="Arial" font-size="10" fill="#fff" text-anchor="middle">CLI</text>
+    <text x="-100" y="-60" font-family="Arial" font-size="9" fill="#fff" text-anchor="middle">140+</text>
+  </g>
+  
+  <!-- Connection lines -->
+  <g stroke="#fff" stroke-width="1" opacity="0.3">
+    <line x1="400" y1="260" x2="400" y2="180"/>
+    <line x1="400" y1="260" x2="500" y2="220"/>
+    <line x1="400" y1="260" x2="550" y2="320"/>
+    <line x1="400" y1="260" x2="500" y2="420"/>
+    <line x1="400" y1="260" x2="350" y2="400"/>
+    <line x1="400" y1="260" x2="280" y2="320"/>
+    <line x1="400" y1="260" x2="300" y2="220"/>
+  </g>
+  
+  <!-- Stars -->
+  <g fill="#fff" opacity="0.6">
+    <circle cx="200" cy="150" r="1">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="1.5s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="600" cy="250" r="1.5">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="150" cy="450" r="1">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="1.8s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="650" cy="400" r="1.2">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="2.2s" repeatCount="indefinite"/>
+    </circle>
+    <circle cx="100" cy="200" r="1">
+      <animate attributeName="opacity" values="0.6;1;0.6" dur="1.7s" repeatCount="indefinite"/>
+    </circle>
+  </g>
+  
+  <!-- Title -->
+  <text x="400" y="50" font-family="Arial" font-size="24" font-weight="bold" fill="#fff" text-anchor="middle">
+    TuskLang Function Galaxy
+  </text>
+  <text x="400" y="75" font-family="Arial" font-size="14" fill="#fff" text-anchor="middle" opacity="0.8">
+    200+ Functions • 85 Operators • Enterprise Scale
+  </text>
+</svg> 
