@@ -1,6 +1,8 @@
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/tusklang-logo.svg" alt="TuskLang" width="600" />
+> **🌐 GitHub Version** - This README uses GitHub raw URLs for proper image display on GitHub. For PyPI version, see `README_PYPI.md`
+
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/tusklang-logo.svg" alt="TuskLang" width="600" />
 
 <h4>200+ Production-Ready Functions • 85 Dynamic Operators • 130+ CLI Commands </h4>
 
@@ -15,7 +17,7 @@
 
 <br/>
 
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/hero-banner.svg" alt="TuskLang Hero" width="100%" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/hero-banner.svg" alt="TuskLang Hero" width="100%" />
 
 [**🚀 Quick Start**](#-quick-start) • [**📚 Documentation**](https://tuskt.sk/) • [**💡 Examples**](#-examples) • [**🤝 Community**](https://discord.gg/tusklang)
 
@@ -23,29 +25,29 @@
 
 ---
 
-## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/overview.svg" width="32" align="center" /> **Overview**
+## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/overview.svg" width="32" align="center" /> **Overview**
 
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/function-galaxy.svg" alt="Function Galaxy" width="100%" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/function-galaxy.svg" alt="Function Galaxy" width="100%" />
 
 <table>
 <tr>
 <td width="25%" align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/functions.svg" width="80" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/functions.svg" width="80" />
 <h3>200+ Functions</h3>
 <p>Production-ready, tested, and optimized</p>
 </td>
 <td width="25%" align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/operators.svg" width="80" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/operators.svg" width="80" />
 <h3>85 Operators</h3>
 <p>Dynamic @-syntax for powerful configs</p>
 </td>
 <td width="25%" align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/enterprise.svg" width="80" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/enterprise.svg" width="80" />
 <h3>Enterprise Ready</h3>
 <p>SOC2, GDPR, HIPAA compliance</p>
 </td>
 <td width="25%" align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/performance.svg" width="80" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/performance.svg" width="80" />
 <h3>24x Faster</h3>
 <p>Optimized for production scale</p>
 </td>
@@ -54,10 +56,10 @@
 
 ---
 
-## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/dashboard.svg" width="32" align="center" /> **Function Dashboard**
+## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/dashboard.svg" width="32" align="center" /> **Function Dashboard**
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/function-dashboard.svg" alt="Function Dashboard" width="90%" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/function-dashboard.svg" alt="Function Dashboard" width="90%" />
 </div>
 
 ### 🎯 **Function Snapshot - 200+ Tested Functions at a Glance**
@@ -66,19 +68,19 @@
 <tr>
 <td width="33%">
 
-#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/core.svg" width="20" /> **Core Operators (85)**
+#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/core.svg" width="20" /> **Core Operators (85)**
 `@env` `@cache` `@date` `@file` `@json` `@query` `@variable` `@if` `@switch` `@for` `@while` `@each` `@filter`
 
 </td>
 <td width="33%">
 
-#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/database.svg" width="20" /> **Database (50+)**
+#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/database.svg" width="20" /> **Database (50+)**
 SQLite • PostgreSQL • MySQL • MongoDB • Redis • Multi-DB Operations • Connection Pooling • Query Optimization
 
 </td>
 <td width="33%">
 
-#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/communication.svg" width="20" /> **Communication (30+)**
+#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/communication.svg" width="20" /> **Communication (30+)**
 WebSocket • GraphQL • gRPC • Slack • Teams • Email • SMS • Real-time Messaging • API Integration
 
 </td>
@@ -86,19 +88,19 @@ WebSocket • GraphQL • gRPC • Slack • Teams • Email • SMS • Real-ti
 <tr>
 <td width="33%">
 
-#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/security.svg" width="20" /> **Security (25+)**
+#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/security.svg" width="20" /> **Security (25+)**
 OAuth2 • JWT • Encryption • RBAC • Audit • Compliance • Multi-Factor Auth • Vulnerability Scanning • CLI Security Commands
 
 </td>
 <td width="33%">
 
-#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/cloud.svg" width="20" /> **Cloud (20+)**
+#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/cloud.svg" width="20" /> **Cloud (20+)**
 AWS • Azure • GCP • Kubernetes • Docker • Terraform • Service Mesh • Edge Computing
 
 </td>
 <td width="33%">
 
-#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/ai.svg" width="20" /> **AI/ML (15+)**
+#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/ai.svg" width="20" /> **AI/ML (15+)**
 AutoML • Neural Networks • NLP • Computer Vision • Predictive Analytics • Model Management
 
 </td>
@@ -106,7 +108,7 @@ AutoML • Neural Networks • NLP • Computer Vision • Predictive Analytics 
 <tr>
 <td width="33%">
 
-#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/cli.svg" width="20" /> **CLI Commands (140+)**
+#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/cli.svg" width="20" /> **CLI Commands (140+)**
 Security • Services • Cache • License • Config • AI • Database • Binary • Development • Testing • Validation
 
 </td>
@@ -115,10 +117,10 @@ Security • Services • Cache • License • Config • AI • Database • B
 
 ---
 
-## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/rocket.svg" width="32" align="center" /> **Quick Start**
+## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/rocket.svg" width="32" align="center" /> **Quick Start**
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/quickstart-flow.svg" alt="Quick Start Flow" width="80%" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/quickstart-flow.svg" alt="Quick Start Flow" width="80%" />
 </div>
 
 ### 📦 **Installation**
@@ -127,7 +129,7 @@ Security • Services • Cache • License • Config • AI • Database • B
 <tr>
 <td width="33%" align="center">
 
-#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/basic-install.svg" width="60" />
+#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/basic-install.svg" width="60" />
 #### Basic
 ```bash
 pip install tusktsk
@@ -135,7 +137,7 @@ pip install tusktsk
 </td>
 <td width="33%" align="center">
 
-#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/feature-install.svg" width="60" />
+#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/feature-install.svg" width="60" />
 #### With Features
 ```bash
 pip install tusktsk[ai,database,cloud]
@@ -143,7 +145,7 @@ pip install tusktsk[ai,database,cloud]
 </td>
 <td width="33%" align="center">
 
-#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/full-install.svg" width="60" />
+#### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/full-install.svg" width="60" />
 #### Everything
 ```bash
 pip install tusktsk[full]
@@ -187,10 +189,10 @@ loaded_config = load('app.tsk')
 
 ---
 
-## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/operators.svg" width="32" align="center" /> **Core Operators (85 Functions)**
+## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/operators.svg" width="32" align="center" /> **Core Operators (85 Functions)**
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/operators-map.svg" alt="Operators Map" width="90%" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/operators-map.svg" alt="Operators Map" width="90%" />
 </div>
 
 TuskLang's revolutionary `@` operator syntax provides dynamic functionality with simple, readable configuration.
@@ -445,12 +447,12 @@ assign_role = "@rbac('assign', user='jane_smith', role='editor', scope='project:
 
 ---
 
-## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/features.svg" width="32" align="center" /> **Feature Showcase**
+## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/features.svg" width="32" align="center" /> **Feature Showcase**
 
-### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/database.svg" width="24" align="center" /> **Database Operations (50+ Functions)**
+### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/database.svg" width="24" align="center" /> **Database Operations (50+ Functions)**
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/database-features.svg" alt="Database Features" width="80%" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/database-features.svg" alt="Database Features" width="80%" />
 </div>
 
 <details>
@@ -585,7 +587,7 @@ mongo.create_text_index('articles', ['title', 'content'])
 
 </details>
 
-### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/communication.svg" width="24" align="center" /> **Communication & Messaging (30+ Functions)**
+### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/communication.svg" width="24" align="center" /> **Communication & Messaging (30+ Functions)**
 
 <details>
 <summary><strong>View Communication Features</strong></summary>
@@ -677,10 +679,10 @@ user_data = comm.execute_graphql_query(
 
 </details>
 
-### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/security.svg" width="24" align="center" /> **Security & Authentication (25+ Functions)**
+### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/security.svg" width="24" align="center" /> **Security & Authentication (25+ Functions)**
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/security-architecture.svg" alt="Security Architecture" width="80%" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/security-architecture.svg" alt="Security Architecture" width="80%" />
 </div>
 
 <details>
@@ -744,10 +746,10 @@ jwt_config = auth.configure_jwt(
 
 </details>
 
-### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/cli.svg" width="24" align="center" /> **CLI Security & Service Management (25+ Commands)**
+### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/cli.svg" width="24" align="center" /> **CLI Security & Service Management (25+ Commands)**
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/cli-security.svg" alt="CLI Security & Service Management" width="80%" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/cli-security.svg" alt="CLI Security & Service Management" width="80%" />
 </div>
 
 <details>
@@ -830,10 +832,10 @@ tsk config stats
 
 </details>
 
-### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/binary.svg" width="24" align="center" /> **Binary Operations & Analysis (12 Commands)**
+### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/binary.svg" width="24" align="center" /> **Binary Operations & Analysis (12 Commands)**
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/binary-operations.svg" alt="Binary Operations" width="80%" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/binary-operations.svg" alt="Binary Operations" width="80%" />
 </div>
 
 <details>
@@ -936,10 +938,10 @@ tsk binary optimize app.pnt
 
 </details>
 
-### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/cloud.svg" width="24" align="center" /> **Cloud & Infrastructure (20+ Functions)**
+### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/cloud.svg" width="24" align="center" /> **Cloud & Infrastructure (20+ Functions)**
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/cloud-platforms.svg" alt="Cloud Platforms" width="80%" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/cloud-platforms.svg" alt="Cloud Platforms" width="80%" />
 </div>
 
 <details>
@@ -1029,10 +1031,10 @@ cosmos_operations = azure.cosmos_manager(
 
 </details>
 
-### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/ai.svg" width="24" align="center" /> **AI/ML & Analytics (22+ Functions)**
+### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/ai.svg" width="24" align="center" /> **AI/ML & Analytics (22+ Functions)**
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/ai-ml-features.svg" alt="AI/ML Features" width="80%" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/ai-ml-features.svg" alt="AI/ML Features" width="80%" />
 </div>
 
 <details>
@@ -1166,7 +1168,7 @@ batch_predictions = ml_engine.batch_predict(
 
 </details>
 
-### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/enterprise.svg" width="24" align="center" /> **Enterprise Features (10+ Functions)**
+### <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/enterprise.svg" width="24" align="center" /> **Enterprise Features (10+ Functions)**
 
 <details>
 <summary><strong>View Enterprise Features</strong></summary>
@@ -1261,10 +1263,10 @@ scaling_result = tenant_manager.scale_tenant_resources(
 
 ---
 
-## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/cli.svg" width="32" align="center" /> **CLI Commands (100+ Commands)**
+## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/cli.svg" width="32" align="center" /> **CLI Commands (100+ Commands)**
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/cli-showcase.svg" alt="CLI Showcase" width="80%" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/cli-showcase.svg" alt="CLI Showcase" width="80%" />
 </div>
 
 ### 🎯 **Command Categories Overview**
@@ -1530,10 +1532,10 @@ tsk deps check
 
 ---
 
-## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/performance.svg" width="32" align="center" /> **Performance Benchmarks**
+## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/performance.svg" width="32" align="center" /> **Performance Benchmarks**
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/performance-comparison.svg" alt="Performance Comparison" width="80%" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/performance-comparison.svg" alt="Performance Comparison" width="80%" />
 </div>
 
 ### ⚡ **Verified Performance Results**
@@ -1564,34 +1566,34 @@ tsk ai benchmark
 <th>Improvement</th>
 </tr>
 <tr>
-<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/config.svg" width="16" /> Configuration Parsing</td>
+<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/config.svg" width="16" /> Configuration Parsing</td>
 <td>1.2ms</td>
 <td><strong>0.05ms</strong></td>
-<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/arrow-up.svg" width="16" /> <strong>24x faster</strong></td>
+<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/arrow-up.svg" width="16" /> <strong>24x faster</strong></td>
 </tr>
 <tr>
-<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/database-small.svg" width="16" /> Database Queries</td>
+<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/database-small.svg" width="16" /> Database Queries</td>
 <td>15ms</td>
 <td><strong>2.1ms</strong></td>
-<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/arrow-up.svg" width="16" /> <strong>7x faster</strong></td>
+<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/arrow-up.svg" width="16" /> <strong>7x faster</strong></td>
 </tr>
 <tr>
-<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/binary.svg" width="16" /> Binary Format Loading</td>
+<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/binary.svg" width="16" /> Binary Format Loading</td>
 <td>5.2ms</td>
 <td><strong>0.3ms</strong></td>
-<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/arrow-up.svg" width="16" /> <strong>17x faster</strong></td>
+<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/arrow-up.svg" width="16" /> <strong>17x faster</strong></td>
 </tr>
 <tr>
-<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/cache.svg" width="16" /> Cache Operations</td>
+<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/cache.svg" width="16" /> Cache Operations</td>
 <td>3.1ms</td>
 <td><strong>0.4ms</strong></td>
-<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/arrow-up.svg" width="16" /> <strong>8x faster</strong></td>
+<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/arrow-up.svg" width="16" /> <strong>8x faster</strong></td>
 </tr>
 <tr>
-<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/template.svg" width="16" /> Template Rendering</td>
+<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/template.svg" width="16" /> Template Rendering</td>
 <td>12ms</td>
 <td><strong>0.4ms</strong></td>
-<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/arrow-up.svg" width="16" /> <strong>30x faster</strong></td>
+<td><img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/arrow-up.svg" width="16" /> <strong>30x faster</strong></td>
 </tr>
 </table>
 
@@ -1604,10 +1606,10 @@ tsk ai benchmark
 
 ---
 
-## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/test.svg" width="32" align="center" /> **Verified Test Results**
+## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/test.svg" width="32" align="center" /> **Verified Test Results**
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/test-coverage.svg" alt="Test Coverage" width="80%" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/test-coverage.svg" alt="Test Coverage" width="80%" />
 </div>
 
 ### ✅ **Comprehensive Test Coverage**
@@ -1615,44 +1617,44 @@ tsk ai benchmark
 <table align="center">
 <tr>
 <td align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/check-circle.svg" width="40" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/check-circle.svg" width="40" />
 <h4>Core Operators</h4>
 <p><strong>85/85</strong> PASSED ✅</p>
 </td>
 <td align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/check-circle.svg" width="40" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/check-circle.svg" width="40" />
 <h4>Database</h4>
 <p><strong>50/50</strong> PASSED ✅</p>
 </td>
 <td align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/check-circle.svg" width="40" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/check-circle.svg" width="40" />
 <h4>Communication</h4>
 <p><strong>30/30</strong> PASSED ✅</p>
 </td>
 <td align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/check-circle.svg" width="40" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/check-circle.svg" width="40" />
 <h4>Security</h4>
 <p><strong>25/25</strong> PASSED ✅</p>
 </td>
 </tr>
 <tr>
 <td align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/check-circle.svg" width="40" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/check-circle.svg" width="40" />
 <h4>Cloud</h4>
 <p><strong>20/20</strong> PASSED ✅</p>
 </td>
 <td align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/check-circle.svg" width="40" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/check-circle.svg" width="40" />
 <h4>AI/ML</h4>
 <p><strong>15/15</strong> PASSED ✅</p>
 </td>
 <td align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/check-circle.svg" width="40" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/check-circle.svg" width="40" />
 <h4>Enterprise</h4>
 <p><strong>10/10</strong> PASSED ✅</p>
 </td>
 <td align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/check-circle.svg" width="40" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/check-circle.svg" width="40" />
 <h4>CLI</h4>
 <p><strong>140/140</strong> PASSED ✅</p>
 </td>
@@ -1758,31 +1760,31 @@ tsk performance test --network
 
 ---
 
-## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/why.svg" width="32" align="center" /> **Why Choose TuskLang?**
+## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/why.svg" width="32" align="center" /> **Why Choose TuskLang?**
 
 <div align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/why-tusklang.svg" alt="Why TuskLang" width="80%" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/why-tusklang.svg" alt="Why TuskLang" width="80%" />
 </div>
 
 <table>
 <tr>
 <td width="25%" align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/scale.svg" width="60" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/scale.svg" width="60" />
 <h4>Unprecedented Scale</h4>
 <p>200+ functions<br/>85 operators<br/>100+ CLI commands<br/>6 database adapters</p>
 </td>
 <td width="25%" align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/enterprise-ready.svg" width="60" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/enterprise-ready.svg" width="60" />
 <h4>Enterprise Ready</h4>
 <p>SOC2, GDPR, HIPAA<br/>Multi-tenancy<br/>Advanced security<br/>Audit trails</p>
 </td>
 <td width="25%" align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/modern.svg" width="60" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/modern.svg" width="60" />
 <h4>Modern Stack</h4>
 <p>AI/ML integrated<br/>Multi-cloud support<br/>Real-time features<br/>MLOps ready</p>
 </td>
 <td width="25%" align="center">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/developer.svg" width="60" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/developer.svg" width="60" />
 <h4>Developer First</h4>
 <p>Intuitive CLI<br/>Auto-dependencies<br/>Great docs<br/>Active community</p>
 </td>
@@ -1791,7 +1793,7 @@ tsk performance test --network
 
 ---
 
-## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/community.svg" width="32" align="center" /> **Documentation & Community**
+## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/community.svg" width="32" align="center" /> **Documentation & Community**
 
 <div align="center">
 
@@ -1801,25 +1803,25 @@ tsk performance test --network
 <tr>
 <td align="center" width="25%">
 <a href="https://tuskt.sk/quickstart/">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/quickstart.svg" width="60" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/quickstart.svg" width="60" />
 <br/><strong>Quick Start</strong>
 </a>
 </td>
 <td align="center" width="25%">
 <a href="https://tuskt.sk/api/">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/api-docs.svg" width="60" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/api-docs.svg" width="60" />
 <br/><strong>API Reference</strong>
 </a>
 </td>
 <td align="center" width="25%">
 <a href="https://tuskt.sk/examples/">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/examples.svg" width="60" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/examples.svg" width="60" />
 <br/><strong>Examples</strong>
 </a>
 </td>
 <td align="center" width="25%">
 <a href="https://tuskt.sk/enterprise/">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/enterprise-docs.svg" width="60" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/enterprise-docs.svg" width="60" />
 <br/><strong>Enterprise Guide</strong>
 </a>
 </td>
@@ -1832,31 +1834,31 @@ tsk performance test --network
 <tr>
 <td align="center" width="20%">
 <a href="https://github.com/cyber-boost/tusktsk">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/github.svg" width="48" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/github.svg" width="48" />
 <br/><strong>GitHub</strong>
 </a>
 </td>
 <td align="center" width="20%">
 <a href="https://discord.gg/tusklang">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/discord.svg" width="48" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/discord.svg" width="48" />
 <br/><strong>Discord</strong>
 </a>
 </td>
 <td align="center" width="20%">
 <a href="https://stackoverflow.com/questions/tagged/tusklang">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/stackoverflow.svg" width="48" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/stackoverflow.svg" width="48" />
 <br/><strong>Stack Overflow</strong>
 </a>
 </td>
 <td align="center" width="20%">
 <a href="https://twitter.com/tusklang">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/twitter.svg" width="48" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/twitter.svg" width="48" />
 <br/><strong>Twitter</strong>
 </a>
 </td>
 <td align="center" width="20%">
 <a href="https://www.youtube.com/@tusklang">
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/youtube.svg" width="48" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/youtube.svg" width="48" />
 <br/><strong>YouTube</strong>
 </a>
 </td>
@@ -1867,7 +1869,7 @@ tsk performance test --network
 
 ---
 
-## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/contributing.svg" width="32" align="center" /> **Contributing**
+## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/contributing.svg" width="32" align="center" /> **Contributing**
 
 We welcome contributions to make TuskLang even better!
 
@@ -1889,7 +1891,7 @@ See our [Contributing Guide](CONTRIBUTING.md) for more details.
 
 ---
 
-## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/icons/license.svg" width="32" align="center" /> **License**
+## <img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/icons/license.svg" width="32" align="center" /> **License**
 
 This project is licensed under the MIT License - see the [LICENSE](LICENSE) file for details.
 
@@ -1903,7 +1905,7 @@ This project is licensed under the MIT License - see the [LICENSE](LICENSE) file
 
 <div align="center">
 
-<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/assets/footer-wave.svg" alt="Footer" width="100%" />
+<img src="https://raw.githubusercontent.com/cyber-boost/tusktsk/main/sdk/python/assets/footer-wave.svg" alt="Footer" width="100%" />
 
 <h3>🚀 Ready to transform your configuration management?</h3>
 
