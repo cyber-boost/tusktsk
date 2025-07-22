@@ -1,0 +1,75 @@
+<svg width="900" height="300" viewBox="0 0 900 300" xmlns="http://www.w3.org/2000/svg">
+  <defs>
+    <filter id="workflowShadow">
+      <feDropShadow dx="2" dy="2" stdDeviation="3" flood-opacity="0.2"/>
+    </filter>
+  </defs>
+  
+  <!-- Title -->
+  <text x="450" y="40" font-family="Arial" font-size="28" font-weight="bold" 
+        text-anchor="middle" fill="#2c3e50">Quick Start in 4 Steps</text>
+  
+  <!-- Step boxes -->
+  <g id="steps">
+    <!-- Step 1 -->
+    <g transform="translate(50, 80)">
+      <rect width="180" height="140" rx="10" fill="#3498db" filter="url(#workflowShadow)"/>
+      <text x="90" y="40" font-family="Arial" font-size="48" font-weight="bold" fill="#fff" text-anchor="middle">1</text>
+      <text x="90" y="80" font-family="Arial" font-size="18" fill="#fff" text-anchor="middle">Install</text>
+      <text x="90" y="105" font-family="monospace" font-size="12" fill="#fff" text-anchor="middle">pip install</text>
+      <text x="90" y="120" font-family="monospace" font-size="12" fill="#fff" text-anchor="middle">tusktsk[full]</text>
+    </g>
+    
+    <!-- Arrow 1 -->
+    <path d="M 240 150 L 290 150" stroke="#95a5a6" stroke-width="3" 
+          marker-end="url(#arrowhead)" stroke-dasharray="5,5">
+      <animate attributeName="stroke-dashoffset" from="10" to="0" dur="1s" repeatCount="indefinite"/>
+    </path>
+    
+    <!-- Step 2 -->
+    <g transform="translate(300, 80)">
+      <rect width="180" height="140" rx="10" fill="#2ecc71" filter="url(#workflowShadow)"/>
+      <text x="90" y="40" font-family="Arial" font-size="48" font-weight="bold" fill="#fff" text-anchor="middle">2</text>
+      <text x="90" y="80" font-family="Arial" font-size="18" fill="#fff" text-anchor="middle">Import</text>
+      <text x="90" y="105" font-family="monospace" font-size="12" fill="#fff" text-anchor="middle">from tusk import</text>
+      <text x="90" y="120" font-family="monospace" font-size="12" fill="#fff" text-anchor="middle">TuskFlask</text>
+    </g>
+    
+    <!-- Arrow 2 -->
+    <path d="M 490 150 L 540 150" stroke="#95a5a6" stroke-width="3" 
+          marker-end="url(#arrowhead)" stroke-dasharray="5,5">
+      <animate attributeName="stroke-dashoffset" from="10" to="0" dur="1s" repeatCount="indefinite"/>
+    </path>
+    
+    <!-- Step 3 -->
+    <g transform="translate(550, 80)">
+      <rect width="180" height="140" rx="10" fill="#f39c12" filter="url(#workflowShadow)"/>
+      <text x="90" y="40" font-family="Arial" font-size="48" font-weight="bold" fill="#fff" text-anchor="middle">3</text>
+      <text x="90" y="80" font-family="Arial" font-size="18" fill="#fff" text-anchor="middle">Initialize</text>
+      <text x="90" y="105" font-family="monospace" font-size="12" fill="#fff" text-anchor="middle">tusk =</text>
+      <text x="90" y="120" font-family="monospace" font-size="12" fill="#fff" text-anchor="middle">TuskFlask(app)</text>
+    </g>
+    
+    <!-- Arrow 3 -->
+    <path d="M 740 150 L 790 150" stroke="#95a5a6" stroke-width="3" 
+          marker-end="url(#arrowhead)" stroke-dasharray="5,5">
+      <animate attributeName="stroke-dashoffset" from="10" to="0" dur="1s" repeatCount="indefinite"/>
+    </path>
+    
+    <!-- Step 4 -->
+    <g transform="translate(800, 120)">
+      <circle cx="40" cy="40" r="35" fill="#e74c3c" filter="url(#workflowShadow)"/>
+      <text x="40" y="50" font-family="Arial" font-size="24" font-weight="bold" fill="#fff" text-anchor="middle">🚀</text>
+    </g>
+  </g>
+  
+  <!-- Result text -->
+  <text x="450" y="270" font-family="Arial" font-size="20" font-weight="bold" 
+        fill="#2ecc71" text-anchor="middle">59x Faster Performance!</text>
+  
+  <defs>
+    <marker id="arrowhead" markerWidth="10" markerHeight="10" refX="9" refY="3" orient="auto">
+      <polygon points="0 0, 10 3, 0 6" fill="#95a5a6"/>
+    </marker>
+  </defs>
+</svg>

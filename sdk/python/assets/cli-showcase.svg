@@ -1,0 +1,18 @@
+<svg width="800" height="400" viewBox="0 0 800 400" xmlns="http://www.w3.org/2000/svg">
+  <rect width="800" height="400" fill="#2c3e50"/>
+  <text x="400" y="40" font-family="Arial" font-size="24" font-weight="bold" fill="#fff" text-anchor="middle">TuskLang CLI Showcase</text>
+  <g transform="translate(50, 80)">
+    <text x="0" y="0" font-family="monospace" font-size="14" fill="#2ecc71">$ tsk --help</text>
+    <text x="0" y="25" font-family="monospace" font-size="12" fill="#95a5a6">Usage: tsk [OPTIONS] COMMAND [ARGS]...</text>
+    <text x="0" y="45" font-family="monospace" font-size="12" fill="#95a5a6">Commands:</text>
+    <text x="20" y="65" font-family="monospace" font-size="12" fill="#3498db">• evaluate</text>
+    <text x="20" y="85" font-family="monospace" font-size="12" fill="#3498db">• install</text>
+    <text x="20" y="105" font-family="monospace" font-size="12" fill="#3498db">• test</text>
+    <text x="20" y="125" font-family="monospace" font-size="12" fill="#3498db">• deploy</text>
+    <text x="0" y="155" font-family="monospace" font-size="14" fill="#2ecc71">$ tsk evaluate "@env('DATABASE_URL')"</text>
+    <text x="0" y="175" font-family="monospace" font-size="12" fill="#f39c12">postgresql://user:pass@localhost/db</text>
+    <text x="0" y="205" font-family="monospace" font-size="14" fill="#2ecc71">$ tsk install --full</text>
+    <text x="0" y="225" font-family="monospace" font-size="12" fill="#95a5a6">Installing all TuskLang components...</text>
+    <text x="0" y="245" font-family="monospace" font-size="12" fill="#2ecc71">✅ Installation complete!</text>
+  </g>
+</svg> 

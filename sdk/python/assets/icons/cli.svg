@@ -1,0 +1,3 @@
+<svg width="80" height="80" viewBox="0 0 80 80" xmlns="http://www.w3.org/2000/svg">
+  <rect x="10" y="10" width="60" height="60" rx="5" fill="#2c3e50"/><text x="15" y="30" font-family="monospace" font-size="16" fill="#2ecc71">$</text><rect x="25" y="20" width="30" height="3" fill="#2ecc71"/><text x="15" y="45" font-family="monospace" font-size="12" fill="#95a5a6">&gt;</text><rect x="25" y="37" width="20" height="2" fill="#95a5a6"/><rect x="15" y="55" width="40" height="2" fill="#3498db"/>
+</svg>
