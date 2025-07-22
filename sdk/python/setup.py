@@ -8,7 +8,7 @@ here = Path(__file__).parent.resolve()
 
 setup(
     name="tusktsk",
-    version="2.0.4",
+                    version="2.0.5",
     description="TuskTsk - Configuration with a Heartbeat. Enhanced with 140+ CLI commands including binary operations and AI management!",
     author="Cyberboost LLC",
     author_email="packages@tuskt.sk",
