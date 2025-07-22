@@ -1,0 +1,25 @@
+TuskTsk Package Statistics Summary
+Generated: 2025-07-22T16:59:51Z
+
+📊 TOTAL DOWNLOADS: 780
+🌐 PLATFORMS WITH DOWNLOADS: 6 / 8
+
+📦 INDIVIDUAL PLATFORM STATS:
+  rubygems: 130 downloads (16.6%)
+  maven: 0 downloads (0%)
+  pypi: 195 downloads (25.0%)
+  nuget: 8 downloads (1.0%)
+  cargo: 161 downloads (20.6%)
+  npm: 285 downloads (36.5%)
+  packagist: 1 downloads (.1%)
+  go: 0 downloads (0%)
+
+🏆 SUMMARY:
+  Most Popular: npm (285 downloads)
+  Least Popular: packagist (1 downloads)
+  Recent Activity: Last checked 2025-07-22T16:59:51Z
+
+📝 NOTES:
+  - Go modules has license issue (not redistributable)
+  - Maven shows 0 downloads (new package)
+  - NPM shows highest activity with recent spike

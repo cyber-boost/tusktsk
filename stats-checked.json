@@ -1,0 +1,89 @@
+{
+  "timestamp": "2025-07-22T16:59:49Z",
+  "package_name": "tusktsk",
+  "platforms": {
+    "npm": {
+      "total_downloads": 285,
+      "yesterday_downloads": 155,
+      "created_date": "2025-07-17T18:28:15.148Z",
+      "latest_version": "unknown",
+      "weekly_data": {
+        "start": "2025-07-15",
+        "end": "2025-07-21",
+        "package": "tusktsk",
+        "downloads": [
+          {
+            "downloads": 0,
+            "day": "2025-07-15"
+          },
+          {
+            "downloads": 0,
+            "day": "2025-07-16"
+          },
+          {
+            "downloads": 111,
+            "day": "2025-07-17"
+          },
+          {
+            "downloads": 7,
+            "day": "2025-07-18"
+          },
+          {
+            "downloads": 4,
+            "day": "2025-07-19"
+          },
+          {
+            "downloads": 8,
+            "day": "2025-07-20"
+          },
+          {
+            "downloads": 155,
+            "day": "2025-07-21"
+          }
+        ]
+      }
+    },
+    "pypi": {
+      "total_downloads": 195,
+      "weekly_downloads": 75,
+      "created_date": "unknown",
+      "latest_version": "unknown"
+    },
+    "cargo": {
+      "total_downloads": 161,
+      "created_date": "unknown",
+      "latest_version": "unknown"
+    },
+    "nuget": {
+      "total_downloads": 8,
+      "last_updated": "2025-07-21T18:32:42.2130000",
+      "latest_version": "1.0.0"
+    },
+    "packagist": {
+      "total_downloads": 1,
+      "monthly_downloads": 1,
+      "daily_downloads": 0
+    },
+    "rubygems": {
+      "total_downloads": 130
+    },
+    "maven": {
+      "total_downloads": 0
+    },
+    "go": {
+      "total_downloads": 0,
+      "status": "license_issue"
+    }
+  },
+  "totals": {
+    "total_downloads": 780,
+    "platforms_with_downloads": 6,
+    "platforms_checked": 8
+  },
+  "summary": {
+    "most_popular": "npm",
+    "least_popular": "packagist",
+    "recent_activity": "Last checked: 2025-07-22T16:59:49Z",
+    "notes": []
+  }
+}

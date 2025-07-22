@@ -135,6 +135,13 @@ Examples:
         dev_parser.add_argument('--reload', action='store_true', help='Enable auto-reload on file changes')
         dev_parser.add_argument('--workers', type=int, default=1, help='Number of worker processes (default: 1)')
         
+        # Web interface command
+        web_parser = subparsers.add_parser('web', help='Launch web interface')
+        web_parser.add_argument('--port', type=int, default=5000, help='Port number (default: 5000)')
+        web_parser.add_argument('--host', default='0.0.0.0', help='Host to bind to (default: 0.0.0.0)')
+        web_parser.add_argument('--debug', action='store_true', help='Enable debug mode')
+        web_parser.add_argument('--reload', action='store_true', help='Enable auto-reload on file changes')
+        
         compile_parser = subparsers.add_parser('compile', help='Compile .tsk file')
         compile_parser.add_argument('file', help='TSK file to compile')
         compile_parser.add_argument('--watch', action='store_true', help='Watch for changes and recompile automatically')
@@ -557,6 +564,8 @@ Examples:
                 return db_commands.handle_db_command(parsed_args, self)
             elif parsed_args.command == 'serve':
                 return dev_commands.handle_serve_command(parsed_args, self)
+            elif parsed_args.command == 'web':
+                return dev_commands.handle_web_command(parsed_args, self)
             elif parsed_args.command == 'compile':
                 return dev_commands.handle_compile_command(parsed_args, self)
             elif parsed_args.command == 'optimize':

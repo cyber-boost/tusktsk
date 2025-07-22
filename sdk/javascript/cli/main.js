@@ -23,9 +23,15 @@ const configCommands = require('./commands/config.js');
 const aiCommands = require('./commands/ai.js');
 const binaryCommands = require('./commands/binary.js');
 const utilityCommands = require('./commands/utility.js');
+const webCommands = require('./commands/web.js');
+const peanutsCommands = require('./commands/peanuts.js');
+const cssCommands = require('./commands/css.js');
+const licenseCommands = require('./commands/license.js');
+const securityCommands = require('./commands/security.js');
+const dependencyCommands = require('./commands/dependency.js');
 
 // CLI version
-const VERSION = '2.0.0';
+const VERSION = '2.1.0';
 
 // Create CLI program
 const program = new Command();
@@ -172,6 +178,17 @@ program
   .addCommand(aiCommands.optimize)
   .addCommand(aiCommands.security);
 
+// Web Commands
+program
+  .command('web')
+  .description('TuskLang web server management')
+  .addCommand(webCommands.webStart)
+  .addCommand(webCommands.webStatus)
+  .addCommand(webCommands.webStop)
+  .addCommand(webCommands.webTest)
+  .addCommand(webCommands.webConfig)
+  .addCommand(webCommands.webLogs);
+
 // Utility Commands
 program
   .command('parse')
@@ -207,6 +224,53 @@ program
   .argument('<value>', 'Value to set')
   .action(utilityCommands.set);
 
+// Peanuts Commands
+program
+  .command('peanuts')
+  .description('Peanut configuration management')
+  .addCommand(peanutsCommands.compile)
+  .addCommand(peanutsCommands.autoCompile)
+  .addCommand(peanutsCommands.load);
+
+// CSS Commands
+program
+  .command('css')
+  .description('CSS processing and optimization')
+  .addCommand(cssCommands.expand)
+  .addCommand(cssCommands.map);
+
+// License Commands
+program
+  .command('license')
+  .description('License validation and management')
+  .addCommand(licenseCommands.check)
+  .addCommand(licenseCommands.activate)
+  .addCommand(licenseCommands.validate)
+  .addCommand(licenseCommands.info)
+  .addCommand(licenseCommands.transfer)
+  .addCommand(licenseCommands.revoke);
+
+// Security Commands
+program
+  .command('security')
+  .description('Security auditing and compliance')
+  .addCommand(securityCommands.login)
+  .addCommand(securityCommands.logout)
+  .addCommand(securityCommands.status)
+  .addCommand(securityCommands.scan)
+  .addCommand(securityCommands.encrypt)
+  .addCommand(securityCommands.decrypt)
+  .addCommand(securityCommands.audit)
+  .addCommand(securityCommands.hash);
+
+// Dependency Commands
+program
+  .command('dependency')
+  .description('Dependency management')
+  .addCommand(dependencyCommands.install)
+  .addCommand(dependencyCommands.list)
+  .addCommand(dependencyCommands.check);
+
 // Interactive mode when no command provided
 if (process.argv.length === 2) {
   console.log(`🐘 TuskLang v${VERSION} - Interactive Mode`);
@@ -235,6 +299,11 @@ if (process.argv.length === 2) {
       console.log('  config get <path>  - Get configuration value');
       console.log('  parse <file>       - Parse TSK file');
       console.log('  test all           - Run all tests');
+      console.log('  peanuts compile    - Compile peanut files');
+      console.log('  css expand         - Expand CSS shorthand');
+      console.log('  license check      - Check license status');
+      console.log('  security scan      - Security vulnerability scan');
+      console.log('  dependency list    - List dependency groups');
       console.log('  exit               - Exit interactive mode');
       console.log('');
       rl.prompt();

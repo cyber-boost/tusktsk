@@ -105,6 +105,56 @@ def handle_optimize_command(args: Any, cli: Any) -> int:
         return error_handler.handle_error(e)
 
 
+def handle_web_command(args: Any, cli: Any) -> int:
+    """Handle web command to launch Flask web interface"""
+    formatter = OutputFormatter(cli.json_output, cli.quiet, cli.verbose)
+    error_handler = ErrorHandler(cli.json_output, cli.verbose)
+    
+    try:
+        port = getattr(args, 'port', 5000)
+        host = getattr(args, 'host', '0.0.0.0')
+        debug = getattr(args, 'debug', False)
+        reload = getattr(args, 'reload', False)
+        
+        formatter.loading(f"Starting TuskLang Web Interface on {host}:{port}...")
+        
+        # Import and start web server
+        try:
+            from ...web.server import TuskLangWebServer
+            
+            server = TuskLangWebServer(
+                debug=debug,
+                host=host,
+                port=port
+            )
+            
+            formatter.success(f"TuskLang Web Interface started successfully!")
+            formatter.info(f"Access the interface at: http://{host}:{port}")
+            formatter.info(f"Health check: http://{host}:{port}/health")
+            formatter.info(f"API status: http://{host}:{port}/api/status")
+            
+            if debug:
+                formatter.info("Debug mode enabled")
+            if reload:
+                formatter.info("Auto-reload enabled")
+            
+            # Start the server
+            server.run()
+            
+        except ImportError as e:
+            formatter.error(f"Failed to import web server: {e}")
+            formatter.info("Make sure Flask and required dependencies are installed:")
+            formatter.info("pip install flask flask-cors psutil")
+            return ErrorHandler.GENERAL_ERROR
+            
+        except Exception as e:
+            formatter.error(f"Failed to start web server: {e}")
+            return ErrorHandler.GENERAL_ERROR
+            
+    except Exception as e:
+        return error_handler.handle_error(e)
+
+
 class FileWatcher(FileSystemEventHandler):
     """File system watcher for automatic recompilation"""
     

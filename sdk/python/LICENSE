@@ -1,158 +1,21 @@
-TUSKPHP SOFTWARE LICENSE AGREEMENT (BBL - Balanced Benefit License)
+MIT License
 
-Version 1.0
-Effective Date: July 15th, 2025
-Licensor: CyberBoost LLC
+Copyright (c) 2025 CyberBoost LLC
 
-Copyright (c) 2025 CyberBoost LLC. All rights reserved.
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-================================================================================
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-SUMMARY: Free for small entities, commercial license required for larger 
-organizations. Contributors may receive profit sharing.
-
-================================================================================
-
-1. DEFINITIONS
-
-"Commercial Use" means any use by an entity that:
-- Has annual gross revenues exceeding US $100,000, OR
-- Uses the Software in connection with any commercial product/service 
-  generating or intended to generate revenue exceeding US $100,000 annually
-
-"Small Entity" means any individual or entity that does not meet the criteria 
-for Commercial Use and uses the Software for internal business operations,
-research, development, testing, or personal purposes.
-
-"Software" means TuskPHP/TuskLang, including all source code, object code,
-documentation, configuration files, and any modifications.
-
-================================================================================
-
-2. GRANT OF RIGHTS TO SMALL ENTITIES
-
-If you qualify as a Small Entity, you are granted a worldwide, royalty-free,
-non-exclusive, non-transferable license to:
-
-a) Use, execute, and run the Software for internal purposes
-b) Reproduce the Software for backup and archival purposes
-c) Create modifications of the Software
-d) Distribute the Software and modifications
-
-DISTRIBUTION REQUIREMENTS:
-- Must include all copyright and attribution notices
-- Must include complete copy of this license
-- Must clearly identify any modifications
-- Cannot impose additional restrictions on recipients
-- Cannot sublicense the Software
-
-================================================================================
-
-3. COMMERCIAL USE LICENSE REQUIREMENT
-
-COMMERCIAL ENTITIES MUST OBTAIN A COMMERCIAL LICENSE.
-
-- Commercial Use requires separate licensing from CyberBoost LLC
-- 30-day transition period when growing from Small Entity to Commercial Use
-- Contact: zoo@phptu.sk for commercial licensing
-
-Unauthorized Commercial Use automatically terminates all rights.
-
-================================================================================
-
-4. CONTRIBUTOR LICENSE AGREEMENT (CLA)
-
-By submitting any contribution (code, documentation, bug reports, etc.), you:
-
-a) Grant CyberBoost LLC a perpetual, worldwide, non-exclusive, royalty-free,
-   irrevocable license to use, modify, distribute your contributions
-
-b) Represent that you have the legal right to grant such license
-
-c) Warrant your contribution doesn't violate third-party rights
-
-Electronic submission constitutes acceptance of these terms.
-
-================================================================================
-
-5. PROFIT SHARING FOR CONTRIBUTORS
-
-CyberBoost LLC commits to sharing commercial licensing revenue:
-
-- Up to 33% of net profits distributed quarterly to Approved Active Contributors
-- 33% for operational overhead and business expenses  
-- 33% for investments, reserves, and business development
-- 1% for administrative costs
-
-ELIGIBILITY:
-- Based on significant ongoing contributions
-- Requires formal approval by CyberBoost LLC
-- Merit-based selection (not automatic)
-- Quality and impact matter more than quantity
-
-================================================================================
-
-6. TRADEMARKS
-
-"TuskPHP", "TuskLang", "CyberBoost" and associated logos are trademarks of
-CyberBoost LLC. Limited use permitted only to identify unmodified Software.
-
-================================================================================
-
-7. DISCLAIMER OF WARRANTIES
-
-THE SOFTWARE IS PROVIDED "AS IS" WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO WARRANTIES OF MERCHANTABILITY, FITNESS
-FOR A PARTICULAR PURPOSE, AND NON-INFRINGEMENT.
-
-YOU ASSUME ALL RISK FOR USE OF THE SOFTWARE.
-
-================================================================================
-
-8. LIMITATION OF LIABILITY
-
-TO THE MAXIMUM EXTENT PERMITTED BY LAW:
-- NO LIABILITY FOR INDIRECT, INCIDENTAL, SPECIAL, OR CONSEQUENTIAL DAMAGES
-- NO LIABILITY FOR LOST PROFITS, DATA, OR BUSINESS INTERRUPTION  
-- TOTAL AGGREGATE LIABILITY SHALL NOT EXCEED US $100.00
-
-================================================================================
-
-9. TERMINATION
-
-This license terminates immediately upon:
-- Material breach not cured within 15 days of notice
-- Unauthorized Commercial Use
-- Violation of export control laws
-
-Upon termination, you must cease use and destroy all copies.
-
-================================================================================
-
-10. EXPORT COMPLIANCE
-
-You agree to comply with all applicable export control laws and regulations.
-Software may not be exported to embargoed countries or prohibited parties.
-
-================================================================================
-
-11. GENERAL TERMS
-
-- Governing Law: State of Florida, USA
-- Jurisdiction: Pinellas County, Florida courts
-- No assignment without written consent
-- Contributions remain subject to CLA after termination
-
-================================================================================
-
-FULL LICENSE TERMS: See legal/bbl_software_license.md for complete agreement
-
-CONTACT INFORMATION:
-Commercial Licensing: zoo@phptu.sk
-Security Issues: security@tusklang.org  
-Mailing Address: CyberBoost LLC, 7901 4th St N STE 300, St. Petersburg, FL 33702
-
-================================================================================
-
-By using TuskLang, you acknowledge that you have read, understood, and agree
-to be bound by these license terms.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.
