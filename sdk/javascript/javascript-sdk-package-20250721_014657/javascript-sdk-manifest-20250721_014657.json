@@ -1,0 +1,100 @@
+{
+  "package": {
+    "name": "javascript-sdk",
+    "version": "1.0.0",
+    "timestamp": "20250721_014657",
+    "generated": "2025-07-21T01:46:58Z"
+  },
+  "statistics": {
+    "total_files": 258,
+    "total_lines": 123471,
+    "javascript_files": 202,
+    "typescript_files": 2,
+    "documentation_files": 20,
+    "configuration_files": 18
+  },
+  "components": {
+    "core": {
+      "files": 84,
+      "description": "Core SDK infrastructure and framework"
+    },
+    "operators": {
+      "files": 15,
+      "description": "Complete operator system with cloud, observability, and messaging"
+    },
+    "framework": {
+      "files": 33,
+      "description": "Framework integrations and core components"
+    },
+    "cli": {
+      "files": 14,
+      "description": "CLI system and tools"
+    },
+    "examples": {
+      "files": 1,
+      "description": "Integration examples and templates"
+    },
+    "tests": {
+      "files": 14,
+      "description": "Comprehensive testing framework"
+    },
+    "docs": {
+      "files": 9,
+      "description": "Documentation and API references"
+    },
+    "agent_files": {
+      "files": 48,
+      "description": "Agent-created files and automation"
+    },
+    "advanced": {
+      "files": 2,
+      "description": "Advanced and enhanced components"
+    },
+    "cloud": {
+      "files": 7,
+      "description": "Cloud infrastructure and operators"
+    },
+    "security": {
+      "files": 3,
+      "description": "Security framework and components"
+    },
+    "observability": {
+      "files": 3,
+      "description": "Observability and monitoring components"
+    },
+    "messaging": {
+      "files": 1,
+      "description": "Messaging and communication components"
+    },
+    "database": {
+      "files": 2,
+      "description": "Database integration components"
+    },
+    "performance": {
+      "files": 1,
+      "description": "Performance optimization components"
+    },
+    "enterprise": {
+      "files": 1,
+      "description": "Enterprise-grade components"
+    }
+  },
+  "features": {
+    "cloud_infrastructure": true,
+    "observability": true,
+    "messaging": true,
+    "security": true,
+    "database_integration": true,
+    "performance_optimization": true,
+    "enterprise_grade": true,
+    "testing_framework": true,
+    "cli_tools": true,
+    "documentation": true
+  },
+  "deployment": {
+    "target_runtime": "Node.js 18+",
+    "supported_platforms": ["Windows", "Linux", "macOS"],
+    "package_type": "npm",
+    "deployment_ready": true
+  }
+}

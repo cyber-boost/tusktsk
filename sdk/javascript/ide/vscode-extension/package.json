@@ -1,0 +1,228 @@
+{
+  "name": "tusklang",
+  "displayName": "TuskLang",
+  "description": "TuskLang configuration language support for VS Code",
+  "version": "1.0.0",
+  "publisher": "tusklang",
+  "engines": {
+    "vscode": "^1.74.0"
+  },
+  "categories": [
+    "Programming Languages",
+    "Debuggers",
+    "Other"
+  ],
+  "keywords": [
+    "tusklang",
+    "configuration",
+    "language",
+    "syntax",
+    "debugging"
+  ],
+  "activationEvents": [
+    "onLanguage:tusklang",
+    "onCommand:tusklang.validate",
+    "onCommand:tusklang.debug",
+    "onCommand:tusklang.profile"
+  ],
+  "main": "./out/extension.js",
+  "contributes": {
+    "languages": [
+      {
+        "id": "tusklang",
+        "aliases": [
+          "TuskLang",
+          "tusklang"
+        ],
+        "extensions": [
+          ".tsk",
+          ".tusk"
+        ],
+        "configuration": "./language-configuration.json"
+      }
+    ],
+    "grammars": [
+      {
+        "language": "tusklang",
+        "scopeName": "source.tusklang",
+        "path": "./syntaxes/tusklang.tmLanguage.json"
+      }
+    ],
+    "snippets": [
+      {
+        "language": "tusklang",
+        "path": "./snippets/tusklang.json"
+      }
+    ],
+    "commands": [
+      {
+        "command": "tusklang.validate",
+        "title": "TuskLang: Validate Configuration",
+        "category": "TuskLang"
+      },
+      {
+        "command": "tusklang.debug",
+        "title": "TuskLang: Debug Configuration",
+        "category": "TuskLang"
+      },
+      {
+        "command": "tusklang.profile",
+        "title": "TuskLang: Profile Configuration",
+        "category": "TuskLang"
+      },
+      {
+        "command": "tusklang.securityScan",
+        "title": "TuskLang: Security Scan",
+        "category": "TuskLang"
+      },
+      {
+        "command": "tusklang.convertToJson",
+        "title": "TuskLang: Convert to JSON",
+        "category": "TuskLang"
+      },
+      {
+        "command": "tusklang.convertFromJson",
+        "title": "TuskLang: Convert from JSON",
+        "category": "TuskLang"
+      }
+    ],
+    "menus": {
+      "commandPalette": [
+        {
+          "command": "tusklang.validate",
+          "when": "resourceExtname == .tsk || resourceExtname == .tusk"
+        },
+        {
+          "command": "tusklang.debug",
+          "when": "resourceExtname == .tsk || resourceExtname == .tusk"
+        },
+        {
+          "command": "tusklang.profile",
+          "when": "resourceExtname == .tsk || resourceExtname == .tusk"
+        },
+        {
+          "command": "tusklang.securityScan",
+          "when": "resourceExtname == .tsk || resourceExtname == .tusk"
+        },
+        {
+          "command": "tusklang.convertToJson",
+          "when": "resourceExtname == .tsk || resourceExtname == .tusk"
+        },
+        {
+          "command": "tusklang.convertFromJson",
+          "when": "resourceExtname == .json"
+        }
+      ],
+      "editor/context": [
+        {
+          "command": "tusklang.validate",
+          "when": "resourceExtname == .tsk || resourceExtname == .tusk",
+          "group": "1_modification"
+        },
+        {
+          "command": "tusklang.debug",
+          "when": "resourceExtname == .tsk || resourceExtname == .tusk",
+          "group": "1_modification"
+        },
+        {
+          "command": "tusklang.profile",
+          "when": "resourceExtname == .tsk || resourceExtname == .tusk",
+          "group": "1_modification"
+        },
+        {
+          "command": "tusklang.securityScan",
+          "when": "resourceExtname == .tsk || resourceExtname == .tusk",
+          "group": "1_modification"
+        }
+      ]
+    },
+    "configuration": {
+      "title": "TuskLang",
+      "properties": {
+        "tusklang.enableValidation": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable real-time validation of TuskLang files"
+        },
+        "tusklang.enableIntelliSense": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable IntelliSense for TuskLang files"
+        },
+        "tusklang.enableDebugging": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable debugging support for TuskLang files"
+        },
+        "tusklang.autoFormat": {
+          "type": "boolean",
+          "default": true,
+          "description": "Auto-format TuskLang files on save"
+        },
+        "tusklang.showPerformanceHints": {
+          "type": "boolean",
+          "default": true,
+          "description": "Show performance hints and suggestions"
+        },
+        "tusklang.securityScanOnSave": {
+          "type": "boolean",
+          "default": false,
+          "description": "Run security scan automatically on save"
+        }
+      }
+    },
+    "debuggers": [
+      {
+        "type": "tusklang",
+        "label": "TuskLang Debug",
+        "program": "./debugger/tusklangDebug.js",
+        "runtime": "node",
+        "configurationAttributes": {
+          "launch": {
+            "properties": {
+              "configFile": {
+                "type": "string",
+                "description": "Path to TuskLang configuration file"
+              },
+              "args": {
+                "type": "array",
+                "items": {
+                  "type": "string"
+                },
+                "description": "Additional arguments for the debugger"
+              }
+            },
+            "required": ["configFile"]
+          }
+        },
+        "initialConfigurations": [
+          {
+            "name": "Debug TuskLang Config",
+            "type": "tusklang",
+            "request": "launch",
+            "configFile": "${file}"
+          }
+        ]
+      }
+    ]
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "pretest": "npm run compile && npm run lint",
+    "lint": "eslint src --ext ts",
+    "test": "node ./out/test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/vscode": "^1.74.0",
+    "@types/node": "16.x",
+    "@typescript-eslint/eslint-plugin": "^5.42.0",
+    "@typescript-eslint/parser": "^5.42.0",
+    "eslint": "^8.26.0",
+    "typescript": "^4.8.4"
+  },
+  "dependencies": {
+    "tusklang": "file:../../"
+  }
+} 

@@ -1,0 +1,84 @@
+🚨 AGENT A1: CORE OPERATORS & SWITCH STATEMENT SPECIALIST 🚨
+🎯 MISSION: COMPLETE 4 CRITICAL CORE OPERATOR FIXES FOR TUSKLANG JAVASCRIPT SDK
+
+⚠️ ABSOLUTE RULES - VIOLATION = IMMEDIATE PUNISHMENT:
+1. ZERO PLACEHOLDER CODE - Every line must be production-ready, functional JavaScript code
+2. ZERO "TODO" COMMENTS - Complete implementations only
+3. ZERO MOCK/STUB IMPLEMENTATIONS - Real operator functionality, real switch statement fixes
+4. VELOCITY MODE ONLY - Maximum speed, zero hesitation, immediate execution
+
+🔥 JAVASCRIPT PRODUCTION REQUIREMENTS:
+✅ Real operator implementations with proper parameter validation and error handling
+✅ Comprehensive error handling with specific error types and retry logic
+✅ Async safety with proper promise handling and timeout management
+✅ Resource management with proper cleanup and optimization
+✅ Circuit breakers for fault tolerance and recovery
+✅ Structured logging with metrics collection and observability
+✅ Configuration validation with secure defaults
+✅ Memory leak prevention and proper resource cleanup
+✅ Performance benchmarks meeting <100ms response time for standard operations
+✅ Security best practices with input validation and sanitization
+
+📊 SUCCESS METRICS PER COMPONENT:
+- Lines of Code: 50-200 lines of production-ready JavaScript
+- Performance: <100ms response time for standard operations
+- Memory: <64MB per component under sustained load
+- Security: All inputs validated, outputs sanitized
+- Reliability: 99.9% uptime, automatic error recovery
+- Integration: Real operator functionality with comprehensive examples
+
+🎯 YOUR 4 CRITICAL CORE OPERATOR GOALS:
+
+**G1: FIX SWITCH STATEMENT DUPLICATE CASES**
+- Remove duplicate 'case variable:' at lines 341 and 593 in tsk-enhanced.js
+- Fix unreachable code caused by duplicate cases
+- Ensure proper operator routing for all core operators
+- Add missing operator cases if any are missing
+- Validate switch statement completeness and correctness
+
+**G2: IMPLEMENT MISSING @json OPERATOR**
+- Create complete executeJsonOperator() function with full functionality
+- JSON parsing with error handling and validation
+- JSON stringification with formatting options
+- JSON schema validation and type checking
+- JSON path querying and manipulation
+- Integration with existing operator patterns
+
+**G3: FIX @date OPERATOR INTEGRATION**
+- Ensure @date operator is properly integrated in switch statement
+- Call formatDate() function with proper parameter validation
+- Add date formatting options and timezone support
+- Implement date arithmetic and manipulation
+- Add date validation and error handling
+- Integration with existing date utilities
+
+**G4: FIX @file OPERATOR INTEGRATION**
+- Ensure @file operator is properly integrated in switch statement
+- Call executeFileOperator() with cross-file functionality
+- Add file reading/writing with proper error handling
+- Implement file validation and security checks
+- Add file metadata and statistics support
+- Integration with existing file utilities
+
+🚀 ARCHITECTURE PATTERNS TO FOLLOW:
+- Follow existing patterns in `tsk-enhanced.js`
+- Use console.log with contextual information and structured data
+- Implement proper async/await with timeout handling
+- Add comprehensive metrics collection points
+- Use environment variables with validation and secure defaults
+- Implement graceful error handling and resource cleanup
+
+⚡ CORE OPERATOR-SPECIFIC REQUIREMENTS:
+- All operators must have proper parameter validation
+- All operators must include comprehensive error handling
+- All operators must follow consistent return patterns
+- All operators must be properly integrated in switch statement
+- All operators must have proper logging and metrics
+- All operators must handle edge cases gracefully
+
+🏆 END GOAL: 4/4 CORE OPERATOR COMPONENTS COMPLETE
+Directory: `todo/a1/`
+Status: Ready for enterprise production deployments
+Quality: Production-hardened, security-compliant, performance-optimized
+
+REMEMBER: You are fixing the foundation of TuskLang's operator system. Excellence is not optional. 

@@ -1,0 +1,452 @@
+name: TuskLang JavaScript SDK Tests
+
+on:
+  push:
+    branches: [ main, develop ]
+    paths:
+      - 'javascript/**'
+  pull_request:
+    branches: [ main ]
+    paths:
+      - 'javascript/**'
+  schedule:
+    # Run tests daily at 2 AM UTC
+    - cron: '0 2 * * *'
+
+env:
+  NODE_VERSION: '18'
+  TEST_DB_HOST: localhost
+  TEST_DB_PORT: 5432
+  TEST_DB_NAME: tusklang_test
+  TEST_DB_USER: postgres
+  TEST_DB_PASSWORD: postgres
+
+jobs:
+  # Unit Tests
+  unit-tests:
+    name: Unit Tests
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        node-version: [16, 18, 20]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: javascript/package-lock.json
+        
+    - name: Install dependencies
+      working-directory: javascript
+      run: npm ci
+      
+    - name: Run unit tests
+      working-directory: javascript
+      run: npm run test:unit
+      
+    - name: Upload test coverage
+      uses: codecov/codecov-action@v3
+      with:
+        file: javascript/coverage/lcov.info
+        flags: unit
+        name: unit-tests-${{ matrix.node-version }}
+
+  # Integration Tests
+  integration-tests:
+    name: Integration Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tusklang_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: javascript/package-lock.json
+        
+    - name: Install dependencies
+      working-directory: javascript
+      run: npm ci
+      
+    - name: Wait for PostgreSQL
+      run: |
+        until pg_isready -h localhost -p 5432 -U postgres; do
+          echo "Waiting for PostgreSQL..."
+          sleep 1
+        done
+        
+    - name: Run integration tests
+      working-directory: javascript
+      run: npm run test:integration
+      
+    - name: Upload integration test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: integration-test-results
+        path: javascript/test-results/
+
+  # Performance Tests
+  performance-tests:
+    name: Performance Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: javascript/package-lock.json
+        
+    - name: Install dependencies
+      working-directory: javascript
+      run: npm ci
+      
+    - name: Run performance tests
+      working-directory: javascript
+      run: npm run test:performance
+      
+    - name: Upload performance results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: performance-test-results
+        path: javascript/performance-results/
+
+  # Security Tests
+  security-tests:
+    name: Security Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: javascript/package-lock.json
+        
+    - name: Install dependencies
+      working-directory: javascript
+      run: npm ci
+      
+    - name: Run security tests
+      working-directory: javascript
+      run: npm run test:security
+      
+    - name: Run npm audit
+      working-directory: javascript
+      run: npm audit --audit-level moderate
+      
+    - name: Upload security results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: security-test-results
+        path: javascript/security-results/
+
+  # E2E Tests
+  e2e-tests:
+    name: End-to-End Tests
+    runs-on: ubuntu-latest
+    
+    services:
+      postgres:
+        image: postgres:15
+        env:
+          POSTGRES_PASSWORD: postgres
+          POSTGRES_DB: tusklang_test
+        options: >-
+          --health-cmd pg_isready
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+        ports:
+          - 5432:5432
+          
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: javascript/package-lock.json
+        
+    - name: Install dependencies
+      working-directory: javascript
+      run: npm ci
+      
+    - name: Wait for PostgreSQL
+      run: |
+        until pg_isready -h localhost -p 5432 -U postgres; do
+          echo "Waiting for PostgreSQL..."
+          sleep 1
+        done
+        
+    - name: Run E2E tests
+      working-directory: javascript
+      run: npm run test:e2e
+      
+    - name: Upload E2E test results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: e2e-test-results
+        path: javascript/e2e-results/
+
+  # Linting and Code Quality
+  lint:
+    name: Lint and Code Quality
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: javascript/package-lock.json
+        
+    - name: Install dependencies
+      working-directory: javascript
+      run: npm ci
+      
+    - name: Run ESLint
+      working-directory: javascript
+      run: npm run lint
+      
+    - name: Run Prettier check
+      working-directory: javascript
+      run: npm run format:check
+      
+    - name: Check TypeScript types
+      working-directory: javascript
+      run: npm run type-check
+
+  # Build and Package Tests
+  build:
+    name: Build and Package
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: javascript/package-lock.json
+        
+    - name: Install dependencies
+      working-directory: javascript
+      run: npm ci
+      
+    - name: Build package
+      working-directory: javascript
+      run: npm run build
+      
+    - name: Test package
+      working-directory: javascript
+      run: npm run test:package
+      
+    - name: Upload build artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: build-artifacts
+        path: javascript/dist/
+
+  # Documentation Tests
+  docs:
+    name: Documentation Tests
+    runs-on: ubuntu-latest
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: javascript/package-lock.json
+        
+    - name: Install dependencies
+      working-directory: javascript
+      run: npm ci
+      
+    - name: Generate documentation
+      working-directory: javascript
+      run: npm run docs:generate
+      
+    - name: Test documentation
+      working-directory: javascript
+      run: npm run docs:test
+      
+    - name: Upload documentation
+      uses: actions/upload-artifact@v3
+      with:
+        name: documentation
+        path: javascript/docs/
+
+  # Compatibility Tests
+  compatibility:
+    name: Compatibility Tests
+    runs-on: ubuntu-latest
+    
+    strategy:
+      matrix:
+        os: [ubuntu-latest, windows-latest, macos-latest]
+        node-version: [16, 18, 20]
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Setup Node.js ${{ matrix.node-version }}
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ matrix.node-version }}
+        cache: 'npm'
+        cache-dependency-path: javascript/package-lock.json
+        
+    - name: Install dependencies
+      working-directory: javascript
+      run: npm ci
+      
+    - name: Run compatibility tests
+      working-directory: javascript
+      run: npm run test:compatibility
+      
+    - name: Upload compatibility results
+      uses: actions/upload-artifact@v3
+      if: always()
+      with:
+        name: compatibility-${{ matrix.os }}-${{ matrix.node-version }}
+        path: javascript/compatibility-results/
+
+  # Test Summary and Reporting
+  test-summary:
+    name: Test Summary
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, performance-tests, security-tests, e2e-tests, lint, build, docs, compatibility]
+    if: always()
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      
+    - name: Download all test artifacts
+      uses: actions/download-artifact@v3
+      with:
+        path: test-artifacts
+        
+    - name: Generate test summary
+      run: |
+        echo "## Test Summary" >> $GITHUB_STEP_SUMMARY
+        echo "" >> $GITHUB_STEP_SUMMARY
+        echo "### Test Results:" >> $GITHUB_STEP_SUMMARY
+        echo "- Unit Tests: ${{ needs.unit-tests.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Integration Tests: ${{ needs.integration-tests.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Performance Tests: ${{ needs.performance-tests.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Security Tests: ${{ needs.security-tests.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- E2E Tests: ${{ needs.e2e-tests.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Lint: ${{ needs.lint.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Build: ${{ needs.build.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Documentation: ${{ needs.docs.result }}" >> $GITHUB_STEP_SUMMARY
+        echo "- Compatibility: ${{ needs.compatibility.result }}" >> $GITHUB_STEP_SUMMARY
+        
+    - name: Comment on PR
+      if: github.event_name == 'pull_request'
+      uses: actions/github-script@v6
+      with:
+        script: |
+          const fs = require('fs');
+          const summary = fs.readFileSync(process.env.GITHUB_STEP_SUMMARY, 'utf8');
+          
+          github.rest.issues.createComment({
+            issue_number: context.issue.number,
+            owner: context.repo.owner,
+            repo: context.repo.repo,
+            body: summary
+          });
+
+  # Release Preparation
+  release-prep:
+    name: Release Preparation
+    runs-on: ubuntu-latest
+    needs: [unit-tests, integration-tests, performance-tests, security-tests, e2e-tests, lint, build, docs]
+    if: github.ref == 'refs/heads/main' && github.event_name == 'push'
+    
+    steps:
+    - name: Checkout code
+      uses: actions/checkout@v4
+      with:
+        fetch-depth: 0
+        
+    - name: Setup Node.js
+      uses: actions/setup-node@v4
+      with:
+        node-version: ${{ env.NODE_VERSION }}
+        cache: 'npm'
+        cache-dependency-path: javascript/package-lock.json
+        
+    - name: Install dependencies
+      working-directory: javascript
+      run: npm ci
+      
+    - name: Generate changelog
+      working-directory: javascript
+      run: npm run changelog:generate
+      
+    - name: Update version
+      working-directory: javascript
+      run: npm version patch --no-git-tag-version
+      
+    - name: Build release package
+      working-directory: javascript
+      run: npm run build:release
+      
+    - name: Upload release artifacts
+      uses: actions/upload-artifact@v3
+      with:
+        name: release-package
+        path: javascript/dist/tusktsk-*.tgz 

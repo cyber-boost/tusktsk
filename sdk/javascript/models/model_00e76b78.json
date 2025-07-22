@@ -1,0 +1,18 @@
+{
+  "id": "model_00e76b78",
+  "name": "test_managed_model",
+  "type": "neural_network",
+  "description": "Test model for management system",
+  "author": "AI-Cloud-Native-Engineer",
+  "tags": [
+    "test",
+    "neural-network"
+  ],
+  "metadata": {},
+  "versions": [
+    "version_f28b7960"
+  ],
+  "created": "2025-07-22T16:55:38.208Z",
+  "updated": "2025-07-22T16:55:38.210Z",
+  "status": "registered"
+}

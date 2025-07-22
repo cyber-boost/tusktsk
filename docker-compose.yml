@@ -1,0 +1,187 @@
+version: '3.8'
+
+services:
+  # Ruby SDK
+  tusktsk-ruby:
+    build:
+      context: .
+      dockerfile: Dockerfile.ruby
+    container_name: tusktsk-ruby
+    environment:
+      - BUNDLE_APP_CONFIG=/usr/local/bundle
+    volumes:
+      - ./sdk/ruby:/app
+      - ruby_bundle:/usr/local/bundle
+    networks:
+      - tusktsk-network
+    depends_on:
+      - mysql
+      - redis
+      - mongodb
+    healthcheck:
+      test: ["CMD", "ruby", "-e", "puts 'healthy'"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Database Services
+  mysql:
+    image: mysql:8.0
+    container_name: tusktsk-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD:-tusktsk_root}
+      MYSQL_DATABASE: tusktsk
+      MYSQL_USER: tusktsk
+      MYSQL_PASSWORD: ${MYSQL_PASSWORD:-tusktsk_pass}
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d
+    networks:
+      - tusktsk-network
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  redis:
+    image: redis:7-alpine
+    container_name: tusktsk-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - tusktsk-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  mongodb:
+    image: mongo:7.0
+    container_name: tusktsk-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: tusktsk
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_ROOT_PASSWORD:-tusktsk_pass}
+      MONGO_INITDB_DATABASE: tusktsk
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - tusktsk-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  elasticsearch:
+    image: elasticsearch:8.11.0
+    container_name: tusktsk-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - tusktsk-network
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Message Queue Services
+  nats:
+    image: nats:2.10-alpine
+    container_name: tusktsk-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    networks:
+      - tusktsk-network
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8222/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  rabbitmq:
+    image: rabbitmq:3.12-management-alpine
+    container_name: tusktsk-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: tusktsk
+      RABBITMQ_DEFAULT_PASS: tusktsk_pass
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - tusktsk-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Monitoring and Observability
+  prometheus:
+    image: prom/prometheus:latest
+    container_name: tusktsk-prometheus
+    ports:
+      - "9090:9090"
+    volumes:
+      - ./monitoring/prometheus.yml:/etc/prometheus/prometheus.yml
+      - prometheus_data:/prometheus
+    networks:
+      - tusktsk-network
+    healthcheck:
+      test: ["CMD", "wget", "--no-verbose", "--tries=1", "--spider", "http://localhost:9090/-/healthy"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  grafana:
+    image: grafana/grafana:latest
+    container_name: tusktsk-grafana
+    environment:
+      GF_SECURITY_ADMIN_PASSWORD: ${GRAFANA_ADMIN_PASSWORD:-tusktsk_admin}
+    ports:
+      - "3000:3000"
+    volumes:
+      - grafana_data:/var/lib/grafana
+    networks:
+      - tusktsk-network
+    depends_on:
+      - prometheus
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:3000/api/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mysql_data:
+  redis_data:
+  mongodb_data:
+  elasticsearch_data:
+  rabbitmq_data:
+  prometheus_data:
+  grafana_data:
+  ruby_bundle:
+
+networks:
+  tusktsk-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16 

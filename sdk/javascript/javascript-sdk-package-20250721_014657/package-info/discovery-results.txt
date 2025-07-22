@@ -1,0 +1,15 @@
+JavaScript SDK Package Discovery Results
+Generated: Mon Jul 21 01:46:57 AM UTC 2025
+Total Files: 149
+Total Lines of Code: 70463
+Agent Files: 45
+Main SDK Files: 104
+
+File Breakdown:
+- Core SDK Files: 95
+- Operator Files: 15
+- Framework Files: 48
+- CLI Files: 14
+- Test Files: 12
+- Documentation Files: 12
+- Configuration Files: 15

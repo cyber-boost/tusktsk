@@ -1,0 +1,101 @@
+🚨 AGENT A4: MONITORING & COMMUNICATION OPERATORS SPECIALIST 🚨
+🎯 MISSION: COMPLETE 6 CRITICAL OBSERVABILITY & MESSAGING COMPONENTS FOR TUSKLANG JAVASCRIPT SDK
+
+⚠️ ABSOLUTE RULES - VIOLATION = IMMEDIATE PUNISHMENT:
+1. ZERO PLACEHOLDER CODE - Every line must be production-ready, functional JavaScript code
+2. ZERO "TODO" COMMENTS - Complete implementations only
+3. ZERO MOCK/STUB IMPLEMENTATIONS - Real monitoring systems, real messaging APIs
+4. VELOCITY MODE ONLY - Maximum speed, zero hesitation, immediate execution
+
+🔥 JAVASCRIPT PRODUCTION REQUIREMENTS:
+✅ Real monitoring service connections with proper authentication and security
+✅ Comprehensive error handling with specific error types and retry logic
+✅ Async safety with proper connection pooling and concurrency control
+✅ Resource management with proper cleanup and optimization
+✅ Circuit breakers for fault tolerance and recovery
+✅ Structured logging with metrics collection and observability
+✅ Configuration validation with secure defaults
+✅ Memory leak prevention and proper resource cleanup
+✅ Performance benchmarks meeting <300ms response time for standard operations
+✅ Security best practices with API keys, OAuth tokens, and webhook verification
+
+📊 SUCCESS METRICS PER COMPONENT:
+- Lines of Code: 420-550 lines of production-ready JavaScript
+- Performance: <300ms response time for standard operations
+- Memory: <128MB per component under sustained load
+- Security: All connections encrypted, credentials properly managed
+- Reliability: 99.9% uptime, automatic failover and recovery
+- Integration: Real service integration with comprehensive examples
+
+🎯 YOUR 6 CRITICAL OBSERVABILITY & MESSAGING GOALS:
+
+**G1: PROMETHEUS OPERATOR - Real Metrics Collection**
+- Complete `executePrometheusOperator()` with prom-client library
+- Custom metric creation (counters, gauges, histograms, summaries)
+- Metric registry management with label validation
+- Push gateway integration for batch jobs
+- Alert manager integration with rule configuration
+- Grafana dashboard export and import capabilities
+
+**G2: GRAFANA OPERATOR - Real Visualization & Dashboards**
+- Complete `executeGrafanaOperator()` with Grafana HTTP API
+- Dashboard creation, update, and deletion operations
+- Data source management (Prometheus, InfluxDB, Elasticsearch)
+- Alert rule configuration with notification channels
+- User and organization management
+- Annotation and snapshot management
+
+**G3: JAEGER OPERATOR - Real Distributed Tracing**
+- Complete `executeJaegerOperator()` with jaeger-client library
+- Span creation with custom tags and logs
+- Trace sampling configuration and baggage handling
+- Remote sampling strategy configuration
+- Collector and agent communication
+- Trace analysis and dependency extraction
+
+**G4: SLACK/TEAMS/DISCORD OPERATOR - Real Team Communication**
+- Complete `executeSlackOperator()`, `executeTeamsOperator()`, `executeDiscordOperator()`
+- Rich message formatting with attachments and embeds
+- Channel and thread management
+- Bot integration with slash commands
+- Webhook integration for real-time notifications
+- File upload and sharing capabilities
+
+**G5: WEBHOOK OPERATOR - Real HTTP Event Processing**
+- Complete `executeWebhookOperator()` with Express.js integration
+- Webhook server creation with signature verification
+- Event payload processing and routing
+- Rate limiting and DDoS protection
+- SSL/TLS termination with certificate management
+- Request logging and analytics
+
+**G6: EMAIL/SMS OPERATOR - Real Messaging Services**
+- Complete `executeEmailOperator()` and `executeSmsOperator()`
+- SMTP integration with TLS encryption and authentication
+- HTML/plain text email composition with attachments
+- SMS gateway integration (Twilio, AWS SNS)
+- Delivery status tracking and bounce handling
+- Template engine integration for dynamic content
+
+🚀 ARCHITECTURE PATTERNS TO FOLLOW:
+- Follow existing patterns in `tsk-enhanced.js`
+- Use console.log with contextual information and structured data
+- Implement proper async/await with timeout handling
+- Add comprehensive metrics collection points
+- Use environment variables with validation and secure defaults
+- Implement graceful shutdown and resource cleanup
+
+⚡ OBSERVABILITY-SPECIFIC REQUIREMENTS:
+- All monitoring operations must use official client libraries
+- All operations must have timeout protection (45s max)
+- All API calls must include proper authentication headers
+- All connections must support TLS encryption
+- All components must handle rate limiting gracefully
+- All operations must include comprehensive audit logging
+
+🏆 END GOAL: 6/6 OBSERVABILITY & MESSAGING COMPONENTS COMPLETE
+Directory: `todo/a4/`
+Status: Ready for enterprise production deployments
+Quality: Production-hardened, security-compliant, performance-optimized
+
+REMEMBER: You are building TuskLang's eyes and ears - the monitoring and communication backbone. Excellence is not optional. 

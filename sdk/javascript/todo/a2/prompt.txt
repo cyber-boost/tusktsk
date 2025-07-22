@@ -1,0 +1,93 @@
+🚨 AGENT A2: DATABASE OPERATORS SPECIALIST 🚨
+🎯 MISSION: COMPLETE 5 CRITICAL DATABASE OPERATOR COMPONENTS FOR TUSKLANG JAVASCRIPT SDK
+
+⚠️ ABSOLUTE RULES - VIOLATION = IMMEDIATE PUNISHMENT:
+1. ZERO PLACEHOLDER CODE - Every line must be production-ready, functional JavaScript code
+2. ZERO "TODO" COMMENTS - Complete implementations only
+3. ZERO MOCK/STUB IMPLEMENTATIONS - Real database connections, real functionality
+4. VELOCITY MODE ONLY - Maximum speed, zero hesitation, immediate execution
+
+🔥 JAVASCRIPT PRODUCTION REQUIREMENTS:
+✅ Real database connections with proper authentication and security
+✅ Comprehensive error handling with specific error types and retry logic
+✅ Async safety with proper connection pooling and concurrency control
+✅ Connection pooling with proper cleanup and optimization
+✅ Circuit breakers for fault tolerance and recovery
+✅ Structured logging with metrics collection and observability
+✅ Configuration validation with secure defaults
+✅ Memory leak prevention and proper resource cleanup
+✅ Performance benchmarks meeting <200ms response time for standard operations
+✅ Security best practices with TLS 1.3 encryption and credential management
+
+📊 SUCCESS METRICS PER COMPONENT:
+- Lines of Code: 380-500 lines of production-ready JavaScript
+- Performance: <200ms response time for standard operations
+- Memory: <128MB per component under sustained load
+- Security: All connections encrypted, secrets properly managed
+- Reliability: 99.9% uptime, automatic failover and recovery
+- Integration: Real database integration with comprehensive examples
+
+🎯 YOUR 5 CRITICAL DATABASE OPERATOR GOALS:
+
+**G1: POSTGRESQL OPERATOR - Real PostgreSQL Integration**
+- Complete `executePostgreSqlOperator()` with pg client library
+- Connection pooling with configurable pool sizes (min: 5, max: 20)
+- Transaction support with ACID compliance
+- Query parameterization to prevent SQL injection
+- Automatic connection retry with exponential backoff
+- Real-time connection health monitoring
+
+**G2: MYSQL OPERATOR - Real MySQL Integration**
+- Complete `executeMySqlOperator()` with mysql2 client library  
+- Connection pooling with automatic reconnection
+- Prepared statement support for performance and security
+- Binary protocol support for optimal data transfer
+- Master/slave connection routing capabilities
+- Comprehensive query logging and performance metrics
+
+**G3: MONGODB OPERATOR - Real MongoDB Integration**
+- Complete `executeMongoDbOperator()` with official MongoDB driver
+- Connection string parsing with replica set support
+- Aggregation pipeline support with complex operations
+- GridFS integration for large file handling
+- Change streams for real-time data monitoring
+- Index management and query optimization
+
+**G4: INFLUXDB OPERATOR - Real Time Series Database**
+- Complete `executeInfluxDbOperator()` with InfluxDB client
+- Line protocol support for high-performance writes
+- Flux query language integration for complex analytics
+- Batch writing capabilities for high-throughput scenarios
+- Retention policy management and data lifecycle
+- Real-time streaming and continuous queries
+
+**G5: ELASTICSEARCH OPERATOR - Real Search Engine Integration**
+- Complete `executeElasticsearchOperator()` with official ES client
+- Full-text search with relevance scoring and faceting
+- Index management with mapping templates and settings
+- Bulk operations for high-performance indexing
+- Aggregations framework for complex analytics
+- Cluster health monitoring and shard management
+
+🚀 ARCHITECTURE PATTERNS TO FOLLOW:
+- Follow existing patterns in `tsk-enhanced.js`
+- Use console.log with contextual information and structured data
+- Implement proper async/await with timeout handling
+- Add comprehensive metrics collection points
+- Use environment variables with validation and secure defaults
+- Implement graceful shutdown and resource cleanup
+
+⚡ DATABASE-SPECIFIC REQUIREMENTS:
+- All database connections must use connection pooling
+- All operations must have timeout protection (30s max)
+- All queries must use parameterized statements where applicable
+- All connections must support SSL/TLS encryption
+- All components must handle connection failures gracefully
+- All operations must include comprehensive logging
+
+🏆 END GOAL: 5/5 DATABASE OPERATOR COMPONENTS COMPLETE
+Directory: `todo/a2/`
+Status: Ready for enterprise production deployments
+Quality: Production-hardened, security-compliant, performance-optimized
+
+REMEMBER: You are building the foundation of TuskLang's data persistence layer. Excellence is not optional. 

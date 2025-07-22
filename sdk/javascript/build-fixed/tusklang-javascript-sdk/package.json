@@ -1,0 +1,45 @@
+{
+    "name": "tusklang-javascript-sdk",
+    "version": "2.0.0",
+    "description": "TuskLang JavaScript SDK with comprehensive automation and enterprise features",
+    "main": "src/index.js",
+    "scripts": {
+        "test": "jest",
+        "build": "webpack --mode production",
+        "dev": "webpack --mode development --watch",
+        "lint": "eslint src/**/*.js",
+        "start": "node src/index.js"
+    },
+    "keywords": ["tusklang", "javascript", "sdk", "automation", "enterprise"],
+    "author": "TuskLang Team",
+    "license": "MIT",
+    "dependencies": {
+        "aws-sdk": "^2.1000.0",
+        "@azure/ms-rest-js": "^2.0.0",
+        "@google-cloud/storage": "^5.0.0",
+        "kubernetes-client": "^9.0.0",
+        "dockerode": "^3.3.0",
+        "prometheus-client": "^14.0.0",
+        "grafana-api": "^1.0.0",
+        "jaeger-client": "^3.19.0",
+        "express": "^4.18.0",
+        "ws": "^8.0.0",
+        "axios": "^1.0.0",
+        "lodash": "^4.17.0",
+        "moment": "^2.29.0",
+        "uuid": "^9.0.0",
+        "dotenv": "^16.0.0"
+    },
+    "devDependencies": {
+        "jest": "^29.0.0",
+        "webpack": "^5.0.0",
+        "webpack-cli": "^5.0.0",
+        "eslint": "^8.0.0",
+        "@babel/core": "^7.0.0",
+        "@babel/preset-env": "^7.0.0",
+        "babel-loader": "^9.0.0"
+    },
+    "engines": {
+        "node": ">=16.0.0"
+    }
+}

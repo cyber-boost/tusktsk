@@ -1,0 +1,84 @@
+{
+  "name": "tusktsk",
+  "version": "2.0.1",
+  "description": "TuskTsk - The Freedom Configuration Language. Query databases, use any syntax, never bow to any king!",
+  "main": "index.js",
+  "bin": {
+    "tsk": "./cli/main.js"
+  },
+  "scripts": {
+    "test": "node test-enhanced.js",
+    "build": "echo 'No build required'",
+    "prepublishOnly": "npm test",
+    "cli": "node cli/main.js"
+  },
+  "keywords": [
+    "config",
+    "configuration",
+    "tusktsk",
+    "tusk",
+    "parser",
+    "database",
+    "query",
+    "dynamic",
+    "toml",
+    "yaml",
+    "json",
+    "alternative"
+  ],
+  "author": "Cyberboost LLC",
+  "license": "BBL",
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/cyber-boost/tusktsk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/cyber-boost/tusktsk/issues"
+  },
+  "homepage": "https://tuskt.sk",
+  "files": [
+    "index.js",
+    "tsk-enhanced.js",
+    "tsk.js",
+    "peanut-config.js",
+    "adapters/",
+    "cli/",
+    "README.md",
+    "LICENSE"
+  ],
+  "engines": {
+    "node": ">=12.0.0"
+  },
+  "devDependencies": {},
+  "dependencies": {
+    "msgpack-lite": "^0.1.26",
+    "commander": "^11.0.0"
+  },
+  "optionalDependencies": {
+    "better-sqlite3": "^8.0.0",
+    "pg": "^8.0.0",
+    "mysql2": "^3.0.0",
+    "mongodb": "^5.0.0",
+    "redis": "^4.0.0"
+  },
+  "tusktsk": {
+    "features": [
+      "flexible-syntax",
+      "global-variables",
+      "cross-file-communication", 
+      "database-queries",
+      "peanut-integration",
+      "binary-compilation",
+      "hierarchical-config",
+      "conditional-expressions",
+      "range-syntax",
+      "date-functions",
+      "environment-variables"
+    ],
+    "legal": {
+      "license": "https://tuskt.sk/license",
+      "privacy-policy": "https://tuskt.sk/privacy-policy",
+      "terms-and-conditions": "https://tuskt.sk/terms-and-conditions"
+    }
+  }
+}

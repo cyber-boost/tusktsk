@@ -1,0 +1,15 @@
+nohup: ignoring input
+[32minfo[39m: 🚀 TuskLang Web Server started successfully! {"service":"tusk-web-server","timestamp":"2025-07-22T16:58:51.579Z"}
+[32minfo[39m: 📍 Server: http://localhost:3000 {"service":"tusk-web-server","timestamp":"2025-07-22T16:58:51.581Z"}
+[32minfo[39m: 🔧 Environment: development {"service":"tusk-web-server","timestamp":"2025-07-22T16:58:51.582Z"}
+[32minfo[39m: 🔒 Security: Enabled with enterprise-grade protection {"service":"tusk-web-server","timestamp":"2025-07-22T16:58:51.582Z"}
+[32minfo[39m: ⚡ Performance: Optimized for high-throughput operations {"service":"tusk-web-server","timestamp":"2025-07-22T16:58:51.582Z"}
+✅ TuskLang Web Server running on http://localhost:3000
+[32minfo[39m: GET /health 200 5ms {"meta":{"req":{"headers":{"accept":"*/*","host":"localhost:3000","user-agent":"curl/8.5.0"},"httpVersion":"1.1","method":"GET","originalUrl":"/health","query":{},"url":"/health"},"res":{"statusCode":200},"responseTime":5},"service":"tusk-web-server","timestamp":"2025-07-22T16:58:55.593Z"}
+[32minfo[39m: ::1 - - [22/Jul/2025:16:58:55 +0000] "GET /health HTTP/1.1" 200 126 "-" "curl/8.5.0" {"service":"tusk-web-server","timestamp":"2025-07-22T16:58:55.595Z"}
+[32minfo[39m: GET / 200 3ms {"meta":{"req":{"headers":{"accept":"*/*","host":"localhost:3000","user-agent":"curl/8.5.0"},"httpVersion":"1.1","method":"GET","originalUrl":"/","query":{},"url":"/"},"res":{"statusCode":200},"responseTime":3},"service":"tusk-web-server","timestamp":"2025-07-22T16:58:57.366Z"}
+[32minfo[39m: ::1 - - [22/Jul/2025:16:58:57 +0000] "GET / HTTP/1.1" 200 6797 "-" "curl/8.5.0" {"service":"tusk-web-server","timestamp":"2025-07-22T16:58:57.367Z"}
+[32minfo[39m: GET /health 200 1ms {"meta":{"req":{"headers":{"connection":"keep-alive","host":"localhost:3000"},"httpVersion":"1.1","method":"GET","originalUrl":"/health","query":{},"url":"/health"},"res":{"statusCode":200},"responseTime":1},"service":"tusk-web-server","timestamp":"2025-07-22T16:58:59.279Z"}
+[32minfo[39m: ::1 - - [22/Jul/2025:16:58:59 +0000] "GET /health HTTP/1.1" 200 126 "-" "-" {"service":"tusk-web-server","timestamp":"2025-07-22T16:58:59.280Z"}
+[32minfo[39m: GET /api/v1/status 200 2ms {"meta":{"req":{"headers":{"accept":"*/*","host":"localhost:3000","user-agent":"curl/8.5.0"},"httpVersion":"1.1","method":"GET","originalUrl":"/api/v1/status","query":{},"url":"/api/v1/status"},"res":{"statusCode":200},"responseTime":2},"service":"tusk-web-server","timestamp":"2025-07-22T16:59:01.152Z"}
+[32minfo[39m: ::1 - - [22/Jul/2025:16:59:01 +0000] "GET /api/v1/status HTTP/1.1" 200 181 "-" "curl/8.5.0" {"service":"tusk-web-server","timestamp":"2025-07-22T16:59:01.152Z"}

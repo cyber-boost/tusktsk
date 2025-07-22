@@ -40,6 +40,7 @@ yarn-debug.log*
 yarn-error.log*
 .npm
 .yarn-integrity
+sdk/javascript/node_modules/
 
 # Python
 __pycache__/
@@ -266,6 +267,11 @@ _site/
 *.db
 *.sqlite
 *.sqlite3
+
+# Environment files (except example)
+.env
+.env.local
+.env.production
 
 # =============================================================================
 # EXCLUDED DIRECTORIES (COMMENTED OUT - UNCOMMENT IF NEEDED)

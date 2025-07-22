@@ -1,0 +1,52 @@
+[0;32m[SUCCESS][0m Packaging system initialized - FIXED VERSION
+[0;35m[VELOCITY][0m 📦 Packaging todo A-series automation files...
+[0;32m[SUCCESS][0m Packaged 36 todo files
+[0;35m[VELOCITY][0m 📦 Packaging todo2 B-series enterprise files...
+[1;33m[WARNING][0m todo2 directory not found
+[0;35m[VELOCITY][0m 📦 Packaging todo3 C-series advanced files...
+[1;33m[WARNING][0m todo3 directory not found
+[0;35m[VELOCITY][0m 📦 Packaging aa_javascript goal automation files...
+[1;33m[WARNING][0m aa_javascript directory not found
+[0;35m[VELOCITY][0m 📦 Packaging core JavaScript SDK files...
+[0;32m[SUCCESS][0m Packaged 48 JavaScript source files
+[0;34m[INFO][0m Total lines of code: 26825
+[0;35m[VELOCITY][0m 📦 Packaging main JavaScript files...
+[0;34m[INFO][0m Packaged main file: tsk.js
+[0;34m[INFO][0m Packaged main file: tsk-enhanced.js
+[0;34m[INFO][0m Packaged main file: binary-format.js
+[0;34m[INFO][0m Packaged main file: peanut-config.js
+[0;34m[INFO][0m Packaged main file: index.js
+[0;34m[INFO][0m Packaged main file: example-database.js
+[0;34m[INFO][0m Packaged main file: test-enhanced.js
+[0;34m[INFO][0m Packaged main file: test-fixes.js
+[0;34m[INFO][0m Packaged main file: tsk.ts
+[0;34m[INFO][0m Packaged main file: webpack.config.js
+[0;34m[INFO][0m Packaged main file: license-webpack-plugin.js
+[0;32m[SUCCESS][0m Packaged main JavaScript files
+[0;35m[VELOCITY][0m 📦 Packaging package.json configuration files...
+[0;34m[INFO][0m Packaged package file: package.json
+[0;34m[INFO][0m Packaged package file: package-lock.json
+[0;32m[SUCCESS][0m Packaged package configuration files
+[0;35m[VELOCITY][0m 📦 Packaging JavaScript operators...
+[0;32m[SUCCESS][0m Packaged 15 operator files
+[0;35m[VELOCITY][0m 📦 Packaging CLI tools...
+[0;32m[SUCCESS][0m Packaged CLI tools
+[0;35m[VELOCITY][0m 📦 Packaging test files...
+[0;32m[SUCCESS][0m Packaged 12 test files
+[0;35m[VELOCITY][0m 📦 Packaging documentation...
+[0;32m[SUCCESS][0m Packaged documentation
+[0;35m[VELOCITY][0m 🏗️ Creating final SDK structure...
+[0;32m[SUCCESS][0m Created final SDK structure at /opt/tsk_git/sdk/javascript/build-fixed/tusklang-javascript-sdk
+[0;35m[VELOCITY][0m 📦 Creating deployment package...
+[0;32m[SUCCESS][0m Created deployment package: tusklang-javascript-sdk-fixed-20250721-021047.tar.gz
+[0;34m[INFO][0m Package size: 460K
+[0;34m[INFO][0m Package location: /opt/tsk_git/sdk/javascript/build-fixed/tusklang-javascript-sdk-fixed-20250721-021047.tar.gz
+[0;34m[INFO][0m Total JavaScript files: 126
+[0;34m[INFO][0m Total lines of code: 77532
+[0;32m[SUCCESS][0m 🎉 JavaScript SDK packaging completed successfully - FIXED!
+[0;34m[INFO][0m Total files packaged: 308
+[0;34m[INFO][0m Total JavaScript files: 252
+[0;34m[INFO][0m Total lines of code: 155064
+[0;34m[INFO][0m Build directory: /opt/tsk_git/sdk/javascript/build-fixed
+[0;34m[INFO][0m Log file: /opt/tsk_git/sdk/javascript/build-fixed/packaging.log
+[0;35m[VELOCITY][0m ✅ FIXED: All missing files now included in package!

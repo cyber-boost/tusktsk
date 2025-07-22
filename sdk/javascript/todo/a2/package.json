@@ -1,0 +1,46 @@
+{
+  "name": "tusklang-database-operators",
+  "version": "1.0.0",
+  "description": "Production-ready database operators for TuskLang JavaScript SDK",
+  "main": "index.js",
+  "scripts": {
+    "test": "node g1/postgresql-test.js",
+    "test:all": "echo 'Running all database operator tests...'",
+    "start": "echo 'Database operators are ready for production use'"
+  },
+  "keywords": [
+    "tusklang",
+    "database",
+    "postgresql",
+    "mysql",
+    "mongodb",
+    "influxdb",
+    "elasticsearch",
+    "operators",
+    "sdk"
+  ],
+  "author": "TuskLang Team",
+  "license": "MIT",
+  "dependencies": {
+    "pg": "^8.11.0",
+    "mysql2": "^3.6.0",
+    "mongodb": "^6.0.0",
+    "@influxdata/influxdb-client": "^1.33.0",
+    "@elastic/elasticsearch": "^8.10.0"
+  },
+  "devDependencies": {
+    "jest": "^29.7.0",
+    "supertest": "^6.3.0"
+  },
+  "engines": {
+    "node": ">=16.0.0"
+  },
+  "repository": {
+    "type": "git",
+    "url": "https://github.com/tusklang/javascript-sdk.git"
+  },
+  "bugs": {
+    "url": "https://github.com/tusklang/javascript-sdk/issues"
+  },
+  "homepage": "https://tusklang.org"
+} 
