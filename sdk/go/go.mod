@@ -4,6 +4,7 @@ go 1.22
 
 // SPDX-License-Identifier: MIT
 // Copyright (c) 2024-2025 CyberBoost LLC
+// License: MIT
 
 require (
 	github.com/gin-gonic/gin v1.9.1
