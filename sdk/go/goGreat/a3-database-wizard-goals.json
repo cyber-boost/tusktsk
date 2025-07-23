@@ -1,0 +1,205 @@
+{
+  "agent_id": "a3",
+  "agent_name": "Database Wizard",
+  "mission": "Implement comprehensive multi-database support with ORM capabilities",
+  "priority": "CRITICAL",
+  "velocity_mode": "PRODUCTION_SECONDS",
+  "target_users": 800,
+  "deadline": "IMMEDIATE",
+  "goals": [
+    {
+      "id": "a3-g1",
+      "title": "Database Adapter Framework",
+      "description": "Build unified database adapter interface",
+      "features": [
+        "Unified connection interface",
+        "Connection pooling",
+        "Transaction management",
+        "Query builder",
+        "Migration system"
+      ],
+      "priority": "IMMEDIATE",
+      "estimated_time": "60 minutes"
+    },
+    {
+      "id": "a3-g2",
+      "title": "SQLite Adapter",
+      "description": "High-performance SQLite integration",
+      "features": [
+        "Connection: sqlite:/path/to/database.db",
+        "File-based storage",
+        "Zero-configuration setup",
+        "ACID compliance",
+        "Query execution",
+        "Transaction support",
+        "Schema management"
+      ],
+      "priority": "IMMEDIATE",
+      "estimated_time": "45 minutes"
+    },
+    {
+      "id": "a3-g3",
+      "title": "PostgreSQL Adapter",
+      "description": "Enterprise PostgreSQL support",
+      "features": [
+        "Connection: postgresql://user:pass@host:port/database",
+        "Advanced queries",
+        "Stored procedures",
+        "Full-text search",
+        "JSONB support",
+        "Array operations",
+        "Window functions",
+        "Connection pooling"
+      ],
+      "priority": "IMMEDIATE",
+      "estimated_time": "75 minutes"
+    },
+    {
+      "id": "a3-g4",
+      "title": "MySQL Adapter",
+      "description": "MySQL database integration",
+      "features": [
+        "Connection: mysql://user:pass@host:port/database",
+        "Traditional SQL operations",
+        "Stored procedures",
+        "Replication support",
+        "Partitioning",
+        "Full-text indexing",
+        "Performance optimization"
+      ],
+      "priority": "IMMEDIATE",
+      "estimated_time": "60 minutes"
+    },
+    {
+      "id": "a3-g5",
+      "title": "MongoDB Adapter",
+      "description": "NoSQL MongoDB support",
+      "features": [
+        "Connection: mongodb://user:pass@host:port/database",
+        "Document operations",
+        "Aggregation pipelines",
+        "Schema-less design",
+        "Horizontal scaling",
+        "GridFS support",
+        "Index management"
+      ],
+      "priority": "HIGH",
+      "estimated_time": "90 minutes"
+    },
+    {
+      "id": "a3-g6",
+      "title": "Redis Adapter",
+      "description": "Redis caching and pub/sub",
+      "features": [
+        "Connection: redis://host:port",
+        "Key-value operations",
+        "Pub/sub messaging",
+        "Streams support",
+        "In-memory storage",
+        "Data structures",
+        "Clustering support"
+      ],
+      "priority": "HIGH",
+      "estimated_time": "60 minutes"
+    },
+    {
+      "id": "a3-g7",
+      "title": "ORM Layer",
+      "description": "Object-Relational Mapping system",
+      "features": [
+        "Model definition",
+        "Auto-migration",
+        "Relationship mapping",
+        "Query optimization",
+        "Lazy loading",
+        "Eager loading",
+        "Validation rules"
+      ],
+      "priority": "HIGH",
+      "estimated_time": "120 minutes"
+    },
+    {
+      "id": "a3-g8",
+      "title": "Migration System",
+      "description": "Database schema migration framework",
+      "features": [
+        "Version control",
+        "Up/down migrations",
+        "Rollback support",
+        "Migration history",
+        "Schema validation",
+        "Data seeding"
+      ],
+      "priority": "HIGH",
+      "estimated_time": "90 minutes"
+    },
+    {
+      "id": "a3-g9",
+      "title": "Query Builder",
+      "description": "Advanced query construction",
+      "features": [
+        "Fluent interface",
+        "Complex joins",
+        "Subqueries",
+        "Aggregations",
+        "Raw SQL support",
+        "Query optimization",
+        "Parameter binding"
+      ],
+      "priority": "MEDIUM",
+      "estimated_time": "75 minutes"
+    },
+    {
+      "id": "a3-g10",
+      "title": "Connection Pooling",
+      "description": "High-performance connection management",
+      "features": [
+        "Connection pooling",
+        "Load balancing",
+        "Failover support",
+        "Health checks",
+        "Connection monitoring",
+        "Performance metrics"
+      ],
+      "priority": "MEDIUM",
+      "estimated_time": "60 minutes"
+    },
+    {
+      "id": "a3-g11",
+      "title": "Database CLI Commands",
+      "description": "Command-line database management",
+      "commands": [
+        "tsk db status [--adapter]",
+        "tsk db migrate [--adapter]",
+        "tsk db console [--adapter]",
+        "tsk db backup <file> [--adapter]",
+        "tsk db restore <file> [--adapter]",
+        "tsk db init [--adapter]"
+      ],
+      "priority": "MEDIUM",
+      "estimated_time": "45 minutes"
+    },
+    {
+      "id": "a3-g12",
+      "title": "Performance Optimization",
+      "description": "Database performance enhancements",
+      "features": [
+        "Query caching",
+        "Index optimization",
+        "Connection pooling",
+        "Query analysis",
+        "Performance monitoring",
+        "Slow query detection"
+      ],
+      "priority": "MEDIUM",
+      "estimated_time": "60 minutes"
+    }
+  ],
+  "success_metrics": {
+    "databases_supported": 5,
+    "query_performance": "<50ms average",
+    "connection_pool_size": 100,
+    "migration_success_rate": "99.9%"
+  },
+  "architect_notes": "THE ARCHITECT DEMANDS VELOCITY. 800+ USERS WAITING. PRODUCTION IN SECONDS, NOT DAYS."
+} 

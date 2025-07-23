@@ -1,0 +1,158 @@
+version: '3.8'
+
+services:
+  # Go SDK Service
+  tusktsk-go:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: tusktsk-go-sdk
+    ports:
+      - "8080:8080"
+    environment:
+      - TUSKTSK_ENV=development
+      - TUSKTSK_LOG_LEVEL=debug
+    volumes:
+      - ./testdata:/app/testdata:ro
+      - ./config:/app/config:ro
+    networks:
+      - tusktsk-network
+    depends_on:
+      - mysql
+      - redis
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "./tusktsk", "--version"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # MySQL Database
+  mysql:
+    image: mysql:8.0
+    container_name: tusktsk-mysql
+    environment:
+      MYSQL_ROOT_PASSWORD: tusktsk_root_password
+      MYSQL_DATABASE: tusktsk_db
+      MYSQL_USER: tusktsk_user
+      MYSQL_PASSWORD: tusktsk_password
+    ports:
+      - "3306:3306"
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./sql:/docker-entrypoint-initdb.d:ro
+    networks:
+      - tusktsk-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mysqladmin", "ping", "-h", "localhost"]
+      timeout: 20s
+      retries: 10
+
+  # Redis Cache
+  redis:
+    image: redis:7-alpine
+    container_name: tusktsk-redis
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - tusktsk-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "redis-cli", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # MongoDB (for document storage)
+  mongodb:
+    image: mongo:7
+    container_name: tusktsk-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: tusktsk_admin
+      MONGO_INITDB_ROOT_PASSWORD: tusktsk_admin_password
+      MONGO_INITDB_DATABASE: tusktsk_docs
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+    networks:
+      - tusktsk-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # Elasticsearch (for search functionality)
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:8.11.0
+    container_name: tusktsk-elasticsearch
+    environment:
+      - discovery.type=single-node
+      - xpack.security.enabled=false
+      - "ES_JAVA_OPTS=-Xms512m -Xmx512m"
+    ports:
+      - "9200:9200"
+    volumes:
+      - elasticsearch_data:/usr/share/elasticsearch/data
+    networks:
+      - tusktsk-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD-SHELL", "curl -f http://localhost:9200/_cluster/health || exit 1"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # NATS (for messaging)
+  nats:
+    image: nats:2.10-alpine
+    container_name: tusktsk-nats
+    ports:
+      - "4222:4222"
+      - "8222:8222"
+    networks:
+      - tusktsk-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8222/healthz"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+  # RabbitMQ (alternative messaging)
+  rabbitmq:
+    image: rabbitmq:3-management-alpine
+    container_name: tusktsk-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: tusktsk_user
+      RABBITMQ_DEFAULT_PASS: tusktsk_password
+    ports:
+      - "5672:5672"
+      - "15672:15672"
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+    networks:
+      - tusktsk-network
+    restart: unless-stopped
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+
+volumes:
+  mysql_data:
+  redis_data:
+  mongodb_data:
+  elasticsearch_data:
+  rabbitmq_data:
+
+networks:
+  tusktsk-network:
+    driver: bridge 

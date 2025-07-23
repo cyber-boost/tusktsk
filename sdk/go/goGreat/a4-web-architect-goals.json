@@ -1,0 +1,202 @@
+{
+  "agent_id": "a4",
+  "agent_name": "Web Architect",
+  "mission": "Build comprehensive web server, API framework, and monitoring system",
+  "priority": "CRITICAL",
+  "velocity_mode": "PRODUCTION_SECONDS",
+  "target_users": 800,
+  "deadline": "IMMEDIATE",
+  "goals": [
+    {
+      "id": "a4-g1",
+      "title": "HTTP Server Framework",
+      "description": "High-performance HTTP server with middleware",
+      "features": [
+        "REST API endpoints",
+        "Middleware support (CORS, logging, auth)",
+        "Request/response handling",
+        "Static file serving",
+        "Graceful shutdown",
+        "Health checks",
+        "Rate limiting"
+      ],
+      "priority": "IMMEDIATE",
+      "estimated_time": "90 minutes"
+    },
+    {
+      "id": "a4-g2",
+      "title": "WebSocket Server",
+      "description": "Real-time WebSocket communication",
+      "features": [
+        "WebSocket connections",
+        "Connection management",
+        "Message broadcasting",
+        "Room-based messaging",
+        "Connection pooling",
+        "Heartbeat monitoring",
+        "Auto-reconnection"
+      ],
+      "priority": "IMMEDIATE",
+      "estimated_time": "75 minutes"
+    },
+    {
+      "id": "a4-g3",
+      "title": "GraphQL Server",
+      "description": "GraphQL API server implementation",
+      "features": [
+        "Schema definition",
+        "Query execution",
+        "Mutation support",
+        "Subscription handling",
+        "Resolver implementation",
+        "Introspection",
+        "Query validation"
+      ],
+      "priority": "HIGH",
+      "estimated_time": "120 minutes"
+    },
+    {
+      "id": "a4-g4",
+      "title": "API Documentation",
+      "description": "OpenAPI/Swagger documentation system",
+      "features": [
+        "OpenAPI 3.0 specification",
+        "Interactive documentation",
+        "API testing interface",
+        "Code generation",
+        "Schema validation",
+        "Example generation"
+      ],
+      "priority": "HIGH",
+      "estimated_time": "60 minutes"
+    },
+    {
+      "id": "a4-g5",
+      "title": "Prometheus Metrics",
+      "description": "Comprehensive metrics collection",
+      "features": [
+        "Counter metrics",
+        "Gauge metrics",
+        "Histogram metrics",
+        "Custom metrics",
+        "Metrics endpoint",
+        "Alerting rules",
+        "Performance monitoring"
+      ],
+      "priority": "HIGH",
+      "estimated_time": "90 minutes"
+    },
+    {
+      "id": "a4-g6",
+      "title": "Jaeger Tracing",
+      "description": "Distributed tracing system",
+      "features": [
+        "Span creation",
+        "Trace propagation",
+        "Performance analysis",
+        "Dependency mapping",
+        "Error tracking",
+        "Sampling configuration"
+      ],
+      "priority": "HIGH",
+      "estimated_time": "75 minutes"
+    },
+    {
+      "id": "a4-g7",
+      "title": "Grafana Integration",
+      "description": "Dashboard and visualization",
+      "features": [
+        "Dashboard creation",
+        "Panel updates",
+        "Data source integration",
+        "Alert configuration",
+        "Template dashboards",
+        "Automated reporting"
+      ],
+      "priority": "MEDIUM",
+      "estimated_time": "60 minutes"
+    },
+    {
+      "id": "a4-g8",
+      "title": "Health Monitoring",
+      "description": "Comprehensive health check system",
+      "features": [
+        "Health check endpoints",
+        "Database health",
+        "External service health",
+        "Custom health checks",
+        "Health status reporting",
+        "Failure notifications"
+      ],
+      "priority": "MEDIUM",
+      "estimated_time": "45 minutes"
+    },
+    {
+      "id": "a4-g9",
+      "title": "Rate Limiting",
+      "description": "Advanced rate limiting system",
+      "features": [
+        "Token bucket algorithm",
+        "IP-based limiting",
+        "User-based limiting",
+        "API key limiting",
+        "Rate limit headers",
+        "Custom rate limit rules"
+      ],
+      "priority": "MEDIUM",
+      "estimated_time": "60 minutes"
+    },
+    {
+      "id": "a4-g10",
+      "title": "Authentication Middleware",
+      "description": "Comprehensive authentication system",
+      "features": [
+        "JWT authentication",
+        "OAuth2 integration",
+        "API key authentication",
+        "Session management",
+        "Role-based access",
+        "Permission checking"
+      ],
+      "priority": "MEDIUM",
+      "estimated_time": "90 minutes"
+    },
+    {
+      "id": "a4-g11",
+      "title": "Web Server CLI",
+      "description": "Command-line web server management",
+      "commands": [
+        "tsk web start [--port] [--host]",
+        "tsk web status",
+        "tsk web stop",
+        "tsk web test",
+        "tsk web config",
+        "tsk web logs"
+      ],
+      "priority": "MEDIUM",
+      "estimated_time": "45 minutes"
+    },
+    {
+      "id": "a4-g12",
+      "title": "Performance Optimization",
+      "description": "Web server performance enhancements",
+      "features": [
+        "Connection pooling",
+        "Request caching",
+        "Response compression",
+        "Load balancing",
+        "Circuit breaker",
+        "Performance profiling"
+      ],
+      "priority": "MEDIUM",
+      "estimated_time": "75 minutes"
+    }
+  ],
+  "success_metrics": {
+    "requests_per_second": 10000,
+    "response_time": "<50ms average",
+    "websocket_connections": 1000,
+    "uptime": "99.9%"
+  },
+  "architect_notes": "THE ARCHITECT DEMANDS VELOCITY. 800+ USERS WAITING. PRODUCTION IN SECONDS, NOT DAYS."
+} 

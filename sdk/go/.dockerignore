@@ -1,0 +1,75 @@
+# Git
+.git
+.gitignore
+
+# Build artifacts
+*.tar.gz
+*.tgz
+*.zip
+tusktsk
+target/
+build/
+
+# Logs
+*.log
+deploy-*.log
+
+# Test files
+test_*.db
+testdata/
+tests/
+
+# Documentation
+docs/
+*.md
+!README.md
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Temporary files
+*.tmp
+*.temp
+__pycache__/
+*.pyc
+
+# Node modules (if any)
+node_modules/
+
+# Python
+venv/
+*.egg-info/
+dist/
+
+# Go
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+
+# Backup files
+*.bak
+*.backup
+
+# Checksums and manifests
+*-checksums-*.txt
+*-manifest-*.json
+
+# Package scripts
+package-*.sh
+deploy-*.sh
+
+# Todo and summaries
+todo/
+summaries/
+
+# License directory
+license/ 

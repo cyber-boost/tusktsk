@@ -1,0 +1,201 @@
+{
+  "agent_id": "a5",
+  "agent_name": "Performance Optimizer",
+  "mission": "Implement JIT compilation, advanced caching, and performance optimizations to exceed JavaScript SDK",
+  "priority": "CRITICAL",
+  "velocity_mode": "PRODUCTION_SECONDS",
+  "target_users": 800,
+  "deadline": "IMMEDIATE",
+  "goals": [
+    {
+      "id": "a5-g1",
+      "title": "JIT Compilation Engine",
+      "description": "Just-In-Time compilation for hot paths",
+      "features": [
+        "Runtime code generation",
+        "Hot path detection",
+        "Dynamic optimization",
+        "Machine code generation",
+        "Performance profiling",
+        "Optimization strategies"
+      ],
+      "priority": "IMMEDIATE",
+      "estimated_time": "120 minutes"
+    },
+    {
+      "id": "a5-g2",
+      "title": "Multi-Level Caching System",
+      "description": "Comprehensive caching architecture",
+      "features": [
+        "L1: In-memory cache",
+        "L2: Memcached integration",
+        "L3: Redis cache",
+        "Cache invalidation",
+        "Cache warming",
+        "Cache statistics",
+        "Distributed caching"
+      ],
+      "priority": "IMMEDIATE",
+      "estimated_time": "90 minutes"
+    },
+    {
+      "id": "a5-g3",
+      "title": "Memory Management",
+      "description": "Optimized memory usage patterns",
+      "features": [
+        "Memory pooling",
+        "Garbage collection optimization",
+        "Memory profiling",
+        "Leak detection",
+        "Memory usage monitoring",
+        "Optimized allocations"
+      ],
+      "priority": "IMMEDIATE",
+      "estimated_time": "75 minutes"
+    },
+    {
+      "id": "a5-g4",
+      "title": "Binary Format Optimization",
+      "description": "High-performance binary configuration format",
+      "features": [
+        "Null value removal",
+        "String compression",
+        "Number optimization",
+        "Structure optimization",
+        "Checksum validation",
+        "Version compatibility"
+      ],
+      "priority": "IMMEDIATE",
+      "estimated_time": "60 minutes"
+    },
+    {
+      "id": "a5-g5",
+      "title": "Concurrent Operations",
+      "description": "High-performance concurrent processing",
+      "features": [
+        "Goroutine pools",
+        "Worker pools",
+        "Concurrent operators",
+        "Parallel processing",
+        "Load balancing",
+        "Resource management"
+      ],
+      "priority": "HIGH",
+      "estimated_time": "90 minutes"
+    },
+    {
+      "id": "a5-g6",
+      "title": "Performance Profiling",
+      "description": "Comprehensive performance analysis",
+      "features": [
+        "CPU profiling",
+        "Memory profiling",
+        "Goroutine profiling",
+        "Block profiling",
+        "Mutex profiling",
+        "Performance metrics"
+      ],
+      "priority": "HIGH",
+      "estimated_time": "60 minutes"
+    },
+    {
+      "id": "a5-g7",
+      "title": "Hot Reloading System",
+      "description": "Development-time hot reloading",
+      "features": [
+        "File watching",
+        "Configuration hot-swapping",
+        "Code hot-reloading",
+        "State preservation",
+        "Error recovery",
+        "Development server"
+      ],
+      "priority": "HIGH",
+      "estimated_time": "75 minutes"
+    },
+    {
+      "id": "a5-g8",
+      "title": "Benchmarking Framework",
+      "description": "Comprehensive performance benchmarking",
+      "features": [
+        "Benchmark tests",
+        "Performance comparison",
+        "Regression detection",
+        "Load testing",
+        "Stress testing",
+        "Performance reports"
+      ],
+      "priority": "MEDIUM",
+      "estimated_time": "45 minutes"
+    },
+    {
+      "id": "a5-g9",
+      "title": "Optimization Strategies",
+      "description": "Advanced optimization techniques",
+      "features": [
+        "Loop optimization",
+        "Function inlining",
+        "Dead code elimination",
+        "Constant folding",
+        "Strength reduction",
+        "Vectorization"
+      ],
+      "priority": "MEDIUM",
+      "estimated_time": "90 minutes"
+    },
+    {
+      "id": "a5-g10",
+      "title": "Performance Monitoring",
+      "description": "Real-time performance monitoring",
+      "features": [
+        "Performance dashboards",
+        "Real-time metrics",
+        "Alerting system",
+        "Performance trends",
+        "Bottleneck detection",
+        "Capacity planning"
+      ],
+      "priority": "MEDIUM",
+      "estimated_time": "60 minutes"
+    },
+    {
+      "id": "a5-g11",
+      "title": "Cache CLI Commands",
+      "description": "Command-line cache management",
+      "commands": [
+        "tsk cache clear",
+        "tsk cache status",
+        "tsk cache warm",
+        "tsk cache memcached status",
+        "tsk cache memcached stats",
+        "tsk cache memcached flush",
+        "tsk cache memcached restart",
+        "tsk cache memcached test"
+      ],
+      "priority": "MEDIUM",
+      "estimated_time": "30 minutes"
+    },
+    {
+      "id": "a5-g12",
+      "title": "Performance Testing",
+      "description": "Comprehensive performance test suite",
+      "features": [
+        "Load testing",
+        "Stress testing",
+        "Endurance testing",
+        "Spike testing",
+        "Scalability testing",
+        "Performance regression tests"
+      ],
+      "priority": "MEDIUM",
+      "estimated_time": "60 minutes"
+    }
+  ],
+  "success_metrics": {
+    "performance_improvement": "5x faster than JavaScript SDK",
+    "memory_usage": "60% less than JavaScript SDK",
+    "cache_hit_rate": "95%",
+    "concurrent_operations": 10000
+  },
+  "architect_notes": "THE ARCHITECT DEMANDS VELOCITY. 800+ USERS WAITING. PRODUCTION IN SECONDS, NOT DAYS."
+} 
