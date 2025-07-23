@@ -8,6 +8,8 @@
 //! - Memory-efficient parsing with minimal allocations
 //! - Comprehensive error handling with detailed diagnostics
 
+use serde::{Deserialize, Serialize};
+
 pub mod parser;
 pub mod error;
 pub mod value;
@@ -34,10 +36,32 @@ mod tests;
 
 pub use parser::{Parser, ParserBuilder};
 
+// Configuration type for the SDK
+#[derive(Debug, Clone, Serialize, Deserialize)]
+pub struct Config {
+    pub app: String,
+    pub version: String,
+    pub features: Vec<String>,
+    #[serde(default)]
+    pub settings: std::collections::HashMap<String, Value>,
+}
+
+impl Default for Config {
+    fn default() -> Self {
+        Self {
+            app: "tusklang".to_string(),
+            version: "1.0.0".to_string(),
+            features: vec!["core".to_string()],
+            settings: std::collections::HashMap::new(),
+        }
+    }
+}
+
 // Re-export the parse function for convenience
-pub fn parse_tsk_content(input: &str) -> crate::TuskResult<std::collections::HashMap<String, crate::Value>> {
+pub fn parse_tsk_content(input: &str) -> TuskResult<std::collections::HashMap<String, Value>> {
     Parser::new().parse(input)
 }
+
 pub use error::{TuskError, TuskResult};
 pub use value::{Value, ValueType};
 // pub use validation::{SchemaValidator, SchemaBuilder, ConfigSchema, ValidationRule, ValidationResult};

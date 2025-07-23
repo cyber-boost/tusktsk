@@ -1,63 +1,36 @@
 use clap::Subcommand;
-use crate::{TuskResult, parse, serialize};
-use std::fs;
-use std::path::Path;
+use tusktsk::TuskResult;
 
 #[derive(Subcommand)]
 pub enum DevCommand {
-    Serve { port: Option<u16> },
-    Compile { file: String },
-    Optimize { file: String },
+    Build,
+    Watch,
+    Serve,
+    Test,
+    Lint,
 }
 
 pub fn run(cmd: DevCommand) -> TuskResult<()> {
     match cmd {
-        DevCommand::Serve { port } => { 
-            println!("[serve {:?}] stub", port); 
+        DevCommand::Build => { 
+            println!("[dev build] stub"); 
             Ok(()) 
         }
-        DevCommand::Compile { file } => {
-            dev_compile(&file)?;
-            Ok(())
-        }
-        DevCommand::Optimize { file } => { 
-            println!("[optimize {}] stub", file); 
+        DevCommand::Watch => { 
+            println!("[dev watch] stub"); 
             Ok(()) 
         }
-    }
-}
-
-/// Compile TuskLang file to optimized format
-fn dev_compile(file: &str) -> TuskResult<()> {
-    let content = fs::read_to_string(file)
-        .map_err(|e| {
-            eprintln!("❌ File not found: {}", file);
-            std::process::exit(3); // File not found
-        })?;
-
-    match parse(&content) {
-        Ok(config) => {
-            // Generate optimized output
-            let optimized = serialize(&config)?;
-            
-            // Create output filename
-            let input_path = Path::new(file);
-            let stem = input_path.file_stem().unwrap_or_default();
-            let output_file = format!("{}.compiled.tsk", stem.to_string_lossy());
-            
-            // Write compiled output
-            fs::write(&output_file, optimized)
-                .map_err(|e| {
-                    eprintln!("❌ Failed to write output file: {}", e);
-                    std::process::exit(4); // Permission denied
-                })?;
-            
-            println!("✅ Successfully compiled '{}' to '{}'", file, output_file);
-            Ok(())
+        DevCommand::Serve => { 
+            println!("[dev serve] stub"); 
+            Ok(()) 
         }
-        Err(e) => {
-            eprintln!("❌ Compilation failed: {}", e);
-            std::process::exit(1); // General error
+        DevCommand::Test => { 
+            println!("[dev test] stub"); 
+            Ok(()) 
+        }
+        DevCommand::Lint => { 
+            println!("[dev lint] stub"); 
+            Ok(()) 
         }
     }
 } 

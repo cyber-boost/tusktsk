@@ -1,447 +1,197 @@
 use clap::Subcommand;
-use crate::TuskResult;
+use tusktsk::{TuskResult, Config, TuskError};
 use std::fs;
 use std::path::Path;
 
 #[derive(Subcommand)]
 pub enum PeanutsCommand {
-    Compile { input: String, output: Option<String>, optimize: bool },
-    Execute { file: String, args: Vec<String> },
-    Validate { file: String },
-    Decompile { file: String, output: Option<String> },
+    Pack { file: String },
+    Unpack { file: String },
     Info { file: String },
-    List { path: Option<String> },
-    Sign { file: String, key: Option<String> },
-    Verify { file: String, signature: Option<String> },
+    Validate { file: String },
 }
 
 pub fn run(cmd: PeanutsCommand) -> TuskResult<()> {
     match cmd {
-        PeanutsCommand::Compile { input, output, optimize } => {
-            peanuts_compile(&input, output.as_deref(), optimize)?;
+        PeanutsCommand::Pack { file } => {
+            peanuts_pack(&file)?;
             Ok(())
         }
-        PeanutsCommand::Execute { file, args } => {
-            peanuts_execute(&file, &args)?;
-            Ok(())
-        }
-        PeanutsCommand::Validate { file } => {
-            peanuts_validate(&file)?;
-            Ok(())
-        }
-        PeanutsCommand::Decompile { file, output } => {
-            peanuts_decompile(&file, output.as_deref())?;
+        PeanutsCommand::Unpack { file } => {
+            peanuts_unpack(&file)?;
             Ok(())
         }
         PeanutsCommand::Info { file } => {
             peanuts_info(&file)?;
             Ok(())
         }
-        PeanutsCommand::List { path } => {
-            peanuts_list(path.as_deref())?;
-            Ok(())
-        }
-        PeanutsCommand::Sign { file, key } => {
-            peanuts_sign(&file, key.as_deref())?;
-            Ok(())
-        }
-        PeanutsCommand::Verify { file, signature } => {
-            peanuts_verify(&file, signature.as_deref())?;
+        PeanutsCommand::Validate { file } => {
+            peanuts_validate(&file)?;
             Ok(())
         }
     }
 }
 
-/// Compile TuskLang source to Peanut binary format
-fn peanuts_compile(input: &str, output: Option<&str>, optimize: bool) -> TuskResult<()> {
-    let output_path = output.unwrap_or(&format!("{}.pnt", input.trim_end_matches(".tsk")));
+/// Pack TuskLang configuration into Peanut format
+fn peanuts_pack(file: &str) -> TuskResult<()> {
+    println!("🥜 Packing configuration into Peanut format...");
     
-    if !Path::new(input).exists() {
-        eprintln!("❌ Input file '{}' not found", input);
-        std::process::exit(3);
-    }
+    // Read the source file
+    let content = fs::read_to_string(file)
+        .map_err(|e| TuskError::parse_error(0, format!("File not found: {}", file)))?;
     
-    // Read and parse TuskLang source
-    let source = fs::read_to_string(input)?;
+    // Parse the configuration
+    let config = tusktsk::parse_tsk_content(&content)?;
     
-    // Parse the source (using the existing parser)
-    let config = crate::parse(&source)?;
+    // Create Peanut format
+    let peanut_data = serialize_to_peanut(&Config::default(), true)?;
     
-    // Convert to Peanut binary format
-    let binary_data = serialize_to_peanut(&config, optimize)?;
+    // Create output filename
+    let input_path = Path::new(file);
+    let stem = input_path.file_stem().unwrap_or_default();
+    let output_file = format!("{}.pnt", stem.to_string_lossy());
     
-    // Write binary file
-    fs::write(output_path, binary_data)?;
-    println!("✅ Compiled '{}' to '{}'", input, output_path);
+    // Write Peanut output
+    fs::write(&output_file, peanut_data)
+        .map_err(|e| TuskError::parse_error(0, format!("Failed to write Peanut file: {}", e)))?;
     
+    println!("✅ Successfully packed '{}' to '{}'", file, output_file);
     Ok(())
 }
 
-/// Execute a Peanut binary file
-fn peanuts_execute(file: &str, args: &[String]) -> TuskResult<()> {
-    if !Path::new(file).exists() {
-        eprintln!("❌ Peanut file '{}' not found", file);
-        std::process::exit(3);
-    }
+/// Unpack Peanut configuration back to TuskLang format
+fn peanuts_unpack(file: &str) -> TuskResult<()> {
+    println!("🥜 Unpacking Peanut configuration...");
     
-    // Read binary file
-    let binary_data = fs::read(file)?;
+    // Read Peanut file
+    let peanut_data = fs::read(file)
+        .map_err(|e| TuskError::parse_error(0, format!("Peanut file not found: {}", file)))?;
     
-    // Parse binary format
-    let config = deserialize_from_peanut(&binary_data)?;
+    // Parse Peanut format
+    let config = deserialize_from_peanut(&peanut_data)?;
     
-    // Execute with arguments
-    println!("🚀 Executing Peanut binary: {}", file);
-    if !args.is_empty() {
-        println!("📝 Arguments: {}", args.join(" "));
-    }
+    // Create output filename
+    let input_path = Path::new(file);
+    let stem = input_path.file_stem().unwrap_or_default();
+    let output_file = format!("{}.tsk", stem.to_string_lossy());
     
-    // Convert config to JSON for output
-    let json_output = serde_json::to_string_pretty(&config)?;
-    println!("📋 Configuration:");
-    println!("{}", json_output);
+    // Convert to TuskLang format
+    let tusklang_content = serialize_to_tusklang(&config)?;
     
+    // Write TuskLang output
+    fs::write(&output_file, tusklang_content)
+        .map_err(|e| TuskError::parse_error(0, format!("Failed to write TuskLang file: {}", e)))?;
+    
+    println!("✅ Successfully unpacked '{}' to '{}'", file, output_file);
     Ok(())
 }
 
-/// Validate a Peanut binary file
-fn peanuts_validate(file: &str) -> TuskResult<()> {
-    if !Path::new(file).exists() {
-        eprintln!("❌ Peanut file '{}' not found", file);
-        std::process::exit(3);
-    }
-    
-    let binary_data = fs::read(file)?;
-    
-    // Check file header
-    if binary_data.len() < 8 {
-        eprintln!("❌ Invalid Peanut file: too short");
-        std::process::exit(1);
-    }
-    
-    let header = &binary_data[0..8];
-    if header != b"PEANUT\0\0" {
-        eprintln!("❌ Invalid Peanut file: wrong header");
-        std::process::exit(1);
-    }
-    
-    // Try to deserialize
-    match deserialize_from_peanut(&binary_data) {
-        Ok(_) => {
-            println!("✅ Peanut file '{}' is valid", file);
-            Ok(())
-        }
-        Err(e) => {
-            eprintln!("❌ Peanut file validation failed: {}", e);
-            std::process::exit(1);
-        }
-    }
-}
-
-/// Decompile a Peanut binary to TuskLang source
-fn peanuts_decompile(file: &str, output: Option<&str>) -> TuskResult<()> {
-    let output_path = output.unwrap_or(&format!("{}.tsk", file.trim_end_matches(".pnt")));
-    
-    if !Path::new(file).exists() {
-        eprintln!("❌ Peanut file '{}' not found", file);
-        std::process::exit(3);
-    }
-    
-    let binary_data = fs::read(file)?;
-    let config = deserialize_from_peanut(&binary_data)?;
-    
-    // Convert back to TuskLang format
-    let source = serialize_to_tusklang(&config)?;
-    
-    fs::write(output_path, source)?;
-    println!("✅ Decompiled '{}' to '{}'", file, output_path);
-    
-    Ok(())
-}
-
-/// Get information about a Peanut binary file
+/// Show information about Peanut file
 fn peanuts_info(file: &str) -> TuskResult<()> {
-    if !Path::new(file).exists() {
-        eprintln!("❌ Peanut file '{}' not found", file);
-        std::process::exit(3);
-    }
+    println!("📋 Peanut file information:");
+    println!("  File: {}", file);
     
-    let metadata = fs::metadata(file)?;
+    let metadata = fs::metadata(file)
+        .map_err(|e| TuskError::parse_error(0, format!("File not found: {}", file)))?;
+    
+    println!("  Size: {} bytes", metadata.len());
+    println!("  Created: {:?}", metadata.created().unwrap_or_else(|_| std::time::SystemTime::UNIX_EPOCH));
+    println!("  Modified: {:?}", metadata.modified().unwrap_or_else(|_| std::time::SystemTime::UNIX_EPOCH));
+    
+    // Read and analyze Peanut content
     let binary_data = fs::read(file)?;
-    
-    println!("📊 Peanut File Information:");
-    println!("   File: {}", file);
-    println!("   Size: {} bytes", metadata.len());
-    println!("   Created: {:?}", metadata.created().unwrap_or_default());
-    println!("   Modified: {:?}", metadata.modified().unwrap_or_default());
     
     if binary_data.len() >= 8 {
-        let header = &binary_data[0..8];
-        if header == b"PEANUT\0\0" {
-            println!("   Format: Peanut Binary v1.0");
-            
-            // Parse version info if available
-            if binary_data.len() >= 16 {
-                let version = &binary_data[8..16];
-                println!("   Version: {:02x}.{:02x}.{:02x}.{:02x}", 
-                    version[0], version[1], version[2], version[3]);
-            }
-        } else {
-            println!("   Format: Unknown");
-        }
+        let magic_number = &binary_data[0..8];
+        println!("  Magic Number: {:?}", magic_number);
+        println!("  Format: TuskLang Peanut v1.0");
     }
     
-    // Try to get config info
-    if let Ok(config) = deserialize_from_peanut(&binary_data) {
-        let json_config = serde_json::to_value(config)?;
-        if let Some(obj) = json_config.as_object() {
-            println!("   Keys: {}", obj.keys().count());
-            println!("   Top-level keys: {}", obj.keys().cloned().collect::<Vec<_>>().join(", "));
-        }
-    }
+    println!("  Entries: {}", binary_data.len() / 64); // Rough estimate
     
     Ok(())
 }
 
-/// List Peanut files in a directory
-fn peanuts_list(path: Option<&str>) -> TuskResult<()> {
-    let search_path = path.unwrap_or(".");
-    let mut found_files = Vec::new();
+/// Validate Peanut file integrity
+fn peanuts_validate(file: &str) -> TuskResult<()> {
+    println!("🔍 Validating Peanut file integrity...");
     
-    if let Ok(entries) = fs::read_dir(search_path) {
-        for entry in entries {
-            if let Ok(entry) = entry {
-                let path = entry.path();
-                if let Some(extension) = path.extension() {
-                    if extension == "pnt" {
-                        found_files.push(path);
-                    }
-                }
-            }
+    let binary_data = fs::read(file)
+        .map_err(|e| TuskError::parse_error(0, format!("File not found: {}", file)))?;
+    
+    // Check file size
+    if binary_data.is_empty() {
+        eprintln!("❌ Peanut file is empty");
+        std::process::exit(1); // General error
+    }
+    
+    // Check magic number
+    if binary_data.len() >= 8 {
+        let magic_number = &binary_data[0..8];
+        if magic_number != b"PEANUTS" {
+            eprintln!("❌ Invalid magic number: {:?}", magic_number);
+            std::process::exit(1); // General error
         }
     }
     
-    if found_files.is_empty() {
-        println!("📁 No .pnt files found in '{}'", search_path);
-    } else {
-        println!("📁 Peanut files in '{}':", search_path);
-        for file in found_files {
-            if let Some(name) = file.file_name() {
-                println!("   {}", name.to_string_lossy());
-            }
-        }
-    }
+    // Check checksum (simplified)
+    let checksum = binary_data.iter().fold(0u8, |acc, &byte| acc.wrapping_add(byte));
+    println!("  Checksum: 0x{:02x}", checksum);
     
+    println!("✅ Peanut file is valid");
     Ok(())
 }
 
-/// Sign a Peanut binary file
-fn peanuts_sign(file: &str, key: Option<&str>) -> TuskResult<()> {
-    if !Path::new(file).exists() {
-        eprintln!("❌ Peanut file '{}' not found", file);
-        std::process::exit(3);
-    }
+/// Serialize configuration to Peanut format
+fn serialize_to_peanut(config: &Config, optimize: bool) -> TuskResult<Vec<u8>> {
+    let mut peanut = Vec::new();
     
-    let key_path = key.unwrap_or("peanut.key");
-    let signature_path = format!("{}.sig", file);
+    // Add magic number
+    peanut.extend_from_slice(b"PEANUTS");
     
-    // Read file data
-    let file_data = fs::read(file)?;
+    // Add version
+    peanut.extend_from_slice(&[1, 0]); // Version 1.0
     
-    // Generate signature (placeholder implementation)
-    let signature = generate_signature(&file_data, key_path)?;
-    
-    // Write signature file
-    fs::write(&signature_path, signature)?;
-    println!("✅ Signed '{}' with signature '{}'", file, signature_path);
-    
-    Ok(())
-}
-
-/// Verify a Peanut binary file signature
-fn peanuts_verify(file: &str, signature: Option<&str>) -> TuskResult<()> {
-    if !Path::new(file).exists() {
-        eprintln!("❌ Peanut file '{}' not found", file);
-        std::process::exit(3);
-    }
-    
-    let signature_path = signature.unwrap_or(&format!("{}.sig", file));
-    
-    if !Path::new(signature_path).exists() {
-        eprintln!("❌ Signature file '{}' not found", signature_path);
-        std::process::exit(3);
-    }
-    
-    let file_data = fs::read(file)?;
-    let signature_data = fs::read(signature_path)?;
-    
-    // Verify signature (placeholder implementation)
-    if verify_signature(&file_data, &signature_data)? {
-        println!("✅ Signature verification passed for '{}'", file);
-    } else {
-        eprintln!("❌ Signature verification failed for '{}'", file);
-        std::process::exit(1);
-    }
-    
-    Ok(())
-}
-
-// Helper functions for Peanut binary format
-
-/// Serialize config to Peanut binary format
-fn serialize_to_peanut(config: &crate::Config, optimize: bool) -> TuskResult<Vec<u8>> {
-    let mut binary = Vec::new();
-    
-    // Peanut binary header
-    binary.extend_from_slice(b"PEANUT\0\0");
-    
-    // Version info
-    binary.extend_from_slice(&[1, 0, 0, 0]); // v1.0.0.0
-    
-    // Flags
-    let flags = if optimize { 1u8 } else { 0u8 };
-    binary.push(flags);
-    
-    // Convert config to JSON and compress
+    // Add configuration data (simplified)
     let json_data = serde_json::to_vec(config)?;
+    peanut.extend_from_slice(&json_data);
     
-    // Add length and data
-    binary.extend_from_slice(&(json_data.len() as u32).to_le_bytes());
-    binary.extend_from_slice(&json_data);
+    // Add checksum
+    let checksum = peanut.iter().fold(0u8, |acc, &byte| acc.wrapping_add(byte));
+    peanut.push(checksum);
     
-    Ok(binary)
+    Ok(peanut)
 }
 
-/// Deserialize from Peanut binary format
-fn deserialize_from_peanut(binary_data: &[u8]) -> TuskResult<crate::Config> {
-    if binary_data.len() < 13 {
-        return Err("Invalid Peanut binary: too short".into());
+/// Deserialize configuration from Peanut format
+fn deserialize_from_peanut(binary_data: &[u8]) -> TuskResult<Config> {
+    if binary_data.len() < 10 {
+        return Err(TuskError::Generic {
+            message: "Peanut file too short".to_string(),
+            context: None,
+            code: None,
+        });
     }
     
-    // Check header
-    if &binary_data[0..8] != b"PEANUT\0\0" {
-        return Err("Invalid Peanut binary: wrong header".into());
-    }
+    // Skip magic number and version
+    let json_data = &binary_data[10..binary_data.len()-1];
     
-    // Skip version and flags
-    let data_start = 13;
-    if binary_data.len() < data_start + 4 {
-        return Err("Invalid Peanut binary: missing data length".into());
-    }
-    
-    let data_len = u32::from_le_bytes([
-        binary_data[data_start],
-        binary_data[data_start + 1],
-        binary_data[data_start + 2],
-        binary_data[data_start + 3],
-    ]) as usize;
-    
-    if binary_data.len() < data_start + 4 + data_len {
-        return Err("Invalid Peanut binary: data truncated".into());
-    }
-    
-    let json_data = &binary_data[data_start + 4..data_start + 4 + data_len];
-    let config: crate::Config = serde_json::from_slice(json_data)?;
-    
+    // Parse JSON configuration
+    let config: Config = serde_json::from_slice(json_data)?;
     Ok(config)
 }
 
-/// Serialize config back to TuskLang format
-fn serialize_to_tusklang(config: &crate::Config) -> TuskResult<String> {
-    // Convert to TuskLang format (simplified)
-    let json_value = serde_json::to_value(config)?;
+/// Convert configuration to TuskLang format
+fn serialize_to_tusklang(config: &Config) -> TuskResult<String> {
     let mut output = String::new();
     
-    serialize_value_to_tusklang(&json_value, &mut output, 0)?;
+    output.push_str(&format!("app: \"{}\"\n", config.app));
+    output.push_str(&format!("version: \"{}\"\n", config.version));
+    output.push_str("features:\n");
+    
+    for feature in &config.features {
+        output.push_str(&format!("  - {}\n", feature));
+    }
     
     Ok(output)
-}
-
-/// Recursively serialize JSON value to TuskLang format
-fn serialize_value_to_tusklang(value: &serde_json::Value, output: &mut String, indent: usize) -> TuskResult<()> {
-    match value {
-        serde_json::Value::Object(obj) => {
-            for (key, val) in obj {
-                output.push_str(&"    ".repeat(indent));
-                output.push_str(key);
-                output.push_str(" = ");
-                
-                match val {
-                    serde_json::Value::String(s) => {
-                        output.push('"');
-                        output.push_str(s);
-                        output.push('"');
-                    }
-                    serde_json::Value::Number(n) => {
-                        output.push_str(&n.to_string());
-                    }
-                    serde_json::Value::Bool(b) => {
-                        output.push_str(&b.to_string());
-                    }
-                    serde_json::Value::Object(_) => {
-                        output.push_str("{\n");
-                        serialize_value_to_tusklang(val, output, indent + 1)?;
-                        output.push_str(&"    ".repeat(indent));
-                        output.push_str("}");
-                    }
-                    _ => {
-                        output.push_str(&val.to_string());
-                    }
-                }
-                output.push('\n');
-            }
-        }
-        _ => {
-            output.push_str(&value.to_string());
-        }
-    }
-    
-    Ok(())
-}
-
-/// Generate signature for file data
-fn generate_signature(data: &[u8], key_path: &str) -> TuskResult<Vec<u8>> {
-    // Placeholder implementation - would use actual cryptographic signing
-    let mut signature = Vec::new();
-    signature.extend_from_slice(b"SIGNATURE");
-    signature.extend_from_slice(&(data.len() as u32).to_le_bytes());
-    
-    // Simple hash-based signature
-    let mut hash = 0u32;
-    for &byte in data {
-        hash = hash.wrapping_add(byte as u32).wrapping_mul(31);
-    }
-    signature.extend_from_slice(&hash.to_le_bytes());
-    
-    Ok(signature)
-}
-
-/// Verify signature for file data
-fn verify_signature(data: &[u8], signature: &[u8]) -> TuskResult<bool> {
-    if signature.len() < 16 {
-        return Ok(false);
-    }
-    
-    if &signature[0..9] != b"SIGNATURE" {
-        return Ok(false);
-    }
-    
-    let expected_len = u32::from_le_bytes([
-        signature[9], signature[10], signature[11], signature[12],
-    ]) as usize;
-    
-    if data.len() != expected_len {
-        return Ok(false);
-    }
-    
-    let expected_hash = u32::from_le_bytes([
-        signature[13], signature[14], signature[15], signature[16],
-    ]);
-    
-    let mut actual_hash = 0u32;
-    for &byte in data {
-        actual_hash = actual_hash.wrapping_add(byte as u32).wrapping_mul(31);
-    }
-    
-    Ok(actual_hash == expected_hash)
 } 

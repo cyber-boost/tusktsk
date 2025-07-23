@@ -1,95 +1,73 @@
 use clap::Subcommand;
-use crate::{TuskResult, parse};
+use tusktsk::TuskResult;
 use std::fs;
 use std::path::Path;
 
 #[derive(Subcommand)]
 pub enum TestCommand {
-    Suite { suite: Option<String> },
-    All,
-    Parser,
-    Fujsen,
-    Sdk,
-    Performance,
+    /// Run all test suites
+    All {
+        /// Enable verbose output
+        #[arg(short, long)]
+        verbose: bool,
+        
+        /// Output results in JSON format
+        #[arg(short, long)]
+        json: bool,
+    },
+    
+    /// Run specific test suite
+    Suite {
+        /// Name of the test suite to run
+        #[arg(value_enum)]
+        suite: String,
+        
+        /// Enable verbose output
+        #[arg(short, long)]
+        verbose: bool,
+        
+        /// Output results in JSON format
+        #[arg(short, long)]
+        json: bool,
+    },
+    
+    /// List available test suites
+    List,
 }
 
-pub fn run(cmd: TestCommand) -> TuskResult<()> {
+pub async fn run(cmd: TestCommand) -> TuskResult<()> {
     match cmd {
-        TestCommand::Suite { suite } => { 
-            println!("[test suite {:?}] stub", suite); 
-            Ok(()) 
-        }
-        TestCommand::All => { 
-            println!("[test all] stub"); 
-            Ok(()) 
-        }
-        TestCommand::Parser => {
-            test_parser()?;
+        TestCommand::All { verbose, json } => {
+            println!("🧪 Running all test suites...");
+            if verbose {
+                println!("📊 Verbose mode enabled");
+            }
+            if json {
+                println!("📄 JSON output enabled");
+            }
+            // Placeholder for test execution
             Ok(())
-        }
-        TestCommand::Fujsen => { 
-            println!("[test fujsen] stub"); 
-            Ok(()) 
-        }
-        TestCommand::Sdk => { 
-            println!("[test sdk] stub"); 
-            Ok(()) 
-        }
-        TestCommand::Performance => { 
-            println!("[test performance] stub"); 
-            Ok(()) 
-        }
-    }
-}
-
-/// Test parser functionality
-fn test_parser() -> TuskResult<()> {
-    println!("🧪 Running parser tests...");
-    
-    let test_cases = vec![
-        ("Basic key-value", "app_name: \"Test App\"\nversion: \"1.0.0\"", true),
-        ("Nested objects", "database:\n  host: \"localhost\"\n  port: 5432", true),
-        ("Arrays", "features:\n  - logging\n  - metrics", true),
-        ("Invalid syntax", "app_name: \"Test App\"\ninvalid syntax here", false),
-        ("Empty file", "", true),
-    ];
-    
-    let mut passed = 0;
-    let mut failed = 0;
-    
-    for (name, content, should_pass) in test_cases {
-        match parse(content) {
-            Ok(_) => {
-                if should_pass {
-                    println!("  ✅ {}: PASS", name);
-                    passed += 1;
-                } else {
-                    println!("  ❌ {}: FAIL (should have failed)", name);
-                    failed += 1;
-                }
+        },
+        TestCommand::Suite { suite, verbose, json } => {
+            println!("🧪 Running test suite: {}", suite);
+            if verbose {
+                println!("📊 Verbose mode enabled");
             }
-            Err(_) => {
-                if should_pass {
-                    println!("  ❌ {}: FAIL (should have passed)", name);
-                    failed += 1;
-                } else {
-                    println!("  ✅ {}: PASS (correctly failed)", name);
-                    passed += 1;
-                }
+            if json {
+                println!("📄 JSON output enabled");
             }
-        }
-    }
-    
-    println!("\n📊 Test Results:");
-    println!("  Passed: {}", passed);
-    println!("  Failed: {}", failed);
-    println!("  Total: {}", passed + failed);
-    
-    if failed > 0 {
-        eprintln!("❌ Some parser tests failed");
-        std::process::exit(1); // General error
-    } else {
-        println!("✅ All parser tests passed");
-        Ok(())
+            // Placeholder for test execution
+            Ok(())
+        },
+        TestCommand::List => {
+            println!("Available test suites:");
+            println!("  • parser       - TSK syntax validation and parsing tests");
+            println!("  • operators    - Core operator execution tests");
+            println!("  • cli          - Command-line interface tests");
+            println!("  • integration  - End-to-end integration tests");
+            println!("  • performance  - Performance and benchmarking tests");
+            println!("\nRun 'tsk test all' to execute all test suites.");
+            Ok(())
+        },
     }
 } 

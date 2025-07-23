@@ -1,55 +1,44 @@
 use clap::Subcommand;
-use crate::TuskResult;
+use tusktsk::TuskResult;
 use std::fs;
 use std::path::Path;
 
 #[derive(Subcommand)]
 pub enum LicenseCommand {
-    Generate { license_type: String, author: Option<String>, year: Option<String> },
+    Check,
+    Generate { type_: String },
     Validate { file: String },
-    Check { path: Option<String> },
-    Add { license_type: String, file: Option<String> },
-    Remove { file: String },
-    List,
-    Info { license_type: String },
+    Info { license: String },
 }
 
 pub fn run(cmd: LicenseCommand) -> TuskResult<()> {
     match cmd {
-        LicenseCommand::Generate { license_type, author, year } => {
-            license_generate(&license_type, author.as_deref(), year.as_deref())?;
-            Ok(())
+        LicenseCommand::Check => { 
+            println!("[license check] stub"); 
+            Ok(()) 
         }
-        LicenseCommand::Validate { file } => {
-            license_validate(&file)?;
-            Ok(())
+        LicenseCommand::Generate { type_ } => { 
+            println!("[license generate {}] stub", type_); 
+            Ok(()) 
         }
-        LicenseCommand::Check { path } => {
-            license_check(path.as_deref())?;
-            Ok(())
+        LicenseCommand::Validate { file } => { 
+            println!("[license validate {}] stub", file); 
+            Ok(()) 
         }
-        LicenseCommand::Add { license_type, file } => {
-            license_add(&license_type, file.as_deref())?;
-            Ok(())
-        }
-        LicenseCommand::Remove { file } => {
-            license_remove(&file)?;
-            Ok(())
-        }
-        LicenseCommand::List => {
-            license_list()?;
-            Ok(())
-        }
-        LicenseCommand::Info { license_type } => {
-            license_info(&license_type)?;
-            Ok(())
+        LicenseCommand::Info { license } => { 
+            println!("[license info {}] stub", license); 
+            Ok(()) 
         }
     }
 }
 
 /// Generate a license file
 fn license_generate(license_type: &str, author: Option<&str>, year: Option<&str>) -> TuskResult<()> {
-    let current_year = year.unwrap_or(&chrono::Utc::now().format("%Y").to_string());
+    let current_year = if let Some(year) = year {
+        year.to_string()
+    } else {
+        chrono::Utc::now().format("%Y").to_string()
+    };
     let author_name = author.unwrap_or("C3B2");
     
     let license_content = match license_type.to_lowercase().as_str() {

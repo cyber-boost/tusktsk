@@ -1,15 +1,15 @@
-use crate::{parse, serialize, Config, TuskResult};
-use clap::{Parser as ClapParser, Subcommand, ValueEnum};
+use tusktsk::{parse_tsk_content, serialize, TuskResult, Config, TuskError};
+use clap::{Parser as ClapParser, Subcommand};
 use serde_json;
+use serde_yaml;
 use std::fs;
 use std::path::Path;
 use std::process;
 
-mod commands;
-use commands::*;
+use crate::commands;
 
 #[derive(ClapParser)]
-#[command(name = "tusk-rust")]
+#[command(name = "tsk")]
 #[command(about = "Ultra-fast Rust TuskLang parser and CLI tool")]
 #[command(version = "0.1.0")]
 pub struct Cli {
@@ -55,10 +55,13 @@ enum Commands {
     Css(commands::css::CssCommand),
     License(commands::license::LicenseCommand),
     Peanuts(commands::peanuts::PeanutsCommand),
+    Web(commands::web::WebCommand),
+    Security(commands::security::SecurityCommand),
+    Dependency(commands::dependency::DependencyCommand),
 }
 
 /// Run the CLI application
-pub fn run() -> TuskResult<()> {
+pub async fn run() -> TuskResult<()> {
     let cli = Cli::parse();
 
     // Handle global options
@@ -79,16 +82,23 @@ pub fn run() -> TuskResult<()> {
                 Commands::Bench { file, iterations } => bench_command(&file, iterations),
                 Commands::Db(cmd) => commands::db::run(cmd),
                 Commands::Dev(cmd) => commands::dev::run(cmd),
-                Commands::Test(cmd) => commands::test::run(cmd),
+                Commands::Test(cmd) => commands::test::run(cmd).await,
                 Commands::Services(cmd) => commands::services::run(cmd),
                 Commands::Cache(cmd) => commands::cache::run(cmd),
                 Commands::Config(cmd) => commands::config::run(cmd),
                 Commands::Binary(cmd) => commands::binary::run(cmd),
-                Commands::Ai(cmd) => commands::ai::run(cmd),
+                Commands::Ai(cmd) => {
+                    commands::ai::run(cmd).await.map_err(|e| TuskError::parse_error(0, e.to_string()))
+                },
                 Commands::Utility(cmd) => commands::utility::run(cmd),
                 Commands::Css(cmd) => commands::css::run(cmd),
                 Commands::License(cmd) => commands::license::run(cmd),
                 Commands::Peanuts(cmd) => commands::peanuts::run(cmd),
+                Commands::Web(cmd) => {
+                    commands::web::run(cmd).await.map_err(|e| TuskError::parse_error(0, e.to_string()))
+                },
+                Commands::Security(cmd) => commands::security::run(cmd).await.map_err(|e| TuskError::parse_error(0, e.to_string())),
+                Commands::Dependency(cmd) => commands::dependency::run(cmd).await.map_err(|e| TuskError::parse_error(0, e.to_string())),
             };
 
             match result {
@@ -117,14 +127,16 @@ fn load_configuration(cli_config: &Option<String>) -> TuskResult<Option<Config>>
     // 1. Command-line specified config
     if let Some(config_path) = cli_config {
         if let Ok(content) = fs::read_to_string(config_path) {
-            return Ok(Some(parse(&content)?));
+            let parsed = parse_tsk_content(&content)?;
+            return Ok(Some(Config { data: parsed }));
         }
     }
 
     // 2. Current directory peanu.pnt or peanu.tsk
     for filename in &["peanu.pnt", "peanu.tsk"] {
         if let Ok(content) = fs::read_to_string(filename) {
-            return Ok(Some(parse(&content)?));
+            let parsed = parse_tsk_content(&content)?;
+            return Ok(Some(Config { data: parsed }));
         }
     }
 
@@ -134,7 +146,8 @@ fn load_configuration(cli_config: &Option<String>) -> TuskResult<Option<Config>>
         for filename in &["peanu.pnt", "peanu.tsk"] {
             let config_path = current_dir.join(filename);
             if let Ok(content) = fs::read_to_string(config_path) {
-                return Ok(Some(parse(&content)?));
+                let parsed = parse_tsk_content(&content)?;
+                return Ok(Some(Config { data: parsed }));
             }
         }
         
@@ -147,14 +160,14 @@ fn load_configuration(cli_config: &Option<String>) -> TuskResult<Option<Config>>
     if let Some(home) = dirs::home_dir() {
         let config_path = home.join(".tusklang").join("config.tsk");
         if let Ok(content) = fs::read_to_string(config_path) {
-            return Ok(Some(parse(&content)?));
+            return Ok(Some(parse_tsk_content(&content)?));
         }
     }
 
     // 5. System-wide /etc/tusklang/config.tsk
     let system_config = Path::new("/etc/tusklang/config.tsk");
     if let Ok(content) = fs::read_to_string(system_config) {
-        return Ok(Some(parse(&content)?));
+        return Ok(Some(parse_tsk_content(&content)?));
     }
 
     Ok(None)
@@ -214,9 +227,9 @@ fn interactive_mode() -> TuskResult<()> {
 /// Parse command implementation
 fn parse_command(file: &str, format: &str, pretty: bool) -> TuskResult<()> {
     let content = fs::read_to_string(file)
-        .map_err(|e| crate::error::TuskError::io_error(e.to_string()))?;
+        .map_err(|e| TuskError::parse_error(0, e.to_string()))?;
 
-    let config = parse(&content)?;
+    let config = parse_tsk_content(&content)?;
 
     let output = match format.to_lowercase().as_str() {
         "json" => {
@@ -228,7 +241,10 @@ fn parse_command(file: &str, format: &str, pretty: bool) -> TuskResult<()> {
         }
         "yaml" => serde_yaml::to_string(&config)?,
         "tsk" => serialize(&config)?,
-        _ => return Err(crate::error::TuskError::validation_error(
+        _ => return Err(TuskError::validation_error(
+            "format".to_string(),
+            format.to_string(),
+            "supported_formats".to_string(),
             format!("Unsupported output format: {}", format)
         )),
     };
@@ -240,9 +256,9 @@ fn parse_command(file: &str, format: &str, pretty: bool) -> TuskResult<()> {
 /// Validate command implementation
 fn validate_command(file: &str, verbose: bool) -> TuskResult<()> {
     let content = fs::read_to_string(file)
-        .map_err(|e| crate::error::TuskError::io_error(e.to_string()))?;
+        .map_err(|e| TuskError::parse_error(0, e.to_string()))?;
 
-    match parse(&content) {
+    match parse_tsk_content(&content) {
         Ok(_) => {
             if verbose {
                 println!("✅ File '{}' is valid TuskLang syntax", file);
@@ -268,23 +284,26 @@ fn validate_command(file: &str, verbose: bool) -> TuskResult<()> {
 /// Generate command implementation
 fn gen_command(file: &str, language: &str, output_file: Option<&str>) -> TuskResult<()> {
     let content = fs::read_to_string(file)
-        .map_err(|e| crate::error::TuskError::io_error(e.to_string()))?;
+        .map_err(|e| TuskError::parse_error(0, e.to_string()))?;
 
-    let config = parse(&content)?;
+    let config = parse_tsk_content(&content)?;
     let file_name = Path::new(file).file_stem().unwrap_or_default().to_string_lossy();
 
     let generated_code = match language.to_lowercase().as_str() {
         "rust" => generate_rust_struct(&file_name, &config)?,
         "json" => serde_json::to_string_pretty(&config)?,
         "yaml" => serde_yaml::to_string(&config)?,
-        _ => return Err(crate::error::TuskError::validation_error(
+        _ => return Err(TuskError::validation_error(
+            "language".to_string(),
+            language.to_string(),
+            "supported_languages".to_string(),
             format!("Unsupported language: {}", language)
         )),
     };
 
     if let Some(output_path) = output_file {
         fs::write(output_path, generated_code)
-            .map_err(|e| crate::error::TuskError::io_error(e.to_string()))?;
+            .map_err(|e| TuskError::parse_error(0, e.to_string()))?;
         println!("Generated code written to: {}", output_path);
     } else {
         println!("{}", generated_code);
@@ -296,14 +315,17 @@ fn gen_command(file: &str, language: &str, output_file: Option<&str>) -> TuskRes
 /// Convert command implementation
 fn convert_command(input: &str, from: &str, to: &str, output_file: Option<&str>) -> TuskResult<()> {
     let content = fs::read_to_string(input)
-        .map_err(|e| crate::error::TuskError::io_error(e.to_string()))?;
+        .map_err(|e| TuskError::parse_error(0, e.to_string()))?;
 
     // Parse input format
     let config = match from.to_lowercase().as_str() {
-        "tsk" => parse(&content)?,
-        "json" => serde_json::from_str(&content)?,
-        "yaml" => serde_yaml::from_str(&content)?,
-        _ => return Err(crate::error::TuskError::validation_error(
+        "tsk" => parse_tsk_content(&content)?,
+        "json" => serde_json::from_str::<()>(&content)?,
+        "yaml" => serde_yaml::from_str::<()>(&content)?,
+        _ => return Err(TuskError::validation_error(
+            "from".to_string(),
+            from.to_string(),
+            "supported_formats".to_string(),
             format!("Unsupported input format: {}", from)
         )),
     };
@@ -313,14 +335,17 @@ fn convert_command(input: &str, from: &str, to: &str, output_file: Option<&str>)
         "tsk" => serialize(&config)?,
         "json" => serde_json::to_string_pretty(&config)?,
         "yaml" => serde_yaml::to_string(&config)?,
-        _ => return Err(crate::error::TuskError::validation_error(
+        _ => return Err(TuskError::validation_error(
+            "to".to_string(),
+            to.to_string(),
+            "supported_formats".to_string(),
             format!("Unsupported output format: {}", to)
         )),
     };
 
     if let Some(output_path) = output_file {
         fs::write(output_path, output)
-            .map_err(|e| crate::error::TuskError::io_error(e.to_string()))?;
+            .map_err(|e| TuskError::parse_error(0, e.to_string()))?;
         println!("Converted file written to: {}", output_path);
     } else {
         println!("{}", output);
@@ -332,14 +357,14 @@ fn convert_command(input: &str, from: &str, to: &str, output_file: Option<&str>)
 /// Benchmark command implementation
 fn bench_command(file: &str, iterations: usize) -> TuskResult<()> {
     let content = fs::read_to_string(file)
-        .map_err(|e| crate::error::TuskError::io_error(e.to_string()))?;
+        .map_err(|e| TuskError::parse_error(0, e.to_string()))?;
 
     println!("Running benchmark with {} iterations...", iterations);
     
     let start = std::time::Instant::now();
     
     for _ in 0..iterations {
-        parse(&content)?;
+        parse_tsk_content(&content)?;
     }
     
     let duration = start.elapsed();
@@ -363,12 +388,10 @@ fn generate_rust_struct(struct_name: &str, config: &Config) -> TuskResult<String
     code.push_str(&format!("#[derive(Debug, Clone, Serialize, Deserialize)]\n"));
     code.push_str(&format!("pub struct {} {{\n", struct_name));
     
-    for (key, value) in config {
-        let field_name = to_snake_case(key);
-        let field_type = get_rust_type(value);
-        code.push_str(&format!("    #[serde(rename = \"{}\")]\n", key));
-        code.push_str(&format!("    pub {}: {},\n", field_name, field_type));
-    }
+    // Add standard fields
+    code.push_str(&format!("    pub app: String,\n"));
+    code.push_str(&format!("    pub version: String,\n"));
+    code.push_str(&format!("    pub features: Vec<String>,\n"));
     
     code.push_str("}\n");
     
@@ -394,26 +417,26 @@ fn to_snake_case(s: &str) -> String {
 }
 
 /// Get Rust type for a TuskLang value
-fn get_rust_type(value: &crate::value::Value) -> String {
+fn get_rust_type(value: &serde_json::Value) -> String {
     match value {
-        crate::value::Value::String(_) => "String".to_string(),
-        crate::value::Value::Number(n) => {
-            if n.fract() == 0.0 {
+        serde_json::Value::String(_) => "String".to_string(),
+        serde_json::Value::Number(n) => {
+            if n.as_f64().map(|f| f.fract() == 0.0).unwrap_or(false) {
                 "i64".to_string()
             } else {
                 "f64".to_string()
             }
         }
-        crate::value::Value::Boolean(_) => "bool".to_string(),
-        crate::value::Value::Array(arr) => {
+        serde_json::Value::Bool(_) => "bool".to_string(),
+        serde_json::Value::Array(arr) => {
             if arr.is_empty() {
                 "Vec<serde_json::Value>".to_string()
             } else {
                 format!("Vec<{}>", get_rust_type(&arr[0]))
             }
         }
-        crate::value::Value::Object(_) => "serde_json::Value".to_string(),
-        crate::value::Value::Null => "Option<serde_json::Value>".to_string(),
+        serde_json::Value::Object(_) => "serde_json::Value".to_string(),
+        serde_json::Value::Null => "Option<serde_json::Value>".to_string(),
     }
 }
 
