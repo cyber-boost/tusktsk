@@ -1,6 +1,6 @@
 [package]
 name = "tusktsk"
-version = "2.1.2"
+version = "2.1.3"
 edition = "2021"
 authors = ["Cyberboost LLC"]
 description = "🦀 TuskTsk Enhanced - Ultra-fast Rust configuration parser with maximum syntax flexibility"
